@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-28T18:22:58.711854+00:00",
+  "updated": "2026-08-28T20:42:59.256148+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -545,5 +545,118 @@
     "h4_confidence": "Low",
     "h1_confirmed": false,
     "updated": "2026-08-28T18:22:58.711854+00:00"
+  },
+  "macro_assets": {
+    "vix": {
+      "value": 14.43,
+      "delta_pct": -0.6,
+      "direction": "flat",
+      "label": "VIX"
+    },
+    "spx": {
+      "value": 7711.76,
+      "delta_pct": -0.2,
+      "direction": "flat",
+      "label": "S&P 500"
+    },
+    "gold": {
+      "value": 4505.7,
+      "delta_pct": -2.3,
+      "direction": "down",
+      "label": "Gold"
+    },
+    "dxy": {
+      "value": 99.674,
+      "delta_pct": 0.5,
+      "direction": "up",
+      "label": "DXY"
+    },
+    "copper": {
+      "value": 6.6315,
+      "delta_pct": 0.7,
+      "direction": "up",
+      "label": "Copper"
+    },
+    "us10y": {
+      "value": 4.72,
+      "delta_bp": 4.8,
+      "direction": "up",
+      "label": "US 10Y"
+    },
+    "us3m": {
+      "value": 3.73,
+      "delta_bp": 5.2,
+      "direction": "up",
+      "label": "US 3M"
+    },
+    "wti": {
+      "value": 83.42,
+      "delta_pct": -0.1,
+      "direction": "flat",
+      "label": "WTI Oil"
+    },
+    "btc": {
+      "value": 77411.0,
+      "delta_pct": -3.5,
+      "direction": "down",
+      "label": "Bitcoin"
+    },
+    "curve": {
+      "value": 99.0,
+      "delta_bp": -0.4,
+      "direction": "flat",
+      "label": "10Y-3M"
+    }
+  },
+  "regime_w1": {
+    "regime": "Mixed",
+    "confidence": "Low",
+    "score": 5.0,
+    "signals": 0,
+    "total": 0,
+    "stable": false
+  },
+  "macro": {
+    "label": "Risk-On",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
+    "stable": false
+  },
+  "catalyst": {
+    "text": "USD strength ahead of Jackson Hole and sticky inflation lifting DXY directly conflicts with USDCAD LONG setup.",
+    "updated": "2026-08-28T20:42:59.256148+00:00"
+  },
+  "ranked": {
+    "text": "AUDJPY LONG: US 10Y rise confirms JPY weakness, supports long.\n\nUSDCAD LONG: Gold decline confirms USD strength, supports long.",
+    "top": [
+      {
+        "pair": "AUDJPY",
+        "direction": "bull",
+        "score": 5.8
+      },
+      {
+        "pair": "USDCAD",
+        "direction": "bull",
+        "score": 5.75
+      }
+    ],
+    "updated": "2026-08-28T20:42:59.256148+00:00"
+  },
+  "calendar": {
+    "events": [],
+    "updated": "2026-08-28T20:42:59.256148+00:00"
+  },
+  "breaking": {
+    "headlines": [
+      "Non-farm payrolls benchmark revisions trimmed employment by 79K jobs",
+      "EUR/USD, USD/JPY and USD/CAD favor dollar ahead of Jackson Hole",
+      "Foreign countries aren't buying treasuries like they used to"
+    ],
+    "updated": "2026-08-28T20:42:59.256148+00:00"
+  },
+  "deep_analysis": {
+    "text": "Unavailable (HTTP Error 404: Not Found)",
+    "generated_at": "2026-08-28T20:43:34.377073+00:00"
   }
 }
