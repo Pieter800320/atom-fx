@@ -1,0 +1,627 @@
+<title>ATOM FX Screen Kit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --p-bg:#E9EDF2; --p-panel:#FFFFFF; --p-t1:#0F161D; --p-t2:#53616E; --p-t3:#8593A0;
+  --p-hair:#D3DBE3; --p-accent:#12995B;
+  --p-shadow:0 1px 2px rgba(16,24,32,.05),0 12px 32px rgba(16,24,32,.10);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --p-bg:#06080B; --p-panel:#0E141B; --p-t1:#E6ECF2; --p-t2:#8A99A8; --p-t3:#5A6874;
+  --p-hair:#1B2530; --p-accent:#33C77B; --p-shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  --p-bg:#06080B; --p-panel:#0E141B; --p-t1:#E6ECF2; --p-t2:#8A99A8; --p-t3:#5A6874;
+  --p-hair:#1B2530; --p-accent:#33C77B; --p-shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.5);
+}
+:root[data-theme="light"]{
+  --p-bg:#E9EDF2; --p-panel:#FFFFFF; --p-t1:#0F161D; --p-t2:#53616E; --p-t3:#8593A0;
+  --p-hair:#D3DBE3; --p-accent:#12995B; --p-shadow:0 1px 2px rgba(16,24,32,.05),0 12px 32px rgba(16,24,32,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--p-bg);color:var(--p-t1);
+  font-family:"Inter",system-ui,sans-serif;line-height:1.55;letter-spacing:-.01em;
+  font-feature-settings:"tnum" 1;}
+.wrap{max-width:1240px;margin:0 auto;padding:clamp(26px,5vw,60px) clamp(16px,4vw,40px) 90px}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--p-accent);margin:0 0 12px}
+h1.title{font-size:clamp(28px,6vw,50px);font-weight:700;letter-spacing:-.03em;line-height:1.02;margin:0 0 16px;text-wrap:balance;max-width:18ch}
+.lede{font-size:clamp(14px,2vw,17px);color:var(--p-t2);max-width:64ch;margin:0 0 6px}
+.lede strong{color:var(--p-t1);font-weight:600}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:54px 0 20px;flex-wrap:wrap;border-top:1px solid var(--p-hair);padding-top:26px}
+.sec-num{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--p-t3);font-weight:500}
+.sec-head h2{font-size:clamp(18px,3vw,25px);font-weight:600;letter-spacing:-.02em;margin:0}
+.sec-head p{font-size:13.5px;color:var(--p-t2);margin:0;flex:1;min-width:240px}
+.gallery{display:flex;flex-wrap:wrap;gap:clamp(18px,3vw,34px);justify-content:center;align-items:flex-start}
+.frame-wrap{display:flex;flex-direction:column;gap:11px;align-items:center;width:330px;max-width:88vw}
+.frame-cap{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--p-t2);align-self:flex-start}
+.frame-cap .tag{font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid var(--p-hair)}
+.tag.dark{background:#0b1017;color:#cdd8e2;border-color:#26313d}
+.tag.light{background:#fff;color:#2a3a49;border-color:#d7dfe8}
+.frame-note{font-size:11.5px;color:var(--p-t3);line-height:1.5;align-self:flex-start}
+.phone{width:330px;max-width:88vw;border-radius:38px;padding:11px;background:var(--p-panel);
+  box-shadow:var(--p-shadow),0 0 0 1px var(--p-hair);}
+.screen{position:relative;border-radius:29px;overflow:hidden;height:700px;display:flex;flex-direction:column;
+  background:var(--a-ground);color:var(--a-t1);font-size:13px;}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:24px;z-index:6;display:flex;align-items:center;justify-content:center}
+.notch::after{content:"";width:52px;height:5px;border-radius:3px;background:var(--a-hair2);opacity:.7}
+
+/* app themes */
+.screen.app-dark{--a-ground:#0A0F16;--a-radial:#111A26;--a-surface:#0E141B;--a-raised:#161F29;
+  --a-hair:#1E2833;--a-hair2:#2C3947;--a-t1:#EAF0F6;--a-t2:#9DB0C0;--a-t3:#61707E;
+  --a-bull:#2FBF71;--a-bull-soft:#2fbf7122;--a-bear:#E5484D;--a-bear-soft:#e5484d22;
+  --a-watch:#E7AE3A;--a-watch-soft:#e7ae3a22;--a-neutral:#63727F;--a-accent:#2FBF71;--a-scrim:rgba(3,6,10,.66);}
+.screen.app-light{--a-ground:#EDF1F6;--a-radial:#FFFFFF;--a-surface:#FFFFFF;--a-raised:#F2F6FA;
+  --a-hair:#DDE4EC;--a-hair2:#C6D1DD;--a-t1:#0E141B;--a-t2:#4B5A6B;--a-t3:#8A98A8;
+  --a-bull:#159E5B;--a-bull-soft:#159e5b16;--a-bear:#D0383D;--a-bear-soft:#d0383d14;
+  --a-watch:#B27A16;--a-watch-soft:#b27a1614;--a-neutral:#93A0AD;--a-accent:#159E5B;--a-scrim:rgba(20,28,38,.28);}
+
+/* header */
+.app-head{padding:15px 16px 11px;display:flex;flex-direction:column;gap:5px;border-bottom:1px solid var(--a-hair);z-index:4}
+.ah-r1{display:flex;align-items:center;justify-content:space-between}
+.wordmark{font-size:12px;font-weight:700;letter-spacing:.16em}
+.ah-tools{display:flex;gap:12px;align-items:center;color:var(--a-t3);font-size:13px}
+.ah-updated{font-size:10.5px;color:var(--a-t3);font-family:"JetBrains Mono",monospace;display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--a-bull);box-shadow:0 0 8px var(--a-bull)}
+.ah-regime{font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--a-accent)}
+.ah-sub{font-size:11px;color:var(--a-t2)}
+.ah-sub b{color:var(--a-t1);font-weight:600}
+
+/* status strip */
+.strip{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--a-hair)}
+.strip .cell{padding:8px 4px;text-align:center;border-right:1px solid var(--a-hair)}
+.strip .cell:last-child{border-right:0}
+.strip .k{font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:var(--a-t3);font-weight:600}
+.strip .v{font-size:11.5px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}
+
+.body-scroll{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.wheel-area{flex:1;display:flex;align-items:center;justify-content:center;padding:4px;position:relative}
+.wheel-area svg{width:100%;height:auto;display:block}
+.ring-key{display:flex;gap:5px;padding:4px 10px 8px;justify-content:center;flex-wrap:wrap}
+.ring-key .rk{display:flex;align-items:center;gap:4px;font-size:8px;color:var(--a-t3);letter-spacing:.02em}
+.ring-key .rk b{color:var(--a-t2);font-weight:600}
+.rk-dot{width:6px;height:6px;border-radius:50%}
+
+/* tradeable */
+.tnow{padding:9px 13px 11px;border-top:1px solid var(--a-hair)}
+.tnow .lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-t3);font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+.pills{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
+.pill{flex:none;display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--a-bull-soft);color:var(--a-bull);border:1px solid transparent}
+.pill.aplus{border-color:var(--a-bull)}
+.pill .num{font-family:"JetBrains Mono",monospace}
+.pill.watch{background:var(--a-watch-soft);color:var(--a-watch)}
+
+/* bottom nav */
+.bnav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--a-hair);background:var(--a-surface);z-index:5}
+.bnav .nv{padding:8px 2px 10px;text-align:center;color:var(--a-t3);display:flex;flex-direction:column;align-items:center;gap:3px}
+.bnav .nv.on{color:var(--a-accent)}
+.bnav .nv .ic{font-size:16px;line-height:1}
+.bnav .nv .lb{font-size:8.5px;font-weight:600;letter-spacing:.04em}
+.swipe-hint{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--a-t3);letter-spacing:.08em;opacity:.7}
+
+/* generic section header inside screen */
+.scr-pad{padding:13px 15px;overflow-y:auto;flex:1}
+.blk-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-t3);font-weight:600;margin:14px 0 8px}
+.blk-lbl:first-child{margin-top:0}
+
+/* macro banner */
+.mbanner{background:var(--a-raised);border-radius:14px;padding:14px;border:1px solid var(--a-hair)}
+.mb-code{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--a-t3);letter-spacing:.08em}
+.mb-name{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:3px 0 6px}
+.mb-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{font-size:9.5px;font-weight:600;padding:4px 9px;border-radius:999px;letter-spacing:.02em}
+.chip.hi{background:var(--a-bull-soft);color:var(--a-bull)} .chip.mid{background:var(--a-watch-soft);color:var(--a-watch)}
+.chip.mut{background:var(--a-surface);color:var(--a-t2);border:1px solid var(--a-hair)}
+.mb-narr{font-size:12px;color:var(--a-t2);line-height:1.5}
+.bias{display:flex;gap:8px;margin:10px 0}
+.bias .b{flex:1;border-radius:10px;padding:9px;border:1px solid var(--a-hair)}
+.bias .b .k{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.bias .b.s .k{color:var(--a-bull)} .bias .b.w .k{color:var(--a-bear)}
+.bias .b .ccy{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600}
+.axis-row{display:grid;grid-template-columns:16px 62px 1fr;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--a-hair);font-size:11.5px}
+.axis-row:first-of-type{border-top:0}
+.axis-ic{font-size:11px;font-weight:700}.axis-ic.y{color:var(--a-bull)}.axis-ic.n{color:var(--a-t3)}
+.axis-name{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--a-t3);font-weight:600}
+.axis-read{color:var(--a-t2);font-family:"JetBrains Mono",monospace;font-size:11px}
+
+/* cross-asset table */
+.xtab{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.xtab th{font-size:8.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--a-t3);font-weight:600;text-align:right;padding:6px 5px;border-bottom:1px solid var(--a-hair)}
+.xtab th:first-child{text-align:left}
+.xtab td{padding:7px 5px;border-bottom:1px solid var(--a-hair);text-align:right;color:var(--a-t2)}
+.xtab td:first-child{text-align:left;color:var(--a-t1);font-weight:600}
+.up{color:var(--a-bull)} .dn{color:var(--a-bear)} .fl{color:var(--a-t3)}
+
+/* insights */
+.rec-card{background:var(--a-raised);border-radius:14px;padding:15px;border:1px solid var(--a-hair)}
+.rec-eyebrow{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--a-accent);font-weight:600}
+.rec-head{font-size:18px;font-weight:700;line-height:1.15;letter-spacing:-.02em;margin:4px 0 9px}
+.rec-block{margin-top:11px}.rec-block .k{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--a-t3);font-weight:600;margin-bottom:4px}
+.rec-block p{margin:0;font-size:12.5px;color:var(--a-t1);line-height:1.5}.rec-block.mut p{color:var(--a-t2)}
+.news-row{display:flex;gap:9px;padding:9px 0;border-top:1px solid var(--a-hair);font-size:12px}
+.news-row:first-of-type{border-top:0}
+.news-tag{font-size:8px;font-weight:700;padding:3px 6px;border-radius:5px;height:fit-content;letter-spacing:.03em}
+.news-tag.rates{background:var(--a-watch-soft);color:var(--a-watch)} .news-tag.risk{background:var(--a-bull-soft);color:var(--a-bull)} .news-tag.usd{background:var(--a-bear-soft);color:var(--a-bear)}
+.news-txt{color:var(--a-t2);line-height:1.4}
+.cal-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--a-hair);font-size:11.5px}
+.cal-cc{font-size:9px;font-weight:700;padding:3px 6px;border-radius:5px;background:var(--a-bear-soft);color:var(--a-bear)}
+.cal-t{color:var(--a-t2)}.cal-t b{color:var(--a-t1)}
+
+/* bottom sheet */
+.sheet-hero{flex:1;background:var(--a-ground);position:relative;overflow:hidden}
+.mini-wheel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.5}
+.mini-wheel svg{width:74%}
+.scrim{position:absolute;inset:0;background:var(--a-scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--a-surface);border-top-left-radius:22px;border-top-right-radius:22px;
+  padding:11px 15px 16px;border-top:1px solid var(--a-hair);box-shadow:0 -10px 30px rgba(0,0,0,.28);max-height:88%;overflow-y:auto}
+.handle{width:38px;height:4px;border-radius:3px;background:var(--a-hair2);margin:2px auto 13px}
+.sheet-title{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--a-t3);font-weight:600;margin-bottom:11px}
+
+/* pair sheet */
+.psh .code{font-size:21px;font-weight:700}
+.psh .sub{font-size:11px;color:var(--a-t3)}
+.psh .badges{display:flex;gap:7px;align-items:center;margin-top:6px;font-size:10px;font-weight:600;flex-wrap:wrap}
+.badge{padding:4px 8px;border-radius:999px;font-size:9.5px;letter-spacing:.03em}
+.badge.watch{background:var(--a-watch-soft);color:var(--a-watch)} .badge.long{background:var(--a-bull-soft);color:var(--a-bull)}
+.badge.hi{background:var(--a-bull-soft);color:var(--a-bull)}
+.psh .meta{color:var(--a-t2);font-family:"JetBrains Mono",monospace;font-size:10.5px}
+.spark3{display:flex;gap:7px;margin:12px 0 4px}
+.spark-cell{flex:1;border:1px solid var(--a-hair);border-radius:10px;padding:7px 8px 5px;background:var(--a-ground)}
+.spark-cell .st{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--a-t3);font-weight:600;display:flex;justify-content:space-between}
+.spark-cell .st .pc{font-family:"JetBrains Mono",monospace}
+.spark-cell svg{width:100%;height:34px;display:block;margin-top:3px}
+.why-lbl{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--a-t2);margin:14px 0 8px}
+.factor{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--a-hair)}
+.factor:first-of-type{border-top:0}
+.f-ico{width:18px;height:18px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px}
+.f-ico.pass{background:var(--a-bull-soft);color:var(--a-bull)}.f-ico.fail{background:var(--a-bear-soft);color:var(--a-bear)}.f-ico.lock{background:var(--a-raised);color:var(--a-t3)}
+.f-name{font-size:10.5px;font-weight:700;letter-spacing:.04em}
+.f-name.pass{color:var(--a-t1)}.f-name.fail{color:var(--a-bear)}.f-name.lock{color:var(--a-t3)}
+.f-desc{font-size:11.5px;color:var(--a-t2);margin-top:1px}
+.f-val{font-size:10.5px;color:var(--a-t3);font-family:"JetBrains Mono",monospace;margin-top:2px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:12px 0 4px}
+.tab{flex:none;font-size:10px;font-weight:600;padding:6px 10px;border-radius:999px;color:var(--a-t2);border:1px solid var(--a-hair);background:var(--a-ground)}
+.tab.on{background:var(--a-raised);color:var(--a-t1);border-color:var(--a-hair2)}
+
+/* factor rows generic */
+.frow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--a-hair);font-size:12px}
+.frow:first-of-type{border-top:0}
+.frow .rk{color:var(--a-t2)} .frow .rv{font-family:"JetBrains Mono",monospace;font-weight:600}
+.meter{height:6px;border-radius:3px;background:var(--a-hair);overflow:hidden;flex:1;margin:0 10px}
+.meter i{display:block;height:100%;border-radius:3px;background:var(--a-bull)}
+.tf-tabs{display:flex;gap:6px;margin-bottom:10px}
+.tf{font-size:10px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--a-hair);color:var(--a-t2)}
+.tf.on{background:var(--a-raised);color:var(--a-t1);border-color:var(--a-hair2)}
+
+/* settings */
+.set-grp{margin-bottom:16px}
+.set-grp .gl{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-t3);font-weight:600;margin-bottom:8px}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;background:var(--a-surface);border:1px solid var(--a-hair);border-radius:10px;margin-bottom:7px;font-size:12.5px}
+.seg{display:flex;background:var(--a-ground);border-radius:8px;padding:2px;border:1px solid var(--a-hair)}
+.seg span{font-size:10px;padding:4px 9px;border-radius:6px;color:var(--a-t3)}
+.seg span.on{background:var(--a-raised);color:var(--a-t1);font-weight:600}
+.toggle{width:34px;height:20px;border-radius:999px;background:var(--a-bull);position:relative}
+.toggle::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;right:2px}
+.toggle.off{background:var(--a-hair2)}.toggle.off::after{left:2px;right:auto}
+.key-note{font-size:10.5px;color:var(--a-t3);line-height:1.5;padding:9px 11px;background:var(--a-bull-soft);border-radius:9px;margin-top:4px}
+
+/* flow map */
+.flow{background:var(--p-panel);border:1px solid var(--p-hair);border-radius:16px;padding:clamp(16px,3vw,26px);box-shadow:var(--p-shadow)}
+.flow svg{width:100%;height:auto;display:block;overflow:visible}
+.flow-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:22px}
+.flow-legend .fl-item{font-size:12.5px;color:var(--p-t2);line-height:1.5}
+.flow-legend .fl-item b{color:var(--p-t1)}
+.flow-legend code{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--p-bg);padding:1px 5px;border-radius:4px;color:var(--p-accent)}
+
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:6px}
+.read .r{background:var(--p-panel);border:1px solid var(--p-hair);border-radius:12px;padding:15px;box-shadow:var(--p-shadow)}
+.read .r h3{font-size:12.5px;margin:0 0 6px;font-weight:600;display:flex;align-items:center;gap:8px}
+.read .r p{font-size:12.5px;color:var(--p-t2);margin:0;line-height:1.5}
+.read .r .g{width:11px;height:11px;border-radius:50%;flex:none}
+.foot{margin-top:52px;padding-top:18px;border-top:1px solid var(--p-hair);font-size:12px;color:var(--p-t3);max-width:74ch}
+.foot code{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--p-t2)}
+@media (max-width:520px){.phone,.frame-wrap{width:300px}}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">ATOM FX · Screen Kit</p>
+  <h1 class="title">Every surface, and how they connect</h1>
+  <p class="lede">A visual reference for Claude Code: <strong>all screens</strong> — the pair Energy Wheel, the new Currency Strength Wheel, Macro, Insights — plus every bottom sheet, the simple line chart, and Settings. Navigation is a <strong>4-tab bottom bar you can swipe between</strong>; detail rises in bottom sheets. State shown is the spec's canonical Risk-On example.</p>
+  <p class="lede" style="margin-top:9px">Skip to the <strong>Flow map</strong> at the bottom for the plain-English "tap X → see Y" walkthrough.</p>
+
+  <!-- ============ TOP LEVEL SCREENS ============ -->
+  <div class="sec-head"><span class="sec-num">01</span><h2>Top-level screens · bottom nav + swipe</h2><p>Four destinations: <b>Wheel · Currency · Macro · Insights</b>. Swipe left/right or tap the nav. Settings lives behind the header gear.</p></div>
+  <div class="gallery">
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Wheel — landing</div>
+      <div class="phone"><div class="screen app-dark" id="s-wheel"></div></div>
+      <div class="frame-note">The pair Energy Wheel. Tap a node → pair sheet · tap a ring → factor sheet · tap the nucleus → regime/macro.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Currency — strength wheel <b style="color:var(--p-accent)">NEW</b></div>
+      <div class="phone"><div class="screen app-dark" id="s-ccy"></div></div>
+      <div class="frame-note">8 currencies, radius = strength. Risk bloc on top, defensive on bottom — a top-heavy bloom reads "risk-on" instantly.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Macro — archetype</div>
+      <div class="phone"><div class="screen app-dark" id="s-macro"></div></div>
+      <div class="frame-note">The named regime + currency bias + evidence axes (anti double-count), then the full cross-asset dashboard.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Insights — recommendation, news, calendar</div>
+      <div class="phone"><div class="screen app-dark" id="s-ins"></div></div>
+      <div class="frame-note">The AI synthesis, theme-tagged headlines, and upcoming events in one scroll.</div></div>
+  </div>
+  <div class="gallery" style="margin-top:30px">
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag light">Light</span> Wheel</div>
+      <div class="phone"><div class="screen app-light" id="s-wheel-l"></div></div>
+      <div class="frame-note">Both wheels shown in light too — every surface is theme-aware; glow becomes soft shadow on paper.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag light">Light</span> Currency</div>
+      <div class="phone"><div class="screen app-light" id="s-ccy-l"></div></div>
+      <div class="frame-note">Tap a currency → its detail sheet, and its pairs highlight when you swipe back to the Wheel.</div></div>
+  </div>
+
+  <!-- ============ BOTTOM SHEETS ============ -->
+  <div class="sec-head"><span class="sec-num">02</span><h2>Bottom sheets · one tap deep</h2><p>Rise above any screen; the wheel stays visible behind at half-height. Pair sheet + the six factor sheets.</p></div>
+  <div class="gallery">
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Pair sheet — WHY + line charts</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-pair"></div></div>
+      <div class="frame-note">Tap a node. The three line charts (D1/H4/H1) sit up top; the six-factor WHY shows exactly where the pair stopped.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Regime sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-regime"></div></div>
+      <div class="frame-note">Tap ring 1 (or the nucleus). D1/H4/H1 regime, the three votes, stability, and the macro-archetype link.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Currency Flow sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-flow"></div></div>
+      <div class="frame-note">Tap ring 2. Strength vs Δ; current leader (flow) vs absolute leader — the distinction the wheel is built on.</div></div>
+  </div>
+  <div class="gallery" style="margin-top:30px">
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Breadth sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-breadth"></div></div>
+      <div class="frame-note">Tap ring 3. Is the move broad or from one pair? Bar meters + support/total + band.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Momentum sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-mom"></div></div>
+      <div class="frame-note">Tap ring 4. MOM1212 D1/H4/H1 + deltas, CMP + status, and a sparkline.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Structure sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-struct"></div></div>
+      <div class="frame-note">Tap ring 5. D1/H4 direction, last BOS/CHoCH event, strength. A counter-CHoCH is a red warning.</div></div>
+  </div>
+  <div class="gallery" style="margin-top:30px">
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Entry sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-entry"></div></div>
+      <div class="frame-note">Tap ring 6. "Should I enter now?" — setup rank, continuation, ADX, reset, ATR%, alignment, EMA200, verdict.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Currency detail sheet</div>
+      <div class="phone"><div class="screen app-dark sheet-screen" id="sh-ccy"></div></div>
+      <div class="frame-note">Tap a currency node. CSM across D1/H4/H1, breadth, its handbook drivers, and the pairs that express it.</div></div>
+    <div class="frame-wrap"><div class="frame-cap"><span class="tag dark">Dark</span> Settings</div>
+      <div class="phone"><div class="screen app-dark" id="s-set"></div></div>
+      <div class="frame-note">Header gear. Theme, notifications, data source, optional GitHub PAT. No market/AI keys needed on the device.</div></div>
+  </div>
+
+  <!-- ============ FLOW MAP ============ -->
+  <div class="sec-head"><span class="sec-num">03</span><h2>Flow map · how you move</h2><p>The whole app in one picture, then the plain-English version.</p></div>
+  <div class="flow">
+    <svg id="flowsvg" viewBox="0 0 1000 460" role="img" aria-label="ATOM FX screen flow diagram"></svg>
+    <div class="flow-legend" id="flow-legend"></div>
+  </div>
+
+  <div class="sec-head" style="border-top:none;padding-top:8px"><span class="sec-num">04</span><h2>Reading the wheels</h2><p></p></div>
+  <div class="read">
+    <div class="r"><h3><span class="g" style="background:#2FBF71"></span>Pair wheel — radius = potential</h3><p>Angle is fixed identity (EURUSD always 12 o'clock). A node earns its way outward by passing each ring in order. Colour = long/short. Dots = which factors passed.</p></div>
+    <div class="r"><h3><span class="g" style="background:#7Fc8ff"></span>Currency wheel — radius = strength</h3><p>8 currencies at fixed positions; risk bloc top, defensive bottom. Outer = strong, centre = weak. A top-heavy bloom = risk-on; bottom-heavy = risk-off. Δ chevrons show who's turning.</p></div>
+    <div class="r"><h3><span class="g" style="background:#E7AE3A"></span>Both are linked</h3><p>Tap a currency → its pairs highlight on the pair wheel. A currency bloom and a pair-arc bloom are the same market theme, seen two ways — and the Macro screen names it.</p></div>
+    <div class="r"><h3><span class="g" style="background:#E5484D"></span>Breadth keeps it honest</h3><p>A bloom's confidence is tied to breadth, so one strongly-moving pair can't fake a broad theme (the handbook's double-counting rule).</p></div>
+  </div>
+
+  <p class="foot">Data numbers are the spec's canonical Risk-On illustration, not a live feed. Geometry matches <code>ATOM_FX_ARCHITECTURE.md</code> and <code>ATOM_FX_DESIGN.md</code>; placement matches <code>ATOM_FX_FUNCTIONAL_SPEC.md</code>. In the app every wheel is a Compose <code>Canvas</code>; this SVG is the visual target. Drop this file in the repo (e.g. <code>docs/mockups/</code>) so CC can open it.</p>
+</div>
+
+<script>
+/* ===================== PALETTES ===================== */
+const PAL={
+ dark:{ground:"#0A0F16",radial:"#121C29",ring:"#212C39",ring6:"#33C77B",t1:"#EAF0F6",t2:"#9DB0C0",t3:"#61707E",bull:"#2FBF71",bear:"#E5484D",watch:"#E7AE3A",neutral:"#5B6975",glow:true,low:"#182129",nucFill:"#0C141D"},
+ light:{ground:"#FFFFFF",radial:"#FFFFFF",ring:"#D7DFE8",ring6:"#159E5B",t1:"#0E141B",t2:"#4B5A6B",t3:"#93A0AD",bull:"#159E5B",bear:"#D0383D",watch:"#B27A16",neutral:"#9AA7B4",glow:false,low:"#E7ECF1",nucFill:"#F4F7FA"}
+};
+function polar(cx,cy,r,deg){const a=(deg-90)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+
+/* ===================== PAIR WHEEL ===================== */
+const PAIRS=[
+ {p:"EURUSD",lvl:6,pot:86,dir:"bull",top:true},{p:"GBPUSD",lvl:4,pot:68,dir:"bull"},
+ {p:"USDJPY",lvl:1,pot:24,dir:"neutral"},{p:"USDCHF",lvl:1,pot:18,dir:"neutral"},
+ {p:"AUDUSD",lvl:6,pot:74,dir:"bull"},{p:"USDCAD",lvl:1,pot:20,dir:"neutral"},
+ {p:"NZDUSD",lvl:5,pot:66,dir:"bull"},{p:"EURJPY",lvl:6,pot:79,dir:"bull"},
+ {p:"GBPJPY",lvl:4,pot:62,dir:"bull"},{p:"AUDJPY",lvl:4,pot:70,dir:"bull"},
+ {p:"NZDJPY",lvl:4,pot:61,dir:"bull"},{p:"CADJPY",lvl:2,pot:40,dir:"neutral"}
+];
+const RING=[150,205,260,315,370,422];
+function pairWheel(theme){
+ const t=PAL[theme],cx=500,cy=500,NUC=92;let s="";
+ s+=`<svg viewBox="0 0 1000 1000" role="img" aria-label="Pair energy wheel">`;
+ s+=`<defs><radialGradient id="pg-${theme}" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="${t.radial}"/><stop offset="100%" stop-color="${t.ground}"/></radialGradient>
+   <filter id="pgl-${theme}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+ s+=`<circle cx="${cx}" cy="${cy}" r="470" fill="url(#pg-${theme})"/>`;
+ for(let i=0;i<6;i++){const o=i===5;s+=`<circle cx="${cx}" cy="${cy}" r="${RING[i]}" fill="none" stroke="${o?t.ring6:t.ring}" stroke-width="${o?2.4:1.3}" stroke-opacity="${o?.55:.9}"/>`;}
+ const dc=d=>d==="bull"?t.bull:d==="bear"?t.bear:t.neutral;
+ PAIRS.forEach((d,idx)=>{const ang=idx*30,col=dc(d.dir);const[nx,ny]=polar(cx,cy,RING[Math.max(0,d.lvl-1)],ang);const[sx,sy]=polar(cx,cy,NUC+6,ang);
+   s+=`<line x1="${sx}" y1="${sy}" x2="${nx}" y2="${ny}" stroke="${col}" stroke-width="1.4" stroke-opacity="${d.lvl>=3?.32:.14}"/>`;
+   for(let f=0;f<6;f++){const[dx,dy]=polar(cx,cy,RING[f],ang);const pa=f<d.lvl;s+=`<circle cx="${dx}" cy="${dy}" r="${pa?4.4:3}" fill="${pa?col:t.ring}" fill-opacity="${pa?.95:.6}"/>`;}});
+ [...PAIRS.keys()].sort((a,b)=>PAIRS[a].lvl-PAIRS[b].lvl).forEach(idx=>{const d=PAIRS[idx],ang=idx*30,col=dc(d.dir);const r=RING[d.lvl-1];const[x,y]=polar(cx,cy,r,ang);
+   const disc=16+d.lvl*2,low=d.lvl<=2,high=d.lvl>=5;const fill=low?t.low:col;const flt=(high&&t.glow)?` filter="url(#pgl-${theme})"`:"";
+   if(d.top)s+=`<circle cx="${x}" cy="${y}" r="${disc+10}" fill="none" stroke="${col}" stroke-width="1.8" stroke-opacity=".55"/>`;
+   if(high&&!t.glow)s+=`<circle cx="${x}" cy="${y}" r="${disc+5}" fill="${col}" fill-opacity=".13"/>`;
+   s+=`<circle cx="${x}" cy="${y}" r="${disc}" fill="${fill}" fill-opacity="${low?.85:1}" stroke="${low?t.ring:col}" stroke-width="${low?1:1.6}" stroke-opacity="${low?.8:.9}"${flt}/>`;
+   if(d.lvl>=3){const nc=theme==="light"?"#fff":"#08120C";s+=`<text x="${x}" y="${y+disc*.36}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="600" font-size="${disc*.92}" fill="${nc}">${d.pot}</text>`;}
+   const[lx,ly]=polar(cx,cy,r+disc+15,ang);s+=`<text x="${lx}" y="${ly+4}" text-anchor="middle" font-family="Inter" font-weight="600" font-size="27" letter-spacing=".3" fill="${low?t.t3:t.t2}">${d.p}</text>`;});
+ s+=`<circle cx="${cx}" cy="${cy}" r="${NUC}" fill="${t.nucFill}" stroke="${t.bull}" stroke-width="1.6" stroke-opacity=".6"/>`;
+ s+=`<text x="${cx}" y="${cy-32}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="30" letter-spacing="1.5" fill="${t.bull}">RISK ON</text>`;
+ s+=`<text x="${cx}" y="${cy-8}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="18" fill="${t.t2}">Strong</text>`;
+ s+=`<text x="${cx}" y="${cy+28}" text-anchor="middle" font-family="JetBrains Mono" font-weight="600" font-size="40" fill="${t.t1}">+7.4</text>`;
+ s+=`<text x="${cx}" y="${cy+50}" text-anchor="middle" font-family="Inter" font-weight="500" font-size="15" fill="${t.t3}">Growth risk-on</text>`;
+ s+=`</svg>`;return s;
+}
+function ringKey(){const it=[["1","Regime","#5B6975"],["2","Flow","#9DB0C0"],["3","Breadth","#9DB0C0"],["4","Mom","#E7AE3A"],["5","Struct","#2FBF71"],["6","Entry","#2FBF71"]];
+ return `<div class="ring-key">`+it.map(i=>`<span class="rk"><span class="rk-dot" style="background:${i[2]}"></span><b>${i[0]}</b> ${i[1]}</span>`).join("")+`</div>`;}
+
+/* ===================== CURRENCY WHEEL ===================== */
+// risk bloc (top arc) + defensive bloc (bottom arc). radius = CSM strength.
+const CCY=[
+ {c:"NZD",v:81,d:+3,bloc:"risk",ang:-165},{c:"AUD",v:76,d:+4,bloc:"risk",ang:-125},
+ {c:"EUR",v:72,d:+8,bloc:"risk",ang:-90},{c:"GBP",v:63,d:+2,bloc:"risk",ang:-55},
+ {c:"CAD",v:54,d:+1,bloc:"risk",ang:-15},
+ {c:"CHF",v:38,d:-5,bloc:"def",ang:35},{c:"JPY",v:31,d:-7,bloc:"def",ang:90},{c:"USD",v:28,d:-10,bloc:"def",ang:145}
+];
+function ccyWheel(theme){
+ const t=PAL[theme],cx=500,cy=500,inR=135,outR=418;let s="";
+ const rFor=v=>inR+(v/100)*(outR-inR);
+ const tier=v=>v>=60?t.bull:v<=40?t.bear:t.watch;
+ s+=`<svg viewBox="0 0 1000 1000" role="img" aria-label="Currency strength wheel">`;
+ s+=`<defs><radialGradient id="cg-${theme}" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="${t.radial}"/><stop offset="100%" stop-color="${t.ground}"/></radialGradient>
+   <filter id="cgl-${theme}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+ s+=`<circle cx="${cx}" cy="${cy}" r="470" fill="url(#cg-${theme})"/>`;
+ // strength guide rings
+ [25,50,75,100].forEach(v=>{s+=`<circle cx="${cx}" cy="${cy}" r="${rFor(v)}" fill="none" stroke="${t.ring}" stroke-width="1" stroke-opacity=".5"/>`;});
+ // bloc divider + labels
+ s+=`<line x1="70" y1="${cy}" x2="930" y2="${cy}" stroke="${t.ring}" stroke-width="1" stroke-dasharray="3 7" stroke-opacity=".5"/>`;
+ s+=`<text x="${cx}" y="60" text-anchor="middle" font-family="Inter" font-weight="600" font-size="20" letter-spacing="2" fill="${t.t3}">RISK BLOC</text>`;
+ s+=`<text x="${cx}" y="965" text-anchor="middle" font-family="Inter" font-weight="600" font-size="20" letter-spacing="2" fill="${t.t3}">DEFENSIVE</text>`;
+ // spokes + nodes
+ CCY.forEach(d=>{const r=rFor(d.v),col=tier(d.v);const[x,y]=polar(cx,cy,r,d.ang);const[sx,sy]=polar(cx,cy,inR-20,d.ang);
+   s+=`<line x1="${sx}" y1="${sy}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="1.4" stroke-opacity=".28"/>`;
+   const disc=30,strong=d.v>=60;const flt=(strong&&t.glow)?` filter="url(#cgl-${theme})"`:"";
+   if(strong&&!t.glow)s+=`<circle cx="${x}" cy="${y}" r="${disc+5}" fill="${col}" fill-opacity=".12"/>`;
+   s+=`<circle cx="${x}" cy="${y}" r="${disc}" fill="${col}" fill-opacity="${d.v<=40?.85:1}"${flt}/>`;
+   const nc=theme==="light"?"#fff":"#08120C";
+   s+=`<text x="${x}" y="${y-2}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="21" fill="${nc}">${d.c}</text>`;
+   s+=`<text x="${x}" y="${y+18}" text-anchor="middle" font-family="JetBrains Mono" font-weight="600" font-size="15" fill="${nc}" opacity=".85">${d.v}</text>`;
+   // delta chevron outside
+   const[dx,dy]=polar(cx,cy,r+disc+16,d.ang);const arr=d.d>0?"▲":d.d<0?"▼":"–";const acol=d.d>0?t.bull:d.d<0?t.bear:t.t3;
+   s+=`<text x="${dx}" y="${dy+5}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="17" fill="${acol}">${arr}${Math.abs(d.d)}</text>`;});
+ // center summary
+ s+=`<circle cx="${cx}" cy="${cy}" r="86" fill="${t.nucFill}" stroke="${t.ring}" stroke-width="1.4"/>`;
+ s+=`<text x="${cx}" y="${cy-20}" text-anchor="middle" font-family="Inter" font-weight="600" font-size="17" fill="${t.t3}">LEADER</text>`;
+ s+=`<text x="${cx}" y="${cy+6}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="26" fill="${t.bull}">EUR +8</text>`;
+ s+=`<text x="${cx}" y="${cy+30}" text-anchor="middle" font-family="Inter" font-weight="600" font-size="15" fill="${t.t3}">LAGGARD</text>`;
+ s+=`<text x="${cx}" y="${cy+52}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="20" fill="${t.bear}">USD −10</text>`;
+ s+=`</svg>`;return s;
+}
+
+/* ===================== SPARKLINE ===================== */
+function spark(theme,pts,dir){const t=PAL[theme],w=100,h=34,col=dir==="bull"?t.bull:t.bear;
+ const mn=Math.min(...pts),mx=Math.max(...pts),rng=(mx-mn)||1;
+ const X=i=>i/(pts.length-1)*w,Y=v=>h-2-((v-mn)/rng)*(h-6);
+ let d=pts.map((v,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+ let area=d+`L${w} ${h} L0 ${h} Z`;
+ const[ex,ey]=[w,Y(pts[pts.length-1])];
+ return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${area}" fill="${col}" fill-opacity=".1"/><path d="${d}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/><circle cx="${ex}" cy="${ey}" r="2.2" fill="${col}"/></svg>`;}
+function sgen(n,trend){let a=[],v=50;for(let i=0;i<n;i++){v+=(Math.random()-0.5)*6+trend;a.push(v);}return a;}
+
+/* ===================== SCREEN CHROME ===================== */
+function header(t1,sub){return `<div class="notch"></div><div class="app-head">
+  <div class="ah-r1"><span class="wordmark">ATOM FX</span><span class="ah-tools"><span>⚲</span><span>⚙</span></span></div>
+  <div class="ah-r1"><span class="ah-regime">${t1}</span><span class="ah-updated"><span class="dot"></span>09:42</span></div>
+  <div class="ah-sub">${sub}</div></div>`;}
+function strip(){return `<div class="strip">
+  <div class="cell"><div class="k">Regime</div><div class="v" style="color:var(--a-bull)">Risk-On</div></div>
+  <div class="cell"><div class="k">Leader</div><div class="v">EUR +8</div></div>
+  <div class="cell"><div class="k">Laggard</div><div class="v" style="color:var(--a-bear)">USD −10</div></div>
+  <div class="cell"><div class="k">Breadth</div><div class="v">Strong</div></div>
+  <div class="cell"><div class="k">Top</div><div class="v">EURUSD</div></div></div>`;}
+function bnav(active){const items=[["◎","Wheel"],["◈","Currency"],["◭","Macro"],["✦","Insights"]];
+  return `<div class="bnav">`+items.map((i,x)=>`<div class="nv${x===active?' on':''}"><span class="ic">${i[0]}</span><span class="lb">${i[1]}</span></div>`).join("")+`</div>`;}
+
+/* ===================== TOP-LEVEL SCREENS ===================== */
+function scrWheel(id,theme){document.getElementById(id).innerHTML=
+ header("RISK ON ↑","<b>EUR</b> leading · <b>USD</b> weakening")+strip()+
+ `<div class="body-scroll"><div class="wheel-area">${pairWheel(theme)}</div>${ringKey()}
+   <div class="tnow"><div class="lbl"><span>Tradeable now</span><span style="color:var(--a-t2)">3</span></div>
+   <div class="pills"><span class="pill aplus">EURUSD ↑ <span class="num">86</span></span><span class="pill">EURJPY ↑ <span class="num">79</span></span><span class="pill">AUDUSD ↑ <span class="num">74</span></span><span class="pill watch">AUDJPY · 4/6</span></div></div>
+   <div class="swipe-hint">‹ swipe · Currency ›</div></div>`+bnav(0);}
+function scrCcy(id,theme){document.getElementById(id).innerHTML=
+ header("RISK ON ↑","Risk bloc bid · Defensive sold")+
+ `<div class="body-scroll"><div class="wheel-area">${ccyWheel(theme)}</div>
+   <div class="ring-key"><span class="rk"><span class="rk-dot" style="background:var(--a-bull)"></span><b>Strong</b> ≥60</span><span class="rk"><span class="rk-dot" style="background:var(--a-watch)"></span><b>Mid</b> 40–60</span><span class="rk"><span class="rk-dot" style="background:var(--a-bear)"></span><b>Weak</b> ≤40</span><span class="rk">▲▼ = strength Δ (flow)</span></div>
+   <div class="tnow"><div class="lbl"><span>Strongest → Weakest (H4)</span><span style="color:var(--a-t2)">tap a currency</span></div>
+   <div class="pills"><span class="pill">NZD 81</span><span class="pill">AUD 76</span><span class="pill">EUR 72</span><span class="pill" style="background:var(--a-watch-soft);color:var(--a-watch)">GBP 63</span><span class="pill" style="background:var(--a-bear-soft);color:var(--a-bear)">USD 28</span></div></div>
+   <div class="swipe-hint">‹ Wheel · Macro ›</div></div>`+bnav(1);}
+function scrMacro(id,theme){document.getElementById(id).innerHTML=
+ header("MACRO","Growth-positive risk-on")+
+ `<div class="scr-pad">
+   <div class="mbanner"><div class="mb-code">REGIME A</div><div class="mb-name">Growth-positive risk-on</div>
+     <div class="mb-chips"><span class="chip hi">Confidence High · 3 axes</span><span class="chip mut">USD: growth dominance</span><span class="chip mid">Gold: diversification</span></div>
+     <div class="mb-narr">Broad risk appetite with firm cyclical commodities favours the dollar-bloc growth currencies over funders.</div>
+     <div class="bias"><div class="b s"><div class="k">Strong</div><div class="ccy">AUD · NZD · CAD</div></div><div class="b w"><div class="k">Weak</div><div class="ccy">JPY · CHF</div></div></div></div>
+   <div class="blk-lbl">Evidence axes (distinct, not double-counted)</div>
+   <div class="axis-row"><span class="axis-ic y">✓</span><span class="axis-name">Risk</span><span class="axis-read">SPX↑ VIX↓ Copper↑</span></div>
+   <div class="axis-row"><span class="axis-ic y">✓</span><span class="axis-name">Rates</span><span class="axis-read">US10Y↑ modest</span></div>
+   <div class="axis-row"><span class="axis-ic n">•</span><span class="axis-name">USD</span><span class="axis-read">DXY flat — not confirming</span></div>
+   <div class="axis-row"><span class="axis-ic y">✓</span><span class="axis-name">Commodity</span><span class="axis-read">Copper↑ WTI firm</span></div>
+   <div class="blk-lbl">Cross-asset dashboard</div>
+   <table class="xtab"><tr><th>Asset</th><th>Value</th><th>Δ</th><th>Read</th></tr>
+   <tr><td>VIX</td><td>15.2</td><td class="dn">−1.6%</td><td class="fl">complacent</td></tr>
+   <tr><td>S&P 500</td><td>7,676</td><td class="up">+0.4%</td><td class="up">bull</td></tr>
+   <tr><td>Copper</td><td>6.71</td><td class="up">+1.7%</td><td class="up">growth</td></tr>
+   <tr><td>Gold</td><td>4,672</td><td class="up">+1.6%</td><td class="fl">divers.</td></tr>
+   <tr><td>DXY</td><td>99.1</td><td class="fl">−0.0%</td><td class="fl">flat</td></tr>
+   <tr><td>US 10Y</td><td>4.66</td><td class="up">+2.5bp</td><td class="fl">neutral</td></tr>
+   <tr><td>WTI</td><td>81.8</td><td class="dn">−0.5%</td><td class="fl">balanced</td></tr>
+   <tr><td>BTC</td><td>78.7k</td><td class="up">+0.1%</td><td class="fl">quiet</td></tr></table></div>`+bnav(2);}
+function scrInsights(id,theme){document.getElementById(id).innerHTML=
+ header("INSIGHTS","Recommendation · News · Calendar")+
+ `<div class="scr-pad">
+   <div class="rec-card"><div class="rec-eyebrow">Recommendation · 09:42</div>
+     <div class="rec-head">Favour JPY-cross longs while risk-on holds</div>
+     <div class="mb-chips"><span class="chip mid">WATCH</span><span class="chip hi">EURUSD · LONG</span><span class="chip mut">Confidence: Medium</span></div>
+     <div class="rec-block"><div class="k">Rationale</div><p>EUR strengthening broadly (+8, breadth 7/8) while USD weakens across the board. Gold up and DXY offered confirm the risk-on read; the JPY-crosses lead.</p></div>
+     <div class="rec-block mut"><div class="k">What flips it</div><p>A DXY reclaim of 99.4 or VIX back above 20 pulls the outer cluster inward.</p></div></div>
+   <div class="blk-lbl">Breaking · theme-tagged</div>
+   <div class="news-row"><span class="news-tag usd">USD</span><span class="news-txt">DXY breaks 99.38 as EUR/USD and GBP/USD extend gains</span></div>
+   <div class="news-row"><span class="news-tag rates">RATES</span><span class="news-txt">Dallas Fed trimmed mean +2.2% vs 1.5% last month</span></div>
+   <div class="news-row"><span class="news-tag risk">RISK</span><span class="news-txt">Copper firms on China demand hopes — AUD bid</span></div>
+   <div class="blk-lbl">Next high-impact events</div>
+   <div class="cal-row"><span class="cal-cc">USD</span><span class="cal-t"><b>PCE Price Index</b> · Thu 12:30 · fcst 2.8%</span></div>
+   <div class="cal-row"><span class="cal-cc">AUD</span><span class="cal-t"><b>RBA Decision</b> · Thu 22:40 · hold expected</span></div>
+   <div class="cal-row"><span class="cal-cc" style="background:var(--a-watch-soft);color:var(--a-watch)">GBP</span><span class="cal-t"><b>BoE Bank Rate</b> · Thu 11:00 · hawkish tilt</span></div></div>`+bnav(3);}
+
+/* ===================== BOTTOM SHEETS ===================== */
+function sheet(id,theme,inner){document.getElementById(id).innerHTML=
+ `<div class="notch"></div><div class="sheet-hero"><div class="mini-wheel">${pairWheel(theme)}</div><div class="scrim"></div>
+   <div class="sheet"><div class="handle"></div>${inner}</div></div>`;}
+function shPair(id,theme){const t=PAL[theme];
+ sheet(id,theme,`<div class="psh"><div class="code">AUDJPY</div><div class="sub">AUD / JPY</div>
+   <div class="badges"><span class="badge watch">WATCH · 4/6</span><span class="badge long">LONG</span><span class="meta">Potential 70 · Rank #4</span></div></div>
+  <div class="spark3">
+    <div class="spark-cell"><div class="st"><span>D1</span><span class="pc up">+0.3%</span></div>${spark(theme,sgen(40,0.9),"bull")}</div>
+    <div class="spark-cell"><div class="st"><span>H4</span><span class="pc up">+0.2%</span></div>${spark(theme,sgen(40,0.5),"bull")}</div>
+    <div class="spark-cell"><div class="st"><span>H1</span><span class="pc dn">−0.1%</span></div>${spark(theme,sgen(40,-0.4),"bear")}</div></div>
+  <div class="why-lbl">WHY?</div>
+  <div class="factor"><span class="f-ico pass">✓</span><div><div class="f-name pass">REGIME</div><div class="f-desc">Risk-On supports AUDJPY</div></div></div>
+  <div class="factor"><span class="f-ico pass">✓</span><div><div class="f-name pass">FLOW</div><div class="f-desc">AUD +4 · JPY −7</div></div></div>
+  <div class="factor"><span class="f-ico pass">✓</span><div><div class="f-name pass">BREADTH</div><div class="f-desc">AUD 5/5 · JPY weak 4/4</div></div></div>
+  <div class="factor"><span class="f-ico pass">✓</span><div><div class="f-name pass">MOMENTUM</div><div class="f-desc">CMP 76 · D1 delta +3</div></div></div>
+  <div class="factor"><span class="f-ico fail">✕</span><div><div class="f-name fail">STRUCTURE</div><div class="f-desc">No confirmation — bearish CHoCH on H4</div><div class="f-val">H4 event: CHoCH ↓</div></div></div>
+  <div class="factor"><span class="f-ico lock">–</span><div><div class="f-name lock">ENTRY</div><div class="f-desc">Locked until structure confirms</div></div></div>
+  <div class="tabs"><span class="tab on">Overview</span><span class="tab">Momentum</span><span class="tab">Structure</span><span class="tab">Flow</span><span class="tab">Entry</span><span class="tab">Macro</span><span class="tab">Correlation</span></div>`);}
+function shRegime(id,theme){sheet(id,theme,`<div class="sheet-title">Market Regime</div>
+  <div style="font-size:22px;font-weight:700;color:var(--a-bull)">RISK ON</div>
+  <div style="font-size:11px;color:var(--a-t3);margin:2px 0 12px">Confidence: HIGH · stable 4 scans</div>
+  <div class="frow"><span class="rk">H4 · D1 · H1</span><span class="rv" style="color:var(--a-bull)">Risk-On · Risk-On · Risk-On</span></div>
+  <div class="frow"><span class="rk">Safe-haven vs Risk basket</span><span class="rv">31 · 74</span></div>
+  <div class="frow"><span class="rk">USD proxy</span><span class="rv">28 · 67</span></div>
+  <div class="frow"><span class="rk">Pair balance</span><span class="rv">Bull 8 · Bear 2 · Neu 2</span></div>
+  <div class="key-note" style="margin-top:12px">Macro archetype: <b style="color:var(--a-t1)">A · Growth-positive risk-on</b> → tap to open Macro.</div>`);}
+function shFlow(id,theme){const rows=[["NZD",81,"+3","up"],["EUR",72,"+8","up"],["AUD",76,"+4","up"],["GBP",63,"+2","up"],["CAD",54,"+1","fl"],["CHF",38,"−5","dn"],["JPY",31,"−7","dn"],["USD",28,"−10","dn"]];
+ sheet(id,theme,`<div class="sheet-title">2 · Currency Flow</div>`+rows.map(r=>`<div class="frow"><span class="rk" style="width:34px;font-weight:700;color:var(--a-t1)">${r[0]}</span><span class="meter"><i style="width:${r[1]}%;background:${r[3]==='dn'?'var(--a-bear)':r[3]==='fl'?'var(--a-watch)':'var(--a-bull)'}"></i></span><span class="rv ${r[3]==='dn'?'dn':r[3]==='fl'?'fl':'up'}">${r[2]}</span></div>`).join("")+
+  `<div class="bias" style="margin-top:12px"><div class="b s"><div class="k">Current leader</div><div class="ccy">EUR +8</div></div><div class="b" style="border-color:var(--a-hair)"><div class="k" style="color:var(--a-t3)">Absolute leader</div><div class="ccy">NZD 81</div></div></div>`);}
+function shBreadth(id,theme){const rows=[["EUR",88,"7/8","Strong"],["USD",100,"7/7","Strong"],["AUD",63,"5/8","Mod"],["NZD",67,"2/3","Mod"],["JPY",75,"3/4","Strong"],["CHF",33,"1/3","Weak"]];
+ sheet(id,theme,`<div class="sheet-title">3 · Currency Breadth</div>`+rows.map(r=>`<div class="frow"><span class="rk" style="width:34px;font-weight:700;color:var(--a-t1)">${r[0]}</span><span class="meter"><i style="width:${r[1]}%;background:${r[1]>=70?'var(--a-bull)':r[1]>=50?'var(--a-watch)':'var(--a-bear)'}"></i></span><span class="rv">${r[2]}</span><span class="rk" style="width:44px;text-align:right;font-size:10px">${r[3]}</span></div>`).join("")+
+  `<div class="key-note" style="margin-top:12px">For EURUSD: EUR strength 7/8 · USD weakness 7/7 · <b style="color:var(--a-t1)">Broad agreement: YES</b></div>`);}
+function shMom(id,theme){sheet(id,theme,`<div class="sheet-title">4 · Momentum</div>
+  <div class="tf-tabs"><span class="tf on">D1</span><span class="tf">H4</span><span class="tf">H1</span></div>
+  <div class="frow"><span class="rk">MOM1212 D1</span><span class="rv up">68 ↑ +12</span></div>
+  <div class="frow"><span class="rk">MOM1212 H4</span><span class="rv up">72 ↑ +8</span></div>
+  <div class="frow"><span class="rk">MOM1212 H1</span><span class="rv up">65 ↑ +5</span></div>
+  <div class="frow"><span class="rk">CMP (composite)</span><span class="rv" style="color:var(--a-bull)">70 · BULLISH</span></div>
+  <div style="margin-top:12px;border:1px solid var(--a-hair);border-radius:10px;padding:9px;background:var(--a-ground)">${spark(theme,sgen(48,0.7),"bull")}</div>`);}
+function shStruct(id,theme){sheet(id,theme,`<div class="sheet-title">5 · Market Structure</div>
+  <div class="frow"><span class="rk">D1</span><span class="rv up">Bullish</span></div>
+  <div class="frow"><span class="rk">H4</span><span class="rv up">Bullish</span></div>
+  <div class="frow"><span class="rk">Last event</span><span class="rv up">BOS ↑</span></div>
+  <div class="frow"><span class="rk">Structure strength</span><span class="rv">0.78</span></div>
+  <div class="frow"><span class="rk">Pattern</span><span class="rv">Higher highs · Higher lows</span></div>
+  <div class="key-note" style="margin-top:12px;background:var(--a-bear-soft);color:var(--a-bear)">⚠ If a counter-trend CHoCH appears, it shows here in red as a warning.</div>`);}
+function shEntry(id,theme){sheet(id,theme,`<div class="sheet-title">6 · Entry Setup</div>
+  <div class="frow"><span class="rk">Setup rank</span><span class="rv">8.4 / 10</span></div>
+  <div class="frow"><span class="rk">Continuation</span><span class="rv">84%</span></div>
+  <div class="frow"><span class="rk">ADX</span><span class="rv">27</span></div>
+  <div class="frow"><span class="rk">Reset · ATR pct</span><span class="rv">38 · 42%</span></div>
+  <div class="frow"><span class="rk">Alignment</span><span class="rv up">D1↑ H4↑ H1↑</span></div>
+  <div class="frow"><span class="rk">EMA200</span><span class="rv">Price above</span></div>
+  <div style="margin-top:12px;text-align:center;font-weight:700;color:var(--a-bull);font-size:15px">GOOD LOCATION</div>`);}
+function shCcyDetail(id,theme){sheet(id,theme,`<div class="psh"><div class="code">USD</div><div class="sub">US Dollar · <span style="color:var(--a-bear)">weakest · flow −10</span></div></div>
+  <div class="tf-tabs" style="margin-top:12px"><span class="tf on">D1 0</span><span class="tf">H4 28</span><span class="tf">H1 94</span></div>
+  <div class="frow"><span class="rk">Breadth (weakness)</span><span class="rv">7 / 7 · Strong</span></div>
+  <div class="frow"><span class="rk">USD regime</span><span class="rv">Growth dominance</span></div>
+  <div class="blk-lbl">Drivers (handbook)</div>
+  <div class="mb-narr" style="padding:0 2px">Relative US rate expectations · US growth · global liquidity · safe-haven demand · fiscal conditions.</div>
+  <div class="blk-lbl">Expressed by</div>
+  <div class="pills"><span class="pill">EURUSD ↑ 86</span><span class="pill">AUDUSD ↑ 74</span><span class="pill" style="background:var(--a-bear-soft);color:var(--a-bear)">USDCHF ↓</span></div>
+  <div class="key-note" style="margin-top:12px">Tap "Show on wheel" to highlight all USD pairs on the pair wheel.</div>`);}
+function scrSettings(id,theme){document.getElementById(id).innerHTML=
+ header("SETTINGS","")+
+ `<div class="scr-pad">
+   <div class="set-grp"><div class="gl">Appearance</div>
+     <div class="set-row"><span>Theme</span><span class="seg"><span>System</span><span class="on">Dark</span><span>Light</span></span></div></div>
+   <div class="set-grp"><div class="gl">Notifications</div>
+     <div class="set-row"><span>Push alerts</span><span class="toggle"></span></div>
+     <div class="set-row"><span>Gold signal</span><span class="toggle"></span></div>
+     <div class="set-row"><span>Price levels</span><span class="toggle"></span></div>
+     <div class="set-row"><span>Send test</span><span style="color:var(--a-accent);font-weight:600">Test →</span></div></div>
+   <div class="set-grp"><div class="gl">Data</div>
+     <div class="set-row"><span>Source</span><span style="color:var(--a-t3);font-size:11px;font-family:JetBrains Mono">…/atom-fx</span></div>
+     <div class="set-row"><span>Refresh</span><span class="seg"><span class="on">Auto</span><span>Manual</span></span></div>
+     <div class="set-row"><span>Last update</span><span style="color:var(--a-t3)">09:42 · fresh</span></div></div>
+   <div class="set-grp"><div class="gl">Advanced (optional)</div>
+     <div class="set-row"><span>Sync price-level alerts</span><span class="toggle off"></span></div>
+     <div class="key-note">No market-data or AI keys live on the device — Twelvedata &amp; Anthropic keys stay server-side. The only optional credential is a GitHub PAT, used solely for synced price-level alerts.</div></div>
+   <div class="set-grp"><div class="gl">About</div><div class="set-row"><span>How to read ATOM ⓘ</span><span style="color:var(--a-t3)">›</span></div></div></div>`;}
+
+/* ===================== FLOW DIAGRAM ===================== */
+function flowDiagram(){
+ const box=(x,y,w,h,label,sub,fill,stroke)=>`<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+   <text x="${x+w/2}" y="${y+(sub?h/2-4:h/2+5)}" text-anchor="middle" font-family="Inter" font-weight="700" font-size="15" fill="#EAF0F6">${label}</text>
+   ${sub?`<text x="${x+w/2}" y="${y+h/2+15}" text-anchor="middle" font-family="Inter" font-size="10.5" fill="#9DB0C0">${sub}</text>`:""}</g>`;
+ const arrow=(x1,y1,x2,y2,txt,dash)=>`<g><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#3A4a5a" stroke-width="1.6" ${dash?'stroke-dasharray="4 4"':''} marker-end="url(#ah)"/>${txt?`<text x="${(x1+x2)/2}" y="${(y1+y2)/2-6}" text-anchor="middle" font-family="Inter" font-size="10" fill="#7d8ea0">${txt}</text>`:""}</g>`;
+ let s=`<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#3A4a5a"/></marker></defs>`;
+ // top row: 4 nav destinations, swipe arrows between
+ const y0=24,bw=200,bh=64,gap=18,x0=40;
+ const xs=[x0,x0+(bw+gap),x0+2*(bw+gap),x0+3*(bw+gap)];
+ s+=box(xs[0],y0,bw,bh,"Wheel","pairs · potential","#16202b","#2c3947");
+ s+=box(xs[1],y0,bw,bh,"Currency","8 · strength","#16202b","#2c3947");
+ s+=box(xs[2],y0,bw,bh,"Macro","archetype","#16202b","#2c3947");
+ s+=box(xs[3],y0,bw,bh,"Insights","AI · news · cal","#16202b","#2c3947");
+ for(let i=0;i<3;i++){const ax=xs[i]+bw,bx=xs[i+1];s+=`<g><line x1="${ax+4}" y1="${y0+bh/2}" x2="${bx-4}" y2="${y0+bh/2}" stroke="#3A4a5a" stroke-width="1.4" marker-end="url(#ah)" marker-start="url(#ah)"/></g>`;}
+ s+=`<text x="500" y="12" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600" fill="#61707E" letter-spacing="2">BOTTOM NAV · SWIPE ↔</text>`;
+ // from Wheel down to sheets
+ const y1=150;
+ s+=arrow(xs[0]+bw/2,y0+bh,xs[0]+bw/2,y1,"tap");
+ const sw=150,sh=52;
+ const sheetsY=y1, sxs=[30,196,362];
+ s+=box(sxs[0],sheetsY,sw,sh,"Pair sheet","node → WHY + charts","#101822","#233042");
+ s+=box(sxs[1],sheetsY,sw,sh,"Factor sheet","ring → detail","#101822","#233042");
+ s+=box(sxs[2],sheetsY,sw,sh,"Regime/Macro","nucleus →","#101822","#233042");
+ s+=arrow(xs[0]+bw/2,y0+bh,sxs[0]+sw/2,sheetsY,"","");
+ s+=arrow(xs[0]+bw/2,y0+bh,sxs[1]+sw/2,sheetsY,"","");
+ s+=arrow(xs[0]+bw/2,y0+bh,sxs[2]+sw/2,sheetsY,"","");
+ // currency tap -> currency detail + highlight
+ const y2=262;
+ s+=box(590,y2,190,sh,"Currency detail","tap currency","#101822","#233042");
+ s+=arrow(xs[1]+bw/2,y0+bh,685,y2,"tap","");
+ s+=box(590,y2+78,190,sh,"↳ highlights pairs","back on Wheel","#0e1a16","#1f5a3d");
+ s+=arrow(685,y2+sh,685,y2+78,"","");
+ // gear -> settings (from header, any screen)
+ s+=box(812,y2,150,sh,"Settings","header gear ⚙","#101822","#233042");
+ // sub-flow: pair sheet tabs
+ const y3=262;
+ s+=box(30,y3,360,sh,"Pair tabs","Overview · Mom · Struct · Flow · Entry · Macro · Corr","#0e141b","#1b2530");
+ s+=arrow(105,sheetsY+sh,150,y3,"","");
+ // note row
+ s+=box(30,y3+82,930,44,"Bottom sheets rise above any screen · swipe-down or tap-scrim to dismiss · the wheel stays visible behind at half-height","","#0b1117","#1b2530");
+ return s;
+}
+function flowLegend(){const items=[
+ ["Open","App opens on the <b>Wheel</b> (pair energy wheel)."],
+ ["Move between screens","<b>Swipe left/right</b> or tap the bottom nav: <code>Wheel ↔ Currency ↔ Macro ↔ Insights</code>."],
+ ["Tap a pair node","A <b>Pair sheet</b> rises — line charts on top, the six-factor WHY, and tabs for detail."],
+ ["Tap a ring","The matching <b>Factor sheet</b> (Regime · Flow · Breadth · Momentum · Structure · Entry)."],
+ ["Tap the nucleus","The <b>Regime / Macro</b> sheet — jumps you toward the Macro screen."],
+ ["Tap a currency","On the Currency wheel → a <b>Currency detail</b> sheet; its pairs highlight when you swipe back to the Wheel."],
+ ["Long-press a node","Opens the <b>line chart</b> (D1/H4/H1, no candles)."],
+ ["Header gear","<b>Settings</b> from any screen. Freshness dot → data status."],
+ ["Dismiss","Swipe a sheet down or tap the dimmed area; the wheel is still there behind it."]
+];
+ return items.map(i=>`<div class="fl-item"><b>${i[0]}.</b> ${i[1]}</div>`).join("");}
+
+/* ===================== RENDER ALL ===================== */
+scrWheel("s-wheel","dark"); scrWheel("s-wheel-l","light");
+scrCcy("s-ccy","dark");     scrCcy("s-ccy-l","light");
+scrMacro("s-macro","dark"); scrInsights("s-ins","dark");
+shPair("sh-pair","dark"); shRegime("sh-regime","dark"); shFlow("sh-flow","dark");
+shBreadth("sh-breadth","dark"); shMom("sh-mom","dark"); shStruct("sh-struct","dark");
+shEntry("sh-entry","dark"); shCcyDetail("sh-ccy","dark"); scrSettings("s-set","dark");
+document.getElementById("flowsvg").innerHTML=flowDiagram();
+document.getElementById("flow-legend").innerHTML=flowLegend();
+</script>

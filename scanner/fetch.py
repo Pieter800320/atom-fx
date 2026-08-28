@@ -1,0 +1,82 @@
+"""
+FX Signal Board — OHLCV fetching via Twelvedata free tier
+"""
+import os
+import time
+import urllib.request
+import json
+import pandas as pd
+from scanner.config import PAIRS, TF_INTERVAL, TF_BARS
+
+API_KEY      = os.environ.get("TWELVEDATA_KEY", "")
+BASE         = "https://api.twelvedata.com"
+_RATE_TARGET = 6          # max calls/min to scanner — leaves 2/min for browser
+_MIN_DELAY   = 60 / _RATE_TARGET   # = 10s minimum spacing
+_last_call_ts: float = 0.0         # module-level timestamp of last API call
+_consecutive_429: int = 0          # 3 in a row = daily limit, abort immediately
+
+
+def _rate_wait():
+    """Block until at least _MIN_DELAY seconds have passed since the last call."""
+    global _last_call_ts
+    elapsed = time.monotonic() - _last_call_ts
+    wait    = _MIN_DELAY - elapsed
+    if wait > 0:
+        time.sleep(wait)
+    _last_call_ts = time.monotonic()
+
+
+def _get(endpoint: str, params: dict, retries: int = 3) -> dict:
+    global _consecutive_429
+    params["apikey"] = API_KEY
+    qs  = "&".join(f"{k}={v}" for k, v in params.items())
+    url = f"{BASE}/{endpoint}?{qs}"
+    for attempt in range(1, retries + 1):
+        _rate_wait()
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r:
+                data = json.loads(r.read().decode())
+            if data.get("code") == 429:
+                _consecutive_429 += 1
+                # 3 consecutive 429s across different calls = daily limit exhausted
+                if _consecutive_429 >= 3:
+                    raise RuntimeError(
+                        f"Daily API credit limit reached "
+                        f"(3 consecutive 429s). Message: {data.get('message', '-')}"
+                    )
+                # Single 429 = per-minute transient — retry with backoff
+                wait = 15 * attempt
+                print(f"  ⚠ 429 rate limit — waiting {wait}s (attempt {attempt}/{retries})")
+                time.sleep(wait)
+                continue
+            _consecutive_429 = 0   # successful call resets the counter
+            return data
+        except RuntimeError:
+            raise   # propagate daily-limit abort immediately
+        except Exception as e:
+            print(f"  ⚠ _get attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(15)
+    raise TimeoutError(f"All {retries} attempts failed for {url[:80]}")
+
+def fetch_ohlcv(symbol: str, interval: str, outputsize: int) -> pd.DataFrame | None:
+    """Fetch OHLCV bars for a single symbol. Returns DataFrame or None on error."""
+    # Twelvedata uses slash for forex pairs, e.g. EUR/USD
+    raw = _get("time_series", {
+        "symbol":     symbol,
+        "interval":   interval,
+        "outputsize": outputsize,
+        "order":      "ASC",
+        "type":       "price",
+    })
+    if raw.get("status") == "error" or "values" not in raw:
+        print(f"  ⚠ fetch_ohlcv error {symbol} {interval}: {raw.get('message','?')}")
+        return None
+    df = pd.DataFrame(raw["values"])
+    for col in ("open", "high", "low", "close"):
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    if "volume" in df.columns:
+        df["volume"] = pd.to_numeric(df["volume"], errors="coerce")
+    df.sort_values("datetime", inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df

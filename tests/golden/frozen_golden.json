@@ -1,0 +1,591 @@
+{
+  "correlations": {
+    "matrix": [
+      [
+        1.0,
+        0.16,
+        0.22,
+        -0.05,
+        0.11,
+        0.18,
+        -0.1,
+        -0.22,
+        0.13,
+        0.06,
+        -0.13,
+        -0.06
+      ],
+      [
+        0.16,
+        1.0,
+        0.03,
+        -0.2,
+        0.07,
+        0.17,
+        0.04,
+        -0.19,
+        0.04,
+        0.25,
+        0.09,
+        -0.07
+      ],
+      [
+        0.22,
+        0.03,
+        1.0,
+        -0.18,
+        -0.21,
+        -0.11,
+        -0.19,
+        -0.13,
+        0.19,
+        0.2,
+        -0.12,
+        0.03
+      ],
+      [
+        -0.05,
+        -0.2,
+        -0.18,
+        1.0,
+        -0.02,
+        -0.25,
+        0.02,
+        0.27,
+        -0.29,
+        0.08,
+        0.04,
+        -0.08
+      ],
+      [
+        0.11,
+        0.07,
+        -0.21,
+        -0.02,
+        1.0,
+        0.02,
+        0.21,
+        0.0,
+        -0.16,
+        0.01,
+        -0.08,
+        -0.22
+      ],
+      [
+        0.18,
+        0.17,
+        -0.11,
+        -0.25,
+        0.02,
+        1.0,
+        -0.09,
+        -0.25,
+        0.02,
+        0.09,
+        -0.05,
+        -0.07
+      ],
+      [
+        -0.1,
+        0.04,
+        -0.19,
+        0.02,
+        0.21,
+        -0.09,
+        1.0,
+        -0.08,
+        -0.12,
+        -0.11,
+        -0.29,
+        -0.26
+      ],
+      [
+        -0.22,
+        -0.19,
+        -0.13,
+        0.27,
+        0.0,
+        -0.25,
+        -0.08,
+        1.0,
+        0.02,
+        -0.02,
+        -0.02,
+        0.01
+      ],
+      [
+        0.13,
+        0.04,
+        0.19,
+        -0.29,
+        -0.16,
+        0.02,
+        -0.12,
+        0.02,
+        1.0,
+        0.05,
+        0.02,
+        0.1
+      ],
+      [
+        0.06,
+        0.25,
+        0.2,
+        0.08,
+        0.01,
+        0.09,
+        -0.11,
+        -0.02,
+        0.05,
+        1.0,
+        -0.09,
+        0.17
+      ],
+      [
+        -0.13,
+        0.09,
+        -0.12,
+        0.04,
+        -0.08,
+        -0.05,
+        -0.29,
+        -0.02,
+        0.02,
+        -0.09,
+        1.0,
+        0.02
+      ],
+      [
+        -0.06,
+        -0.07,
+        0.03,
+        -0.08,
+        -0.22,
+        -0.07,
+        -0.26,
+        0.01,
+        0.1,
+        0.17,
+        0.02,
+        1.0
+      ]
+    ],
+    "pairs": [
+      "EURUSD",
+      "GBPUSD",
+      "USDJPY",
+      "USDCHF",
+      "AUDUSD",
+      "USDCAD",
+      "NZDUSD",
+      "EURJPY",
+      "GBPJPY",
+      "AUDJPY",
+      "NZDJPY",
+      "CADJPY"
+    ]
+  },
+  "csm": {
+    "d1": {
+      "AUD": 60.9,
+      "CAD": 66.1,
+      "CHF": 18.2,
+      "EUR": 100.0,
+      "GBP": 2.4,
+      "JPY": 35.5,
+      "NZD": 39.3,
+      "USD": 0.0
+    },
+    "h1": {
+      "AUD": 75.5,
+      "CAD": 0.0,
+      "CHF": 100.0,
+      "EUR": 12.3,
+      "GBP": 94.6,
+      "JPY": 44.2,
+      "NZD": 14.6,
+      "USD": 16.5
+    },
+    "h4": {
+      "AUD": 62.3,
+      "CAD": 72.9,
+      "CHF": 0.0,
+      "EUR": 100.0,
+      "GBP": 62.6,
+      "JPY": 47.4,
+      "NZD": 74.6,
+      "USD": 2.2
+    }
+  },
+  "pairs": {
+    "AUDJPY": {
+      "adx": 46.5,
+      "atr_pct": 8,
+      "cont": 0,
+      "mom": {
+        "cmp": 39,
+        "d1": 50,
+        "dcmp12": -9,
+        "dcmp4": -1,
+        "dcmp8": -4,
+        "dd1": 0,
+        "dh1": -23,
+        "dh4": -49,
+        "h1": 30,
+        "h4": 28
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "bear"
+      },
+      "reset": 61,
+      "structure": {
+        "direction": "bear",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.39
+      }
+    },
+    "AUDUSD": {
+      "adx": 51.6,
+      "atr_pct": 45,
+      "cont": 0,
+      "mom": {
+        "cmp": 45,
+        "d1": 42,
+        "dcmp12": 7,
+        "dcmp4": 3,
+        "dcmp8": 6,
+        "dd1": -2,
+        "dh1": -4,
+        "dh4": 11,
+        "h1": 54,
+        "h4": 43
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 40,
+      "structure": {
+        "direction": "neutral",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.0
+      }
+    },
+    "CADJPY": {
+      "adx": 40.6,
+      "atr_pct": 41,
+      "cont": 0,
+      "mom": {
+        "cmp": 64,
+        "d1": 72,
+        "dcmp12": -6,
+        "dcmp4": -3,
+        "dcmp8": -6,
+        "dd1": -1,
+        "dh1": -21,
+        "dh4": 0,
+        "h1": 37,
+        "h4": 66
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "bull"
+      },
+      "reset": 47,
+      "structure": {
+        "direction": "bull",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.5
+      }
+    },
+    "EURJPY": {
+      "adx": 43.0,
+      "atr_pct": 45,
+      "cont": 0,
+      "mom": {
+        "cmp": 61,
+        "d1": 65,
+        "dcmp12": -5,
+        "dcmp4": -2,
+        "dcmp8": -3,
+        "dd1": 6,
+        "dh1": 11,
+        "dh4": -2,
+        "h1": 47,
+        "h4": 64
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "bull_strong"
+      },
+      "reset": 60,
+      "structure": {
+        "direction": "bull",
+        "event": "BOS",
+        "multiplier": 1.3,
+        "strength": 1.0
+      }
+    },
+    "EURUSD": {
+      "adx": 57.8,
+      "atr_pct": 86,
+      "cont": 0,
+      "mom": {
+        "cmp": 83,
+        "d1": 80,
+        "dcmp12": 4,
+        "dcmp4": 0,
+        "dcmp8": 2,
+        "dd1": 3,
+        "dh1": 23,
+        "dh4": 41,
+        "h1": 78,
+        "h4": 90
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "bull_strong",
+        "h4": "neutral"
+      },
+      "reset": 50,
+      "structure": {
+        "direction": "bear",
+        "event": "CHoCH",
+        "multiplier": 1.0,
+        "strength": 1.0
+      }
+    },
+    "GBPJPY": {
+      "adx": 16.8,
+      "atr_pct": 22,
+      "cont": 0,
+      "mom": {
+        "cmp": 48,
+        "d1": 54,
+        "dcmp12": -6,
+        "dcmp4": -3,
+        "dcmp8": -5,
+        "dd1": 1,
+        "dh1": -28,
+        "dh4": 1,
+        "h1": 29,
+        "h4": 53
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "bear_strong",
+        "h4": "neutral"
+      },
+      "reset": 12,
+      "structure": {
+        "direction": "bull",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.13
+      }
+    },
+    "GBPUSD": {
+      "adx": 12.6,
+      "atr_pct": 0,
+      "cont": 0,
+      "mom": {
+        "cmp": 50,
+        "d1": 58,
+        "dcmp12": -3,
+        "dcmp4": 0,
+        "dcmp8": -1,
+        "dd1": 12,
+        "dh1": -27,
+        "dh4": -8,
+        "h1": 40,
+        "h4": 44
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 35,
+      "structure": {
+        "direction": "bull",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.35
+      }
+    },
+    "NZDJPY": {
+      "adx": 25.4,
+      "atr_pct": 25,
+      "cont": 0,
+      "mom": {
+        "cmp": 50,
+        "d1": 42,
+        "dcmp12": 1,
+        "dcmp4": -3,
+        "dcmp8": -1,
+        "dd1": -10,
+        "dh1": 20,
+        "dh4": -8,
+        "h1": 78,
+        "h4": 44
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 46,
+      "structure": {
+        "direction": "bull",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.72
+      }
+    },
+    "NZDUSD": {
+      "adx": 37.6,
+      "atr_pct": 67,
+      "cont": 0,
+      "mom": {
+        "cmp": 45,
+        "d1": 44,
+        "dcmp12": 7,
+        "dcmp4": 2,
+        "dcmp8": 5,
+        "dd1": 5,
+        "dh1": 7,
+        "dh4": -15,
+        "h1": 66,
+        "h4": 32
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "bear"
+      },
+      "reset": 45,
+      "structure": {
+        "direction": "neutral",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.0
+      }
+    },
+    "USDCAD": {
+      "adx": 27.5,
+      "atr_pct": 67,
+      "cont": 0,
+      "mom": {
+        "cmp": 37,
+        "d1": 30,
+        "dcmp12": 0,
+        "dcmp4": 3,
+        "dcmp8": 4,
+        "dd1": -17,
+        "dh1": 9,
+        "dh4": 29,
+        "h1": 33,
+        "h4": 51
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 28,
+      "structure": {
+        "direction": "bear",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.85
+      }
+    },
+    "USDCHF": {
+      "adx": 11.5,
+      "atr_pct": 8,
+      "cont": 0,
+      "mom": {
+        "cmp": 68,
+        "d1": 81,
+        "dcmp12": -1,
+        "dcmp4": 1,
+        "dcmp8": 1,
+        "dd1": 20,
+        "dh1": -5,
+        "dh4": -12,
+        "h1": 54,
+        "h4": 47
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 30,
+      "structure": {
+        "direction": "bear",
+        "event": "none",
+        "multiplier": 1.0,
+        "strength": 0.7
+      }
+    },
+    "USDJPY": {
+      "adx": 18.7,
+      "atr_pct": 2,
+      "cont": 0,
+      "mom": {
+        "cmp": 35,
+        "d1": 36,
+        "dcmp12": -2,
+        "dcmp4": 2,
+        "dcmp8": 2,
+        "dd1": -15,
+        "dh1": -17,
+        "dh4": -34,
+        "h1": 30,
+        "h4": 36
+      },
+      "pills": {
+        "d1": "neutral",
+        "h1": "neutral",
+        "h4": "neutral"
+      },
+      "reset": 42,
+      "structure": {
+        "direction": "bear",
+        "event": "BOS",
+        "multiplier": 1.3,
+        "strength": 1.0
+      }
+    }
+  },
+  "rank": [],
+  "regime": {
+    "d1": {
+      "confidence": "Low",
+      "regime": "Ranging",
+      "score": 5.0,
+      "stable": false
+    },
+    "h1": {
+      "confidence": "Low",
+      "regime": "Ranging",
+      "score": 5.0,
+      "stable": false
+    },
+    "h4": {
+      "confidence": "Low",
+      "regime": "Ranging",
+      "score": 5.0,
+      "stable": false
+    }
+  }
+}
