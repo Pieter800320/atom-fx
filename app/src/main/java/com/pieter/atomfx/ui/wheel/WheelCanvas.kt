@@ -357,6 +357,7 @@ fun WheelCanvas(
     isDark: Boolean,
     modifier: Modifier = Modifier,
     onTap: (WheelTapTarget) -> Unit = {},
+    onLongPress: (String) -> Unit = {},
 ) {
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -443,11 +444,19 @@ fun WheelCanvas(
         modifier = modifier
             .onSizeChanged { canvasSize = it }
             .pointerInput(state, density) {
-                detectTapGestures { offset ->
-                    if (canvasSize.width <= 0) return@detectTapGestures
-                    val layout = computeLayout(canvasSize.width.toFloat(), textMeasurer, state, colors, density)
-                    resolveTapTarget(offset, layout, state.nodes, density)?.let(onTap)
-                }
+                detectTapGestures(
+                    onTap = { offset ->
+                        if (canvasSize.width <= 0) return@detectTapGestures
+                        val layout = computeLayout(canvasSize.width.toFloat(), textMeasurer, state, colors, density)
+                        resolveTapTarget(offset, layout, state.nodes, density)?.let(onTap)
+                    },
+                    onLongPress = { offset ->
+                        if (canvasSize.width <= 0) return@detectTapGestures
+                        val layout = computeLayout(canvasSize.width.toFloat(), textMeasurer, state, colors, density)
+                        val target = resolveTapTarget(offset, layout, state.nodes, density)
+                        if (target is WheelTapTarget.Node) onLongPress(target.pair)
+                    },
+                )
             },
     ) {
         drawWheel(state, colors, isDark, textMeasurer, nodeAnims, halo, nucleusColorAnim, ringColorAnims, breathing)

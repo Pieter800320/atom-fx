@@ -26,12 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.pieter.atomfx.data.SignalsRepository
 import com.pieter.atomfx.ui.components.HeaderBar
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
@@ -45,22 +40,19 @@ private val RING_KEY_ROW_HEIGHT = 28.dp
 private val RING_KEY_ROW_SPACING = 8.dp
 
 /**
- * Design §5's landing screen, minus bottom nav (Currency/Macro/Insights tabs don't exist yet):
- * header (§9) → status strip (§10) → the wheel, sized to whatever's left → Tradeable Now/Watch
- * (§11). A tap on a ring/node/nucleus, a status-strip cell, or a pill all open the same
- * `BottomSheetHost` (Design §13.1, §14); the header's "events" chip opens the Calendar panel
- * (§12) the same way.
+ * Design §5's landing screen: header (§9) → status strip (§10) → the wheel, sized to whatever's
+ * left → Tradeable Now/Watch (§11). A tap on a ring/node/nucleus, a status-strip cell, or a pill
+ * all open the same `BottomSheetHost` (Design §13.1, §14); the header's "events"/"brief" chips
+ * open the Calendar/Recommendation panels the same way. `viewModel` is owned by `AtomFxApp`
+ * (Phase 9) and shared with `MacroScreen` — one fetch, one `Signals` for both screens.
  */
 @Composable
-fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier, initialDeepLink: SheetTarget? = null) {
-    val context = LocalContext.current
-    val viewModel: WheelViewModel = viewModel(
-        factory = remember {
-            viewModelFactory {
-                initializer { WheelViewModel(SignalsRepository(context.applicationContext)) }
-            }
-        },
-    )
+fun WheelScreen(
+    viewModel: WheelViewModel,
+    isDark: Boolean,
+    modifier: Modifier = Modifier,
+    initialDeepLink: SheetTarget? = null,
+) {
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
     var activeSheet by remember { mutableStateOf(initialDeepLink) }
@@ -105,6 +97,7 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier, initialDeepLink:
                         isDark = isDark,
                         colors = colors,
                         onTap = { target -> activeSheet = target.toSheetTarget() },
+                        onLongPress = { pair -> activeSheet = SheetTarget.Chart(pair) },
                     )
                 }
             }
@@ -128,6 +121,7 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier, initialDeepLink:
                 signals = loaded.signals,
                 colors = colors,
                 onDismiss = { activeSheet = null },
+                onNavigate = { activeSheet = it },
             )
         }
     }
@@ -145,6 +139,7 @@ private fun WheelArea(
     isDark: Boolean,
     colors: AtomColors,
     onTap: (WheelTapTarget) -> Unit,
+    onLongPress: (String) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING)
@@ -167,6 +162,7 @@ private fun WheelArea(
                     isDark = isDark,
                     modifier = Modifier.fillMaxSize(),
                     onTap = onTap,
+                    onLongPress = onLongPress,
                 )
             }
             Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))

@@ -25,6 +25,12 @@ data class Signals(
     val calendar: CalendarBlock? = null,
     val recommendation: RecommendationBlock? = null,
     @SerialName("deep_analysis") val deepAnalysis: DeepAnalysisBlock? = null,
+    val correlations: CorrelationsBlock? = null,
+    @SerialName("macro_assets") val macroAssets: Map<String, MacroAssetEntry> = emptyMap(),
+    val macro: MacroSummary? = null,
+    @SerialName("regime_w1") val regimeW1: RegimeBlock? = null,
+    @SerialName("macro_regime") val macroRegime: MacroRegimeBlock? = null,
+    val spark: Map<String, SparkEntry> = emptyMap(),
 )
 
 @Serializable
@@ -49,6 +55,9 @@ data class RegimeBlock(
     val confidence: String? = null,
     val score: Double? = null,
     val stable: Boolean? = null,
+    // Only present on regime_w1 — harmless no-ops for regime_d1/h4/h1, which reuse this block.
+    val signals: Int? = null,
+    val total: Int? = null,
 )
 
 @Serializable
@@ -160,4 +169,69 @@ data class PotentialFactors(
     val momentum: Boolean = false,
     val structure: Boolean = false,
     val entry: Boolean = false,
+)
+
+@Serializable
+data class CorrelationsBlock(
+    val pairs: List<String> = emptyList(),
+    val matrix: List<List<Double>> = emptyList(),
+)
+
+@Serializable
+data class MacroAssetEntry(
+    val value: Double? = null,
+    @SerialName("delta_pct") val deltaPct: Double? = null,
+    @SerialName("delta_bp") val deltaBp: Double? = null,
+    val direction: String? = null,
+    val label: String? = null,
+)
+
+@Serializable
+data class MacroSummary(
+    val label: String? = null,
+    val signals: Int? = null,
+    val total: Int? = null,
+    val confidence: String? = null,
+    val stable: Boolean? = null,
+)
+
+@Serializable
+data class MacroRegimeBlock(
+    val primary: MacroArchetype? = null,
+    val secondary: MacroArchetype? = null,
+    @SerialName("gold_overlay") val goldOverlay: String? = null,
+    @SerialName("usd_regime") val usdRegime: String? = null,
+    @SerialName("currency_bias") val currencyBias: CurrencyBias? = null,
+    val evidence: List<MacroEvidence> = emptyList(),
+    val conflicts: List<String> = emptyList(),
+    val narrative: String? = null,
+    val updated: String? = null,
+)
+
+@Serializable
+data class MacroArchetype(
+    val code: String? = null,
+    val name: String? = null,
+    val confidence: String? = null,
+    @SerialName("distinct_axes") val distinctAxes: Int? = null,
+)
+
+@Serializable
+data class CurrencyBias(
+    val strong: List<String> = emptyList(),
+    val weak: List<String> = emptyList(),
+)
+
+@Serializable
+data class MacroEvidence(
+    val axis: String? = null,
+    val read: String? = null,
+    val supports: Boolean = false,
+)
+
+@Serializable
+data class SparkEntry(
+    val d1: List<Double> = emptyList(),
+    val h4: List<Double> = emptyList(),
+    val h1: List<Double> = emptyList(),
 )

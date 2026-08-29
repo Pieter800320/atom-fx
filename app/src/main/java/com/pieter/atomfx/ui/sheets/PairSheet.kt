@@ -21,7 +21,7 @@ import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 import com.pieter.atomfx.ui.wheel.PotentialState
 
-private val TABS = listOf("Overview", "Momentum", "Structure", "Entry")
+private val TABS = listOf("Overview", "Momentum", "Structure", "Entry", "Macro", "Correlation")
 
 /**
  * Design §14.7 — the most important surface. Overview (default, never hidden behind a tab)
@@ -43,6 +43,8 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
             1 -> MomentumTabContent(pairBlock?.mom, colors)
             2 -> StructureTabContent(pairBlock?.structure, colors)
             3 -> EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors)
+            4 -> MacroTabContent(signals, colors)
+            5 -> CorrelationTabContent(node.pair, signals, colors)
         }
     }
 }
@@ -189,4 +191,63 @@ private fun directionColorFor(direction: Direction, colors: AtomColors) = when (
     Direction.BULL -> colors.bull
     Direction.BEAR -> colors.bear
     Direction.NEUTRAL -> colors.neutral
+}
+
+// Macro/Correlation tabs live here rather than their own MomentumSheet.kt-style file to avoid
+// a naming clash with the unrelated Macro *screen* (Phase 9's MacroScreen.kt).
+
+/** Design §14.7/§26 Macro tab: cross-asset support lines, spec §36's exact phrasing style, from real `macro_assets` directions. */
+@Composable
+private fun MacroTabContent(signals: Signals, colors: AtomColors) {
+    val ma = signals.macroAssets
+    val lines = listOfNotNull(
+        ma["dxy"]?.direction?.let { supportLine("DXY", it, "USD bid", "USD offered") },
+        ma["spx"]?.direction?.let { supportLine("SPX", it, "risk appetite", "risk aversion") },
+        ma["vix"]?.direction?.let { supportLine("VIX", it, "risk aversion", "risk appetite") },
+        ma["gold"]?.direction?.let { supportLine("Gold", it, "safe-haven bid", "safe-haven offered") },
+        ma["copper"]?.direction?.let { supportLine("Copper", it, "growth demand", "growth concern") },
+    )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (lines.isEmpty()) {
+            NotAvailableRow("Cross-asset context", colors)
+        } else {
+            lines.forEach { line ->
+                Text(text = line, style = AtomType.Body.copy(color = colors.textSecondary), modifier = Modifier.padding(vertical = 4.dp))
+            }
+        }
+    }
+}
+
+private fun supportLine(label: String, direction: String, upPhrase: String, downPhrase: String): String = when (direction) {
+    "up" -> "$label↑ → $upPhrase"
+    "down" -> "$label↓ → $downPhrase"
+    else -> "$label flat"
+}
+
+/** Design §14.7/§26/§37 Correlation tab: the frozen `correlations` matrix, sorted by |correlation|. */
+@Composable
+private fun CorrelationTabContent(pair: String, signals: Signals, colors: AtomColors) {
+    val corr = signals.correlations
+    val rowIndex = corr?.pairs?.indexOf(pair) ?: -1
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (corr == null || rowIndex < 0) {
+            NotAvailableRow("Correlation", colors)
+            return@Column
+        }
+        val row = corr.matrix.getOrNull(rowIndex).orEmpty()
+        corr.pairs.indices
+            .filter { it != rowIndex }
+            .mapNotNull { i -> corr.pairs.getOrNull(i)?.let { p -> row.getOrNull(i)?.let { v -> p to v } } }
+            .sortedByDescending { kotlin.math.abs(it.second) }
+            .take(5)
+            .forEach { (otherPair, value) ->
+                SheetRow(otherPair, "%+.2f".format(value), colors, correlationColor(value, colors))
+            }
+    }
+}
+
+private fun correlationColor(value: Double, colors: AtomColors) = when {
+    kotlin.math.abs(value) >= 0.7 -> colors.textPrimary
+    kotlin.math.abs(value) >= 0.4 -> colors.textSecondary
+    else -> colors.textMuted
 }

@@ -2,12 +2,14 @@ package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,10 +80,18 @@ fun NotAvailableRow(label: String, colors: AtomColors) {
     SheetRow(label = label, value = "Not available yet", colors = colors, valueColor = colors.textMuted)
 }
 
-/** Fixed row of scrolling-pill-style tabs (Design §15), simplified to a plain Row for Phase 4's small tab counts. */
+/**
+ * Scrolling-pill-style tab row (Design §15). Horizontally scrollable — Phase 9 grew PairSheet
+ * to 6 tabs, past what a fixed non-scrolling Row could fit without individual labels wrapping.
+ */
 @Composable
 fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (Int) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(bottom = 12.dp),
+    ) {
         tabs.forEachIndexed { index, tab ->
             val isOn = index == selected
             Box(

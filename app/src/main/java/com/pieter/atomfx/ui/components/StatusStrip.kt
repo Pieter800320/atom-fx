@@ -35,10 +35,10 @@ fun StatusStrip(
             onCellClick(SheetTarget.Ring(Factor.REGIME))
         }
         Cell("LEADER", flow?.leader?.let { "$it ${signedInt(flow.leaderDelta)}" } ?: "—", colors, Modifier.weight(1f)) {
-            onCellClick(SheetTarget.Ring(Factor.FLOW))
+            onCellClick(flow?.leader?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
         }
         Cell("LAGGARD", flow?.laggard?.let { "$it ${signedInt(flow.laggardDelta)}" } ?: "—", colors, Modifier.weight(1f)) {
-            onCellClick(SheetTarget.Ring(Factor.FLOW))
+            onCellClick(flow?.laggard?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
         }
         Cell("BREADTH", leaderBreadth?.band ?: "—", colors, Modifier.weight(1f)) {
             onCellClick(SheetTarget.Ring(Factor.BREADTH))

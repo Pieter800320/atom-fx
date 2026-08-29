@@ -25,6 +25,12 @@ sealed interface SheetTarget {
 
     /** Design §12's left edge panel — summoned from the header (Phase 7). */
     data object Recommendation : SheetTarget
+
+    /** Design §16 — long-press a node opens its 3-TF close-price chart (Phase 9). */
+    data class Chart(val pair: String) : SheetTarget
+
+    /** A single currency's CSM detail (Phase 9) — distinct from the market-wide Flow ring sheet. */
+    data class Currency(val code: String) : SheetTarget
 }
 
 /**
@@ -42,6 +48,7 @@ fun BottomSheetHost(
     signals: Signals,
     colors: AtomColors,
     onDismiss: () -> Unit,
+    onNavigate: (SheetTarget) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
@@ -55,7 +62,7 @@ fun BottomSheetHost(
                 SheetTarget.Nucleus -> RegimeSheet(signals, colors)
                 is SheetTarget.Ring -> when (target.factor) {
                     Factor.REGIME -> RegimeSheet(signals, colors)
-                    Factor.FLOW -> CurrencyFlowSheet(signals, colors)
+                    Factor.FLOW -> CurrencyFlowSheet(signals, colors, onCurrencyClick = { onNavigate(SheetTarget.Currency(it)) })
                     Factor.BREADTH -> BreadthSheet(signals, colors)
                     Factor.MOMENTUM -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
                     Factor.STRUCTURE -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 2)
@@ -69,6 +76,8 @@ fun BottomSheetHost(
 
                 SheetTarget.Calendar -> CalendarSheet(signals, colors)
                 SheetTarget.Recommendation -> RecommendationSheet(signals, colors)
+                is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
+                is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors)
             }
         }
     }
