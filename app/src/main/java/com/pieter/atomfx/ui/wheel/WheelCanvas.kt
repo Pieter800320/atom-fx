@@ -632,7 +632,11 @@ private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: 
 private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
     val start = layout.pointAt(node.index, layout.nucleusRadius)
     val nodeCenter = layout.pointAt(node.index, layout.renderRadiusForLevel(anim.level.value))
-    val edge = layout.pointAt(node.index, layout.outerRadius)
+    // The "untraveled" segment's far end has to be the same clamped ceiling a level-6 node
+    // itself draws at (see renderRadiusForLevel) — using the true outerRadius here left a
+    // trailing stub of hairline past an already-maxed-out node, making it read as short of the
+    // rim instead of sitting on it (Pieter's design review).
+    val edge = layout.pointAt(node.index, layout.renderRadiusForLevel(6f))
     val dirColor = directionColor(node.direction, colors)
 
     drawLine(color = dirColor.copy(alpha = 0.30f), start = start, end = nodeCenter, strokeWidth = 1.5.dp.toPx())
