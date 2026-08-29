@@ -17,14 +17,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,20 +33,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.pieter.atomfx.data.SignalsRepository
+import com.pieter.atomfx.ui.sheets.BottomSheetHost
+import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
-import kotlinx.coroutines.launch
 
 private val RING_KEY_ROW_HEIGHT = 28.dp
 private val RING_KEY_ROW_SPACING = 8.dp
 
 /**
- * Phase 3: the wheel fetches and maps real `signals.json` via [WheelViewModel] — no header,
- * status strip, nav, or sheets yet (those are Phases 4/5). A tap on a ring/node/nucleus
- * surfaces a Snackbar naming what was hit, enough to prove the hit-testing geometry without
- * building navigation early. The ring key ("1 Regime · 2 Flow · …") sits below the wheel per
- * the mockup, rather than crowding the canvas itself.
+ * The wheel fetches and maps real `signals.json` via [WheelViewModel] — no header, status
+ * strip, or nav yet (those are Phase 5). A tap on a ring/node/nucleus opens the matching
+ * bottom sheet (Design §13.1, §14). The ring key ("1 Regime · 2 Flow · …") sits below the
+ * wheel per the mockup, rather than crowding the canvas itself.
  */
 @Composable
 fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier) {
@@ -61,14 +60,9 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier) {
     )
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    var activeSheet by remember { mutableStateOf<SheetTarget?>(null) }
 
-    Scaffold(
-        modifier = modifier,
-        containerColor = colors.ground,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) {
+    Scaffold(modifier = modifier, containerColor = colors.ground) {
         // No top/bottom bar yet, so there's no inner padding to apply — the content handles
         // its own safe-drawing insets below.
         BoxWithConstraints(
@@ -86,11 +80,29 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier) {
                     colors = colors,
                     maxWidth = maxWidth,
                     maxHeight = maxHeight,
-                    onTap = { label -> scope.launch { snackbarHostState.showSnackbar(label) } },
+                    onTap = { target -> activeSheet = target.toSheetTarget() },
+                )
+            }
+
+            val loaded = screenState as? WheelScreenState.Loaded
+            val sheet = activeSheet
+            if (sheet != null && loaded != null) {
+                BottomSheetHost(
+                    target = sheet,
+                    wheelState = loaded.state,
+                    signals = loaded.signals,
+                    colors = colors,
+                    onDismiss = { activeSheet = null },
                 )
             }
         }
     }
+}
+
+private fun WheelTapTarget.toSheetTarget(): SheetTarget = when (this) {
+    is WheelTapTarget.Nucleus -> SheetTarget.Nucleus
+    is WheelTapTarget.Ring -> SheetTarget.Ring(factor)
+    is WheelTapTarget.Node -> SheetTarget.Node(pair)
 }
 
 @Composable
@@ -100,7 +112,7 @@ private fun LoadedWheel(
     colors: AtomColors,
     maxWidth: Dp,
     maxHeight: Dp,
-    onTap: (String) -> Unit,
+    onTap: (WheelTapTarget) -> Unit,
 ) {
     val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING)
     Column(
@@ -121,14 +133,7 @@ private fun LoadedWheel(
                 colors = colors,
                 isDark = isDark,
                 modifier = Modifier.fillMaxSize(),
-                onTap = { target ->
-                    val label = when (target) {
-                        is WheelTapTarget.Nucleus -> "Tapped: nucleus (${loaded.state.nucleus.regimeLabel})"
-                        is WheelTapTarget.Node -> "Tapped: ${target.pair}"
-                        is WheelTapTarget.Ring -> "Tapped ring: ${target.factor.ringLabel}"
-                    }
-                    onTap(label)
-                },
+                onTap = onTap,
             )
         }
         Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pieter.atomfx.data.SignalsRepository
 import com.pieter.atomfx.data.SignalsResult
+import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.domain.WheelMapper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,10 @@ enum class Freshness { FRESH, STALE }
 
 sealed interface WheelScreenState {
     data object Loading : WheelScreenState
-    data class Loaded(val state: WheelUiState, val freshness: Freshness) : WheelScreenState
+
+    /** [signals] is the raw fetch, kept alongside the wheel's own trimmed [state] so the
+     * factor/regime sheets (Phase 4) can read fields the wheel itself never needed. */
+    data class Loaded(val state: WheelUiState, val signals: Signals, val freshness: Freshness) : WheelScreenState
     data object Unavailable : WheelScreenState
 }
 
@@ -31,8 +35,10 @@ class WheelViewModel(private val repository: SignalsRepository) : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _screenState.value = when (val result = repository.fetch()) {
-                is SignalsResult.Fresh -> WheelScreenState.Loaded(WheelMapper.map(result.signals), Freshness.FRESH)
-                is SignalsResult.Stale -> WheelScreenState.Loaded(WheelMapper.map(result.signals), Freshness.STALE)
+                is SignalsResult.Fresh ->
+                    WheelScreenState.Loaded(WheelMapper.map(result.signals), result.signals, Freshness.FRESH)
+                is SignalsResult.Stale ->
+                    WheelScreenState.Loaded(WheelMapper.map(result.signals), result.signals, Freshness.STALE)
                 SignalsResult.Unavailable -> WheelScreenState.Unavailable
             }
         }

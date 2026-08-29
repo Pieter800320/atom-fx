@@ -53,3 +53,14 @@ data class WheelUiState(
     val nodes: List<PairNode>, // size 12, PAIR_ORDER order
     val rings: List<RingDescriptor>, // size 6, ring 1..6 order
 )
+
+/**
+ * The pair a ring tap defaults to for rings whose sheet content is inherently pair-shaped
+ * (Momentum/Structure/Entry — Design §14.4-§14.6 read as a single pair's numbers, unlike
+ * Regime/Flow/Breadth which are market-wide): highest potential among tradeable-tier nodes,
+ * falling back to the highest potential overall. A display choice, not a new ranking number.
+ */
+fun WheelUiState.topPair(): PairNode =
+    nodes.filter { it.state == PotentialState.TRADEABLE || it.state == PotentialState.APLUS }
+        .maxByOrNull { it.potential }
+        ?: nodes.maxBy { it.potential }
