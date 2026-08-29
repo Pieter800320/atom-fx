@@ -1,8 +1,18 @@
 package com.pieter.atomfx.ui.wheel
 
+import android.provider.Settings
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
@@ -33,6 +44,8 @@ import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** What a tap on the wheel resolved to (Design §13.1: ring → factor sheet, node → pair sheet, nucleus → regime sheet). */
 sealed interface WheelTapTarget {
@@ -62,6 +75,9 @@ private data class WheelLayout(
 )
 
 private fun WheelLayout.radiusForLevel(level: Int): Float = nucleusRadius + level.coerceIn(0, 6) * ringPitch
+
+/** Float overload for mid-animation positions (Phase 8) — layout/margin sizing stays on the Int version. */
+private fun WheelLayout.radiusForLevel(level: Float): Float = nucleusRadius + level.coerceIn(0f, 6f) * ringPitch
 
 private fun WheelLayout.pointAt(index: Int, radius: Float): Offset {
     val rad = WheelGeometry.angleRad(index)
@@ -113,8 +129,11 @@ private val NucleusConfidence = TextStyle(fontWeight = FontWeight.SemiBold, font
  * size the circle around that width, it's wrapped onto two lines (the value, then the word
  * "confidence"), which is what actually let the circle shrink.
  */
-private fun nucleusLines(nucleus: NucleusState, colors: AtomColors): List<Pair<String, TextStyle>> {
-    val tint = tintColor(nucleus.tint, colors)
+private fun nucleusLines(
+    nucleus: NucleusState,
+    colors: AtomColors,
+    tint: Color = tintColor(nucleus.tint, colors),
+): List<Pair<String, TextStyle>> {
     val confidenceStyle = NucleusConfidence.copy(color = colors.textSecondary)
     return listOf(
         nucleus.strengthWord to NucleusBody.copy(color = colors.textSecondary),
@@ -249,10 +268,87 @@ private fun directionColor(direction: Direction, colors: AtomColors): Color = wh
     Direction.NEUTRAL -> colors.neutral
 }
 
+// ── Phase 8: motion state (Design §7 / spec §28-29, §56) ───────────────────────────────────
+
+/**
+ * One pair's animated radial position: [level] is the value actually drawn (an `Animatable`
+ * so a redraw is requested each frame it's in flight, per Compose's snapshot-aware Canvas).
+ * [targetLevel]/[targetFactorsPassed] are the last values a transition was started *toward* —
+ * plain vars, not state, since only [level]/[factorBlend] need to trigger redraws — used to
+ * detect "did this pair actually change" on the next poll without re-deriving it from `level`
+ * mid-flight. [factorBlend] crossfades marker colors between [previousFactorsPassed] and
+ * whatever `PairNode.factorsPassed` currently is, over the same window as the radial move.
+ */
+private class NodeAnim(initialLevel: Int, initialFactors: Set<Factor>) {
+    val level = Animatable(initialLevel.toFloat())
+    var targetLevel = initialLevel
+    var previousFactorsPassed = initialFactors
+    var targetFactorsPassed = initialFactors
+    val factorBlend = Animatable(1f)
+}
+
+/** Duration scales gently with how far a node moved, capped to Design §7.1's 400-700ms window. */
+private fun durationForLevelChange(from: Int, to: Int): Int =
+    (400 + (abs(to - from).coerceAtLeast(1) - 1) * 50).coerceIn(400, 700)
+
+/** §7.4: "respect reduce-motion... shorten transitions to a cross-fade" — one short duration for everything. */
+private fun effectiveDuration(reduceMotion: Boolean, base: Int): Int = if (reduceMotion) 150 else base
+
+private fun effectiveDelay(reduceMotion: Boolean, staggerIndex: Int): Long =
+    if (reduceMotion) 0L else staggerIndex * 60L
+
+/** A crossfading colour, used for the nucleus accent and each ring's tint (Design §7.3). */
+private class ColorAnim(initial: Color) {
+    var from = initial
+    var to = initial
+    val progress = Animatable(0f)
+}
+
+private fun ColorAnim.current(): Color = lerp(from, to, progress.value)
+
+private suspend fun ColorAnim.transitionTo(target: Color, durationMs: Int) {
+    if (target == to) return
+    from = current()
+    to = target
+    progress.snapTo(0f)
+    progress.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing))
+}
+
+/** Design §6.8: one halo at a time in steady state; a brief crossfade during a top-pair change. */
+private class HaloState {
+    var incomingPair: String? = null
+    val incomingAlpha = Animatable(0f)
+    var outgoingPair: String? = null
+    val outgoingAlpha = Animatable(0f)
+}
+
+private fun haloTargetAlpha(isDark: Boolean): Float = if (isDark) 0.6f else 0.35f
+
+/** The only node worth haloing is an actual standout — `topPair()` alone falls back to "highest of a bunch of zeros." */
+private fun WheelUiState.qualifyingTopPair(): PairNode? =
+    nodes.filter { it.state == PotentialState.TRADEABLE || it.state == PotentialState.APLUS }
+        .maxByOrNull { it.potential }
+
+private const val GLOW_ALPHA_DARK = 0.14f
+private const val GLOW_ALPHA_LIGHT = 0.12f
+
+/** §7.2: only the two high-potential tiers glow at all; everything else is "little/no glow, nearly static." */
+private fun glowsAtRest(state: PotentialState): Boolean =
+    state == PotentialState.TRADEABLE || state == PotentialState.APLUS
+
+@Composable
+private fun rememberReduceMotion(): Boolean {
+    val context = LocalContext.current
+    return remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+}
+
 /**
  * The Energy Wheel (Design §6). Draws the fixed z-stack (§6.2): background field, rings,
- * radial paths, factor markers, nodes, nucleus. No motion yet (Phase 8) — this is the static
- * geometry/theming/touch pass (Architecture §9 Phase 2).
+ * radial paths, factor markers, nodes, top-pair halo, nucleus. Geometry itself never moves
+ * (§6.9/§56) — only a node's radial position, its factor-marker colours, the nucleus/ring
+ * tints, and glow/halo alphas animate, all driven by Design §7 (Phase 8).
  */
 @Composable
 fun WheelCanvas(
@@ -265,6 +361,83 @@ fun WheelCanvas(
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+    val reduceMotion = rememberReduceMotion()
+
+    val nodeAnims = remember { mutableMapOf<String, NodeAnim>() }
+    // Seeded synchronously (not in the LaunchedEffect below) so every pair has an entry before
+    // the first draw — the effect only needs to run once composition has already guaranteed
+    // presence, and can then focus purely on detecting changes and starting animations.
+    state.nodes.forEach { node -> nodeAnims.getOrPut(node.pair) { NodeAnim(node.level, node.factorsPassed) } }
+    val halo = remember { HaloState() }
+    val nucleusColorAnim = remember { ColorAnim(tintColor(state.nucleus.tint, colors)) }
+    val ringColorAnims = remember { state.rings.map { ColorAnim(tintColor(it.tint, colors)) } }
+    val breathing by rememberInfiniteTransition(label = "wheel-breathing").animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse),
+        label = "breathingAlpha",
+    )
+
+    LaunchedEffect(state.nodes) {
+        val changedPairs = state.nodes.filter { node ->
+            val existing = nodeAnims[node.pair]
+            existing == null || existing.targetLevel != node.level || existing.targetFactorsPassed != node.factorsPassed
+        }.map { it.pair }
+
+        state.nodes.forEach { node ->
+            val anim = nodeAnims.getOrPut(node.pair) { NodeAnim(node.level, node.factorsPassed) }
+            val levelChanged = anim.targetLevel != node.level
+            val factorsChanged = anim.targetFactorsPassed != node.factorsPassed
+            if (!levelChanged && !factorsChanged) return@forEach
+
+            val staggerIndex = changedPairs.indexOf(node.pair).coerceAtLeast(0)
+            val delayMs = effectiveDelay(reduceMotion, staggerIndex)
+            val durationMs = effectiveDuration(reduceMotion, durationForLevelChange(anim.targetLevel, node.level))
+
+            if (levelChanged) {
+                anim.targetLevel = node.level
+                launch {
+                    delay(delayMs)
+                    anim.level.animateTo(node.level.toFloat(), tween(durationMs, easing = FastOutSlowInEasing))
+                }
+            }
+            if (factorsChanged) {
+                anim.previousFactorsPassed = anim.targetFactorsPassed
+                anim.targetFactorsPassed = node.factorsPassed
+                launch {
+                    delay(delayMs)
+                    anim.factorBlend.snapTo(0f)
+                    anim.factorBlend.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing))
+                }
+            }
+        }
+    }
+
+    val qualifyingTopPair = state.qualifyingTopPair()?.pair
+    LaunchedEffect(qualifyingTopPair) {
+        if (qualifyingTopPair == halo.incomingPair) return@LaunchedEffect
+        halo.outgoingPair = halo.incomingPair
+        val startAlpha = halo.incomingAlpha.value
+        halo.incomingPair = qualifyingTopPair
+        launch {
+            halo.outgoingAlpha.snapTo(startAlpha)
+            halo.outgoingAlpha.animateTo(0f, tween(effectiveDuration(reduceMotion, 300)))
+        }
+        launch {
+            halo.incomingAlpha.snapTo(0f)
+            val target = if (qualifyingTopPair != null) haloTargetAlpha(isDark) else 0f
+            halo.incomingAlpha.animateTo(target, tween(effectiveDuration(reduceMotion, 300)))
+        }
+    }
+
+    val nucleusTargetColor = tintColor(state.nucleus.tint, colors)
+    LaunchedEffect(nucleusTargetColor) {
+        nucleusColorAnim.transitionTo(nucleusTargetColor, effectiveDuration(reduceMotion, 500))
+    }
+    val ringTargetColors = state.rings.map { tintColor(it.tint, colors) }
+    LaunchedEffect(ringTargetColors) {
+        ringTargetColors.forEachIndexed { i, target -> ringColorAnims.getOrNull(i)?.transitionTo(target, effectiveDuration(reduceMotion, 500)) }
+    }
 
     Canvas(
         modifier = modifier
@@ -277,7 +450,7 @@ fun WheelCanvas(
                 }
             },
     ) {
-        drawWheel(state, colors, isDark, textMeasurer)
+        drawWheel(state, colors, isDark, textMeasurer, nodeAnims, halo, nucleusColorAnim, ringColorAnims, breathing)
     }
 }
 
@@ -320,20 +493,26 @@ private fun DrawScope.drawWheel(
     colors: AtomColors,
     isDark: Boolean,
     textMeasurer: TextMeasurer,
+    nodeAnims: Map<String, NodeAnim>,
+    halo: HaloState,
+    nucleusColorAnim: ColorAnim,
+    ringColorAnims: List<ColorAnim>,
+    breathing: Float,
 ) {
     val layout = computeLayout(size.minDimension, textMeasurer, state, colors, this)
 
     drawBackgroundField(colors, layout.center)
-    drawRings(layout, colors, state)
+    drawRings(layout, colors, state, ringColorAnims)
     drawLegendSpoke(layout, colors)
-    state.nodes.forEach { drawRadialPath(it, colors, layout) }
-    state.nodes.forEach { drawFactorMarkers(it, colors, layout) }
+    state.nodes.forEach { drawRadialPath(it, colors, layout, nodeAnims.getValue(it.pair)) }
+    state.nodes.forEach { drawFactorMarkers(it, colors, layout, nodeAnims.getValue(it.pair)) }
     // Pieter: the large (higher-level) nodes must sit on top so nothing behind them shows —
     // draw smallest-first so bigger discs are painted last.
-    state.nodes.sortedBy { it.level }.forEach { drawPairNode(it, colors, isDark, layout, textMeasurer) }
+    state.nodes.sortedBy { it.level }.forEach { drawPairNode(it, colors, isDark, layout, textMeasurer, nodeAnims.getValue(it.pair), breathing) }
     state.nodes.forEach { drawRimLabel(it, colors, layout, textMeasurer) }
+    state.nodes.forEach { drawTopPairHalo(it, colors, layout, nodeAnims.getValue(it.pair), halo) }
     drawRingLegend(layout, colors, textMeasurer)
-    drawNucleus(state, colors, layout, textMeasurer)
+    drawNucleus(state, colors, layout, textMeasurer, nucleusColorAnim)
 }
 
 /**
@@ -407,14 +586,14 @@ private fun DrawScope.drawBackgroundField(colors: AtomColors, center: Offset) {
     )
 }
 
-private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: WheelUiState) {
+private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: WheelUiState, ringColorAnims: List<ColorAnim>) {
     val hairlineWidth = 1.dp.toPx()
     for (i in 1..6) {
         val radius = layout.radiusForLevel(i)
         drawCircle(color = colors.hairline, radius = radius, center = layout.center, style = Stroke(hairlineWidth))
 
-        val ring = state.rings.getOrNull(i - 1) ?: continue
-        val tint = tintColor(ring.tint, colors)
+        if (state.rings.getOrNull(i - 1) == null) continue
+        val tint = ringColorAnims[i - 1].current()
         val isOuter = i == 6
         drawCircle(
             color = tint.copy(alpha = if (isOuter) 0.22f else 0.12f),
@@ -425,9 +604,9 @@ private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: 
     }
 }
 
-private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout: WheelLayout) {
+private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
     val start = layout.pointAt(node.index, layout.nucleusRadius)
-    val nodeCenter = layout.pointAt(node.index, layout.radiusForLevel(node.level))
+    val nodeCenter = layout.pointAt(node.index, layout.radiusForLevel(anim.level.value))
     val edge = layout.pointAt(node.index, layout.outerRadius)
     val dirColor = directionColor(node.direction, colors)
 
@@ -435,16 +614,19 @@ private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout:
     drawLine(color = colors.hairline.copy(alpha = 0.35f), start = nodeCenter, end = edge, strokeWidth = 1.dp.toPx())
 }
 
-private fun DrawScope.drawFactorMarkers(node: PairNode, colors: AtomColors, layout: WheelLayout) {
+/** Design §7.1: "the marker for the changed factor flips its brightness in sync" with the radial move. */
+private fun DrawScope.drawFactorMarkers(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
     val dirColor = directionColor(node.direction, colors)
+    val mutedColor = colors.textMuted.copy(alpha = 0.35f)
     Factor.entries.forEachIndexed { i, factor ->
         val point = layout.pointAt(node.index, layout.radiusForLevel(i + 1))
-        val passed = factor in node.factorsPassed
-        drawCircle(
-            color = if (passed) dirColor else colors.textMuted.copy(alpha = 0.35f),
-            radius = if (passed) 3.5.dp.toPx() else 2.5.dp.toPx(),
-            center = point,
-        )
+        val wasPassed = factor in anim.previousFactorsPassed
+        val isPassed = factor in anim.targetFactorsPassed
+        val color = lerp(if (wasPassed) dirColor else mutedColor, if (isPassed) dirColor else mutedColor, anim.factorBlend.value)
+        val fromRadius = if (wasPassed) 3.5f else 2.5f
+        val toRadius = if (isPassed) 3.5f else 2.5f
+        val radius = fromRadius + (toRadius - fromRadius) * anim.factorBlend.value
+        drawCircle(color = color, radius = radius.dp.toPx(), center = point)
     }
 }
 
@@ -454,8 +636,10 @@ private fun DrawScope.drawPairNode(
     isDark: Boolean,
     layout: WheelLayout,
     textMeasurer: TextMeasurer,
+    anim: NodeAnim,
+    breathing: Float,
 ) {
-    val center = layout.pointAt(node.index, layout.radiusForLevel(node.level))
+    val center = layout.pointAt(node.index, layout.radiusForLevel(anim.level.value))
     val dirColor = directionColor(node.direction, colors)
     val nodeRadius = layout.nodeRadiusFor(node.state)
 
@@ -470,6 +654,22 @@ private fun DrawScope.drawPairNode(
     val numberColor = when (node.state) {
         PotentialState.LOW, PotentialState.WATCH -> colors.textPrimary
         PotentialState.TRADEABLE, PotentialState.APLUS -> if (isDark) colors.ground else colors.surface
+    }
+
+    // Design §7.2/§2.4: a very subtle breathing glow, high-potential tiers only — drawn behind
+    // the node's own opaque fill so it only ever reads outside the disc's edge.
+    if (glowsAtRest(node.state)) {
+        val baseAlpha = if (isDark) GLOW_ALPHA_DARK else GLOW_ALPHA_LIGHT
+        val glowAlpha = baseAlpha * breathing
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(dirColor.copy(alpha = glowAlpha), dirColor.copy(alpha = 0f)),
+                center = center,
+                radius = nodeRadius * 2.2f,
+            ),
+            radius = nodeRadius * 2.2f,
+            center = center,
+        )
     }
 
     drawCircle(color = fillColor, radius = nodeRadius, center = center)
@@ -487,15 +687,34 @@ private fun DrawScope.drawPairNode(
     drawCircle(color = colors.hairlineStrong, radius = nodeRadius, center = center, style = Stroke(1.dp.toPx()))
 }
 
+/** Design §6.8/§50: a thin ring around the current #1 setup's node, crossfading in on change. */
+private fun DrawScope.drawTopPairHalo(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim, halo: HaloState) {
+    val alpha = when (node.pair) {
+        halo.incomingPair -> halo.incomingAlpha.value
+        halo.outgoingPair -> halo.outgoingAlpha.value
+        else -> 0f
+    }
+    if (alpha <= 0f) return
+    val center = layout.pointAt(node.index, layout.radiusForLevel(anim.level.value))
+    val nodeRadius = layout.nodeRadiusFor(node.state)
+    drawCircle(
+        color = directionColor(node.direction, colors).copy(alpha = alpha),
+        radius = nodeRadius + 3.dp.toPx(),
+        center = center,
+        style = Stroke(1.5.dp.toPx()),
+    )
+}
+
 private fun DrawScope.drawNucleus(
     state: WheelUiState,
     colors: AtomColors,
     layout: WheelLayout,
     textMeasurer: TextMeasurer,
+    nucleusColorAnim: ColorAnim,
 ) {
     val radius = layout.nucleusRadius
     val center = layout.center
-    val tint = tintColor(state.nucleus.tint, colors)
+    val tint = nucleusColorAnim.current()
 
     drawCircle(
         brush = Brush.radialGradient(colors = listOf(colors.groundRadial, colors.ground), center = center, radius = radius),
@@ -505,7 +724,7 @@ private fun DrawScope.drawNucleus(
     drawCircle(color = colors.hairlineStrong, radius = radius, center = center, style = Stroke(1.5.dp.toPx()))
     drawCircle(color = tint.copy(alpha = 0.5f), radius = radius, center = center, style = Stroke(1.dp.toPx()))
 
-    val laidOut = nucleusLines(state.nucleus, colors).map { (text, style) -> textMeasurer.measure(text, style) }
+    val laidOut = nucleusLines(state.nucleus, colors, tint).map { (text, style) -> textMeasurer.measure(text, style) }
     val totalHeight = laidOut.sumOf { it.size.height }
     var y = center.y - totalHeight / 2f
     laidOut.forEach { line ->
