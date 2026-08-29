@@ -157,6 +157,11 @@ private fun WheelArea(
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
             }
+            // Design review: this is a legend for the 1-6 numbers at the atom's own 12 o'clock
+            // spoke, not an actionable pair list like Tradeable Now/Watch below the wheel — it
+            // reads better directly above what it's labelling than grouped with those.
+            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.width(wheelSide))
+            Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))
             Box(modifier = Modifier.size(wheelSide)) {
                 WheelCanvas(
                     state = loaded.state,
@@ -167,8 +172,6 @@ private fun WheelArea(
                     onLongPress = onLongPress,
                 )
             }
-            Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))
-            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.width(wheelSide))
         }
     }
 }

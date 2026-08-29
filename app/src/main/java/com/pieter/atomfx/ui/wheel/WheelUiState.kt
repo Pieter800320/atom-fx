@@ -15,8 +15,8 @@ enum class Factor(val glyph: String, val ringLabel: String, val shortLabel: Stri
     REGIME("R", "1 · REGIME", "Regime"),
     FLOW("F", "2 · CURRENCY FLOW", "Flow"),
     BREADTH("B", "3 · BREADTH", "Breadth"),
-    MOMENTUM("M", "4 · MOMENTUM", "Mom"),
-    STRUCTURE("S", "5 · STRUCTURE", "Struct"),
+    MOMENTUM("M", "4 · MOMENTUM", "Momentum"),
+    STRUCTURE("S", "5 · STRUCTURE", "Structure"),
     ENTRY("E", "6 · ENTRY SETUP", "Entry"),
 }
 
