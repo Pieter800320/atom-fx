@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -166,8 +167,12 @@ private fun WheelArea(
             }
             // Design review: this is a legend for the 1-6 numbers at the atom's own 12 o'clock
             // spoke, not an actionable pair list like Tradeable Now/Watch below the wheel — it
-            // reads better directly above what it's labelling than grouped with those.
-            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.width(wheelSide))
+            // reads better directly above what it's labelling than grouped with those. Width is
+            // full-screen (matching Tradeable Now/Watch below), not tied to wheelSide: wheelSide
+            // shrinks whenever a state stacks more text above the wheel (long recommendation,
+            // DATA STALE row, wider status strip), and locking this scrollable row to that same
+            // shrunk number left it visibly stopping short of the screen edge in those states.
+            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))
             Box(modifier = Modifier.size(wheelSide)) {
                 WheelCanvas(
