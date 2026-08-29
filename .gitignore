@@ -1,3 +1,13 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Android / Gradle
+local.properties
+.gradle/
+build/
+app/build/
+*.iml
+.cxx/
+captures/
+.externalNativeBuild/

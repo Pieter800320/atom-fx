@@ -1,0 +1,5 @@
+<resources>
+    <!-- Minimal platform theme. All real theming (AtomColors, dark/light) is done inside
+         Compose via AtomTheme — see ui/theme/Theme.kt. -->
+    <style name="Theme.AtomFX" parent="android:Theme.Material.NoActionBar" />
+</resources>
