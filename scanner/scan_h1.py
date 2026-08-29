@@ -382,6 +382,51 @@ def main():
     out["gold_signal"] = gold_signal
     print(f"\n🟡 Gold signal: {gs_direction.upper()} | H4: {h4_confirmed} ({h4_conf}) | H1: {h1_confirmed}")
 
+    # ── EXTEND layer (additive; reads frozen values only — Rule #1 safe) ──────
+    # Everything below writes NEW signals.json keys. It never changes a frozen
+    # calculation or a firing condition. If it errors, the frozen data above is
+    # already assembled and still saved.
+    print("\n[Extend] Computing additive analytics…")
+    try:
+        from scanner.extend import csm_delta       as _csm_delta
+        from scanner.extend import breadth         as _breadth
+        from scanner.extend import structure_expose as _structure_expose
+        from scanner.extend import spark           as _spark
+        from scanner.extend import potential       as _potential
+        from scanner.extend import macro_regime    as _macro_regime
+        from scanner.extend import recommendation  as _recommendation
+        from scanner.extend import potential_config as _xcfg
+
+        out["csm_delta"]     = _csm_delta.compute_csm_delta(ohlcv, csm)
+        out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
+        out["breadth"]       = _breadth.compute_breadth(ohlcv)
+        _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
+        out["spark"]         = _spark.compute_spark(ohlcv)
+        out["potential"]     = _potential.compute_potential(
+            out, out["csm_delta"], out["breadth"],
+            reset=pair_reset, atr_pct=pair_atr_pct,
+        )
+
+        mr = _macro_regime.classify_macro_regime(out.get("macro_assets", {}),
+                                                 updated=now.isoformat())
+        if mr:
+            out["macro_regime"] = mr
+
+        # v1 recommendation: deterministic seed + deterministic framing (no hourly
+        # API cost). Phase 7 swaps in the AI-narrated version on the 12h cadence in
+        # scan_news.py (arch §6). Seed is authoritative either way.
+        rec = _recommendation.build_recommendation(out, use_model=False)
+        if rec:
+            out["recommendation"] = rec
+
+        out["schema_version"] = _xcfg.SCHEMA_VERSION
+        print(f"  Extend OK — schema_version={_xcfg.SCHEMA_VERSION}, "
+              f"potential pairs={len(out.get('potential', {}))}")
+    except Exception as e:
+        import traceback
+        print(f"  [extend] error (frozen data still saved): {e}")
+        traceback.print_exc()
+
     save_signals(out)
 
     # ── Telegram: Gold + H4 (Medium/High) + H1 confirmed ─────────────────────
