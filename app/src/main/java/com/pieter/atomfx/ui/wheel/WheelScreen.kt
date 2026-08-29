@@ -38,6 +38,7 @@ import com.pieter.atomfx.ui.theme.AtomType
 
 private val RING_KEY_ROW_HEIGHT = 48.dp
 private val RING_KEY_ROW_SPACING = 8.dp
+private val STALE_ROW_HEIGHT = 20.dp
 
 /**
  * Design §5's landing screen: header (§9) → status strip (§10) → the wheel, sized to whatever's
@@ -144,7 +145,13 @@ private fun WheelArea(
     onRingClick: (Factor) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING)
+        // The "DATA STALE" row's height has to be budgeted here too, not just the legend row's —
+        // otherwise the wheel's Box gets squeezed shorter than it is wide whenever that text
+        // shows (every fixture, and live data whenever it's actually stale), leaving a *not*
+        // square Canvas whose circle — drawn from the smaller of its two dimensions — ends up
+        // off-centre against the wider one (Pieter's design review).
+        val staleRowHeight = if (loaded.freshness == Freshness.STALE) STALE_ROW_HEIGHT else 0.dp
+        val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING - staleRowHeight)
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

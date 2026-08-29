@@ -114,14 +114,18 @@ private fun WheelLayout.nodeRadiusFor(state: PotentialState): Float = when (stat
 /**
  * A label only ever needs to clear *its own* node — the rim is one pair per angle — so a
  * small (low/watch tier) node lets its label sit closer to the ring than a big (solid tier)
- * one needs. Using one worst-case radius for every label (the previous version) left an
- * oversized, uniform gap wherever the actual node was smaller than that worst case. Solid-tier
- * nodes also need the halo cleared, not just the bare disc.
+ * one needs. Using one worst-case radius for every label (an earlier version) left an
+ * oversized, uniform gap wherever the actual node was smaller than that worst case.
+ *
+ * Pieter's design review: a *per-halo* extra bump here (an even-earlier version) made haloed
+ * labels sit visibly farther out than their neighbours — three distinct label distances (low,
+ * watch/solid, haloed) reads as misaligned, not intentional. `labelHalfExtent`/`labelGap` alone
+ * already clear the halo's own ~4dp reach beyond the disc, so no per-node halo add-on is
+ * needed — the halo is still accounted for once, safely, in the *margin* (screen-fit), just not
+ * as a per-label offset.
  */
-private fun WheelLayout.labelRadiusFor(node: PairNode): Float {
-    val haloExtra = if (node.state == PotentialState.TRADEABLE || node.state == PotentialState.APLUS) haloClearance else 0f
-    return outerRadius + nodeRadiusFor(node.state) + haloExtra + labelHalfExtent + labelGap
-}
+private fun WheelLayout.labelRadiusFor(node: PairNode): Float =
+    outerRadius + nodeRadiusFor(node.state) + labelHalfExtent + labelGap
 
 /** Half the angular chord between two adjacent radials (13 equally-spaced slots, incl. the legend). */
 private val HALF_STEP_SIN = sin(Math.toRadians(180.0 / WheelGeometry.SLOT_COUNT)).toFloat()
