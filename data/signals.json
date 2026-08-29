@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29T02:04:53.300941+00:00",
+  "updated": "2026-08-29T03:26:49.179431+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -548,10 +548,10 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
-    "stable": false
+    "signals": -2,
+    "total": 4,
+    "confidence": "Medium",
+    "stable": true
   },
   "macro_assets": {
     "vix": {
@@ -567,20 +567,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4505.7,
+      "value": 4504.1,
       "delta_pct": -2.3,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.674,
+      "value": 99.677,
       "delta_pct": 0.5,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6315,
-      "delta_pct": 0.7,
+      "value": 6.64,
+      "delta_pct": 0.8,
       "direction": "up",
       "label": "Copper"
     },
@@ -597,14 +597,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 83.42,
+      "value": 83.44,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77411.0,
-      "delta_pct": -3.5,
+      "value": 77682.0,
+      "delta_pct": -3.2,
       "direction": "down",
       "label": "Bitcoin"
     },
@@ -616,28 +616,33 @@
     }
   },
   "catalyst": {
-    "text": "USD strength ahead of Jackson Hole and sticky inflation lifting DXY directly conflicts with USDCAD LONG setup.",
-    "updated": "2026-08-28T20:42:59.256148+00:00"
+    "text": "EUR/USD weakness and USD strength ahead of Jackson Hole conflict with AUDJPY, USDCAD, and GBPJPY longs. Dollar rally headwinds.",
+    "updated": "2026-08-29T03:26:49.179431+00:00"
   },
   "ranked": {
-    "text": "AUDJPY LONG: US 10Y rise confirms JPY weakness, supports long.\n\nUSDCAD LONG: Gold decline confirms USD strength, supports long.",
+    "text": "AUDJPY LONG: Macro confirms via copper strength supporting AUD bid thesis.\n\nUSDCAD LONG: Macro confirms via triple USD tailwind from rates, gold, DXY.\n\nGBPJPY LONG: Macro challenges via conflicting GBP strength against JPY weakness narrative.",
     "top": [
       {
         "pair": "AUDJPY",
         "direction": "bull",
-        "score": 5.8
+        "score": 6.12
       },
       {
         "pair": "USDCAD",
         "direction": "bull",
-        "score": 5.75
+        "score": 5.62
+      },
+      {
+        "pair": "GBPJPY",
+        "direction": "bull",
+        "score": 3.98
       }
     ],
-    "updated": "2026-08-28T20:42:59.256148+00:00"
+    "updated": "2026-08-29T03:26:49.179431+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-28T20:42:59.256148+00:00"
+    "updated": "2026-08-29T03:26:49.179431+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -647,9 +652,9 @@
     "headlines": [
       "Non-farm payrolls benchmark revisions trimmed employment by 79K jobs",
       "EUR/USD, USD/JPY and USD/CAD favor dollar ahead of Jackson Hole",
-      "Foreign countries aren't buying treasuries like they used to"
+      "Canada GDP Q2 annualized 3.3% vs 3.4% estimate"
     ],
-    "updated": "2026-08-28T20:42:59.256148+00:00"
+    "updated": "2026-08-29T03:26:49.179431+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
