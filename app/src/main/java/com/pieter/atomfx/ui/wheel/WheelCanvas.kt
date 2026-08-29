@@ -84,15 +84,19 @@ private fun WheelLayout.radiusForLevel(level: Float): Float = nucleusRadius + le
 
 /**
  * A node's actual *drawn* position — [radiusForLevel] floored to a minimum clearance from the
- * nucleus edge (level 0 alone sits exactly on that edge by the raw formula, which is why it
- * used to render half-hidden under the nucleus fill) and ceilinged so a level-6 node's *halo*
- * lands exactly on the outer ring rather than bleeding past it (Pieter's design review) — the
- * ring line and the factor markers still sit at the true, unclamped radius; only the node
- * (and its halo) pull in slightly at the very top level.
+ * nucleus edge. Level 0 alone sits exactly on that edge by the raw formula, which is why it
+ * used to render half-hidden under the nucleus fill; levels 1+ are already clear.
+ *
+ * Pieter's design review: an earlier version also *ceilinged* this, pulling a level-6 node in
+ * so its halo wouldn't cross the outer ring — but "this node's centre sits exactly on its own
+ * level's ring" is the wheel's whole navigational language (spec: reaching ring 4 means sitting
+ * on ring 4), true for every other level, and level 6 is not a special case worth breaking that
+ * for. A halo reaching slightly past the outer ring is a normal, minor visual and reads as "this
+ * node is highlighted at the boundary," not as broken geometry — unlike a node that visibly
+ * doesn't sit on its own ring, which does.
  */
-private fun WheelLayout.renderRadiusForLevel(level: Float): Float = radiusForLevel(level)
-    .coerceAtLeast(nucleusRadius + ringPitch * 0.45f)
-    .coerceAtMost(outerRadius - solidNodeRadius - haloClearance)
+private fun WheelLayout.renderRadiusForLevel(level: Float): Float =
+    radiusForLevel(level).coerceAtLeast(nucleusRadius + ringPitch * 0.45f)
 
 private fun WheelLayout.pointAt(index: Int, radius: Float): Offset {
     val rad = WheelGeometry.angleRad(index)
@@ -636,11 +640,7 @@ private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: 
 private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
     val start = layout.pointAt(node.index, layout.nucleusRadius)
     val nodeCenter = layout.pointAt(node.index, layout.renderRadiusForLevel(anim.level.value))
-    // The "untraveled" segment's far end has to be the same clamped ceiling a level-6 node
-    // itself draws at (see renderRadiusForLevel) — using the true outerRadius here left a
-    // trailing stub of hairline past an already-maxed-out node, making it read as short of the
-    // rim instead of sitting on it (Pieter's design review).
-    val edge = layout.pointAt(node.index, layout.renderRadiusForLevel(6f))
+    val edge = layout.pointAt(node.index, layout.outerRadius)
     val dirColor = directionColor(node.direction, colors)
 
     drawLine(color = dirColor.copy(alpha = 0.30f), start = start, end = nodeCenter, strokeWidth = 1.5.dp.toPx())
