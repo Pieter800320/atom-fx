@@ -36,7 +36,7 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 
-private val RING_KEY_ROW_HEIGHT = 40.dp
+private val RING_KEY_ROW_HEIGHT = 48.dp
 private val RING_KEY_ROW_SPACING = 8.dp
 
 /**
@@ -196,6 +196,6 @@ private fun RingKeyRow(rings: List<RingDescriptor>, colors: AtomColors, onRingCl
             )
         },
         colors = colors,
-        modifier = modifier,
+        modifier = modifier.height(RING_KEY_ROW_HEIGHT),
     )
 }

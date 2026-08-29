@@ -68,8 +68,9 @@ private data class WheelLayout(
     val nucleusRadius: Float,
     val ringPitch: Float,
     val outerRadius: Float,
-    val labelHalfDiagonal: Float,
+    val labelHalfExtent: Float,
     val labelGap: Float,
+    val haloClearance: Float,
     val lowDotRadius: Float,
     val watchNodeRadius: Float,
     val solidNodeRadius: Float,
@@ -83,12 +84,15 @@ private fun WheelLayout.radiusForLevel(level: Float): Float = nucleusRadius + le
 
 /**
  * A node's actual *drawn* position — [radiusForLevel] floored to a minimum clearance from the
- * nucleus edge. Level 0 alone sits exactly on that edge by the raw formula, which is why it used
- * to render half-hidden under the nucleus fill (Pieter's design review); levels 1+ are already
- * clear and this is a no-op for them.
+ * nucleus edge (level 0 alone sits exactly on that edge by the raw formula, which is why it
+ * used to render half-hidden under the nucleus fill) and ceilinged so a level-6 node's *halo*
+ * lands exactly on the outer ring rather than bleeding past it (Pieter's design review) — the
+ * ring line and the factor markers still sit at the true, unclamped radius; only the node
+ * (and its halo) pull in slightly at the very top level.
  */
-private fun WheelLayout.renderRadiusForLevel(level: Float): Float =
-    radiusForLevel(level).coerceAtLeast(nucleusRadius + ringPitch * 0.3f)
+private fun WheelLayout.renderRadiusForLevel(level: Float): Float = radiusForLevel(level)
+    .coerceAtLeast(nucleusRadius + ringPitch * 0.45f)
+    .coerceAtMost(outerRadius - solidNodeRadius - haloClearance)
 
 private fun WheelLayout.pointAt(index: Int, radius: Float): Offset {
     val rad = WheelGeometry.angleRad(index)
@@ -111,10 +115,13 @@ private fun WheelLayout.nodeRadiusFor(state: PotentialState): Float = when (stat
  * A label only ever needs to clear *its own* node — the rim is one pair per angle — so a
  * small (low/watch tier) node lets its label sit closer to the ring than a big (solid tier)
  * one needs. Using one worst-case radius for every label (the previous version) left an
- * oversized, uniform gap wherever the actual node was smaller than that worst case.
+ * oversized, uniform gap wherever the actual node was smaller than that worst case. Solid-tier
+ * nodes also need the halo cleared, not just the bare disc.
  */
-private fun WheelLayout.labelRadiusFor(node: PairNode): Float =
-    outerRadius + nodeRadiusFor(node.state) + labelHalfDiagonal + labelGap
+private fun WheelLayout.labelRadiusFor(node: PairNode): Float {
+    val haloExtra = if (node.state == PotentialState.TRADEABLE || node.state == PotentialState.APLUS) haloClearance else 0f
+    return outerRadius + nodeRadiusFor(node.state) + haloExtra + labelHalfExtent + labelGap
+}
 
 /** Half the angular chord between two adjacent radials (13 equally-spaced slots, incl. the legend). */
 private val HALF_STEP_SIN = sin(Math.toRadians(180.0 / WheelGeometry.SLOT_COUNT)).toFloat()
@@ -206,16 +213,19 @@ private fun computeLayoutPass(
     val nucleusRadius = maxOf(minCircleRadiusFor(nucleusLayouts, nucleusPadding), minNucleusRadius)
 
     // A label is centred on a point past its own node (see labelRadiusFor) — clearing that
-    // node needs one half-diagonal of headroom on the *inward* side; staying on the canvas
-    // needs a second half-diagonal on the *outward* side (both at once, not the same one
-    // twice — that was the earlier bug where a label touching the node and bleeding off the
-    // shortest screen edge were actually one and the same). Margin is sized against the
-    // biggest (solid) node, the worst case that can occur at any rim position.
+    // node needs one half-extent of headroom on the *inward* side; staying on the canvas needs
+    // a second half-extent on the *outward* side. Labels are now rotated tangent to the rim
+    // (design review), so a label's *radial* footprint is just its own height — its width runs
+    // along the tangent, not outward — regardless of where around the circle it sits; using the
+    // full diagonal here (as the old horizontal labels needed) would waste most of that margin
+    // now. Margin also has to clear the *halo*, not just the bare disc, on the biggest node.
     val gap = with(density) { 1.dp.toPx() }
     val safety = with(density) { 1.dp.toPx() }
+    val haloClearance = with(density) { 5.dp.toPx() }
     val labelLayouts = state.nodes.map { textMeasurer.measure(it.pair, RimLabelStyle) }
-    val halfDiagonal = labelLayouts.maxOf { l -> sqrt((l.size.width / 2f).pow(2) + (l.size.height / 2f).pow(2)) }
-    val margin = marginNodeRadius + 2f * halfDiagonal + gap + safety
+    val labelHeight = labelLayouts.maxOf { it.size.height.toFloat() }
+    val labelHalfExtent = labelHeight / 2f
+    val margin = marginNodeRadius + haloClearance + labelHeight + gap + safety
 
     val outerRadius = (canvasSidePx / 2f - margin).coerceAtLeast(nucleusRadius + 10f)
     val ringPitch = (outerRadius - nucleusRadius) / 6f
@@ -243,12 +253,13 @@ private fun computeLayoutPass(
         nucleusRadius = nucleusRadius,
         ringPitch = ringPitch,
         outerRadius = outerRadius,
-        labelHalfDiagonal = halfDiagonal,
+        labelHalfExtent = labelHalfExtent,
         labelGap = gap,
+        haloClearance = haloClearance,
         lowDotRadius = lowDotRadius,
         watchNodeRadius = watchNodeRadius,
         solidNodeRadius = solidNodeRadius,
-        ringLegendRadius = with(density) { 12.dp.toPx() },
+        ringLegendRadius = with(density) { 8.dp.toPx() },
     )
 }
 
@@ -694,7 +705,11 @@ private fun DrawScope.drawPairNode(
         )
     }
 
-    drawCircle(color = colors.hairlineStrong, radius = nodeRadius, center = center, style = Stroke(1.dp.toPx()))
+    // Pieter: a stroke in a *different* grey than the low-tier dot's own fill read as a fuzzy
+    // edge at that small a size — a plain fill has one crisp anti-aliased boundary instead.
+    if (node.state != PotentialState.LOW) {
+        drawCircle(color = colors.hairlineStrong, radius = nodeRadius, center = center, style = Stroke(1.dp.toPx()))
+    }
 }
 
 /** Design §6.8/§50, revised: every solid-tier node gets a thin halo, fading in/out with its tier. */
