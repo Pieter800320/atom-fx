@@ -1,10 +1,9 @@
 package com.pieter.atomfx.ui.wheel
 
 /**
- * Mock-only shape for Phase 2 (Architecture §8.3, trimmed to what the wheel Canvas draws).
- * Once the app reads live `signals.json` (Phase 3), a real `WheelMapper` will produce this
- * same shape from `potential`, `currency_flow`, and `regime_h4` — nothing here is computed
- * from anything; it is a straight copy/format of backend values (spec §42).
+ * The wheel's own trimmed UI shape (Architecture §8.3). `WheelMapper` produces this from
+ * `potential`, `currency_flow`, and `regime_h4` — nothing here is computed from anything; it
+ * is a straight copy/format of backend values (spec §42).
  */
 
 enum class Direction { BULL, BEAR, NEUTRAL }
@@ -33,7 +32,6 @@ data class PairNode(
     val potential: Int, // 0..100
     val factorsPassed: Set<Factor>,
     val blockedAt: Factor?,
-    val isTopPair: Boolean = false,
 )
 
 data class NucleusState(

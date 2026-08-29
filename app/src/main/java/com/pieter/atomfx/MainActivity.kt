@@ -7,10 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import com.pieter.atomfx.ui.theme.AtomFxTheme
-import com.pieter.atomfx.ui.wheel.MockWheelData
 import com.pieter.atomfx.ui.wheel.WheelScreen
 
-/** Phase 2: hosts only the Energy Wheel (Architecture §9). Bottom nav/tabs/sheets are later phases. */
+/** Hosts only the Energy Wheel (Architecture §9). Bottom nav/tabs/sheets are later phases. */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +24,6 @@ class MainActivity : ComponentActivity() {
 private fun AtomFxApp() {
     val isDark = isSystemInDarkTheme()
     AtomFxTheme {
-        WheelScreen(state = MockWheelData.state, isDark = isDark)
+        WheelScreen(isDark = isDark)
     }
 }
