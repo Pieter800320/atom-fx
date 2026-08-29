@@ -22,6 +22,7 @@ Flow:
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -46,6 +47,7 @@ from scanner.cont_score import compute_cont
 from scanner.correlate  import compute_correlation
 from scanner.score              import compute_reset_score, atr_percentile
 from scanner.level_ema_alerts   import check_levels, check_ema_touches
+from push.send_push             import send_push
 
 # Extra pairs needed for CSM 16-pair set (not in main PAIRS list)
 CSM_EXTRA = ["EUR/GBP", "EUR/CHF", "GBP/CHF", "AUD/NZD", "AUD/CAD", "GBP/AUD"]
@@ -100,6 +102,50 @@ def send_telegram(msg: str):
         print(f"  Telegram error {e.code}: {body}")
     except Exception as e:
         print(f"  Telegram error: {e}")
+
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_NO_SLASH_PAIRS = [p.replace("/", "") for p in PAIRS]
+
+
+def _msg_to_title_body(msg: str) -> tuple[str, str]:
+    """Split one Telegram-style HTML message into a push (title, body). Same content, no markup."""
+    lines = [_HTML_TAG_RE.sub("", line).strip() for line in msg.strip().splitlines()]
+    lines = [line for line in lines if line]
+    title = lines[0] if lines else "ATOM FX"
+    body  = "\n".join(lines[1:]) if len(lines) > 1 else title
+    return title, body
+
+
+def _extract_pair(msg: str) -> str | None:
+    for pair in _NO_SLASH_PAIRS:
+        if pair in msg:
+            return pair
+    return None
+
+
+def send_push_alert(msg: str, msg_type: str, deeplink: str, direction: str | None = None) -> None:
+    """§7 drop-in for send_telegram: push first (primary transport), Telegram as fallback."""
+    title, body = _msg_to_title_body(msg)
+    data = {"type": msg_type, "deeplink": deeplink}
+    if direction:
+        data["direction"] = direction
+    if not send_push(title, body, data):
+        send_telegram(msg)
+
+
+def send_push_level_alert(msg: str) -> None:
+    pair = _extract_pair(msg)
+    direction = "above" if "↑" in msg else "below" if "↓" in msg else None
+    title, body = _msg_to_title_body(msg)
+    data = {"type": "level_alert"}
+    if pair:
+        data["pair"] = pair
+        data["deeplink"] = f"atomfx://pair/{pair}"
+    if direction:
+        data["direction"] = direction
+    if not send_push(title, body, data):
+        send_telegram(msg)
 
 
 def regime_emoji(regime: str) -> str:
@@ -429,9 +475,9 @@ def main():
 
     save_signals(out)
 
-    # ── Telegram: Gold + H4 (Medium/High) + H1 confirmed ─────────────────────
+    # ── Push: Gold + H4 (Medium/High) + H1 confirmed (Telegram fallback) ─────
     _pair_closes = {k: v["close"] for k, v in _pair_prices.items()}
-    check_levels(_pair_closes, send_telegram)
+    check_levels(_pair_closes, send_push_level_alert)
     # EMA touch alerts removed — Gold signal is the only proactive alert
 
     if (
@@ -457,8 +503,8 @@ def main():
             f"Setups: {pairs_line}\n"
             f"{now.strftime('%H:%M')} UTC"
         )
-        print(f"\n🚨 Gold signal Telegram → {gs_direction.upper()}")
-        send_telegram(msg)
+        print(f"\n🚨 Gold signal push → {gs_direction.upper()}")
+        send_push_alert(msg, "gold_signal", "atomfx://regime", direction=gs_direction)
         out["last_alert"] = now.isoformat()
         save_signals(out)
     else:
@@ -469,11 +515,13 @@ def main():
 
 if __name__ == "__main__":
     import sys
-    if "--test-telegram" in sys.argv:
-        print("Sending Telegram test message…")
-        send_telegram(
-            "\U0001f916 <b>FX Signal Board</b> — Telegram test OK\n"
-            "If you see this, bot token + chat ID are correct."
+    if "--test-push" in sys.argv:
+        print("Sending push test message…")
+        ok = send_push(
+            "\U0001f916 ATOM FX",
+            "Push test OK — if you see this, the FCM pipeline is wired correctly.",
+            {"type": "test"},
         )
+        print("OK" if ok else "FAILED (or FCM_SERVICE_ACCOUNT not set)")
     else:
         main()

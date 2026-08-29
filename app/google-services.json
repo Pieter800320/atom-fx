@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "642958379192",
+    "project_id": "atom-fx",
+    "storage_bucket": "atom-fx.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:642958379192:android:78565786c55178c6750c4d",
+        "android_client_info": {
+          "package_name": "com.pieter.atomfx"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8fKqi5NwiX4FlLRKtKIhMCZ8kqKviUz8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +52,7 @@ private val RING_KEY_ROW_SPACING = 8.dp
  * (§12) the same way.
  */
 @Composable
-fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier) {
+fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier, initialDeepLink: SheetTarget? = null) {
     val context = LocalContext.current
     val viewModel: WheelViewModel = viewModel(
         factory = remember {
@@ -62,7 +63,11 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier) {
     )
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
-    var activeSheet by remember { mutableStateOf<SheetTarget?>(null) }
+    var activeSheet by remember { mutableStateOf(initialDeepLink) }
+
+    LaunchedEffect(initialDeepLink) {
+        if (initialDeepLink != null) activeSheet = initialDeepLink
+    }
 
     Box(
         modifier = modifier
