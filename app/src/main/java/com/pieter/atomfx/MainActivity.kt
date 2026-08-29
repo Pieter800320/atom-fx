@@ -118,10 +118,15 @@ private fun ScreenSwitchStrip(screen: AppScreen, colors: AtomColors, onSelect: (
     ) {
         AppScreen.entries.forEach { entry ->
             Text(
-                text = entry.name.uppercase(),
+                text = screenLabel(entry),
                 style = AtomType.Caption.copy(color = if (entry == screen) colors.textPrimary else colors.textMuted),
                 modifier = Modifier.clickable { onSelect(entry) },
             )
         }
     }
+}
+
+private fun screenLabel(screen: AppScreen): String = when (screen) {
+    AppScreen.Wheel -> "ATOM" // the app's own name, not the internal "Wheel" identifier
+    AppScreen.Macro -> "MACRO"
 }

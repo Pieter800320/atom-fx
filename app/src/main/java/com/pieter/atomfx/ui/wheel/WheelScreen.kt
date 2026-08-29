@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.components.HeaderBar
+import com.pieter.atomfx.ui.components.Pill
+import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
@@ -36,7 +36,7 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 
-private val RING_KEY_ROW_HEIGHT = 28.dp
+private val RING_KEY_ROW_HEIGHT = 40.dp
 private val RING_KEY_ROW_SPACING = 8.dp
 
 /**
@@ -98,6 +98,7 @@ fun WheelScreen(
                         colors = colors,
                         onTap = { target -> activeSheet = target.toSheetTarget() },
                         onLongPress = { pair -> activeSheet = SheetTarget.Chart(pair) },
+                        onRingClick = { factor -> activeSheet = SheetTarget.Ring(factor) },
                     )
                 }
             }
@@ -140,6 +141,7 @@ private fun WheelArea(
     colors: AtomColors,
     onTap: (WheelTapTarget) -> Unit,
     onLongPress: (String) -> Unit,
+    onRingClick: (Factor) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING)
@@ -166,7 +168,7 @@ private fun WheelArea(
                 )
             }
             Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))
-            RingKeyRow(rings = loaded.state.rings, colors = colors, modifier = Modifier.width(wheelSide))
+            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.width(wheelSide))
         }
     }
 }
@@ -178,26 +180,22 @@ private fun CenteredMessage(text: String, colors: AtomColors) {
     }
 }
 
+/**
+ * Design review: was a static legend row; the ring bands themselves are too thin a tap target
+ * to rely on, so this doubles as six scrollable, tappable pills opening the same factor sheet
+ * a ring tap would (ring tap still works too — this is the reliable route, not a replacement).
+ */
 @Composable
-private fun RingKeyRow(rings: List<RingDescriptor>, colors: AtomColors, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.height(RING_KEY_ROW_HEIGHT),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        rings.forEachIndexed { i, ring ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .background(tintColor(ring.tint, colors), CircleShape),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${i + 1} ${ring.factor.shortLabel}",
-                    style = AtomType.Caption.copy(color = colors.textSecondary),
-                )
-            }
-        }
-    }
+private fun RingKeyRow(rings: List<RingDescriptor>, colors: AtomColors, onRingClick: (Factor) -> Unit, modifier: Modifier = Modifier) {
+    ScrollingPills(
+        pills = rings.mapIndexed { i, ring ->
+            Pill(
+                text = "${i + 1} ${ring.factor.shortLabel}",
+                tint = tintColor(ring.tint, colors),
+                onClick = { onRingClick(ring.factor) },
+            )
+        },
+        colors = colors,
+        modifier = modifier,
+    )
 }

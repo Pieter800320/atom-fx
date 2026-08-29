@@ -1,7 +1,9 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,8 +34,14 @@ fun RegimeSheet(signals: Signals, colors: AtomColors) {
         Text(
             text = "Confidence: ${(h4?.confidence ?: "—").uppercase()}",
             style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.padding(bottom = 16.dp),
+            modifier = Modifier.padding(bottom = 4.dp),
         )
+        SheetRow(
+            label = "Score (H4)",
+            value = h4?.score?.let { "${if (it >= 0) "+" else ""}%.1f".format(it) } ?: "—",
+            colors = colors,
+        )
+        Spacer(modifier = Modifier.height(10.dp))
 
         SheetRow("D1", regimeLine(signals.regimeD1), colors)
         SheetRow("H4", regimeLine(signals.regimeH4), colors)
