@@ -22,6 +22,23 @@ data class Signals(
     val breadth: Map<String, Map<String, BreadthEntry>> = emptyMap(),
     val pairs: Map<String, PairBlock> = emptyMap(),
     val potential: Map<String, PotentialEntry> = emptyMap(),
+    val calendar: CalendarBlock? = null,
+)
+
+@Serializable
+data class CalendarBlock(
+    val events: List<CalendarEvent> = emptyList(),
+)
+
+@Serializable
+data class CalendarEvent(
+    val day: String? = null,
+    val time: String? = null,
+    val currency: String? = null,
+    val name: String? = null,
+    val forecast: String? = null,
+    val previous: String? = null,
+    val note: String? = null,
 )
 
 @Serializable

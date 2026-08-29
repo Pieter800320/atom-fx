@@ -19,6 +19,9 @@ sealed interface SheetTarget {
     data object Nucleus : SheetTarget
     data class Ring(val factor: Factor) : SheetTarget
     data class Node(val pair: String) : SheetTarget
+
+    /** Design §12's right edge panel — summoned from the header, not a ring/node/nucleus tap. */
+    data object Calendar : SheetTarget
 }
 
 /**
@@ -60,6 +63,8 @@ fun BottomSheetHost(
                     val node = wheelState.nodes.firstOrNull { it.pair == target.pair }
                     if (node != null) PairSheet(node, wheelState.nodes, signals, colors)
                 }
+
+                SheetTarget.Calendar -> CalendarSheet(signals, colors)
             }
         }
     }
