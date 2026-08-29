@@ -84,6 +84,8 @@ fun WheelScreen(isDark: Boolean, modifier: Modifier = Modifier, initialDeepLink:
                     isFresh = loaded.freshness == Freshness.FRESH,
                     colors = colors,
                     onCalendarClick = { activeSheet = SheetTarget.Calendar },
+                    onRecommendationClick = { activeSheet = SheetTarget.Recommendation },
+                    recommendationHeadline = loaded.signals.recommendation?.headline,
                 )
                 StatusStrip(
                     state = loaded.state,

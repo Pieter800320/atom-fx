@@ -23,6 +23,8 @@ data class Signals(
     val pairs: Map<String, PairBlock> = emptyMap(),
     val potential: Map<String, PotentialEntry> = emptyMap(),
     val calendar: CalendarBlock? = null,
+    val recommendation: RecommendationBlock? = null,
+    @SerialName("deep_analysis") val deepAnalysis: DeepAnalysisBlock? = null,
 )
 
 @Serializable
@@ -121,6 +123,33 @@ data class PotentialEntry(
     @SerialName("blocked_at") val blockedAt: String? = null,
     @SerialName("setup_rank") val setupRank: Double? = null,
     val quality: Int? = null,
+)
+
+@Serializable
+data class RecommendationBlock(
+    val headline: String? = null,
+    val bias: String? = null,
+    val action: String? = null,
+    @SerialName("primary_pair") val primaryPair: String? = null,
+    val direction: String? = null,
+    val confidence: String? = null,
+    val rationale: String? = null,
+    val invalidation: String? = null,
+    @SerialName("next_catalyst") val nextCatalyst: NextCatalyst? = null,
+    val headlines: List<String> = emptyList(),
+    @SerialName("generated_at") val generatedAt: String? = null,
+)
+
+@Serializable
+data class NextCatalyst(
+    val event: String? = null,
+    val iso: String? = null,
+)
+
+@Serializable
+data class DeepAnalysisBlock(
+    val text: String? = null,
+    @SerialName("generated_at") val generatedAt: String? = null,
 )
 
 @Serializable

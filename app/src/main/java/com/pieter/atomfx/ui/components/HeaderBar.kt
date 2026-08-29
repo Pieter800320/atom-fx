@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -28,7 +29,10 @@ import java.time.format.DateTimeFormatter
  * Phase 3's `WheelMapper`, shown for the first time here), `Updated HH:mm`, and a freshness
  * dot. No gear icon — Settings doesn't exist yet, and a dead tap target isn't worth adding.
  * The small "events" affordance on the right opens the Calendar panel (Design §12's right
- * edge panel); there's no gear/nav to hang it off yet, so a plain header chip summons it.
+ * edge panel); "brief" opens the Recommendation panel (Design §12's left edge panel) the same
+ * way — there's no gear/nav to hang either off yet, so plain header chips summon them.
+ * Design §6.5: when `recommendation.headline` exists, it also gets a quiet line of its own
+ * beneath the flow line, truncated, tappable straight into the same Recommendation panel.
  */
 @Composable
 fun HeaderBar(
@@ -37,6 +41,8 @@ fun HeaderBar(
     isFresh: Boolean,
     colors: AtomColors,
     onCalendarClick: () -> Unit,
+    onRecommendationClick: () -> Unit,
+    recommendationHeadline: String?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -61,6 +67,11 @@ fun HeaderBar(
                         .background(if (isFresh) colors.bull else colors.bear, CircleShape),
                 )
                 Text(
+                    text = "  brief",
+                    style = AtomType.Caption.copy(color = colors.textSecondary),
+                    modifier = Modifier.clickable(onClick = onRecommendationClick),
+                )
+                Text(
                     text = "  events",
                     style = AtomType.Caption.copy(color = colors.textSecondary),
                     modifier = Modifier.clickable(onClick = onCalendarClick),
@@ -77,6 +88,15 @@ fun HeaderBar(
             text = state.nucleus.flowLine,
             style = AtomType.Caption.copy(color = colors.textSecondary),
         )
+        if (!recommendationHeadline.isNullOrBlank()) {
+            Text(
+                text = recommendationHeadline,
+                style = AtomType.Caption.copy(color = colors.textMuted),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.clickable(onClick = onRecommendationClick),
+            )
+        }
     }
 }
 

@@ -22,6 +22,9 @@ sealed interface SheetTarget {
 
     /** Design §12's right edge panel — summoned from the header, not a ring/node/nucleus tap. */
     data object Calendar : SheetTarget
+
+    /** Design §12's left edge panel — summoned from the header (Phase 7). */
+    data object Recommendation : SheetTarget
 }
 
 /**
@@ -65,6 +68,7 @@ fun BottomSheetHost(
                 }
 
                 SheetTarget.Calendar -> CalendarSheet(signals, colors)
+                SheetTarget.Recommendation -> RecommendationSheet(signals, colors)
             }
         }
     }
