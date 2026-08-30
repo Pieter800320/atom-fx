@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-30T22:17:29.316978+00:00",
+  "updated": "2026-08-30T23:07:46.466819+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -735,20 +735,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4529.9,
-      "delta_pct": 1.2,
+      "value": 4508.8,
+      "delta_pct": 0.7,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.693,
+      "value": 99.673,
       "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.659,
-      "delta_pct": 1.5,
+      "value": 6.6345,
+      "delta_pct": 1.1,
       "direction": "up",
       "label": "Copper"
     },
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 83.4,
-      "delta_pct": 0.0,
-      "direction": "flat",
+      "value": 84.8,
+      "delta_pct": 1.7,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78422.0,
-      "delta_pct": 0.8,
+      "value": 78349.0,
+      "delta_pct": 0.7,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "Jackson Hole speech upcoming favors dollar strength, directly conflicting with AUDJPY LONG, AUDUSD LONG, and GBPJPY LONG setups requiring USD weakness.",
-    "updated": "2026-08-30T22:17:29.316978+00:00"
+    "text": "Jackson Hole event risks volatility in AUD/USD and GBP/JPY. Dollar strength headlines conflict with AUD/JPY and AUD/USD longs.",
+    "updated": "2026-08-30T23:07:46.466819+00:00"
   },
   "ranked": {
-    "text": "AUDJPY LONG: Macro confirms setup, US 10Y and commodity strength both support.\n\nAUDUSD LONG: Macro confirms setup, gold and copper bid AUD decisively.\n\nGBPJPY LONG: Macro challenges setup, only 10Y supports but momentum deteriorating.",
+    "text": "AUDJPY LONG: Macro confirms via rising commodities bidding AUD strength simultaneously.\n\nAUDUSD LONG: Macro confirms through gold and copper rallies supporting AUD bid.\n\nGBPJPY LONG: Macro challenges setup as risk-off contradicts GBP strength narrative.",
     "top": [
       {
         "pair": "AUDJPY",
@@ -806,11 +806,11 @@
         "score": 3.88
       }
     ],
-    "updated": "2026-08-30T22:17:29.316978+00:00"
+    "updated": "2026-08-30T23:07:46.466819+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-30T22:17:29.316978+00:00"
+    "updated": "2026-08-30T23:07:46.466819+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -818,11 +818,11 @@
   },
   "breaking": {
     "headlines": [
-      "NFP benchmark revisions trimmed employment by 79K jobs",
-      "EUR/USD, USD/JPY and USD/CAD favor dollar ahead Jackson Hole",
+      "Non-farm payrolls benchmark revisions trimmed employment by 79K jobs",
+      "EUR/USD, USD/JPY and USD/CAD favor dollar ahead of Jackson Hole",
       "Foreign countries aren't buying treasuries like they used to"
     ],
-    "updated": "2026-08-30T22:17:29.316978+00:00"
+    "updated": "2026-08-30T23:07:46.466819+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
