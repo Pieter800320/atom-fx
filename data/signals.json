@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-30T09:38:27.039934+00:00",
+  "updated": "2026-08-30T14:36:28.768059+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -771,9 +771,9 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78007.0,
-      "delta_pct": -2.8,
-      "direction": "down",
+      "value": 78800.0,
+      "delta_pct": 1.2,
+      "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "Jackson Hole conference ahead could accelerate USD strength, potentially conflicting with AUDJPY LONG, AUDUSD LONG, and GBPJPY LONG setups through risk-off dynamics.",
-    "updated": "2026-08-30T09:38:27.039934+00:00"
+    "text": "Jackson Hole conference upcoming creates major volatility risk for all three pairs. DXY strength and sticky inflation headlines contradict long USD exposure in AUDUSD and GBPJPY.",
+    "updated": "2026-08-30T14:36:28.768059+00:00"
   },
   "ranked": {
-    "text": "AUDJPY LONG: Macro confirms setup, US 10Y rise weakens JPY fundamentally.\n\nAUDUSD LONG: Macro challenges setup, risk-off regime contradicts copper-driven AUD strength.\n\nGBPJPY LONG: Macro challenges setup, weak GBP momentum conflicts with 10Y tailwind.",
+    "text": "AUDJPY LONG: Macro confirms via rising US 10Y weakening JPY offered.\n\nAUDUSD LONG: Macro confirms via copper strength supporting AUD bid persistence.\n\nGBPJPY LONG: Macro challenges via weak momentum divergence offsetting JPY weakness driver.",
     "top": [
       {
         "pair": "AUDJPY",
@@ -806,23 +806,23 @@
         "score": 3.88
       }
     ],
-    "updated": "2026-08-30T09:38:27.039934+00:00"
+    "updated": "2026-08-30T14:36:28.768059+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-30T09:38:27.039934+00:00"
+    "updated": "2026-08-30T14:36:28.768059+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
-    "generated_at": "2026-08-29T23:48:53.542521+00:00"
+    "generated_at": "2026-08-30T14:37:05.060467+00:00"
   },
   "breaking": {
     "headlines": [
       "Non-farm payrolls benchmark revisions trimmed employment by 79K jobs",
-      "USD/JPY and USD/CAD favor dollar ahead of Jackson Hole",
-      "Foreign countries aren't buying treasuries like they used to"
+      "Canada GDP Q2 annualized 3.3% vs 3.4% estimate",
+      "EUR/USD, USD/JPY and USD/CAD favor dollar ahead of Jackson Hole"
     ],
-    "updated": "2026-08-30T09:38:27.039934+00:00"
+    "updated": "2026-08-30T14:36:28.768059+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
