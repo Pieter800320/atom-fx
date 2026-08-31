@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31T19:28:56.971217+00:00",
+  "updated": "2026-08-31T23:32:31.450746+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -716,38 +716,38 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -1,
-    "total": 1,
-    "confidence": "Low",
-    "stable": false
+    "signals": -2,
+    "total": 2,
+    "confidence": "Medium",
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.06,
-      "delta_pct": 4.4,
+      "value": 14.92,
+      "delta_pct": 3.4,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7679.5,
-      "delta_pct": -0.4,
-      "direction": "down",
+      "value": 7686.14,
+      "delta_pct": -0.3,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4482.0,
-      "delta_pct": 0.1,
+      "value": 4491.0,
+      "delta_pct": 0.3,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.409,
+      "value": 99.413,
       "delta_pct": -0.3,
       "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6845,
+      "value": 6.6895,
       "delta_pct": 1.9,
       "direction": "up",
       "label": "Copper"
@@ -759,46 +759,53 @@
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.735,
-      "delta_bp": 0.5,
+      "value": 3.732,
+      "delta_bp": 0.2,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 85.78,
-      "delta_pct": 2.9,
+      "value": 86.35,
+      "delta_pct": 3.5,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78901.0,
-      "delta_pct": 1.4,
+      "value": 78557.0,
+      "delta_pct": 0.9,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.3,
-      "delta_bp": 3.3,
+      "value": 102.6,
+      "delta_bp": 3.6,
       "direction": "up",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "EUR/USD faces headwind from hawkish Warsh positioning and DXY strength while Germany's softer CPI could support euro. Conflicting signals.",
-    "updated": "2026-08-31T18:34:09.084454+00:00"
+    "text": "GBPUSD LONG conflicted by UK inflation headline suggesting BOE may resist rate cuts, supporting USD strength instead.",
+    "updated": "2026-08-31T23:32:31.450746+00:00"
   },
   "ranked": {
-    "text": "No qualifying setups.",
-    "top": [],
-    "updated": "2026-08-31T18:34:09.084454+00:00"
+    "text": "USDCAD SHORT: Macro confirms setup, WTI strength bids CAD directly.\n\nGBPUSD LONG: Macro confirms setup, DXY weakness offers USD selling.",
+    "top": [
+      {
+        "pair": "USDCAD",
+        "direction": "bear",
+        "score": 6.4
+      },
+      {
+        "pair": "GBPUSD",
+        "direction": "bull",
+        "score": 4.1
+      }
+    ],
+    "updated": "2026-08-31T23:32:31.450746+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-31T18:34:09.084454+00:00"
-  },
-  "week_ahead": {
-    "text": "Weak US employment data and Middle East uncertainty create diverging signals across major pairs including USD/JPY, EUR/USD , pulling the market between dollar strength and safe-haven appetite. August employment data from the United States could trigger a directional move next week , making nonfarm payrolls the week's critical catalyst for USD direction. USD/JPY's rebound from 155.22 resumed by breaking through 159.76 last week, with initial bias mildly on the upside , making the pair the primary barometer for risk sentiment shifts. Middle East escalation poses the biggest wildcard\u2014any geopolitical flare-up would likely trigger safe-haven flows favoring the yen and driving risk-off moves despite moderately hawkish Fed signals.",
-    "generated_at": "2026-08-30T22:17:29.316978+00:00"
+    "updated": "2026-08-31T23:32:31.450746+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -806,11 +813,11 @@
   },
   "breaking": {
     "headlines": [
-      "Bessent: US 10yr yield at Trump inauguration level, oil prices falling",
-      "Foreign countries reducing Treasury purchases, potential trouble for US debt",
-      "Warsh hawkish stance lifts DXY; EUR/USD and GBP/USD decline"
+      "Warsh's hawkish Jackson Hole speech lifts DXY, USD rebounds strongly",
+      "UK shop prices rise fastest pace since 2024, inflation concerns",
+      "China Caixin PMI preview: private survey edges up to 51.0"
     ],
-    "updated": "2026-08-31T18:34:09.084454+00:00"
+    "updated": "2026-08-31T23:32:31.450746+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
