@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31T11:32:09.773542+00:00",
+  "updated": "2026-08-31T18:34:09.084454+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -710,107 +710,91 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
-    "label": "Mixed",
-    "signals": 0,
-    "total": 2,
-    "confidence": "Neutral",
+    "label": "Risk-On",
+    "signals": -1,
+    "total": 1,
+    "confidence": "Low",
     "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 15.21,
-      "delta_pct": 5.4,
-      "direction": "up",
+      "value": 15.06,
+      "delta_pct": 4.4,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7711.76,
-      "delta_pct": -0.2,
-      "direction": "flat",
+      "value": 7679.5,
+      "delta_pct": -0.4,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4498.7,
-      "delta_pct": 0.5,
+      "value": 4482.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.53,
-      "delta_pct": -0.2,
-      "direction": "flat",
+      "value": 99.409,
+      "delta_pct": -0.3,
+      "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6665,
-      "delta_pct": 1.6,
+      "value": 6.6845,
+      "delta_pct": 1.9,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.72,
-      "delta_bp": 4.8,
-      "direction": "up",
+      "value": 4.758,
+      "delta_bp": 3.8,
+      "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.73,
-      "delta_bp": 5.2,
-      "direction": "up",
+      "value": 3.735,
+      "delta_bp": 0.5,
+      "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 86.62,
-      "delta_pct": 3.9,
+      "value": 85.78,
+      "delta_pct": 2.9,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78430.0,
-      "delta_pct": 0.8,
+      "value": 78901.0,
+      "delta_pct": 1.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 99.0,
-      "delta_bp": -0.4,
-      "direction": "flat",
+      "value": 102.3,
+      "delta_bp": 3.3,
+      "direction": "up",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "No breaking catalysts.",
-    "updated": "2026-08-31T10:20:22.436353+00:00"
+    "text": "EUR/USD faces headwind from hawkish Warsh positioning and DXY strength while Germany's softer CPI could support euro. Conflicting signals.",
+    "updated": "2026-08-31T18:34:09.084454+00:00"
   },
   "ranked": {
-    "text": "AUDJPY LONG: US 10Y rise confirms JPY weakness, supports setup.\n\nAUDUSD LONG: Copper strength confirms AUD bid, macro aligned.\n\nGBPJPY LONG: US 10Y rise supports but GBP lacks macro driver.",
-    "top": [
-      {
-        "pair": "AUDJPY",
-        "direction": "bull",
-        "score": 6.53
-      },
-      {
-        "pair": "AUDUSD",
-        "direction": "bull",
-        "score": 5.35
-      },
-      {
-        "pair": "GBPJPY",
-        "direction": "bull",
-        "score": 3.88
-      }
-    ],
-    "updated": "2026-08-31T10:20:22.436353+00:00"
+    "text": "No qualifying setups.",
+    "top": [],
+    "updated": "2026-08-31T18:34:09.084454+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-31T10:20:22.436353+00:00"
+    "updated": "2026-08-31T18:34:09.084454+00:00"
   },
   "week_ahead": {
     "text": "Weak US employment data and Middle East uncertainty create diverging signals across major pairs including USD/JPY, EUR/USD , pulling the market between dollar strength and safe-haven appetite. August employment data from the United States could trigger a directional move next week , making nonfarm payrolls the week's critical catalyst for USD direction. USD/JPY's rebound from 155.22 resumed by breaking through 159.76 last week, with initial bias mildly on the upside , making the pair the primary barometer for risk sentiment shifts. Middle East escalation poses the biggest wildcard\u2014any geopolitical flare-up would likely trigger safe-haven flows favoring the yen and driving risk-off moves despite moderately hawkish Fed signals.",
@@ -818,15 +802,15 @@
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
-    "generated_at": "2026-08-31T02:49:06.813713+00:00"
+    "generated_at": "2026-08-31T18:34:44.086745+00:00"
   },
   "breaking": {
     "headlines": [
-      "Oil jumps on Iran-US strikes; Strait of Hormuz tensions escalate",
-      "Jackson Hole looms; USD strengthens as markets await Fed guidance",
-      "German CPI due today; EUR/USD volatility expected ahead"
+      "Bessent: US 10yr yield at Trump inauguration level, oil prices falling",
+      "Foreign countries reducing Treasury purchases, potential trouble for US debt",
+      "Warsh hawkish stance lifts DXY; EUR/USD and GBP/USD decline"
     ],
-    "updated": "2026-08-31T10:20:22.436353+00:00"
+    "updated": "2026-08-31T18:34:09.084454+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
