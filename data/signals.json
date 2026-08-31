@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31T02:48:30.688154+00:00",
+  "updated": "2026-08-31T10:20:22.436353+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -712,20 +712,20 @@
     "score": 0.0,
     "signals": -1,
     "total": 1,
-    "stable": false
+    "stable": true
   },
   "macro": {
-    "label": "Risk-On",
-    "signals": -1,
-    "total": 1,
-    "confidence": "Low",
-    "stable": true
+    "label": "Mixed",
+    "signals": 0,
+    "total": 2,
+    "confidence": "Neutral",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 14.43,
-      "delta_pct": -0.6,
-      "direction": "flat",
+      "value": 15.21,
+      "delta_pct": 5.4,
+      "direction": "up",
       "label": "VIX"
     },
     "spx": {
@@ -735,20 +735,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4456.5,
-      "delta_pct": -0.5,
+      "value": 4498.7,
+      "delta_pct": 0.5,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.598,
-      "delta_pct": -0.1,
+      "value": 99.53,
+      "delta_pct": -0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.608,
-      "delta_pct": 0.7,
+      "value": 6.6665,
+      "delta_pct": 1.6,
       "direction": "up",
       "label": "Copper"
     },
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 85.43,
-      "delta_pct": 2.4,
+      "value": 86.62,
+      "delta_pct": 3.9,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77648.0,
-      "delta_pct": -0.2,
+      "value": 78430.0,
+      "delta_pct": 0.8,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "AUDJPY and AUDUSD conflict with Australian inventory drag on GDP growth. GBPJPY conflicts with USD strength ahead of Jackson Hole and sticky inflation.",
-    "updated": "2026-08-31T02:48:30.688154+00:00"
+    "text": "No breaking catalysts.",
+    "updated": "2026-08-31T10:20:22.436353+00:00"
   },
   "ranked": {
-    "text": "AUDJPY LONG: Macro confirms setup via copper strength bidding AUD fundamentally.\n\nAUDUSD LONG: Macro confirms setup via copper bid offsetting risk-off headwinds.\n\nGBPJPY LONG: Macro challenges setup as risk-off regime contradicts carry weakness.",
+    "text": "AUDJPY LONG: US 10Y rise confirms JPY weakness, supports setup.\n\nAUDUSD LONG: Copper strength confirms AUD bid, macro aligned.\n\nGBPJPY LONG: US 10Y rise supports but GBP lacks macro driver.",
     "top": [
       {
         "pair": "AUDJPY",
@@ -806,11 +806,11 @@
         "score": 3.88
       }
     ],
-    "updated": "2026-08-31T02:48:30.688154+00:00"
+    "updated": "2026-08-31T10:20:22.436353+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-31T02:48:30.688154+00:00"
+    "updated": "2026-08-31T10:20:22.436353+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -818,11 +818,11 @@
   },
   "breaking": {
     "headlines": [
-      "China Manufacturing PMI 49.8 beats forecast, contraction easing",
-      "New Zealand business confidence falls to 53.7 from 56.1",
-      "Jackson Hole looms as central bankers meet, dollar favored"
+      "Oil jumps on Iran-US strikes; Strait of Hormuz tensions escalate",
+      "Jackson Hole looms; USD strengthens as markets await Fed guidance",
+      "German CPI due today; EUR/USD volatility expected ahead"
     ],
-    "updated": "2026-08-31T02:48:30.688154+00:00"
+    "updated": "2026-08-31T10:20:22.436353+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
