@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31T23:32:31.450746+00:00",
+  "updated": "2026-09-01T02:58:24.100156+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -710,102 +710,102 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -2,
-    "total": 2,
+    "signals": -1,
+    "total": 1,
     "stable": true
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -2,
-    "total": 2,
-    "confidence": "Medium",
+    "signals": -3,
+    "total": 3,
+    "confidence": "High",
     "stable": true
   },
   "macro_assets": {
     "vix": {
       "value": 14.92,
-      "delta_pct": 3.4,
+      "delta_pct": 2.8,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
       "value": 7686.14,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "delta_pct": -0.6,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4491.0,
-      "delta_pct": 0.3,
+      "value": 4483.1,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.413,
-      "delta_pct": -0.3,
-      "direction": "down",
+      "value": 99.489,
+      "delta_pct": 0.1,
+      "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6895,
-      "delta_pct": 1.9,
+      "value": 6.7105,
+      "delta_pct": 2.3,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
       "value": 4.758,
-      "delta_bp": 3.8,
-      "direction": "flat",
+      "delta_bp": 8.6,
+      "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
       "value": 3.732,
-      "delta_bp": 0.2,
-      "direction": "flat",
+      "delta_bp": 5.4,
+      "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 86.35,
-      "delta_pct": 3.5,
+      "value": 86.74,
+      "delta_pct": 4.0,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78557.0,
-      "delta_pct": 0.9,
+      "value": 78415.0,
+      "delta_pct": 1.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
       "value": 102.6,
-      "delta_bp": 3.6,
+      "delta_bp": 3.2,
       "direction": "up",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPUSD LONG conflicted by UK inflation headline suggesting BOE may resist rate cuts, supporting USD strength instead.",
-    "updated": "2026-08-31T23:32:31.450746+00:00"
+    "text": "GBPUSD LONG at risk. UK shop prices rise fastest since 2024 signals inflation persistence, supporting hawkish Fed stance and USD strength against GBP.",
+    "updated": "2026-09-01T02:58:24.100156+00:00"
   },
   "ranked": {
-    "text": "USDCAD SHORT: Macro confirms setup, WTI strength bids CAD directly.\n\nGBPUSD LONG: Macro confirms setup, DXY weakness offers USD selling.",
+    "text": "USDCAD SHORT: Rising WTI strengthens CAD, confirming short bias today.\n\nGBPUSD LONG: Risk-on medium supports longs, but weak momentum challenges.",
     "top": [
       {
         "pair": "USDCAD",
         "direction": "bear",
-        "score": 6.4
+        "score": 6.2
       },
       {
         "pair": "GBPUSD",
         "direction": "bull",
-        "score": 4.1
+        "score": 3.7
       }
     ],
-    "updated": "2026-08-31T23:32:31.450746+00:00"
+    "updated": "2026-09-01T02:58:24.100156+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-08-31T23:32:31.450746+00:00"
+    "updated": "2026-09-01T02:58:24.100156+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -813,11 +813,11 @@
   },
   "breaking": {
     "headlines": [
-      "Warsh's hawkish Jackson Hole speech lifts DXY, USD rebounds strongly",
-      "UK shop prices rise fastest pace since 2024, inflation concerns",
-      "China Caixin PMI preview: private survey edges up to 51.0"
+      "Japan manufacturing PMI hits 54.9, new orders surge most since 2018",
+      "Hawkish Warsh lifts DXY as EUR/USD and GBP/USD fall sharply",
+      "UK shop prices rise fastest pace since 2024, inflation pressures sterling"
     ],
-    "updated": "2026-08-31T23:32:31.450746+00:00"
+    "updated": "2026-09-01T02:58:24.100156+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
