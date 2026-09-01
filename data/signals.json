@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01T09:56:55.944278+00:00",
+  "updated": "2026-09-01T14:26:43.715079+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -710,102 +710,97 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
     "label": "Mixed",
     "signals": 0,
-    "total": 2,
+    "total": 0,
     "confidence": "Neutral",
-    "stable": false
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.69,
-      "delta_pct": 5.2,
-      "direction": "up",
+      "value": 15.61,
+      "delta_pct": 4.6,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7686.14,
-      "delta_pct": -0.6,
-      "direction": "down",
+      "value": 7655.82,
+      "delta_pct": -0.4,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4423.6,
-      "delta_pct": -0.2,
+      "value": 4419.1,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.589,
-      "delta_pct": 0.2,
+      "value": 99.524,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.624,
-      "delta_pct": 0.5,
+      "value": 6.6085,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.758,
-      "delta_bp": 8.6,
-      "direction": "up",
+      "value": 4.764,
+      "delta_bp": 0.6,
+      "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.732,
-      "delta_bp": 5.4,
+      "value": 3.77,
+      "delta_bp": 3.8,
       "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 87.81,
-      "delta_pct": 2.4,
+      "value": 87.66,
+      "delta_pct": 2.2,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77813.0,
-      "delta_pct": -0.9,
+      "value": 78346.0,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.6,
-      "delta_bp": 3.2,
-      "direction": "up",
+      "value": 99.4,
+      "delta_bp": -3.2,
+      "direction": "down",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPUSD LONG at risk. Hawkish Warsh and DXY rebound headlines suggest USD strength accelerating, pressuring GBP downside momentum against setup.",
-    "updated": "2026-09-01T09:03:48.992074+00:00"
+    "text": "Hawkish Fed expectations and DXY strength conflict with CADJPY long. USD strength pressures CAD while JPY weakens on risk-on.",
+    "updated": "2026-09-01T14:26:43.715079+00:00"
   },
   "ranked": {
-    "text": "USDCAD SHORT: Risk-on weakens USD; oil strength directly supports CAD bearish thesis.\n\nGBPUSD LONG: VIX spike and rising yields challenge weak momentum setup negatively.",
+    "text": "WTI Oil rising strongly confirms CAD bid thesis today.",
     "top": [
       {
-        "pair": "USDCAD",
-        "direction": "bear",
-        "score": 6.2
-      },
-      {
-        "pair": "GBPUSD",
+        "pair": "CADJPY",
         "direction": "bull",
-        "score": 3.7
+        "score": 6.25
       }
     ],
-    "updated": "2026-09-01T09:03:48.992074+00:00"
+    "updated": "2026-09-01T14:26:43.715079+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-01T09:03:48.992074+00:00"
+    "updated": "2026-09-01T14:26:43.715079+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -813,11 +808,11 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar strengthens as hawkish Warsh comments lift DXY index",
-      "Eurozone factory growth expands in August, Germany leads PMI gains",
-      "Foreign countries reduce Treasury purchases, pressuring USD funding dynamics"
+      "Euro area inflation climbs above 3% in August on higher energy prices",
+      "US manufacturing PMI 54.6 versus 55.2 estimate, signals weakening momentum",
+      "Foreign countries aren't buying US Treasuries, potential trouble for dollar"
     ],
-    "updated": "2026-09-01T09:03:48.992074+00:00"
+    "updated": "2026-09-01T14:26:43.715079+00:00"
   },
   "gold_signal": {
     "direction": "neutral",
