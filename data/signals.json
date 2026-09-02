@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T02:18:50.814957+00:00",
+  "updated": "2026-09-02T08:17:30.375197+00:00",
   "regime_d1": {
     "regime": "Risk-On",
     "confidence": "Medium",
@@ -709,23 +709,23 @@
   "regime_w1": {
     "regime": "Risk-On",
     "confidence": "Medium",
-    "score": 3.3,
-    "signals": -1,
-    "total": 3,
+    "score": 0.0,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
     "label": "Risk-Off",
     "signals": 1,
-    "total": 3,
+    "total": 1,
     "confidence": "Low",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 16.34,
-      "delta_pct": 9.5,
-      "direction": "up",
+      "value": 16.47,
+      "delta_pct": 0.8,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
@@ -735,21 +735,21 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4345.7,
-      "delta_pct": -1.9,
-      "direction": "down",
+      "value": 4372.2,
+      "delta_pct": 0.6,
+      "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.791,
+      "value": 99.723,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.522,
-      "delta_pct": -1.1,
-      "direction": "down",
+      "value": 6.5405,
+      "delta_pct": 0.5,
+      "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.12,
-      "delta_pct": 6.3,
-      "direction": "up",
+      "value": 90.06,
+      "delta_pct": -0.2,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77102.0,
-      "delta_pct": -1.8,
+      "value": 77396.0,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,23 +784,23 @@
     }
   },
   "catalyst": {
-    "text": "DXY strength from hawkish Fed commentary and dollar demand could pressure USDCHF long if risk-off sentiment reverses to risk-on.",
-    "updated": "2026-09-02T02:18:50.814957+00:00"
+    "text": "No breaking catalysts.",
+    "updated": "2026-09-02T08:17:30.375197+00:00"
   },
   "ranked": {
-    "text": "VIX surge and gold weakness confirm USD strength thesis clearly.",
+    "text": "USDCHF LONG challenges setup; gold strength contradicts safe haven demand.",
     "top": [
       {
         "pair": "USDCHF",
         "direction": "bull",
-        "score": 5.92
+        "score": 5.53
       }
     ],
-    "updated": "2026-09-02T02:18:50.814957+00:00"
+    "updated": "2026-09-02T08:17:30.375197+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-02T02:18:50.814957+00:00"
+    "updated": "2026-09-02T08:17:30.375197+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -808,11 +808,11 @@
   },
   "breaking": {
     "headlines": [
-      "Australian Q2 GDP beats 0.4% q/q, supports AUD strength",
-      "US strikes Iran, crude rallies to $90.50, risk-off",
-      "Trump confirms Iran attack, stocks fall, safe-havens rally"
+      "Australia Q2 GDP beats 0.4%, keeps September rate hike in play",
+      "Hawkish Warsh lifts DXY as EUR/USD and GBP/USD fall",
+      "Foreign countries aren't buying Treasuries, trouble for Bessent"
     ],
-    "updated": "2026-09-02T02:18:50.814957+00:00"
+    "updated": "2026-09-02T08:17:30.375197+00:00"
   },
   "gold_signal": {
     "direction": "bear",
