@@ -648,14 +648,23 @@ def build_deep_context(signals: dict, macro: dict) -> str:
 def call_daily_brief(signals: dict, headlines: list) -> dict:
     """
     Daily Sonnet call — 50-100 word unified brief.
-    Synthesises gold_signal + cross-asset + headlines + calendar.
+    Synthesises gold_signal + cross-asset + headlines + calendar into pure
+    market/news CONTEXT — deliberately does not name a pair or a trade.
+
+    Pieter, 2026-09-03: this used to be instructed to "build the brief around
+    [gold signal] direction" and "name specific pairs from TOP SETUPS" — which
+    made it a second, looser, unguardrailed trade recommendation running on
+    nearly the same ~12h cadence as the actual `recommendation` object
+    (Architecture §6), just as prose instead of a structured card. Retired
+    that overlap: this is now "what's happening in markets right now," full
+    stop. "What to trade and why" is Recommendation's job alone.
+
     Returns {text, generated_at} for storage in signals.json deep_analysis key.
     """
     ma       = signals.get("macro_assets", {})
     reg_h4   = signals.get("regime_h4", {})
     reg_h1   = signals.get("regime_h1", {})
     gs       = signals.get("gold_signal", {})
-    ranked   = signals.get("ranked", {})
     events   = signals.get("calendar", {}).get("events", [])
 
     # Gold signal line
@@ -690,13 +699,6 @@ def call_daily_brief(signals: dict, headlines: list) -> dict:
     ]))
     asset_line = " | ".join(asset_parts) if asset_parts else "—"
 
-    # Top setups
-    top = ranked.get("top", [])[:3]
-    setups_line = " | ".join(
-        f"{r['pair']} {'▲' if r['direction']=='bull' else '▼'} {r['score']:.1f}"
-        for r in top
-    ) if top else "—"
-
     # Headlines
     hl_block = "\n".join(f"- {h}" for h in headlines[:5]) if headlines else "—"
 
@@ -715,25 +717,27 @@ def call_daily_brief(signals: dict, headlines: list) -> dict:
     cal_block = "\n".join(cal_lines) if cal_lines else "No high-impact events in next 24h"
 
     system = (
-        "You are an FX market analyst writing a daily brief for a professional swing trader. "
-        "You receive pre-computed signals plus supporting context. Your job is synthesis, not analysis.\n\n"
+        "You are an FX market analyst writing a daily market-context brief for a professional "
+        "swing trader. You receive pre-computed signals plus supporting context. Your job is "
+        "synthesis, not analysis — and NOT a trade call. A separate, structured recommendation "
+        "already tells this trader what to trade and why; your only job is 'what's happening in "
+        "markets right now' — the backdrop, not the verdict.\n\n"
         "INTERPRETATION RULES:\n"
         "Gold down + VIX up + BTC down = risk-off, USD bid, AUD/NZD/GBP weak\n"
         "Gold up + VIX down + BTC up = risk-on, AUD/NZD/GBP bid, USD weak\n"
         "DXY confirms or contradicts the Gold read\n"
         "US10Y up = USD supportive | WTI up = CAD supportive\n"
         "Headlines and calendar add theme, not direction\n\n"
-        "DECISION RULES:\n"
-        "If GOLD SIGNAL is BULL or BEAR: build the brief around that direction. "
-        "Use TOP SETUPS to name specific pairs. Confirm with cross-asset data. "
-        "Mention calendar only if high-impact USD event fires within 4 hours.\n"
-        "If GOLD SIGNAL is NEUTRAL: write exactly 'Mixed signals — no directional bias.' "
-        "Add the next high-impact event and time if one exists within 24 hours. Then stop.\n\n"
         "OUTPUT RULES:\n"
         "One paragraph. 50-100 words. Plain English.\n"
+        "Describe the regime, whether cross-asset data confirms or contradicts it, the most "
+        "relevant headline theme, and the next high-impact calendar risk if one exists within "
+        "24 hours.\n"
+        "Do NOT name a specific pair, a trade direction, or an action (buy/sell/long/short/"
+        "trade/stand aside) — describe currencies or blocs in general terms only "
+        "(e.g. 'the dollar bloc', 'risk-sensitive currencies'), never a specific pair ticker.\n"
         "No bullet points. No headers. No markdown.\n"
         "Never use: could, might, may, potentially, however, on the other hand, it is worth noting.\n"
-        "Name only the 2-3 clearest pair setups from TOP SETUPS.\n"
         "Count your words. If over 100, cut. If under 50, expand."
     )
 
@@ -741,10 +745,9 @@ def call_daily_brief(signals: dict, headlines: list) -> dict:
         f"{gs_line}\n"
         f"{reg_line}\n\n"
         f"CROSS-ASSET\n{asset_line}\n\n"
-        f"TOP SETUPS\n{setups_line}\n\n"
         f"HEADLINES\n{hl_block}\n\n"
         f"CALENDAR (high impact only)\n{cal_block}\n\n"
-        "Write the brief."
+        "Write the market-context brief."
     )
 
     text = _sonnet(system, prompt, max_tokens=200).strip()
@@ -757,29 +760,128 @@ def call_daily_brief(signals: dict, headlines: list) -> dict:
 
 
 
-def get_breaking_headlines(headlines: list) -> list[str]:
-    """Haiku picks the 3 most FX-relevant headlines from the last 2h. Returns list of strings."""
-    if not headlines or len(headlines) < 1:
-        return []
-    prompt = f"""You are a senior FX market analyst. Given these headlines from the last 2 hours,
-identify the TOP 3 most important ones for currency traders RIGHT NOW.
-Return ONLY a JSON array of exactly 3 headline strings — no explanation, no numbering.
-Each headline max 14 words. Be specific. If fewer than 3 headlines matter, shorten or paraphrase.
-Example: ["Fed holds rates, signals data-dependence", "China PMI disappoints, AUD under pressure", "ISM services beats expectations"]
+# ── Headline curation (deterministic pre-filter, no AI cost) ─────────────────
+# Pieter, 2026-09-03: the raw RSS pool had no quality weighting and no memory
+# across runs, so the same story could keep resurfacing as "breaking" every 2h
+# until it aged out of relevance on its own. This runs BEFORE any AI call:
+# drop anything already surfaced within HEADLINE_DEDUP_HOURS (a persisted
+# fingerprint history, same pattern as level_ema_alerts.py's state file), then
+# rank what's left by a simple FX/macro keyword hit-count. The one remaining
+# AI call (curate_and_check, below) only ever sees this narrowed, ranked list.
+HEADLINE_STATE_FILE = ROOT / "data" / "headline_state.json"
+HEADLINE_DEDUP_HOURS = 12
+
+_FX_KEYWORDS = (
+    "fed", "fomc", "ecb", "boj", "boe", "rba", "boc", "rbnz", "snb",
+    "rate", "rates", "hike", "cut", "hawkish", "dovish",
+    "cpi", "inflation", "nfp", "payroll", "payrolls", "pmi", "gdp",
+    "jobless", "unemployment", "retail sales", "ppi", "jolts",
+    "yield", "yields", "treasury", "treasuries",
+    "dollar", "euro", "yen", "pound", "sterling", "aussie", "kiwi", "loonie", "franc",
+    "risk-on", "risk-off", "safe haven", "safe-haven",
+    "usd", "eur", "gbp", "jpy", "aud", "nzd", "cad", "chf",
+)
+
+
+def _headline_fingerprint(headline: str) -> str:
+    import re
+    norm = re.sub(r"[^a-z0-9 ]", "", headline.lower())
+    norm = re.sub(r"\s+", " ", norm).strip()
+    return norm[:60]
+
+
+def _relevance_score(headline: str) -> int:
+    text = headline.lower()
+    return sum(1 for kw in _FX_KEYWORDS if kw in text)
+
+
+def _load_json(path: Path, default):
+    if path.exists():
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  [headlines] state load error: {e}")
+    return default
+
+
+def curate_headlines(raw_headlines: list[str], now: datetime, max_candidates: int = 10) -> list[str]:
+    """
+    Drop headlines already surfaced within HEADLINE_DEDUP_HOURS, rank the rest
+    by FX/macro relevance, return the top [max_candidates] (highest first).
+    Only fingerprints actually returned here get marked "seen" — a headline
+    that scored too low to surface this run is still eligible next run.
+    """
+    state = _load_json(HEADLINE_STATE_FILE, {})
+    cutoff = now - timedelta(hours=HEADLINE_DEDUP_HOURS)
+
+    pruned = {}
+    for fp, seen_iso in state.items():
+        try:
+            if datetime.fromisoformat(seen_iso) > cutoff:
+                pruned[fp] = seen_iso
+        except Exception:
+            continue
+
+    fresh = [h for h in raw_headlines if _headline_fingerprint(h) not in pruned]
+    ranked = sorted(fresh, key=_relevance_score, reverse=True)[:max_candidates]
+
+    for h in ranked:
+        pruned[_headline_fingerprint(h)] = now.isoformat()
+
+    with open(HEADLINE_STATE_FILE, "w") as f:
+        json.dump(pruned, f, indent=2)
+
+    print(f"  Curated: {len(ranked)} of {len(raw_headlines)} "
+          f"({len(raw_headlines) - len(fresh)} deduped against the last {HEADLINE_DEDUP_HOURS}h)")
+    return ranked
+
+
+def curate_and_check(headlines: list[str], ranked_top: list[dict]) -> dict:
+    """
+    One Haiku call replacing the former get_breaking_headlines + call_catalyst
+    pair — both read the same headline pool to answer two related questions,
+    so one structured-JSON call does the work of two round-trips. Expects
+    [headlines] to already be curate_headlines()'s output (deduped + ranked).
+    Returns {"breaking": [...<=3 strings...], "catalyst": "..."}.
+    """
+    if not headlines:
+        return {"breaking": [], "catalyst": "No recent headlines available."}
+
+    pairs_str = ", ".join(
+        f"{r['pair']} {'LONG' if r['direction'] == 'bull' else 'SHORT'}"
+        for r in ranked_top[:3]
+    ) or "none"
+    h_block = "\n".join(f"- {h}" for h in headlines[:12])
+
+    prompt = f"""You are a senior FX market analyst. Given these recent headlines, do two things:
+
+1. BREAKING: identify the TOP 3 most important headlines for currency traders right now.
+   Rewrite each to max 14 words, specific. If fewer than 3 matter, shorten/paraphrase to fill 3.
+2. CATALYST: current top setups are: {pairs_str}. Does any headline directly conflict with,
+   accelerate, or invalidate one of these? Name the pair and the catalyst, max 25 words.
+   If nothing material, respond with exactly: No breaking catalysts.
 
 Headlines:
-{chr(10).join(f"• {h}" for h in headlines[:15])}
+{h_block}
 
-Return only valid JSON array."""
-    raw = _haiku(prompt, max_tokens=120).strip()
+Return ONLY valid JSON, no markdown, no explanation:
+{{"breaking": ["headline 1", "headline 2", "headline 3"], "catalyst": "..."}}"""
+
+    raw = _haiku(prompt, max_tokens=180).strip()
     try:
-        start = raw.find('[')
-        end   = raw.rfind(']') + 1
-        result = json.loads(raw[start:end])
-        return [str(h).strip() for h in result if str(h).strip()][:3]
-    except Exception:
-        # Fallback: return first headline only
-        return [headlines[0]] if headlines else []
+        start, end = raw.find("{"), raw.rfind("}") + 1
+        obj = json.loads(raw[start:end])
+        breaking = [str(h).strip() for h in obj.get("breaking", []) if str(h).strip()][:3]
+        catalyst = str(obj.get("catalyst", "")).strip() or "No breaking catalysts."
+        return {"breaking": breaking, "catalyst": catalyst}
+    except Exception as e:
+        print(f"  [curate_and_check] parse error, falling back: {e}")
+        return {
+            "breaking": [headlines[0]] if headlines else [],
+            "catalyst": "No breaking catalysts.",
+        }
+
 
 def call_week_ahead(signals: dict, calendar_events: list[dict]) -> str:
     """
@@ -834,29 +936,6 @@ def call_week_ahead(signals: dict, calendar_events: list[dict]) -> str:
     return _haiku_search(prompt, max_tokens=400)
 
 
-def call_catalyst(headlines: list[str], ranked_top: list[dict]) -> str:
-    """
-    Haiku: scan recent headlines for anything that conflicts with,
-    accelerates, or invalidates the top setups. Max 25 words.
-    """
-    if not headlines:
-        return "No recent headlines available."
-    pairs_str = ", ".join(
-        f"{r['pair']} {'LONG' if r['direction'] == 'bull' else 'SHORT'}"
-        for r in ranked_top[:3]
-    )
-    h_block = "\n".join(f"- {h}" for h in headlines[:12])
-    prompt = (
-        f"Top setups: {pairs_str}\n\n"
-        f"Headlines (last 6h):\n{h_block}\n\n"
-        "Does any headline directly conflict with, accelerate, or invalidate one of these setups? "
-        "Be specific — name the pair and the catalyst. "
-        "Maximum 25 words. Plain text only — no markdown, no asterisks, no dashes, no special characters. "
-        "If nothing material, respond only with: No breaking catalysts."
-    )
-    return _haiku(prompt, max_tokens=60)
-
-
 def call_ranked_analysis(signals: dict) -> tuple:
     """
     Haiku: one sentence per setup, max 12 words each.
@@ -901,11 +980,8 @@ def main():
     print(f"  Assets: {active}")
 
     print("\n[3/6] Headlines + calendar…")
-    headlines = fetch_headlines()
-    
-    print("\n[3a/6] Breaking headlines (top 3)…")
-    breaking_list = get_breaking_headlines(headlines)
-    print(f"  Headlines: {breaking_list}")
+    raw_headlines = fetch_headlines()
+    curated_headlines = curate_headlines(raw_headlines, now)
 
     # Calendar: refresh every 4 hours — also force refresh if cache is empty
     prev_cal   = signals.get("calendar", {})
@@ -927,13 +1003,16 @@ def main():
         print(f"  Calendar cache {cal_age_h:.1f}h old — using cached events")
         events = prev_cal.get("events", [])
 
-    print("\n[4/6] Catalyst check + pair ranking…")
-    # Run ranking first so catalyst has the top setups context
+    print("\n[4/6] Pair ranking + breaking headlines + catalyst check…")
+    # Run ranking first so the merged call below has the top setups context
     signals["macro_assets"] = macro_assets
     ranked_out, ranked_list = call_ranked_analysis(signals)
     print(f"  Top pairs: {[r['pair'] for r in ranked_list[:3]]}")
     time.sleep(2)
-    catalyst = call_catalyst(headlines, ranked_out.get("top", []))
+    curated_result = curate_and_check(curated_headlines, ranked_out.get("top", []))
+    breaking_list = curated_result["breaking"]
+    catalyst = curated_result["catalyst"]
+    print(f"  Breaking: {breaking_list}")
     print(f"  Catalyst: {catalyst}")
 
     # ── Daily Brief — regenerate when existing brief is 12+ hours old ───────
@@ -947,7 +1026,7 @@ def main():
     is_daily_run = brief_age_h >= 12
     if is_daily_run:
         print(f"\n[DB] Daily Brief — {brief_age_h:.1f}h since last brief, regenerating…")
-        deep = call_daily_brief(signals, headlines)
+        deep = call_daily_brief(signals, curated_headlines)
         print(f"  Daily Brief: {deep['text'][:80]}…")
     else:
         print(f"\n[DB] Daily Brief — {brief_age_h:.1f}h old, keeping existing")
