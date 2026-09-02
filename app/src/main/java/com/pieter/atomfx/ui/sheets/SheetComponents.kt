@@ -46,9 +46,9 @@ fun SheetRow(label: String, value: String, colors: AtomColors, valueColor: Color
 
 /** A quiet section separator between groups of rows. */
 @Composable
-fun SheetDivider(colors: AtomColors) {
+fun SheetDivider(colors: AtomColors, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .height(1.dp)

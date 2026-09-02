@@ -42,8 +42,8 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | Push client (Phase 6) | ✅ | `push/AtomFxMessagingService.kt` + `DeepLink.kt` |
 | Theme tokens, dual light/dark (Design §2) | ✅ | `ui/theme/*` |
 | Animations & polish (Phase 8) | 🟡 | Wheel has motion; re-verify after wheel v2 (mode cross-fade, living-dial, §17 no-scroll) |
-| **3-tab bottom nav + swipe (HorizontalPager)** | ✅ | `MainActivity.kt` — `Wheel · Macro · Insights` via `HorizontalPager` + Material 3 `NavigationBar`, synced both ways. Insights is an empty placeholder page (nav entry + pager destination only — see next item) |
-| **Insights tab/screen (§7, master table 46–50)** | ⬜ | Recommendation + top-3 breaking headlines + catalyst check + calendar + daily brief + week ahead, on one screen. Today these exist only as separate sheets from the header — no aggregated Insights surface |
+| **3-tab bottom nav + swipe (HorizontalPager)** | ✅ | `MainActivity.kt` — `Wheel · Macro · Insights` via `HorizontalPager` + Material 3 `NavigationBar`, synced both ways |
+| **Insights tab/screen (§7, master table 46–50)** | ✅ | `ui/insights/InsightsScreen.kt` — recommendation card + breaking headlines + catalyst check + calendar + daily brief, one scrolling screen. `Signals.kt` gained `breaking`/`catalyst` mappings it was missing. No theme chips on headlines yet (`news_themes` still ⬜, unrelated item below) and Daily Brief shows whatever `deep_analysis.text` holds today, including its literal `"Unavailable (HTTP Error 404...)"` string when the backend fetch is failing — same known gap as the `deep_analysis` 404 fix item below, not patched over with an invented empty-state here |
 | **Settings screen (§9, header gear)** | ⬜ | Theme override (system/dark/light), notification toggles (push on/off, send-test, per-type), data/refresh, optional GitHub PAT. **None built.** App currently follows system theme only — no user override |
 | **Header gear + Insights icon (§3.1)** | ⬜ | `HeaderBar` has calendar/recommendation chips; add the gear→Settings and Insights entry points |
 | **Price-level alerts UI (optional, §9/§12)** | 🟡 | Server *fires* level alerts already (`send_push_level_alert`). The on-device "set alert" row on the pair sheet + PAT sync to `data/level_alerts.json` is not built |
@@ -57,7 +57,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 **To reach a coherent v1 (the app matches the spec's navigation and surfaces):**
 
 1. ~~**3-tab bottom nav + swipe**~~ — ✅ done. `HorizontalPager` nav: `Wheel · Macro · Insights` (Decision 1 resolved). Currency stays in the wheel toggle.
-2. **Insights screen** — aggregate recommendation + breaking headlines + catalyst check + calendar + daily brief + week ahead (Functional Spec §7). All the data is already in `signals.json`; this is a consumer screen.
+2. ~~**Insights screen**~~ — ✅ done. Aggregates recommendation + breaking headlines + catalyst check + calendar + daily brief (Functional Spec §7). "Week ahead" has no distinct backend field yet — folded into the one Daily Brief text block rather than inventing a second one.
 3. **Settings screen + header gear** — theme override, notification toggles + send-test, data/refresh, freshness; optional GitHub PAT section (Functional Spec §9). Add the user theme override into `AtomFxTheme`.
 4. **Turn on the AI narration (Phase 7 full)** — wire `recommendation.build_recommendation(use_model=True)` into `scan_news.py` on the 12h cadence (Architecture §6). This is the "AI implementation." Do the `deep_analysis` model-id fix at the same time.
 5. **Push end-to-end verification** — confirm a gold-signal push actually lands on your phone.
@@ -91,7 +91,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 Each step must read `CLAUDE.md` first, then the cited spec section, and ship building before the next.
 
 1. ~~**Nav shell**~~ — ✅ done. 3-tab bottom nav + `HorizontalPager` (`Wheel · Macro · Insights`); Wheel + Macro moved into it, empty Insights tab added.
-2. **Insights screen** (Functional Spec §7).
+2. ~~**Insights screen**~~ — ✅ done (Functional Spec §7).
 3. **Settings screen + header gear + theme override** (Functional Spec §9, Design §2).
 4. **AI narration on** (Architecture §6) + **`deep_analysis` model fix** (both in `scan_news.py`).
 5. **Push end-to-end test**, then price-level alerts UI (§9) if wanted.

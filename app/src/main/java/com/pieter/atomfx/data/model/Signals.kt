@@ -25,6 +25,8 @@ data class Signals(
     val calendar: CalendarBlock? = null,
     val recommendation: RecommendationBlock? = null,
     @SerialName("deep_analysis") val deepAnalysis: DeepAnalysisBlock? = null,
+    val breaking: BreakingBlock? = null,
+    val catalyst: CatalystBlock? = null,
     val correlations: CorrelationsBlock? = null,
     @SerialName("macro_assets") val macroAssets: Map<String, MacroAssetEntry> = emptyMap(),
     val macro: MacroSummary? = null,
@@ -159,6 +161,20 @@ data class NextCatalyst(
 data class DeepAnalysisBlock(
     val text: String? = null,
     @SerialName("generated_at") val generatedAt: String? = null,
+)
+
+/** Functional Spec §7 — top-3 Haiku-curated breaking headlines. */
+@Serializable
+data class BreakingBlock(
+    val headlines: List<String> = emptyList(),
+    val updated: String? = null,
+)
+
+/** Functional Spec §7 — the adversarial "does any headline conflict with the top setups?" check. */
+@Serializable
+data class CatalystBlock(
+    val text: String? = null,
+    val updated: String? = null,
 )
 
 @Serializable

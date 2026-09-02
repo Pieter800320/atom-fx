@@ -42,8 +42,10 @@ fun RecommendationSheet(signals: Signals, colors: AtomColors) {
     }
 }
 
+/** Non-private: also reused by `InsightsScreen` (Architecture §8.2) so the recommendation card
+ *  renders identically wherever it appears. */
 @Composable
-private fun RecommendationContent(rec: RecommendationBlock, colors: AtomColors) {
+internal fun RecommendationContent(rec: RecommendationBlock, colors: AtomColors) {
     SheetTitle(rec.headline ?: "RECOMMENDATION", colors)
 
     ScrollingPills(

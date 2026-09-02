@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.data.model.CalendarEvent
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -30,28 +31,33 @@ fun CalendarSheet(signals: Signals, colors: AtomColors) {
             return@Column
         }
 
-        events.forEach { event ->
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                Text(
-                    text = event.currency ?: "—",
-                    style = AtomType.Caption.copy(color = colors.bear),
-                    modifier = Modifier
-                        .background(colors.bearSoft, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 6.dp, vertical = 3.dp),
-                )
-                Column(modifier = Modifier.padding(start = 10.dp)) {
-                    Text(
-                        text = "${event.day ?: ""} ${event.time ?: ""} · ${event.name ?: "—"}",
-                        style = AtomType.Body.copy(color = colors.textPrimary),
-                    )
-                    Text(
-                        text = "Forecast ${event.forecast ?: "—"} vs previous ${event.previous ?: "—"}",
-                        style = AtomType.Caption.copy(color = colors.textSecondary),
-                    )
-                    if (event.note != null) {
-                        Text(text = event.note, style = AtomType.Caption.copy(color = colors.textMuted))
-                    }
-                }
+        events.forEach { event -> CalendarEventRow(event, colors) }
+    }
+}
+
+/** Non-private: also reused by `InsightsScreen` (Architecture §8.2) so a calendar row renders
+ *  identically wherever it appears. */
+@Composable
+internal fun CalendarEventRow(event: CalendarEvent, colors: AtomColors) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(
+            text = event.currency ?: "—",
+            style = AtomType.Caption.copy(color = colors.bear),
+            modifier = Modifier
+                .background(colors.bearSoft, RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 3.dp),
+        )
+        Column(modifier = Modifier.padding(start = 10.dp)) {
+            Text(
+                text = "${event.day ?: ""} ${event.time ?: ""} · ${event.name ?: "—"}",
+                style = AtomType.Body.copy(color = colors.textPrimary),
+            )
+            Text(
+                text = "Forecast ${event.forecast ?: "—"} vs previous ${event.previous ?: "—"}",
+                style = AtomType.Caption.copy(color = colors.textSecondary),
+            )
+            if (event.note != null) {
+                Text(text = event.note, style = AtomType.Caption.copy(color = colors.textMuted))
             }
         }
     }
