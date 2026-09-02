@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T15:02:58.655567+00:00",
+  "updated": "2026-09-02T17:45:54.069781+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -715,102 +715,102 @@
     "stable": true
   },
   "macro": {
-    "label": "Mixed",
-    "signals": 0,
-    "total": 2,
-    "confidence": "Neutral",
+    "label": "Risk-On",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
     "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 15.95,
-      "delta_pct": -2.4,
-      "direction": "flat",
+      "value": 15.38,
+      "delta_pct": -5.9,
+      "direction": "down",
       "label": "VIX"
     },
     "spx": {
-      "value": 7645.99,
-      "delta_pct": 0.2,
-      "direction": "flat",
+      "value": 7668.24,
+      "delta_pct": 0.5,
+      "direction": "up",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4416.9,
+      "value": 4415.4,
       "delta_pct": 1.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.565,
+      "value": 99.595,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6255,
-      "delta_pct": 1.8,
+      "value": 6.595,
+      "delta_pct": 1.4,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.784,
-      "delta_bp": -1.2,
+      "value": 4.792,
+      "delta_bp": -0.4,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.77,
-      "delta_bp": -0.2,
+      "value": 3.772,
+      "delta_bp": 0.0,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 89.68,
-      "delta_pct": -0.6,
-      "direction": "flat",
+      "value": 91.17,
+      "delta_pct": 1.1,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77104.0,
-      "delta_pct": -0.4,
+      "value": 77318.0,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 101.4,
-      "delta_bp": -1.0,
+      "value": 102.0,
+      "delta_bp": -0.4,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "Australia Q2 GDP beats supports AUD strength, which could weaken NZDJPY SHORT as AUD/JPY rallies and creates JPY selling pressure.",
-    "updated": "2026-09-02T13:59:30.171776+00:00"
+    "text": "GBPJPY SHORT and USDCHF LONG conflict with stronger USD narrative. DXY strength favors USD pairs, weakening GBP and supporting CHF demand reduction.",
+    "updated": "2026-09-02T17:45:54.069781+00:00"
   },
   "ranked": {
-    "text": "USDCHF LONG: Mixed regime supports USD strength thesis today.\n\nNZDJPY SHORT: Gold rising challenges short via safe haven JPY bid.\n\nCADJPY SHORT: Gold rising challenges short via safe haven JPY bid.",
+    "text": "NZDJPY SHORT: Gold rising confirms JPY strength bid thesis today.\n\nUSDCHF LONG: Mixed neutral macro offers no directional confirmation or challenge.\n\nGBPJPY SHORT: Gold appreciation supports JPY safe haven demand this session.",
     "top": [
-      {
-        "pair": "USDCHF",
-        "direction": "bull",
-        "score": 5.88
-      },
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 4.95
+        "score": 7.55
       },
       {
-        "pair": "CADJPY",
+        "pair": "USDCHF",
+        "direction": "bull",
+        "score": 5.75
+      },
+      {
+        "pair": "GBPJPY",
         "direction": "bear",
-        "score": 4.67
+        "score": 5.62
       }
     ],
-    "updated": "2026-09-02T13:59:30.171776+00:00"
+    "updated": "2026-09-02T17:45:54.069781+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-02T13:59:30.171776+00:00"
+    "updated": "2026-09-02T17:45:54.069781+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -818,11 +818,11 @@
   },
   "breaking": {
     "headlines": [
-      "Australia Q2 GDP beats, keeps September rate hike in play",
-      "US Dollar rises as Fed hike bets lift DXY higher",
-      "Higher bond yields keep markets on edge in European session"
+      "US factory orders beat at 0.9% versus 0.6% expected",
+      "Hawkish Warsh comments lift DXY as EUR/USD and GBP/USD fall",
+      "IRGC disables two oil tankers in Strait of Hormuz"
     ],
-    "updated": "2026-09-02T13:59:30.171776+00:00"
+    "updated": "2026-09-02T17:45:54.069781+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
