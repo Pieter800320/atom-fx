@@ -104,7 +104,6 @@ fun WheelScreen(
                     signals = loaded.signals,
                     colors = colors,
                     onCellClick = { target -> activeSheet = target },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
 
