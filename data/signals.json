@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01T22:16:46.568343+00:00",
+  "updated": "2026-09-02T02:18:50.814957+00:00",
   "regime_d1": {
     "regime": "Risk-On",
     "confidence": "Medium",
@@ -735,20 +735,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4375.6,
-      "delta_pct": -1.3,
+      "value": 4345.7,
+      "delta_pct": -1.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.654,
-      "delta_pct": 0.2,
+      "value": 99.791,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.5355,
-      "delta_pct": -0.9,
+      "value": 6.522,
+      "delta_pct": -1.1,
       "direction": "down",
       "label": "Copper"
     },
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.89,
-      "delta_pct": 6.0,
+      "value": 91.12,
+      "delta_pct": 6.3,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77181.0,
-      "delta_pct": -1.7,
+      "value": 77102.0,
+      "delta_pct": -1.8,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "No breaking catalysts.",
-    "updated": "2026-09-01T22:16:46.568343+00:00"
+    "text": "DXY strength from hawkish Fed commentary and dollar demand could pressure USDCHF long if risk-off sentiment reverses to risk-on.",
+    "updated": "2026-09-02T02:18:50.814957+00:00"
   },
   "ranked": {
-    "text": "VIX rise confirms USD strength bid, but Oil surge challenges safe-haven narrative consistency.",
+    "text": "VIX surge and gold weakness confirm USD strength thesis clearly.",
     "top": [
       {
         "pair": "USDCHF",
@@ -796,11 +796,11 @@
         "score": 5.92
       }
     ],
-    "updated": "2026-09-01T22:16:46.568343+00:00"
+    "updated": "2026-09-02T02:18:50.814957+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-01T22:16:46.568343+00:00"
+    "updated": "2026-09-02T02:18:50.814957+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -808,11 +808,11 @@
   },
   "breaking": {
     "headlines": [
-      "US strikes Iran confirmed; crude oil rises to $90.50, stocks fall sharply",
-      "RBNZ rate hike expected Wednesday; Asia economic calendar impacts currencies",
-      "Foreign countries reducing Treasury purchases; potential trouble for US dollar strength"
+      "Australian Q2 GDP beats 0.4% q/q, supports AUD strength",
+      "US strikes Iran, crude rallies to $90.50, risk-off",
+      "Trump confirms Iran attack, stocks fall, safe-havens rally"
     ],
-    "updated": "2026-09-01T22:16:46.568343+00:00"
+    "updated": "2026-09-02T02:18:50.814957+00:00"
   },
   "gold_signal": {
     "direction": "bear",
