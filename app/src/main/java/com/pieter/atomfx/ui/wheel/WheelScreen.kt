@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,7 +87,9 @@ fun WheelScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+            // Top is owned by MainActivity's persistent gear bar (Functional Spec §3.1's
+            // "gear icon on any tab") — consuming it here too would double the status-bar gap.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
     ) {
         val loaded = screenState as? WheelScreenState.Loaded
         Column(modifier = Modifier.fillMaxSize()) {

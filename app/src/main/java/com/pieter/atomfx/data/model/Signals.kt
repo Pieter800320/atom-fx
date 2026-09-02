@@ -33,6 +33,7 @@ data class Signals(
     @SerialName("regime_w1") val regimeW1: RegimeBlock? = null,
     @SerialName("macro_regime") val macroRegime: MacroRegimeBlock? = null,
     val spark: Map<String, SparkEntry> = emptyMap(),
+    @SerialName("schema_version") val schemaVersion: Int? = null,
 )
 
 @Serializable

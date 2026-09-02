@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-private const val SIGNALS_URL = "https://raw.githubusercontent.com/Pieter800320/atom-fx/main/data/signals.json"
 private val STALE_AFTER: Duration = Duration.ofMinutes(90) // hourly scan cadence + buffer, Architecture §8.4
 private const val CACHE_FILE_NAME = "signals_cache.json"
 
@@ -23,12 +22,16 @@ private val json = Json { ignoreUnknownKeys = true }
  * no heavyweight SDK" style — one GET doesn't need a full HTTP client library), caches the last
  * good response to a plain file, and never returns nothing: a failed fetch falls back to the
  * cache (flagged stale); no cache at all is the only path to [SignalsResult.Unavailable].
+ *
+ * [urlProvider] reads the current URL each call (Functional Spec §9's "Data source" setting) —
+ * a lambda rather than a fixed value so a Settings change takes effect on the very next refresh
+ * with no repository re-creation.
  */
-class SignalsRepository(context: Context) {
+class SignalsRepository(context: Context, private val urlProvider: () -> String = { DEFAULT_SIGNALS_URL }) {
     private val cacheFile = File(context.filesDir, CACHE_FILE_NAME)
 
     suspend fun fetch(): SignalsResult = withContext(Dispatchers.IO) {
-        val body = runCatching { httpGet(SIGNALS_URL).also { cacheFile.writeText(it) } }
+        val body = runCatching { httpGet(urlProvider()).also { cacheFile.writeText(it) } }
             .getOrNull()
             ?: cacheFile.takeIf { it.exists() }?.readText()
             ?: return@withContext SignalsResult.Unavailable

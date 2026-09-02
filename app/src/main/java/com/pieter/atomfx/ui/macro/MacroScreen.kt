@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +53,8 @@ fun MacroScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifie
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+            // Top is owned by MainActivity's persistent gear bar — see WheelScreen.kt's same note.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
     ) {
         when (val state = screenState) {
             WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)

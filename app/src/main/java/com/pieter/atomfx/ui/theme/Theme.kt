@@ -16,13 +16,14 @@ object AtomTheme {
 }
 
 /**
- * Resolves [AtomColors] from the system theme (Design §2.1). A manual system/dark/light
- * override belongs to Settings, a later phase — this reads [isSystemInDarkTheme] only.
+ * Resolves [AtomColors] from [isDark] — the caller has already folded in the stored
+ * `system | dark | light` override (Design §2.1, Functional Spec §9) with [isSystemInDarkTheme]
+ * as the `system` case, so every consumer (this, the wheel `Canvas`, etc.) agrees on one value.
  */
 @Composable
-fun AtomFxTheme(content: @Composable () -> Unit) {
-    val colors = if (isSystemInDarkTheme()) DarkColors else LightColors
-    val materialScheme = if (isSystemInDarkTheme()) {
+fun AtomFxTheme(isDark: Boolean, content: @Composable () -> Unit) {
+    val colors = if (isDark) DarkColors else LightColors
+    val materialScheme = if (isDark) {
         darkColorScheme(background = colors.ground, surface = colors.surface)
     } else {
         lightColorScheme(background = colors.ground, surface = colors.surface)

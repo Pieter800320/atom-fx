@@ -12,6 +12,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.pieter.atomfx.MainActivity
 import com.pieter.atomfx.R
+import com.pieter.atomfx.data.UserPreferences
 
 private const val CHANNEL_ID = "atomfx_signals"
 private const val DEEPLINK_EXTRA = "deeplink"
@@ -32,7 +33,16 @@ class AtomFxMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val title = message.notification?.title ?: message.data["type"] ?: "ATOM FX"
+        // Functional Spec §9's per-type toggles — the backend still sends both gold-signal and
+        // level-alert to one shared topic (Architecture §7), so this client-side check is the
+        // only place a per-type "off" can actually be honoured today.
+        val notif = UserPreferences(applicationContext).state.value.notifications
+        if (!notif.enabled) return
+        val type = message.data["type"]
+        if (type == "gold_signal" && !notif.goldSignal) return
+        if (type == "level_alert" && !notif.levelAlerts) return
+
+        val title = message.notification?.title ?: type ?: "ATOM FX"
         val body = message.notification?.body ?: return
         val deeplink = message.data["deeplink"]
 
