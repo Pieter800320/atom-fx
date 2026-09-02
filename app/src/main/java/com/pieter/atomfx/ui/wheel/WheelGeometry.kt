@@ -46,8 +46,9 @@ object WheelGeometry {
     // flat chords) and only the two outer corners rounded. Bottom corners are the Currencies/Pairs
     // mode toggle (thumb zone in portrait grip); top corners are the Currencies-mode timeframe
     // toggle (D1/H4 — inert in Pairs mode, since pair `potential` isn't computed per-timeframe).
-    const val TOGGLE_R0_FRAC = 0.91f     // just past XA_R1_FRAC, small gap
-    const val TOGGLE_R1_FRAC = 1.155f    // thickness ~0.245 vs the XA ring's 0.14 — ~75% thicker
+    const val TOGGLE_R0_FRAC = 0.935f    // gap from XA_R1_FRAC ~0.03 — matches the other ring gaps
+                                          // (hub→ring 0.035, ring→XA 0.025), not the near-zero gap before
+    const val TOGGLE_R1_FRAC = 1.18f     // thickness ~0.245 vs the XA ring's 0.14 — ~75% thicker
     const val TOGGLE_INNER_SPAN_DEG = 34f // angular width at r0 (wide base)
     const val TOGGLE_OUTER_SPAN_DEG = 18f // angular width at r1 (tapered tip)
 

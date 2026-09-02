@@ -215,8 +215,13 @@ private fun hitTest(offset: Offset, w: Float, h: Float, mode: WheelMode): WheelT
         val (d10, d11) = g.cornerHitRange(g.TOGGLE_D1_CENTER_DEG)
         if (deg in ccy0..ccy1) return WheelTapTarget.ModeToggle(WheelMode.CURRENCIES)
         if (deg in pairs0..pairs1) return WheelTapTarget.ModeToggle(WheelMode.PAIRS)
-        if (deg in h40..h41) return WheelTapTarget.TimeframeToggle(Timeframe.H4)
-        if (deg in d10..d11) return WheelTapTarget.TimeframeToggle(Timeframe.D1)
+        // The D1/H4 buttons are truly inert in Pairs mode — pair `potential` has no timeframe
+        // axis, so there's nothing for a tap to do there. Not just dimmed: the tap is dropped
+        // entirely, same as tapping empty space.
+        if (mode == WheelMode.CURRENCIES) {
+            if (deg in h40..h41) return WheelTapTarget.TimeframeToggle(Timeframe.H4)
+            if (deg in d10..d11) return WheelTapTarget.TimeframeToggle(Timeframe.D1)
+        }
     }
     return null
 }

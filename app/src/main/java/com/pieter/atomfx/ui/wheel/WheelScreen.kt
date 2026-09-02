@@ -3,8 +3,8 @@ package com.pieter.atomfx.ui.wheel
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,21 +26,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.components.HeaderBar
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
@@ -224,13 +226,20 @@ private fun WheelArea(
     }
 }
 
+private const val TICKER_VELOCITY_DP_PER_SEC = 42f // basicMarquee's own default is ~30dp/s
+
 /**
- * Currency Flow, live under the dial in *both* modes — "EUR 83 +22  •  JPY 59 +6  •  …", strongest
- * first, auto-scrolling. Flow is relevant context whether you're looking at currencies or pairs
- * (it's *why* pairs are moving), so the ticker no longer hides in Pairs mode — same info, same
- * spot, always on, exactly the "always visible" component Pieter asked for. Replaces both the old
- * on-wheel strength numbers and the six-factor Flow pill; tapping it opens the full Currency Flow
- * sheet. Settles in with a small spring bounce once on first load, not a flat fade.
+ * Currency Flow, live under the dial in *both* modes — "EUR 83 +22  •  JPY 59 +6  •  …", auto-
+ * scrolling. Flow is relevant context whether you're looking at currencies or pairs (it's *why*
+ * pairs are moving), so the ticker no longer hides in Pairs mode — same info, same spot, always
+ * on. Replaces both the old on-wheel strength numbers and the six-factor Flow pill; tapping it
+ * opens the full Currency Flow sheet. Settles in with a small spring bounce once on first load.
+ *
+ * A custom seamless loop, not `Modifier.basicMarquee()`: the sequence is always
+ * [WheelGeometry.CCY_ORDER] (never re-sorted by strength) and every number is fixed-width
+ * (tabular figures, padded), so a D1/H4 toggle changes only the digits drawn at each currency's
+ * slot — the cycle width never changes, so the continuously-running scroll animation is never
+ * retargeted or reset. Toggling timeframe cannot make it jump (Pieter's requirement).
  */
 @Composable
 private fun CurrencyFlowTicker(
@@ -246,26 +255,6 @@ private fun CurrencyFlowTicker(
 
     Box(modifier = modifier) {
         val density = LocalDensity.current
-        val text = remember(currencies, colors) {
-            buildAnnotatedString {
-                val sorted = currencies.sortedByDescending { it.strength }
-                sorted.forEachIndexed { i, c ->
-                    withStyle(SpanStyle(color = colors.textPrimary, fontWeight = FontWeight.Bold)) { append(c.code) }
-                    append(" ")
-                    withStyle(SpanStyle(color = colors.textSecondary)) { append(c.strength.toString()) }
-                    append("  ")
-                    val sign = if (c.delta > 0) "+" else ""
-                    val deltaColor = when {
-                        c.delta > 0 -> colors.bull
-                        c.delta < 0 -> colors.bear
-                        else -> colors.textMuted
-                    }
-                    withStyle(SpanStyle(color = deltaColor)) { append("$sign${c.delta.toInt()}") }
-                    if (i != sorted.lastIndex) append("      •      ")
-                }
-            }
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -278,16 +267,128 @@ private fun CurrencyFlowTicker(
                 .clip(RoundedCornerShape(999.dp))
                 .background(colors.surface)
                 .border(1.dp, colors.hairline, RoundedCornerShape(999.dp))
-                .clickable(onClick = onClick)
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart,
+                .clickable(onClick = onClick),
         ) {
-            Text(
-                text = text,
-                style = AtomType.Caption,
-                maxLines = 1,
-                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 500),
+            TickerMarquee(
+                currencies = currencies,
+                colors = colors,
+                modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
             )
+        }
+    }
+}
+
+// [advancePx] is null for plain text (code/spaces/separator — identical text regardless of
+// timeframe, so its natural measured width is already stable). It's set for the two numeric runs
+// to a *fixed pixel slot* the actual (variable-length) digits are right-aligned within — because
+// character-count padding (e.g. "%3d") does NOT guarantee equal pixel width: a space glyph is
+// narrower than a digit glyph in essentially every font, tabular figures or not. Without a fixed
+// slot, "  5" and "100" are both 3 characters but different widths, so every currency *after* the
+// first one whose digit-count changes between D1/H4 silently drifts sideways — which is exactly
+// why a specific currency (e.g. the 7th, AUD) would visibly shift on toggle even though the
+// overall scroll never resets.
+private data class TickerRun(val text: String, val color: Color, val bold: Boolean, val advancePx: Float? = null)
+
+@Composable
+private fun TickerMarquee(currencies: List<CurrencySeg>, colors: AtomColors, modifier: Modifier = Modifier) {
+    val density = LocalDensity.current
+    val textSizePx = with(density) { 12.sp.toPx() }
+
+    // Stable order (never re-sorted by strength) — a D1/H4 toggle changes each currency's own
+    // numbers, never its position in the sequence.
+    val byCode = remember(currencies) { currencies.associateBy { it.code } }
+    val ordered = remember(byCode) { WheelGeometry.CCY_ORDER.mapNotNull { byCode[it] } }
+
+    val paint = remember {
+        android.graphics.Paint().apply {
+            isAntiAlias = true
+            fontFeatureSettings = "tnum" // tabular figures (Design §3) — digits 0-9 equal width
+        }
+    }
+    val regularTypeface = remember { android.graphics.Typeface.DEFAULT }
+    val boldTypeface = remember { android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD) }
+
+    // Fixed slot widths, derived once from digit/sign metrics — never from any specific
+    // currency's actual value, so they can't vary between D1 and H4.
+    val strengthSlotPx = remember(textSizePx) {
+        paint.textSize = textSizePx
+        paint.typeface = regularTypeface
+        val digitWidth = (0..9).maxOf { paint.measureText(it.toString()) }
+        digitWidth * 3 // strength is always 0..100
+    }
+    val deltaSlotPx = remember(textSizePx) {
+        paint.textSize = textSizePx
+        paint.typeface = regularTypeface
+        val digitWidth = (0..9).maxOf { paint.measureText(it.toString()) }
+        val signWidth = maxOf(paint.measureText("+"), paint.measureText("-"))
+        signWidth + digitWidth * 3 // sign + up to 3 digits
+    }
+
+    val runs = remember(ordered, colors, strengthSlotPx, deltaSlotPx) {
+        buildList {
+            ordered.forEach { c ->
+                add(TickerRun(c.code, colors.textPrimary, true))
+                add(TickerRun(" ", colors.textPrimary, false))
+                add(TickerRun(c.strength.toString(), colors.textSecondary, false, advancePx = strengthSlotPx))
+                add(TickerRun("  ", colors.textPrimary, false))
+                val deltaColor = when {
+                    c.delta > 0 -> colors.bull
+                    c.delta < 0 -> colors.bear
+                    else -> colors.textMuted
+                }
+                val deltaText = "${if (c.delta >= 0) "+" else "-"}${kotlin.math.abs(c.delta.toInt())}"
+                add(TickerRun(deltaText, deltaColor, false, advancePx = deltaSlotPx))
+                // Trailing separator too, identical to the internal ones — the loop point (end of
+                // one cycle into the start of the next) reads exactly like every other gap.
+                add(TickerRun("  •  ", colors.textMuted, false))
+            }
+        }
+    }
+
+    val runAdvances = remember(runs, textSizePx) {
+        paint.textSize = textSizePx
+        runs.map { r ->
+            if (r.advancePx != null) return@map r.advancePx
+            paint.typeface = if (r.bold) boldTypeface else regularTypeface
+            paint.measureText(r.text)
+        }
+    }
+    val cycleWidthPx = remember(runAdvances) { runAdvances.sum() }
+
+    // A raw, frame-driven accumulator — not `animateFloat`/`InfiniteTransition`, whose target
+    // (derived from cycleWidthPx) gets re-evaluated, and can be re-diffed and retargeted, on every
+    // recomposition the changing `currencies` param causes. This offset is anchored by
+    // `LaunchedEffect(Unit)` alone: it starts once, is never re-keyed by data, and never resets —
+    // toggling D1/H4 cannot touch it. The modulo wrap below reads whatever cycleWidthPx currently
+    // is at draw time, but the underlying accumulation itself is fully decoupled from the data.
+    var rawOffsetPx by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        var lastFrameNanos = withFrameNanos { it }
+        while (true) {
+            val frameNanos = withFrameNanos { it }
+            val deltaSeconds = (frameNanos - lastFrameNanos) / 1_000_000_000f
+            lastFrameNanos = frameNanos
+            rawOffsetPx += TICKER_VELOCITY_DP_PER_SEC * density.density * deltaSeconds
+        }
+    }
+
+    Canvas(modifier = modifier) {
+        if (cycleWidthPx <= 0f || runs.isEmpty()) return@Canvas
+        val baselineY = size.height / 2f + textSizePx / 3f
+        val nativeCanvas = drawContext.canvas.nativeCanvas
+        var cycleStartX = -(rawOffsetPx % cycleWidthPx) - cycleWidthPx
+        while (cycleStartX < size.width) {
+            var x = cycleStartX
+            runs.forEachIndexed { i, r ->
+                paint.color = r.color.toArgb()
+                paint.textSize = textSizePx
+                paint.typeface = if (r.bold) boldTypeface else regularTypeface
+                val advance = runAdvances[i]
+                val drawX = if (r.advancePx != null) x + (advance - paint.measureText(r.text)) else x // right-align within the fixed slot
+                nativeCanvas.drawText(r.text, drawX, baselineY, paint)
+                x += advance
+            }
+            cycleStartX += cycleWidthPx
         }
     }
 }
