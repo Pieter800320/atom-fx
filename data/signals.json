@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T21:44:31.991148+00:00",
+  "updated": "2026-09-02T23:44:49.087267+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -723,8 +723,8 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 15.21,
-      "delta_pct": -6.9,
+      "value": 15.2,
+      "delta_pct": -7.0,
       "direction": "down",
       "label": "VIX"
     },
@@ -735,19 +735,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4434.6,
-      "delta_pct": 2.0,
+      "value": 4428.2,
+      "delta_pct": 1.8,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.542,
+      "value": 99.596,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.607,
+      "value": 6.605,
       "delta_pct": 1.5,
       "direction": "up",
       "label": "Copper"
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.44,
-      "delta_pct": 0.2,
+      "value": 90.68,
+      "delta_pct": 0.5,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77387.0,
-      "delta_pct": -0.0,
+      "value": 77118.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,33 +784,84 @@
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT and NZDJPY SHORT at risk. Hawkish Fed headlines support USD strength, which typically weakens JPY pairs against higher yielding currencies.",
-    "updated": "2026-09-02T20:22:34.136189+00:00"
+    "text": "GBPJPY SHORT accelerates: GBP/USD falling on hawkish Fed supports JPY strength, validates short setup.",
+    "updated": "2026-09-02T23:44:49.087267+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rally confirms JPY strength bias today.\n\nGBPJPY SHORT: Gold strength supports yen bid thesis strongly.\n\nUSDCHF LONG: Risk-on low challenges dollar strength conviction here.",
+    "text": "NZDJPY SHORT: Gold rising confirms JPY strength bid thesis clearly.\n\nGBPJPY SHORT: Gold rising confirms JPY strength bid thesis clearly.\n\nUSDCHF LONG: Risk-on low challenges USD strength narrative weakly.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.55
+        "score": 7.58
       },
       {
         "pair": "GBPJPY",
         "direction": "bear",
-        "score": 6.55
+        "score": 6.58
       },
       {
         "pair": "USDCHF",
         "direction": "bull",
-        "score": 5.92
+        "score": 5.35
       }
     ],
-    "updated": "2026-09-02T20:22:34.136189+00:00"
+    "updated": "2026-09-02T23:44:49.087267+00:00"
   },
   "calendar": {
-    "events": [],
-    "updated": "2026-09-02T20:22:34.136189+00:00"
+    "events": [
+      {
+        "day": "Tue",
+        "time": "14:00",
+        "iso": "2026-09-01T14:00:00+00:00",
+        "currency": "USD",
+        "name": "ISM Manufacturing PMI",
+        "forecast": "55.2",
+        "previous": "54.6",
+        "note": "Services expansion intact, USD supportive"
+      },
+      {
+        "day": "Wed",
+        "time": "02:00",
+        "iso": "2026-09-02T02:00:00+00:00",
+        "currency": "NZD",
+        "name": "RBNZ Rate Decision",
+        "forecast": "2.75%",
+        "previous": "2.50%",
+        "note": "25bp hike expected, consensual decision"
+      },
+      {
+        "day": "Wed",
+        "time": "01:30",
+        "iso": "2026-09-02T01:30:00+00:00",
+        "currency": "AUD",
+        "name": "Australian GDP Q2",
+        "forecast": "0.3% qoq",
+        "previous": "0.3% qoq",
+        "note": "Q2 beat 0.4%, supports AUD bullish"
+      },
+      {
+        "day": "Wed",
+        "time": "13:45",
+        "iso": "2026-09-02T13:45:00+00:00",
+        "currency": "CAD",
+        "name": "BoC Rate Decision",
+        "forecast": "2.25%",
+        "previous": "2.25%",
+        "note": "Hold consensus, focus on statement tone"
+      },
+      {
+        "day": "Fri",
+        "time": "14:00",
+        "iso": "2026-09-04T14:00:00+00:00",
+        "currency": "USD",
+        "name": "ISM Services PMI",
+        "forecast": "54.2",
+        "previous": "54.1",
+        "note": "Services expansion continues, USD supports"
+      }
+    ],
+    "updated": "2026-09-02T23:44:49.087267+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -818,11 +869,16 @@
   },
   "breaking": {
     "headlines": [
-      "US factory orders beat expectations at 0.9% versus 0.6% forecast",
-      "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
-      "European bond yields surge, keeping markets on edge this session"
+      "Fed hawkish rhetoric lifts DXY; EUR/USD and GBP/USD fall sharply",
+      "DXY targets 99.58 as jobs week tests Fed rate hike bets",
+      "Jackson Hole volatility expected for EUR/JPY and AUD/USD pairs"
     ],
-    "updated": "2026-09-02T20:22:34.136189+00:00"
+    "themes": [
+      "rates",
+      "rates",
+      "usd"
+    ],
+    "updated": "2026-09-02T23:44:49.087267+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
