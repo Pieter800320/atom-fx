@@ -88,9 +88,23 @@ def build_seed(signals: dict) -> dict:
 def _build_prompt(seed: dict, signals: dict) -> str:
     mr = signals.get("macro_regime", {}) or {}
     flow = signals.get("currency_flow", {}) or {}
-    breaking = (signals.get("breaking", {}) or {}).get("headlines", []) or []
+    breaking_block = signals.get("breaking", {}) or {}
+    breaking = breaking_block.get("headlines", []) or []
+    themes = breaking_block.get("themes", []) or []
     catalyst = (signals.get("catalyst", {}) or {}).get("text", "")
     prim = mr.get("primary", {})
+
+    # Functional Spec §7 theme tagging: label each headline with its evidence
+    # axis so the model can note confirmation (e.g. "rates-axis news confirms
+    # today's USD bid") without it ever changing bias/action/pair itself.
+    if breaking:
+        headline_lines = "\n".join(
+            f"- [{(themes[i] if i < len(themes) else None) or 'untagged'}] {h}"
+            for i, h in enumerate(breaking[:3])
+        )
+    else:
+        headline_lines = "none"
+
     return (
         f"Macro regime: {prim.get('code','?')} {prim.get('name','?')} "
         f"({prim.get('confidence','?')})\n"
@@ -100,7 +114,8 @@ def _build_prompt(seed: dict, signals: dict) -> str:
         f"Flow: leader {flow.get('leader')} (+{flow.get('leader_delta')}), "
         f"laggard {flow.get('laggard')} ({flow.get('laggard_delta')})\n"
         f"Catalyst check: {catalyst or 'none'}\n"
-        f"Headlines: {' | '.join(breaking[:3]) if breaking else 'none'}\n"
+        f"Headlines (tagged by macro axis — cite the axis if it aligns with the bias above):\n"
+        f"{headline_lines}\n"
         f"Next event: {seed.get('next_catalyst')}\n\n"
         "Return STRICT JSON only, no markdown:\n"
         '{ "headline": "<=10 words, imperative, names the theme",\n'

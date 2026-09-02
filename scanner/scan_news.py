@@ -795,6 +795,44 @@ def _relevance_score(headline: str) -> int:
     return sum(1 for kw in _FX_KEYWORDS if kw in text)
 
 
+# ── News theme tagging (Functional Spec §7) ───────────────────────────────────
+# "News adds theme, not direction" — this labels a headline with one of the
+# SAME five evidence axes macro_regime.py already scores from cross-asset data
+# (risk/rates/usd/commodity/safe_haven), purely for narration/display. It never
+# feeds back into macro_regime's own axis-confirmation logic, which stays
+# computed only from macro_assets — a tagged headline is colour, not a new
+# quantitative input. Deterministic keyword match, no AI call.
+_AXIS_KEYWORDS = {
+    "rates": (
+        "fed", "fomc", "ecb", "boj", "boe", "rba", "boc", "rbnz", "snb",
+        "rate", "rates", "hike", "hikes", "cut", "cuts", "hawkish", "dovish",
+        "yield", "yields", "treasury", "treasuries", "bond", "bonds",
+        "cpi", "inflation", "nfp", "payroll", "payrolls",
+        "jobless", "unemployment", "ppi",
+    ),
+    "usd": ("dollar", "usd", "dxy", "greenback"),
+    "risk": (
+        "risk-on", "risk-off", "risk on", "risk off", "sentiment", "risk",
+        "pmi", "gdp", "growth",
+        "equities", "equity", "stocks", "stock market", "vix", "volatility",
+        "appetite", "selloff", "sell-off", "rally",
+    ),
+    "commodity": ("oil", "wti", "crude", "copper", "commodities", "commodity"),
+    "safe_haven": ("gold", "safe haven", "safe-haven", "flight to safety", "franc"),
+}
+# Tie-break order when a headline hits more than one axis equally — monetary
+# policy is usually the most causally direct FX driver, so it's checked first.
+_AXIS_PRIORITY = ("rates", "usd", "risk", "commodity", "safe_haven")
+
+
+def tag_theme(headline: str) -> str | None:
+    """Headline -> macro evidence axis, or None if nothing matches."""
+    text = headline.lower()
+    scores = {axis: sum(1 for kw in kws if kw in text) for axis, kws in _AXIS_KEYWORDS.items()}
+    best_axis = max(_AXIS_PRIORITY, key=lambda a: scores[a])
+    return best_axis if scores[best_axis] > 0 else None
+
+
 def _load_json(path: Path, default):
     if path.exists():
         try:
@@ -1055,7 +1093,11 @@ def main():
     signals["ranked"]       = {**ranked_out, "updated": now.isoformat()}
     signals["calendar"]     = {"events": events, "updated": now.isoformat()}
     if breaking_list:
-        signals["breaking"] = {"headlines": breaking_list, "updated": now.isoformat()}
+        signals["breaking"] = {
+            "headlines": breaking_list,
+            "themes":    [tag_theme(h) for h in breaking_list],
+            "updated":   now.isoformat(),
+        }
     if deep:
         signals["deep_analysis"] = deep
     if week_ahead:

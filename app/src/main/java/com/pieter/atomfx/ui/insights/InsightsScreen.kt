@@ -3,6 +3,7 @@ package com.pieter.atomfx.ui.insights
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.macro.AXIS_LABELS
 import com.pieter.atomfx.ui.sheets.NotAvailableRow
 import com.pieter.atomfx.ui.sheets.CalendarEventRow
 import com.pieter.atomfx.ui.sheets.RecommendationContent
@@ -36,8 +39,8 @@ import com.pieter.atomfx.ui.wheel.WheelViewModel
  * daily brief, and (when present) the week-ahead brief, aggregated onto one screen (Design §19.2's
  * sibling entry: "recommendation card + theme-tagged news + calendar + brief"). Pure consumer of
  * `signals.json` — every section reads a field that's already there; nothing here is computed.
- * Headline theme-tagging (`news_themes`) isn't produced by the backend yet (Build Status —
- * optional/polish), so headlines show without a theme chip for now.
+ * Breaking headlines carry a theme chip (one of the same five macro evidence axes `MacroScreen`
+ * uses) when the backend tagged one — `news_themes`, Functional Spec §7.
  */
 @Composable
 fun InsightsScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifier = Modifier) {
@@ -79,7 +82,7 @@ private fun InsightsContent(signals: Signals, colors: AtomColors) {
         SheetDivider(colors, modifier = Modifier.padding(top = 12.dp))
 
         SectionLabel("BREAKING", colors)
-        BreakingHeadlines(signals.breaking?.headlines.orEmpty(), colors)
+        BreakingHeadlines(signals.breaking?.headlines.orEmpty(), signals.breaking?.themes.orEmpty(), colors)
         SheetDivider(colors, modifier = Modifier.padding(top = 12.dp))
 
         SectionLabel("CATALYST CHECK", colors)
@@ -130,18 +133,33 @@ private fun SectionLabel(text: String, colors: AtomColors) {
 }
 
 @Composable
-private fun BreakingHeadlines(headlines: List<String>, colors: AtomColors) {
+private fun BreakingHeadlines(headlines: List<String>, themes: List<String?>, colors: AtomColors) {
     if (headlines.isEmpty()) {
         NotAvailableRow("Breaking headlines", colors)
         return
     }
     Column(modifier = Modifier.fillMaxWidth()) {
-        headlines.forEach { headline ->
-            Text(
-                text = "· $headline",
-                style = AtomType.Body.copy(color = colors.textPrimary),
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
+        headlines.forEachIndexed { index, headline ->
+            val axis = themes.getOrNull(index)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                if (axis != null) {
+                    Text(
+                        text = (AXIS_LABELS[axis] ?: axis).uppercase(),
+                        style = AtomType.Caption.copy(color = colors.textSecondary),
+                        modifier = Modifier
+                            .padding(end = 8.dp, top = 1.dp)
+                            .background(colors.surfaceRaised, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 3.dp),
+                    )
+                }
+                Text(
+                    text = "· $headline",
+                    style = AtomType.Body.copy(color = colors.textPrimary),
+                )
+            }
         }
     }
 }

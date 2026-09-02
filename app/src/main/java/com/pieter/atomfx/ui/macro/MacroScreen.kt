@@ -35,7 +35,9 @@ import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 
-private val AXIS_LABELS = mapOf(
+// Non-private: also reused by InsightsScreen's theme-tagged headline chips (same
+// five macro evidence axes, Functional Spec §7).
+internal val AXIS_LABELS = mapOf(
     "risk" to "Risk", "rates" to "Rates", "usd" to "USD",
     "commodity" to "Commodity", "safe_haven" to "Safe-haven",
 )

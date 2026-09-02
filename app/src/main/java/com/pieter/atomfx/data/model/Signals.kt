@@ -169,6 +169,9 @@ data class DeepAnalysisBlock(
 @Serializable
 data class BreakingBlock(
     val headlines: List<String> = emptyList(),
+    // Functional Spec §7 theme tagging — same length/order as [headlines], one of
+    // "risk"/"rates"/"usd"/"commodity"/"safe_haven" per item, or null if untagged.
+    val themes: List<String?> = emptyList(),
     val updated: String? = null,
 )
 

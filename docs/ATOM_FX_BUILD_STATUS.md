@@ -24,7 +24,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | AI recommendation — deterministic seed | ✅ | `recommendation.py` (use_model=False in `scan_h1`); `recommendation` live |
 | **AI recommendation — Sonnet narration + cadence (Phase 7 full)** | ✅ | Wired into `scan_news.py`, `use_model=True`. Cadence is a union of three triggers (Pieter's call, 2026-09-03): a qualifying gold signal newer than the last narration, the regime `bias` flipping, or 12h+ since the last narration — whichever comes first. `recommendation.py` now preserves the AI-narrated text across `scan_h1.py`'s hourly seed-only refresh (was previously clobbered every hour regardless of scan_news's cadence — a real bug, fixed alongside this) |
 | **`deep_analysis` daily brief 404 fix** | ✅ | `scan_news.py` `SONNET_MODEL` updated from the retired `claude-sonnet-4-20250514` to `claude-sonnet-5`. Also fixed a separate, previously-silent bug: `recommendation.py`'s `_call_sonnet` was calling `scan_news._sonnet(prompt)` with only one of its two required positional args, so every `use_model=True` call was silently raising and falling back to template text |
-| **`news_themes` tagging** (headlines → macro axis) | ⬜ | Optional EXTEND (Functional Spec §7). "News adds theme, engine sets direction" |
+| **`news_themes` tagging** (headlines → macro axis) | ✅ | `scan_news.py` `tag_theme()` — deterministic keyword match to the same five `macro_regime.py` evidence axes (risk/rates/usd/commodity/safe_haven), no AI call. `breaking.themes` (parallel array to `breaking.headlines`) is new; `recommendation.py`'s prompt now cites the axis per headline so the narration can say things like "rates-axis news confirms…". Never feeds back into `macro_regime`'s own axis scoring — colour only |
 
 ---
 
@@ -43,7 +43,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | Theme tokens, dual light/dark (Design §2) | ✅ | `ui/theme/*` |
 | Animations & polish (Phase 8) | 🟡 | Wheel has motion; re-verify after wheel v2 (mode cross-fade, living-dial, §17 no-scroll) |
 | **3-tab bottom nav + swipe (HorizontalPager)** | ✅ | `MainActivity.kt` — `Wheel · Macro · Insights` via `HorizontalPager` + Material 3 `NavigationBar`, synced both ways |
-| **Insights tab/screen (§7, master table 46–50)** | ✅ | `ui/insights/InsightsScreen.kt` — recommendation card + breaking headlines + catalyst check + calendar + daily brief, one scrolling screen. `Signals.kt` gained `breaking`/`catalyst` mappings it was missing. No theme chips on headlines yet (`news_themes` still ⬜, unrelated item below) and Daily Brief shows whatever `deep_analysis.text` holds today, including its literal `"Unavailable (HTTP Error 404...)"` string when the backend fetch is failing — same known gap as the `deep_analysis` 404 fix item below, not patched over with an invented empty-state here |
+| **Insights tab/screen (§7, master table 46–50)** | ✅ | `ui/insights/InsightsScreen.kt` — recommendation card + breaking headlines + catalyst check + calendar + daily brief + week ahead, one scrolling screen. `Signals.kt` gained `breaking`/`catalyst`/`week_ahead` mappings it was missing. Breaking headlines now carry a theme chip (macro axis) when the backend tags one. Daily Brief shows whatever `deep_analysis.text` holds — the `"Unavailable (HTTP Error 404...)"` state this used to surface is resolved now that `SONNET_MODEL` is fixed; Daily Brief's own content was also rescoped (2026-09-03) to pure market/news context, no longer naming a pair or trade |
 | **Settings screen (§9, header gear)** | ✅ | `ui/settings/SettingsScreen.kt` — live `system/dark/light` override (`UserPreferences` + `SharedPreferences`, resolved once in `MainActivity` so wheel/theme agree), notification master + per-type toggles (client-side filter, wired below), send-test (posts a local test notification), data-source URL (`SignalsRepository` now reads it live), a foreground-only refresh-cadence loop in `WheelViewModel`, freshness/diagnostics (last updated, status, schema version, force refresh), About (sourced from `GLOSSARY.md`). Price-level alerts is present but disabled — see next item, still its own build step |
 | **Header gear + Insights icon (§3.1)** | ✅ | A persistent gear strip sits above the `HorizontalPager` (true on all 3 tabs, not just Wheel) → opens `SettingsScreen` full-screen. The old spec's separate "Insights icon" is superseded by Insights being its own nav tab now (same supersession as the Currency-tab decision) — not duplicated as a second entry point |
 | **Notification per-type filtering** | ✅ | `AtomFxMessagingService` now checks `UserPreferences` before showing a gold-signal/level-alert notification — the only place this can be enforced, since the backend still sends both to one shared topic |
@@ -65,13 +65,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 
 **Polish / optional:**
 
-6. Price-level alerts UI + PAT sync (Functional Spec §9).
-7. `news_themes` tagging (Functional Spec §7).
+6. Price-level alerts UI + PAT sync (Functional Spec §9). — parked (Pieter, 2026-09-03)
+7. ~~`news_themes` tagging~~ — ✅ done (Functional Spec §7).
 8. Animation re-verify after wheel v2; §17 no-scroll check on device.
 
 **Deferred (post-v1):**
 
-9. Journal (Phase 10+).
+9. Journal (Phase 10+). — parked (Pieter, 2026-09-03)
 
 ---
 
