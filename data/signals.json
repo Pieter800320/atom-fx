@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T09:28:27.432801+00:00",
+  "updated": "2026-09-02T13:59:30.171776+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -715,104 +715,114 @@
     "stable": true
   },
   "macro": {
-    "label": "Risk-Off",
-    "signals": 1,
-    "total": 1,
-    "confidence": "Low",
-    "stable": true
+    "label": "Mixed",
+    "signals": 0,
+    "total": 2,
+    "confidence": "Neutral",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 16.47,
-      "delta_pct": 0.8,
+      "value": 15.95,
+      "delta_pct": -2.4,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7631.47,
-      "delta_pct": -0.7,
-      "direction": "down",
+      "value": 7645.99,
+      "delta_pct": 0.2,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4372.2,
-      "delta_pct": 0.6,
+      "value": 4416.9,
+      "delta_pct": 1.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.723,
-      "delta_pct": 0.1,
+      "value": 99.565,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.5405,
-      "delta_pct": 0.5,
-      "direction": "flat",
+      "value": 6.6255,
+      "delta_pct": 1.8,
+      "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.796,
-      "delta_bp": 3.8,
+      "value": 4.784,
+      "delta_bp": -1.2,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.772,
-      "delta_bp": 4.0,
-      "direction": "up",
+      "value": 3.77,
+      "delta_bp": -0.2,
+      "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.06,
-      "delta_pct": -0.2,
+      "value": 89.68,
+      "delta_pct": -0.6,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77396.0,
-      "delta_pct": -0.0,
+      "value": 77104.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.4,
-      "delta_bp": -0.2,
+      "value": 101.4,
+      "delta_bp": -1.0,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "No breaking catalysts.",
-    "updated": "2026-09-02T08:17:30.375197+00:00"
+    "text": "Australia Q2 GDP beats supports AUD strength, which could weaken NZDJPY SHORT as AUD/JPY rallies and creates JPY selling pressure.",
+    "updated": "2026-09-02T13:59:30.171776+00:00"
   },
   "ranked": {
-    "text": "USDCHF LONG challenges setup; gold strength contradicts safe haven demand.",
+    "text": "USDCHF LONG: Mixed regime supports USD strength thesis today.\n\nNZDJPY SHORT: Gold rising challenges short via safe haven JPY bid.\n\nCADJPY SHORT: Gold rising challenges short via safe haven JPY bid.",
     "top": [
       {
         "pair": "USDCHF",
         "direction": "bull",
-        "score": 5.53
+        "score": 5.88
+      },
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 4.95
+      },
+      {
+        "pair": "CADJPY",
+        "direction": "bear",
+        "score": 4.67
       }
     ],
-    "updated": "2026-09-02T08:17:30.375197+00:00"
+    "updated": "2026-09-02T13:59:30.171776+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-02T08:17:30.375197+00:00"
+    "updated": "2026-09-02T13:59:30.171776+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
-    "generated_at": "2026-09-01T22:17:21.171822+00:00"
+    "generated_at": "2026-09-02T14:00:05.009959+00:00"
   },
   "breaking": {
     "headlines": [
-      "Australia Q2 GDP beats 0.4%, keeps September rate hike in play",
-      "Hawkish Warsh lifts DXY as EUR/USD and GBP/USD fall",
-      "Foreign countries aren't buying Treasuries, trouble for Bessent"
+      "Australia Q2 GDP beats, keeps September rate hike in play",
+      "US Dollar rises as Fed hike bets lift DXY higher",
+      "Higher bond yields keep markets on edge in European session"
     ],
-    "updated": "2026-09-02T08:17:30.375197+00:00"
+    "updated": "2026-09-02T13:59:30.171776+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
