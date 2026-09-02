@@ -108,6 +108,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
  */
 @Composable
 private fun ScreenSwitchStrip(screen: AppScreen, colors: AtomColors, onSelect: (AppScreen) -> Unit) {
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,7 +121,10 @@ private fun ScreenSwitchStrip(screen: AppScreen, colors: AtomColors, onSelect: (
             Text(
                 text = screenLabel(entry),
                 style = AtomType.Caption.copy(color = if (entry == screen) colors.textPrimary else colors.textMuted),
-                modifier = Modifier.clickable { onSelect(entry) },
+                modifier = Modifier.clickable {
+                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                    onSelect(entry)
+                },
             )
         }
     }

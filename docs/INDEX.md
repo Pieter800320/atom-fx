@@ -14,6 +14,8 @@ cross-references by section number. **Claude Code should read this file first.**
 | **[ATOM_FX_SETUP_AND_KICKOFF.md](ATOM_FX_SETUP_AND_KICKOFF.md)** | GitHub/FCM/secrets detail + the exact phase-by-phase prompts to give Claude Code. | Driving CC through the build. |
 | **[GLOSSARY.md](GLOSSARY.md)** | Exact terms. Use these names verbatim — do not invent synonyms. | Whenever naming anything. |
 | **[mockups/atom-fx-screen-kit.html](mockups/atom-fx-screen-kit.html)** | Visual mockup of every surface + the screen-flow map. Open in a browser. | Building any screen. |
+| **[ATOM_FX_WHEEL_V2_SPEC.md](ATOM_FX_WHEEL_V2_SPEC.md)** | The radial-dial wheel redesign — supersedes `ATOM_FX_DESIGN.md` §6/§6A's wheel specifics where they conflict. §11 is a running addendum of what actually shipped vs the original brief. | Any wheel/dial work. |
+| **[mockups/atom-fx-wheel-preview.html](mockups/atom-fx-wheel-preview.html)** | Interactive reference render of the Wheel v2 dial (dark/light × currencies/pairs). Open in a browser. | Any wheel/dial work. |
 
 ## The safety net & test data
 

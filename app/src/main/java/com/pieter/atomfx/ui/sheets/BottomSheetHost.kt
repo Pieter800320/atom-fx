@@ -31,6 +31,9 @@ sealed interface SheetTarget {
 
     /** A single currency's CSM detail (Phase 9) — distinct from the market-wide Flow ring sheet. */
     data class Currency(val code: String) : SheetTarget
+
+    /** Wheel v2: tap an outer cross-asset wedge → the full list, that asset pinned on top. */
+    data class CrossAsset(val id: String) : SheetTarget
 }
 
 /**
@@ -78,6 +81,7 @@ fun BottomSheetHost(
                 SheetTarget.Recommendation -> RecommendationSheet(signals, colors)
                 is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
                 is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors)
+                is SheetTarget.CrossAsset -> CrossAssetSheet(target.id, signals, colors)
             }
         }
     }

@@ -45,6 +45,11 @@ fun HeaderBar(
     recommendationHeadline: String?,
     modifier: Modifier = Modifier,
 ) {
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    fun tap(action: () -> Unit) {
+        haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+        action()
+    }
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -66,15 +71,21 @@ fun HeaderBar(
                         .size(7.dp)
                         .background(if (isFresh) colors.bull else colors.bear, CircleShape),
                 )
+                if (!isFresh) {
+                    Text(
+                        text = "  DATA STALE",
+                        style = AtomType.Caption.copy(color = colors.bear),
+                    )
+                }
                 Text(
                     text = "  brief",
                     style = AtomType.Caption.copy(color = colors.textSecondary),
-                    modifier = Modifier.clickable(onClick = onRecommendationClick),
+                    modifier = Modifier.clickable { tap(onRecommendationClick) },
                 )
                 Text(
                     text = "  events",
                     style = AtomType.Caption.copy(color = colors.textSecondary),
-                    modifier = Modifier.clickable(onClick = onCalendarClick),
+                    modifier = Modifier.clickable { tap(onCalendarClick) },
                 )
             }
         }
@@ -94,7 +105,7 @@ fun HeaderBar(
                 style = AtomType.Caption.copy(color = colors.textMuted),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable(onClick = onRecommendationClick),
+                modifier = Modifier.clickable { tap(onRecommendationClick) },
             )
         }
     }

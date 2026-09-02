@@ -1,36 +1,110 @@
 package com.pieter.atomfx.ui.wheel
 
+import androidx.compose.ui.geometry.Offset
+import kotlin.math.cos
+import kotlin.math.sin
+
 /**
- * The one thing about the wheel that is truly fixed regardless of device or content:
- * angular identity (Design §6.1). Radii are computed in pixels at draw time in
- * [WheelCanvas] from actual measured text (nucleus content, rim labels) so the wheel fits
- * the screen and its own text exactly, rather than scaling a fixed proportional constant.
+ * Wheel v2 dial geometry (docs/ATOM_FX_WHEEL_V2_SPEC.md). Angular identity is fixed: each
+ * segment owns a permanent wedge; only its radial fill changes with the data (Design §6.1).
+ * Radii are fractions of the canvas half-side, resolved to pixels at draw time in [WheelCanvas].
  *
- * Pieter's layout: 13 equally-spaced radials, not 12 — slot 0 (12 o'clock) is the ring-number
- * legend (six small numbered nodes, one per ring), and the 12 pairs occupy slots 1..12
- * clockwise from there, in this specific order (not the frozen-engine pair order).
+ * Degrees here are "compass" degrees: 0° = 12 o'clock, increasing clockwise (matches the mockup's
+ * polar()). [polar] converts to screen pixels.
  */
 object WheelGeometry {
 
-    const val SLOT_COUNT = 13
-
-    /** The 12 tradable pairs, clockwise starting just past 12 o'clock (slot 1) — slot 0 is the ring legend. */
+    /** 12 pairs, clockwise from just past 12 o'clock (angle = index). */
     val PAIR_ORDER = listOf(
         "EURUSD", "GBPUSD", "AUDUSD", "NZDUSD", "USDCAD", "USDCHF",
         "EURJPY", "GBPJPY", "AUDJPY", "NZDJPY", "CADJPY", "USDJPY",
     )
 
-    /** Slot 0 — the ring-number legend, fixed at 12 o'clock. */
-    const val LEGEND_SLOT = 0
+    /** 8 currencies — risk-off bloc first so a "bloom" reads risk-on/off at a glance (Design §6A). */
+    val CCY_ORDER = listOf("USD", "JPY", "CHF", "EUR", "GBP", "CAD", "AUD", "NZD")
 
-    private fun slotAngleDeg(slot: Int): Float = slot * (360f / SLOT_COUNT) - 90f
+    /** 10 cross-assets: (macro_assets key, display label). Order = outer-ring position. */
+    val XASSET_ORDER = listOf(
+        "vix" to "VIX", "spx" to "SPX", "us10y" to "US10Y", "us3m" to "US3M",
+        "curve" to "10Y-3M", "dxy" to "DXY", "wti" to "WTI", "copper" to "COPPER",
+        "gold" to "GOLD", "btc" to "BTC",
+    )
 
-    /** A pair's slot is its position in [PAIR_ORDER] shifted by one to leave slot 0 for the legend. */
-    private fun pairSlot(pairIndex: Int): Int = pairIndex + 1
+    /** Rotates all wedges a touch clockwise so nothing starts exactly at 12 o'clock (mockup). */
+    const val START_OFFSET_DEG = 15f
 
-    fun angleDeg(pairIndex: Int): Float = slotAngleDeg(pairSlot(pairIndex))
+    // Radius fractions of the canvas half-side (mockup viewBox 800, centre 400).
+    const val HUB_FRAC = 0.275f      // hub outer radius (110/400)
+    const val RING_R0_FRAC = 0.31f   // middle ring inner (124/400)
+    const val RING_R1_FRAC = 0.74f   // middle ring outer (296/400)
+    const val XA_R0_FRAC = 0.765f    // outer cross-asset ring inner (306/400)
+    const val XA_R1_FRAC = 0.905f    // outer cross-asset ring outer (362/400)
 
-    fun angleRad(pairIndex: Int): Double = Math.toRadians(angleDeg(pairIndex).toDouble())
+    // The four corner buttons — a 4th ring, but deliberately different from every data cell:
+    // tapered trapezoids (wide at the hub-facing edge, narrower at the tip — [TOGGLE_INNER_SPAN_DEG]
+    // vs [TOGGLE_OUTER_SPAN_DEG]) with curved top/bottom edges (following the dial's own radii, not
+    // flat chords) and only the two outer corners rounded. Bottom corners are the Currencies/Pairs
+    // mode toggle (thumb zone in portrait grip); top corners are the Currencies-mode timeframe
+    // toggle (D1/H4 — inert in Pairs mode, since pair `potential` isn't computed per-timeframe).
+    const val TOGGLE_R0_FRAC = 0.91f     // just past XA_R1_FRAC, small gap
+    const val TOGGLE_R1_FRAC = 1.155f    // thickness ~0.245 vs the XA ring's 0.14 — ~75% thicker
+    const val TOGGLE_INNER_SPAN_DEG = 34f // angular width at r0 (wide base)
+    const val TOGGLE_OUTER_SPAN_DEG = 18f // angular width at r1 (tapered tip)
 
-    val legendAngleRad: Double = Math.toRadians(slotAngleDeg(LEGEND_SLOT).toDouble())
+    const val TOGGLE_CURRENCIES_CENTER_DEG = 135f // bottom-right
+    const val TOGGLE_PAIRS_CENTER_DEG = 225f      // bottom-left
+    const val TOGGLE_H4_CENTER_DEG = 45f          // top-right
+    const val TOGGLE_D1_CENTER_DEG = 315f         // top-left
+
+    /** A corner button's curved-and-tapered boundary: wide at r0, narrow at r1. */
+    data class CornerAngles(val innerA0: Float, val innerA1: Float, val outerA0: Float, val outerA1: Float)
+
+    fun cornerButtonAngles(centerDeg: Float): CornerAngles {
+        val innerHalf = TOGGLE_INNER_SPAN_DEG / 2f
+        val outerHalf = TOGGLE_OUTER_SPAN_DEG / 2f
+        return CornerAngles(
+            innerA0 = centerDeg - innerHalf, innerA1 = centerDeg + innerHalf,
+            outerA0 = centerDeg - outerHalf, outerA1 = centerDeg + outerHalf,
+        )
+    }
+
+    /** The wide (inner) angular range, used for hit-testing — generous tap zone (Design §16). */
+    fun cornerHitRange(centerDeg: Float): Pair<Float, Float> {
+        val half = TOGGLE_INNER_SPAN_DEG / 2f
+        return (centerDeg - half) to (centerDeg + half)
+    }
+
+    fun sliceDeg(count: Int): Float = 360f / count
+
+    /** The (a0, a1) compass-degree span of segment [index] of [count], leaving a [gapDeg] gutter. */
+    fun segAngles(count: Int, index: Int, gapDeg: Float): Pair<Float, Float> {
+        val slice = sliceDeg(count)
+        val a0 = START_OFFSET_DEG + index * slice + gapDeg
+        val a1 = START_OFFSET_DEG + (index + 1) * slice - gapDeg
+        return a0 to a1
+    }
+
+    fun midDeg(count: Int, index: Int): Float {
+        val (a0, a1) = segAngles(count, index, 0f)
+        return (a0 + a1) / 2f
+    }
+
+    /** Compass degrees (0 = top, clockwise) → screen pixel point. */
+    fun polar(cx: Float, cy: Float, r: Float, deg: Float): Offset {
+        val a = Math.toRadians((deg - 90f).toDouble())
+        return Offset(cx + r * cos(a).toFloat(), cy + r * sin(a).toFloat())
+    }
+
+    /** Screen point → compass degrees (0 = top, clockwise), 0..360. */
+    fun compassDeg(cx: Float, cy: Float, p: Offset): Float {
+        val deg = Math.toDegrees(kotlin.math.atan2((p.y - cy).toDouble(), (p.x - cx).toDouble())).toFloat() + 90f
+        return ((deg % 360f) + 360f) % 360f
+    }
+
+    /** Which segment index a compass degree falls in, for a ring of [count] segments. */
+    fun segIndexAt(count: Int, deg: Float): Int {
+        val slice = sliceDeg(count)
+        val rel = ((deg - START_OFFSET_DEG) % 360f + 360f) % 360f
+        return (rel / slice).toInt().coerceIn(0, count - 1)
+    }
 }

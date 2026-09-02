@@ -1,6 +1,12 @@
 package com.pieter.atomfx.ui.wheel
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,8 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,10 +31,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.components.HeaderBar
-import com.pieter.atomfx.ui.components.Pill
-import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
@@ -37,16 +50,19 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 
-private val RING_KEY_ROW_HEIGHT = 48.dp
-private val RING_KEY_ROW_SPACING = 8.dp
-private val STALE_ROW_HEIGHT = 20.dp
+private val TICKER_HEIGHT = 30.dp
+private val TICKER_SPACING = 8.dp
 
 /**
- * Design §5's landing screen: header (§9) → status strip (§10) → the wheel, sized to whatever's
- * left → Tradeable Now/Watch (§11). A tap on a ring/node/nucleus, a status-strip cell, or a pill
- * all open the same `BottomSheetHost` (Design §13.1, §14); the header's "events"/"brief" chips
- * open the Calendar/Recommendation panels the same way. `viewModel` is owned by `AtomFxApp`
- * (Phase 9) and shared with `MacroScreen` — one fetch, one `Signals` for both screens.
+ * Design §5's landing screen, Wheel v2: header (incl. freshness/stale, Design §8-9) → status
+ * strip → the radial dial (with the Currencies/Pairs toggle living on the dial's own bottom-right
+ * corner, and the Currency Flow ticker beneath it when in Currencies mode) → Tradeable Now.
+ * §17: no scroll — the wheel is a centred square sized to whatever fits.
+ *
+ * The six-factor pill row is gone: Regime/Breadth duplicate the Status Strip's own tap targets
+ * (StatusStrip.kt routes REGIME/BREADTH cells to the same sheets), and Momentum/Structure/Entry
+ * only ever had meaning for one pair — they're reached via that pair's own sheet tabs, not a
+ * wheel-level row that had to arbitrarily pick `topPair()`.
  */
 @Composable
 fun WheelScreen(
@@ -58,6 +74,9 @@ fun WheelScreen(
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
     var activeSheet by remember { mutableStateOf(initialDeepLink) }
+    var mode by remember { mutableStateOf(WheelMode.PAIRS) }
+    var timeframe by remember { mutableStateOf(Timeframe.H4) }
+    val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(initialDeepLink) {
         if (initialDeepLink != null) activeSheet = initialDeepLink
@@ -98,7 +117,20 @@ fun WheelScreen(
                         loaded = current,
                         isDark = isDark,
                         colors = colors,
-                        onTap = { target -> activeSheet = target.toSheetTarget() },
+                        mode = mode,
+                        timeframe = timeframe,
+                        onModeChange = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            mode = it
+                        },
+                        onTimeframeChange = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            timeframe = it
+                        },
+                        onTap = { target ->
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            activeSheet = target.toSheetTarget()
+                        },
                         onLongPress = { pair -> activeSheet = SheetTarget.Chart(pair) },
                         onRingClick = { factor -> activeSheet = SheetTarget.Ring(factor) },
                     )
@@ -134,6 +166,10 @@ private fun WheelTapTarget.toSheetTarget(): SheetTarget = when (this) {
     is WheelTapTarget.Nucleus -> SheetTarget.Nucleus
     is WheelTapTarget.Ring -> SheetTarget.Ring(factor)
     is WheelTapTarget.Node -> SheetTarget.Node(pair)
+    is WheelTapTarget.Currency -> SheetTarget.Currency(code)
+    is WheelTapTarget.CrossAsset -> SheetTarget.CrossAsset(id)
+    is WheelTapTarget.ModeToggle -> error("ModeToggle is handled by WheelArea before reaching toSheetTarget()")
+    is WheelTapTarget.TimeframeToggle -> error("TimeframeToggle is handled by WheelArea before reaching toSheetTarget()")
 }
 
 @Composable
@@ -141,49 +177,117 @@ private fun WheelArea(
     loaded: WheelScreenState.Loaded,
     isDark: Boolean,
     colors: AtomColors,
+    mode: WheelMode,
+    timeframe: Timeframe,
+    onModeChange: (WheelMode) -> Unit,
+    onTimeframeChange: (Timeframe) -> Unit,
     onTap: (WheelTapTarget) -> Unit,
     onLongPress: (String) -> Unit,
     onRingClick: (Factor) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        // The "DATA STALE" row's height has to be budgeted here too, not just the legend row's —
-        // otherwise the wheel's Box gets squeezed shorter than it is wide whenever that text
-        // shows (every fixture, and live data whenever it's actually stale), leaving a *not*
-        // square Canvas whose circle — drawn from the smaller of its two dimensions — ends up
-        // off-centre against the wider one (Pieter's design review).
-        val staleRowHeight = if (loaded.freshness == Freshness.STALE) STALE_ROW_HEIGHT else 0.dp
-        val wheelSide = minOf(maxWidth, maxHeight - RING_KEY_ROW_HEIGHT - RING_KEY_ROW_SPACING - staleRowHeight)
+        // Design §17: the landing screen never scrolls — the wheel is a centred square sized to
+        // whatever fits (min(width, height − chrome)); it shrinks to fit, the layout never does.
+        // The Currency Flow ticker is always on (both modes) so this reservation is constant too.
+        val wheelSide = minOf(maxWidth, maxHeight - TICKER_HEIGHT - TICKER_SPACING)
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            if (loaded.freshness == Freshness.STALE) {
-                Text(
-                    text = "DATA STALE",
-                    style = AtomType.Caption.copy(color = colors.bear),
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-            }
-            // Design review: this is a legend for the 1-6 numbers at the atom's own 12 o'clock
-            // spoke, not an actionable pair list like Tradeable Now/Watch below the wheel — it
-            // reads better directly above what it's labelling than grouped with those. Width is
-            // full-screen (matching Tradeable Now/Watch below), not tied to wheelSide: wheelSide
-            // shrinks whenever a state stacks more text above the wheel (long recommendation,
-            // DATA STALE row, wider status strip), and locking this scrollable row to that same
-            // shrunk number left it visibly stopping short of the screen edge in those states.
-            RingKeyRow(rings = loaded.state.rings, colors = colors, onRingClick = onRingClick, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(RING_KEY_ROW_SPACING))
             Box(modifier = Modifier.size(wheelSide)) {
                 WheelCanvas(
                     state = loaded.state,
                     colors = colors,
                     isDark = isDark,
+                    mode = mode,
+                    timeframe = timeframe,
                     modifier = Modifier.fillMaxSize(),
-                    onTap = onTap,
+                    onTap = { target ->
+                        when (target) {
+                            is WheelTapTarget.ModeToggle -> onModeChange(target.mode)
+                            is WheelTapTarget.TimeframeToggle -> onTimeframeChange(target.timeframe)
+                            else -> onTap(target)
+                        }
+                    },
                     onLongPress = onLongPress,
                 )
             }
+            Spacer(modifier = Modifier.height(TICKER_SPACING))
+            CurrencyFlowTicker(
+                currencies = if (timeframe == Timeframe.D1) loaded.state.currenciesD1 else loaded.state.currencies,
+                colors = colors,
+                onClick = { onRingClick(Factor.FLOW) },
+                modifier = Modifier.height(TICKER_HEIGHT).fillMaxWidth().padding(horizontal = 16.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Currency Flow, live under the dial in *both* modes — "EUR 83 +22  •  JPY 59 +6  •  …", strongest
+ * first, auto-scrolling. Flow is relevant context whether you're looking at currencies or pairs
+ * (it's *why* pairs are moving), so the ticker no longer hides in Pairs mode — same info, same
+ * spot, always on, exactly the "always visible" component Pieter asked for. Replaces both the old
+ * on-wheel strength numbers and the six-factor Flow pill; tapping it opens the full Currency Flow
+ * sheet. Settles in with a small spring bounce once on first load, not a flat fade.
+ */
+@Composable
+private fun CurrencyFlowTicker(
+    currencies: List<CurrencySeg>,
+    colors: AtomColors,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val entrance = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        entrance.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    }
+
+    Box(modifier = modifier) {
+        val density = LocalDensity.current
+        val text = remember(currencies, colors) {
+            buildAnnotatedString {
+                val sorted = currencies.sortedByDescending { it.strength }
+                sorted.forEachIndexed { i, c ->
+                    withStyle(SpanStyle(color = colors.textPrimary, fontWeight = FontWeight.Bold)) { append(c.code) }
+                    append(" ")
+                    withStyle(SpanStyle(color = colors.textSecondary)) { append(c.strength.toString()) }
+                    append("  ")
+                    val sign = if (c.delta > 0) "+" else ""
+                    val deltaColor = when {
+                        c.delta > 0 -> colors.bull
+                        c.delta < 0 -> colors.bear
+                        else -> colors.textMuted
+                    }
+                    withStyle(SpanStyle(color = deltaColor)) { append("$sign${c.delta.toInt()}") }
+                    if (i != sorted.lastIndex) append("      •      ")
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    alpha = entrance.value
+                    translationY = (1f - entrance.value) * -12f * density.density
+                    scaleX = 0.92f + 0.08f * entrance.value
+                    scaleY = 0.92f + 0.08f * entrance.value
+                }
+                .clip(RoundedCornerShape(999.dp))
+                .background(colors.surface)
+                .border(1.dp, colors.hairline, RoundedCornerShape(999.dp))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = text,
+                style = AtomType.Caption,
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE, initialDelayMillis = 500),
+            )
         }
     }
 }
@@ -193,24 +297,4 @@ private fun CenteredMessage(text: String, colors: AtomColors) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = text, style = AtomType.Body.copy(color = colors.textSecondary))
     }
-}
-
-/**
- * Design review: was a static legend row; the ring bands themselves are too thin a tap target
- * to rely on, so this doubles as six scrollable, tappable pills opening the same factor sheet
- * a ring tap would (ring tap still works too — this is the reliable route, not a replacement).
- */
-@Composable
-private fun RingKeyRow(rings: List<RingDescriptor>, colors: AtomColors, onRingClick: (Factor) -> Unit, modifier: Modifier = Modifier) {
-    ScrollingPills(
-        pills = rings.mapIndexed { i, ring ->
-            Pill(
-                text = "${i + 1} ${ring.factor.shortLabel}",
-                tint = tintColor(ring.tint, colors),
-                onClick = { onRingClick(ring.factor) },
-            )
-        },
-        colors = colors,
-        modifier = modifier.height(RING_KEY_ROW_HEIGHT),
-    )
 }

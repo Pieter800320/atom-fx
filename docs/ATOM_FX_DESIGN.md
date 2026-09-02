@@ -362,9 +362,8 @@ JPY  31  −7   ↓↓
 USD  28  −10  ↓↓↓
 ──
 CURRENT LEADER: EUR      CURRENT LAGGARD: USD
-Absolute leader: NZD     Absolute laggard: USD
 ```
-Arrow count encodes delta magnitude. **Leader ≠ absolute leader** must be visible (spec §7, §20). Strength from `csm.h4`, Δ from `csm_delta.h4`, summary from `currency_flow`.
+Arrow count encodes delta magnitude. Strength from `csm.h4`, Δ from `csm_delta.h4`, summary from `currency_flow`. **2026-09-02:** the sheet shows flow leader/laggard only — Pieter dropped the absolute-leader/laggard row to keep one clear number per currency (the data still exists in `signals.json`; see Glossary). Also reachable live from the wheel's Currency Flow ticker (§6A) in Currencies mode, not just this sheet.
 
 ### 14.3 Breadth sheet (spec §21)
 
@@ -449,6 +448,7 @@ A reusable horizontally-scrollable, snap-friendly pill row used for: Tradeable N
 ## 16. Touch & desktop behaviour
 
 - **Touch (spec §45):** node ≥44dp; ring = wide invisible band; tap nucleus → regime; tap background → close/deselect. No precision tapping ever required.
+- **Haptics (added 2026-09-02, Pieter's rule):** every interactive control gives haptic feedback on tap — wheel wedges/nucleus, the mode toggle, status-strip cells, pills, sheet tabs, everything tappable. Use the lightest appropriate `HapticFeedbackType` (e.g. `TextHandleMove` for a plain selection tap) via `LocalHapticFeedback`; reserve stronger feedback for consequential actions. This is non-negotiable, same tier as §17/§20 — check it on every new interactive element, not just the wheel.
 - **Long-press a node →** the simplified line chart (native, no candles — Functional Spec §8), showing D1/H4/H1 close-price lines so up/down reads instantly.
 - **Hover (large screens / desktop, spec §46):** node enlarges slightly, its radial path highlights, a tiny tooltip shows `PAIR · LONG · Level 6/6 · Potential 86`; ring hover highlights the whole ring. Hover augments, never replaces tapping.
 

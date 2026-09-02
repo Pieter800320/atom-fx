@@ -3,6 +3,8 @@ package com.pieter.atomfx.domain
 import com.pieter.atomfx.data.model.PotentialEntry
 import com.pieter.atomfx.data.model.PotentialFactors
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.wheel.CrossAssetSeg
+import com.pieter.atomfx.ui.wheel.CurrencySeg
 import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.NucleusState
@@ -12,13 +14,13 @@ import com.pieter.atomfx.ui.wheel.RingDescriptor
 import com.pieter.atomfx.ui.wheel.Tint
 import com.pieter.atomfx.ui.wheel.WheelGeometry
 import com.pieter.atomfx.ui.wheel.WheelUiState
+import kotlin.math.abs
 
 /**
- * Pure `signals.json` → `WheelUiState` mapping (Architecture §8.3): every field here is a
- * straight copy, string-to-enum translation, or a presentational label over a value the
- * frozen/extend backend already computed. Nothing here re-derives a trading number. A pair
- * missing from `potential` (normal — Architecture §4.2) maps to the level-0 "no thesis" node,
- * never a crash or an invented score.
+ * Pure `signals.json` → `WheelUiState` mapping (Architecture §8.3): every field is a straight
+ * copy, string→enum translation, or a presentational label over a value the frozen/extend
+ * backend already computed. Nothing here re-derives a trading number. Absent EXTEND keys
+ * (normal — Architecture §4.2) map to safe empty/low states, never a crash.
  */
 object WheelMapper {
 
@@ -30,9 +32,13 @@ object WheelMapper {
             nucleus = mapNucleus(signals),
             nodes = nodes,
             rings = mapRings(nodes),
+            currencies = mapCurrencies(signals, "h4"),
+            currenciesD1 = mapCurrencies(signals, "d1"),
+            crossAssets = mapCrossAssets(signals),
         )
     }
 
+    // ── Pairs (PAIRS mode) ────────────────────────────────────────────────────────────────
     private fun mapNode(pair: String, index: Int, entry: PotentialEntry?): PairNode {
         if (entry == null) {
             return PairNode(pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null)
@@ -84,6 +90,75 @@ object WheelMapper {
         }
     }
 
+    // ── Currencies (CURRENCIES mode) ──────────────────────────────────────────────────────
+    // [timeframe] selects csm/csm_delta (both genuinely per-TF in signals.json). breadth is only
+    // ever published at h4 — there's no per-TF breadth in the data contract — so it always reads
+    // h4 regardless of [timeframe]; that's a real gap in the source data, not a mapper bug.
+    private fun mapCurrencies(signals: Signals, timeframe: String): List<CurrencySeg> {
+        val csmTf = signals.csm[timeframe] ?: emptyMap()
+        val deltaTf = signals.csmDelta[timeframe] ?: emptyMap()
+        val breadthH4 = signals.breadth["h4"] ?: emptyMap()
+        return WheelGeometry.CCY_ORDER.mapIndexed { index, code ->
+            val strength = (csmTf[code] ?: 0.0).toInt()
+            CurrencySeg(
+                code = code,
+                index = index,
+                strength = strength,
+                delta = deltaTf[code] ?: 0.0,
+                breadthBand = breadthH4[code]?.band ?: "weak",
+                tint = if (strength >= 50) Tint.BULL else Tint.BEAR,
+            )
+        }
+    }
+
+    // ── Cross-assets (outer ring) ───────────────────────────────────────────────────────────
+    /** Each asset → the macro axis it belongs to (an asset may touch two). */
+    private val ASSET_AXES: Map<String, List<String>> = mapOf(
+        "vix" to listOf("risk"), "spx" to listOf("risk"), "btc" to listOf("risk"),
+        "us10y" to listOf("rates"), "us3m" to listOf("rates"), "curve" to listOf("rates"),
+        "dxy" to listOf("usd"),
+        "wti" to listOf("commodity"),
+        "copper" to listOf("risk", "commodity"),
+        "gold" to listOf("commodity", "safe_haven"),
+    )
+
+    private fun mapCrossAssets(signals: Signals): List<CrossAssetSeg> {
+        val supportingAxes: Set<String> = signals.macroRegime?.evidence
+            ?.filter { it.supports }
+            ?.mapNotNull { it.axis }
+            ?.toSet()
+            ?: emptySet()
+
+        return WheelGeometry.XASSET_ORDER.mapIndexed { index, (key, fallbackLabel) ->
+            val entry = signals.macroAssets[key]
+            val dir = entry?.direction
+            val axes = ASSET_AXES[key] ?: emptyList()
+            CrossAssetSeg(
+                id = key,
+                index = index,
+                label = entry?.label ?: fallbackLabel,
+                up = dir == "up",
+                flat = dir == null || dir == "flat",
+                confirm = axes.any { it in supportingAxes },
+                valueText = formatValue(entry?.value),
+                deltaText = formatDelta(entry?.deltaPct, entry?.deltaBp),
+            )
+        }
+    }
+
+    private fun formatValue(v: Double?): String = when {
+        v == null -> "—"
+        abs(v) >= 100 -> "%.0f".format(v)
+        else -> "%.2f".format(v)
+    }
+
+    private fun formatDelta(pct: Double?, bp: Double?): String = when {
+        pct != null -> "%+.1f%%".format(pct)
+        bp != null -> "%+.1fbp".format(bp)
+        else -> "—"
+    }
+
+    // ── Nucleus / hub ────────────────────────────────────────────────────────────────────────
     private fun mapNucleus(signals: Signals): NucleusState {
         val regime = signals.regimeH4
         val regimeName = regime?.regime ?: "Unknown"
@@ -101,10 +176,18 @@ object WheelMapper {
             confidence = regime?.confidence ?: "—",
             flowLine = flowLine,
             tint = tintFor(regimeName),
+            archetypeLine = archetypeLine(signals),
         )
     }
 
-    /** A presentational bucket over the frozen regime score — the score itself is untouched. */
+    private fun archetypeLine(signals: Signals): String {
+        val p = signals.macroRegime?.primary ?: return ""
+        val code = p.code ?: return ""
+        val name = (p.name ?: "").uppercase()
+        val conf = (p.confidence ?: "").uppercase()
+        return listOf(code, name, conf).filter { it.isNotBlank() }.joinToString(" · ")
+    }
+
     private fun strengthWordFor(score: Double): String = when {
         score >= 7.0 -> "Strong"
         score >= 4.0 -> "Moderate"
@@ -115,10 +198,9 @@ object WheelMapper {
         "Risk-On" -> Tint.BULL
         "Risk-Off" -> Tint.BEAR
         "Mixed" -> Tint.WATCH
-        else -> Tint.NEUTRAL // Ranging, or unknown/absent
+        else -> Tint.NEUTRAL
     }
 
-    /** A ring's tint is the majority direction among nodes that passed it — display aggregation only, Architecture §8.3. */
     private fun mapRings(nodes: List<PairNode>): List<RingDescriptor> =
         Factor.entries.map { factor ->
             val passing = nodes.filter { factor in it.factorsPassed }.map { it.direction }

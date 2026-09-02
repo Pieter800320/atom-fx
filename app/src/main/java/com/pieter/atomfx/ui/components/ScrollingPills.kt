@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -29,11 +31,17 @@ data class Pill(
 
 @Composable
 fun ScrollingPills(pills: List<Pill>, colors: AtomColors, modifier: Modifier = Modifier) {
+    val haptics = LocalHapticFeedback.current
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         pills.forEach { pill ->
-            val clickable = pill.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier
+            val clickable = pill.onClick?.let { onClick ->
+                Modifier.clickable {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onClick()
+                }
+            } ?: Modifier
             val shape = RoundedCornerShape(999.dp)
             Row(
                 modifier = Modifier

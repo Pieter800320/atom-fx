@@ -43,15 +43,6 @@ fun CurrencyFlowSheet(signals: Signals, colors: AtomColors, onCurrencyClick: (St
         } else {
             NotAvailableRow("Flow leader / laggard", colors)
         }
-        if (flow?.absoluteLeader != null && flow.absoluteLaggard != null) {
-            ClickableRow("Absolute leader", flow.absoluteLeader, colors, colors.bull) { onCurrencyClick(flow.absoluteLeader) }
-            ClickableRow("Absolute laggard", flow.absoluteLaggard, colors, colors.bear) { onCurrencyClick(flow.absoluteLaggard) }
-        }
-
-        Text(
-            text = "Leader ≠ absolute leader: the leader is getting stronger fastest; the absolute leader is strongest right now.",
-            style = AtomType.Caption.copy(color = colors.textMuted),
-        )
     }
 }
 

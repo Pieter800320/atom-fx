@@ -9,6 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.sheets.SheetTarget
@@ -52,9 +54,13 @@ fun StatusStrip(
 
 @Composable
 private fun Cell(label: String, value: String, colors: AtomColors, modifier: Modifier, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     Column(
         modifier = modifier
-            .clickable(onClick = onClick)
+            .clickable {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            }
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

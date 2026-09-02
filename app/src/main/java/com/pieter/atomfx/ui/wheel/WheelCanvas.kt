@@ -1,13 +1,18 @@
 package com.pieter.atomfx.ui.wheel
 
-import android.provider.Settings
+import android.graphics.BlurMaskFilter
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,262 +24,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.theme.AtomColors
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlinx.coroutines.delay
+import com.pieter.atomfx.ui.theme.Ramp
+import com.pieter.atomfx.ui.theme.csColor
+import com.pieter.atomfx.ui.theme.stepColor
+import kotlin.math.max
+import kotlin.math.min
 import kotlinx.coroutines.launch
 
-/** What a tap on the wheel resolved to (Design §13.1: ring → factor sheet, node → pair sheet, nucleus → regime sheet). */
+/** What a tap on the dial resolved to. */
 sealed interface WheelTapTarget {
     data object Nucleus : WheelTapTarget
-    data class Node(val pair: String) : WheelTapTarget
-    data class Ring(val factor: Factor) : WheelTapTarget
-}
-
-/**
- * The wheel's geometry, resolved once per draw/hit-test pass in actual pixels rather than a
- * proportional 0..1000 space — the nucleus and the outer ring both need to fit *measured
- * text* exactly (Pieter: nucleus text must fit perfectly; rim labels must sit right at the
- * ring edge without any pair bleeding off the shortest screen dimension), and text metrics
- * don't scale with an arbitrary viewBox. [nucleusRadius]..[outerRadius] are spaced evenly in
- * six equal steps ([ringPitch] apart) exactly as requested.
- */
-private data class WheelLayout(
-    val center: Offset,
-    val nucleusRadius: Float,
-    val ringPitch: Float,
-    val outerRadius: Float,
-    val labelHalfExtent: Float,
-    val labelGap: Float,
-    val haloClearance: Float,
-    val lowDotRadius: Float,
-    val watchNodeRadius: Float,
-    val solidNodeRadius: Float,
-    val ringLegendRadius: Float,
-)
-
-private fun WheelLayout.radiusForLevel(level: Int): Float = nucleusRadius + level.coerceIn(0, 6) * ringPitch
-
-/** Float overload for mid-animation positions (Phase 8) — layout/margin sizing stays on the Int version. */
-private fun WheelLayout.radiusForLevel(level: Float): Float = nucleusRadius + level.coerceIn(0f, 6f) * ringPitch
-
-/**
- * A node's actual *drawn* position — [radiusForLevel] floored to a minimum clearance from the
- * nucleus edge. Level 0 alone sits exactly on that edge by the raw formula, which is why it
- * used to render half-hidden under the nucleus fill; levels 1+ are already clear.
- *
- * Pieter's design review: an earlier version also *ceilinged* this, pulling a level-6 node in
- * so its halo wouldn't cross the outer ring — but "this node's centre sits exactly on its own
- * level's ring" is the wheel's whole navigational language (spec: reaching ring 4 means sitting
- * on ring 4), true for every other level, and level 6 is not a special case worth breaking that
- * for. A halo reaching slightly past the outer ring is a normal, minor visual and reads as "this
- * node is highlighted at the boundary," not as broken geometry — unlike a node that visibly
- * doesn't sit on its own ring, which does.
- */
-private fun WheelLayout.renderRadiusForLevel(level: Float): Float =
-    radiusForLevel(level).coerceAtLeast(nucleusRadius + ringPitch * 0.45f)
-
-private fun WheelLayout.pointAt(index: Int, radius: Float): Offset {
-    val rad = WheelGeometry.angleRad(index)
-    return Offset(center.x + radius * cos(rad).toFloat(), center.y + radius * sin(rad).toFloat())
-}
-
-/** The ring-number legend's spoke — fixed at 12 o'clock (slot 0 of 13), never a pair. */
-private fun WheelLayout.legendPointAt(radius: Float): Offset {
-    val rad = WheelGeometry.legendAngleRad
-    return Offset(center.x + radius * cos(rad).toFloat(), center.y + radius * sin(rad).toFloat())
-}
-
-private fun WheelLayout.nodeRadiusFor(state: PotentialState): Float = when (state) {
-    PotentialState.LOW -> lowDotRadius
-    PotentialState.WATCH -> watchNodeRadius
-    PotentialState.TRADEABLE, PotentialState.APLUS -> solidNodeRadius
-}
-
-/**
- * A label only ever needs to clear *its own* node — the rim is one pair per angle — so a
- * small (low/watch tier) node lets its label sit closer to the ring than a big (solid tier)
- * one needs. Using one worst-case radius for every label (an earlier version) left an
- * oversized, uniform gap wherever the actual node was smaller than that worst case.
- *
- * Pieter's design review: a *per-halo* extra bump here (an even-earlier version) made haloed
- * labels sit visibly farther out than their neighbours — three distinct label distances (low,
- * watch/solid, haloed) reads as misaligned, not intentional. `labelHalfExtent`/`labelGap` alone
- * already clear the halo's own ~4dp reach beyond the disc, so no per-node halo add-on is
- * needed — the halo is still accounted for once, safely, in the *margin* (screen-fit), just not
- * as a per-label offset.
- */
-private fun WheelLayout.labelRadiusFor(node: PairNode): Float =
-    outerRadius + nodeRadiusFor(node.state) + labelHalfExtent + labelGap
-
-/** Half the angular chord between two adjacent radials (13 equally-spaced slots, incl. the legend). */
-private val HALF_STEP_SIN = sin(Math.toRadians(180.0 / WheelGeometry.SLOT_COUNT)).toFloat()
-
-private val RimLabelStyle = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 9.sp)
-
-/** Pieter: the rim label is identity only (the pair code) — direction now shows inside the node. */
-private fun rimLabelStyleFor(colors: AtomColors) = RimLabelStyle.copy(color = colors.textPrimary)
-
-// Pieter: the nucleus needs its own, smaller type scale (not the shared AtomType tokens,
-// which stay at the Design doc's sizes for use elsewhere) so both the circle and its text can
-// shrink together rather than the text forcing a bigger circle. 10% smaller again on Pieter's
-// last pass.
-private val NucleusTitle = TextStyle(fontWeight = FontWeight.Bold, fontSize = 15.sp)
-private val NucleusBody = TextStyle(fontWeight = FontWeight.Medium, fontSize = 11.sp)
-
-/**
- * The nucleus is the wheel's focal point, so it says exactly one thing: strength + regime
- * ("Moderate" / "RANGING"). The regime score and confidence word are one tap away in the
- * Regime sheet — showing all four here (Pieter's design review) fought for attention at the
- * one place that most needs a single, instant read.
- */
-private fun nucleusLines(
-    nucleus: NucleusState,
-    colors: AtomColors,
-    tint: Color = tintColor(nucleus.tint, colors),
-): List<Pair<String, TextStyle>> = listOf(
-    nucleus.strengthWord to NucleusBody.copy(color = colors.textSecondary),
-    nucleus.regimeLabel to NucleusTitle.copy(color = tint),
-)
-
-/**
- * The true minimum circle radius that contains a vertically-stacked, horizontally-centred
- * block of text lines, plus [padding]. A simple max(width)/2 vs. sum(height)/2 check (what
- * this replaced) treats the nucleus like a bounding *box* — but lines near the top/bottom of
- * the stack sit close to the circle's edge, where the chord is far narrower than the full
- * diameter, so they overflowed the circle even though they "fit" the box.
- */
-private fun minCircleRadiusFor(layouts: List<TextLayoutResult>, padding: Float): Float {
-    val totalHeight = layouts.sumOf { it.size.height }
-    var cursorY = -totalHeight / 2f
-    var needed = 0f
-    for (l in layouts) {
-        val farY = maxOf(abs(cursorY), abs(cursorY + l.size.height))
-        val halfWidth = l.size.width / 2f
-        needed = maxOf(needed, sqrt(halfWidth.pow(2) + farY.pow(2)))
-        cursorY += l.size.height
-    }
-    return needed + padding
-}
-
-/**
- * The margin reserved for rim labels needs *some* solid-node size to clear, but that size is
- * itself only known after the ring geometry (which the margin determines) is resolved — so
- * this resolves in two passes: the first reserves margin for a modest placeholder just to get
- * real ring geometry, the second re-reserves margin for the *actual* resulting solid-node
- * size. Using the aspirational "desired" size for both, instead, was self-defeating: pushing
- * that target up only reserved more edge margin, which starved the ring pitch that caps the
- * real size right back down.
- */
-private fun computeLayout(
-    canvasSidePx: Float,
-    textMeasurer: TextMeasurer,
-    state: WheelUiState,
-    colors: AtomColors,
-    density: Density,
-): WheelLayout {
-    val placeholderRadius = with(density) { 12.dp.toPx() }
-    val pass1 = computeLayoutPass(canvasSidePx, textMeasurer, state, colors, density, placeholderRadius)
-    return computeLayoutPass(canvasSidePx, textMeasurer, state, colors, density, pass1.solidNodeRadius)
-}
-
-private fun computeLayoutPass(
-    canvasSidePx: Float,
-    textMeasurer: TextMeasurer,
-    state: WheelUiState,
-    colors: AtomColors,
-    density: Density,
-    marginNodeRadius: Float,
-): WheelLayout {
-    val center = Offset(canvasSidePx / 2f, canvasSidePx / 2f)
-
-    // The nucleus's own (smaller) type scale sized to the true circle it sits in — see
-    // minCircleRadiusFor's doc for why this isn't a simple width/height bounding-box check.
-    // The floor below is deliberately tiny: the real, always-safe lower bound is the text fit.
-    val nucleusLayouts = nucleusLines(state.nucleus, colors).map { (text, style) -> textMeasurer.measure(text, style) }
-    val nucleusPadding = with(density) { 2.dp.toPx() }
-    val minNucleusRadius = canvasSidePx * 0.0135f
-    val nucleusRadius = maxOf(minCircleRadiusFor(nucleusLayouts, nucleusPadding), minNucleusRadius)
-
-    // A label is centred on a point past its own node (see labelRadiusFor) — clearing that
-    // node needs one half-extent of headroom on the *inward* side; staying on the canvas needs
-    // a second half-extent on the *outward* side. Labels are now rotated tangent to the rim
-    // (design review), so a label's *radial* footprint is just its own height — its width runs
-    // along the tangent, not outward — regardless of where around the circle it sits; using the
-    // full diagonal here (as the old horizontal labels needed) would waste most of that margin
-    // now. Margin also has to clear the *halo*, not just the bare disc, on the biggest node.
-    val gap = with(density) { 1.dp.toPx() }
-    val safety = with(density) { 1.dp.toPx() }
-    val haloClearance = with(density) { 5.dp.toPx() }
-    val labelLayouts = state.nodes.map { textMeasurer.measure(it.pair, RimLabelStyle) }
-    val labelHeight = labelLayouts.maxOf { it.size.height.toFloat() }
-    val labelHalfExtent = labelHeight / 2f
-    val margin = marginNodeRadius + haloClearance + labelHeight + gap + safety
-
-    val outerRadius = (canvasSidePx / 2f - margin).coerceAtLeast(nucleusRadius + 10f)
-    val ringPitch = (outerRadius - nucleusRadius) / 6f
-
-    // Low-tier nodes (levels 0-2) are now small fixed dots, not part of the watch/solid size
-    // chain at all (Pieter's design review) — so the chord constraint that used to protect the
-    // *smallest* occupied radius from angular collision now anchors to the smallest radius a
-    // watch-or-bigger node can actually occupy (level 3+), since that's the tier the chain
-    // still sizes. The ring-pitch check still bounds the biggest (solid) tier against reaching
-    // its neighbouring ring.
-    val desiredWatchBase = with(density) { 46.dp.toPx() } // ~20% bigger than the old 38dp baseline
-    val minWatchOrAboveLevel = state.nodes.filter { it.level >= 3 }.minOfOrNull { it.level } ?: 3
-    val minOccupiedRadius = nucleusRadius + minWatchOrAboveLevel.coerceIn(0, 6) * ringPitch
-    val chordCap = minOccupiedRadius * HALF_STEP_SIN * 0.96f
-    val pitchCap = ringPitch * 0.495f
-    val chordSafeWatch = minOf(desiredWatchBase, chordCap)
-    val solidFromChord = chordSafeWatch * TIER_GROWTH
-    val solidNodeRadius = minOf(solidFromChord, pitchCap)
-    val shrink = if (solidFromChord > 0f) solidNodeRadius / solidFromChord else 1f
-    val watchNodeRadius = chordSafeWatch * shrink
-    val lowDotRadius = with(density) { 6.dp.toPx() }
-
-    return WheelLayout(
-        center = center,
-        nucleusRadius = nucleusRadius,
-        ringPitch = ringPitch,
-        outerRadius = outerRadius,
-        labelHalfExtent = labelHalfExtent,
-        labelGap = gap,
-        haloClearance = haloClearance,
-        lowDotRadius = lowDotRadius,
-        watchNodeRadius = watchNodeRadius,
-        solidNodeRadius = solidNodeRadius,
-        ringLegendRadius = with(density) { 8.dp.toPx() },
-    )
-}
-
-private fun Offset.distanceTo(other: Offset): Float {
-    val dx = x - other.x
-    val dy = y - other.y
-    return sqrt(dx.pow(2) + dy.pow(2))
+    data class Node(val pair: String) : WheelTapTarget          // a pair wedge
+    data class Currency(val code: String) : WheelTapTarget      // a currency wedge
+    data class CrossAsset(val id: String) : WheelTapTarget      // an outer-ring wedge
+    data class Ring(val factor: Factor) : WheelTapTarget         // emitted by the factor pills, not the dial
+    data class ModeToggle(val mode: WheelMode) : WheelTapTarget  // bottom corners: Currencies/Pairs
+    data class TimeframeToggle(val timeframe: Timeframe) : WheelTapTarget // top corners: D1/H4
 }
 
 internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
@@ -284,480 +68,602 @@ internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
     Tint.NEUTRAL -> colors.neutral
 }
 
-private fun directionColor(direction: Direction, colors: AtomColors): Color = when (direction) {
-    Direction.BULL -> colors.bull
-    Direction.BEAR -> colors.bear
-    Direction.NEUTRAL -> colors.neutral
+private fun rampFor(direction: Direction): Ramp = when (direction) {
+    Direction.BULL -> Ramp.BULL
+    Direction.BEAR -> Ramp.BEAR
+    Direction.NEUTRAL -> Ramp.NEUTRAL
 }
 
-// ── Phase 8: motion state (Design §7 / spec §28-29, §56) ───────────────────────────────────
+private const val GAP_DEG = 1.0f          // gutter between wedges
+private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of the ring span
 
 /**
- * One pair's animated radial position: [level] is the value actually drawn (an `Animatable`
- * so a redraw is requested each frame it's in flight, per Compose's snapshot-aware Canvas).
- * [targetLevel]/[targetFactorsPassed] are the last values a transition was started *toward* —
- * plain vars, not state, since only [level]/[factorBlend] need to trigger redraws — used to
- * detect "did this pair actually change" on the next poll without re-deriving it from `level`
- * mid-flight. [factorBlend] crossfades marker colors between [previousFactorsPassed] and
- * whatever `PairNode.factorsPassed` currently is, over the same window as the radial move.
- */
-private class NodeAnim(initialLevel: Int, initialFactors: Set<Factor>) {
-    val level = Animatable(initialLevel.toFloat())
-    var targetLevel = initialLevel
-    var previousFactorsPassed = initialFactors
-    var targetFactorsPassed = initialFactors
-    val factorBlend = Animatable(1f)
-
-    /** Design review: every solid-tier node gets a halo now, not just the single top pair. */
-    val haloAlpha = Animatable(0f)
-    var targetHaloQualifies = false
-}
-
-/** Duration scales gently with how far a node moved, capped to Design §7.1's 400-700ms window. */
-private fun durationForLevelChange(from: Int, to: Int): Int =
-    (400 + (abs(to - from).coerceAtLeast(1) - 1) * 50).coerceIn(400, 700)
-
-/** §7.4: "respect reduce-motion... shorten transitions to a cross-fade" — one short duration for everything. */
-private fun effectiveDuration(reduceMotion: Boolean, base: Int): Int = if (reduceMotion) 150 else base
-
-private fun effectiveDelay(reduceMotion: Boolean, staggerIndex: Int): Long =
-    if (reduceMotion) 0L else staggerIndex * 60L
-
-/** A crossfading colour, used for the nucleus accent and each ring's tint (Design §7.3). */
-private class ColorAnim(initial: Color) {
-    var from = initial
-    var to = initial
-    val progress = Animatable(0f)
-}
-
-private fun ColorAnim.current(): Color = lerp(from, to, progress.value)
-
-private suspend fun ColorAnim.transitionTo(target: Color, durationMs: Int) {
-    if (target == to) return
-    from = current()
-    to = target
-    progress.snapTo(0f)
-    progress.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing))
-}
-
-/** Design review: every solid-tier (tradeable/A+) node gets a halo, fading in/out as it enters/leaves that tier. */
-private fun haloTargetAlpha(isDark: Boolean): Float = if (isDark) 0.6f else 0.35f
-
-private const val GLOW_ALPHA_DARK = 0.14f
-private const val GLOW_ALPHA_LIGHT = 0.12f
-
-/** §7.2: only the two high-potential tiers glow at all; everything else is "little/no glow, nearly static." */
-private fun glowsAtRest(state: PotentialState): Boolean =
-    state == PotentialState.TRADEABLE || state == PotentialState.APLUS
-
-@Composable
-private fun rememberReduceMotion(): Boolean {
-    val context = LocalContext.current
-    return remember {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-    }
-}
-
-/**
- * The Energy Wheel (Design §6). Draws the fixed z-stack (§6.2): background field, rings,
- * radial paths, factor markers, nodes, top-pair halo, nucleus. Geometry itself never moves
- * (§6.9/§56) — only a node's radial position, its factor-marker colours, the nucleus/ring
- * tints, and glow/halo alphas animate, all driven by Design §7 (Phase 8).
+ * The Wheel v2 radial dial. Three zones: outer cross-asset ring, a middle ring that cross-fades
+ * between currencies and pairs, and the regime hub. Angular identity is fixed (WheelGeometry);
+ * only radial fill animates as data changes (Design §7). Pure consumer of [WheelUiState].
  */
 @Composable
 fun WheelCanvas(
     state: WheelUiState,
     colors: AtomColors,
     isDark: Boolean,
+    mode: WheelMode,
+    timeframe: Timeframe,
     modifier: Modifier = Modifier,
     onTap: (WheelTapTarget) -> Unit = {},
     onLongPress: (String) -> Unit = {},
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
-    val reduceMotion = rememberReduceMotion()
+    var selectedKey by remember { mutableStateOf<String?>(null) }
+    val activeCurrencies = if (timeframe == Timeframe.D1) state.currenciesD1 else state.currencies
 
-    val nodeAnims = remember { mutableMapOf<String, NodeAnim>() }
-    // Seeded synchronously (not in the LaunchedEffect below) so every pair has an entry before
-    // the first draw — the effect only needs to run once composition has already guaranteed
-    // presence, and can then focus purely on detecting changes and starting animations.
-    state.nodes.forEach { node -> nodeAnims.getOrPut(node.pair) { NodeAnim(node.level, node.factorsPassed) } }
-    val nucleusColorAnim = remember { ColorAnim(tintColor(state.nucleus.tint, colors)) }
-    val ringColorAnims = remember { state.rings.map { ColorAnim(tintColor(it.tint, colors)) } }
-    val breathing by rememberInfiniteTransition(label = "wheel-breathing").animateFloat(
-        initialValue = 0.96f,
-        targetValue = 1.04f,
-        animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "breathingAlpha",
+    // Cross-fade the middle ring on mode change (1 = pairs, 0 = currencies).
+    val modeProgress by animateFloatAsState(
+        targetValue = if (mode == WheelMode.PAIRS) 1f else 0f,
+        animationSpec = tween(450), label = "modeProgress",
     )
 
+    // Pulsating regime dot.
+    val dotAlpha by rememberInfiniteTransition(label = "hubDot").animateFloat(
+        initialValue = 0.35f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(2500, easing = LinearEasing), RepeatMode.Reverse),
+        label = "dotAlpha",
+    )
+
+    // "Living dial": animate each pair's level and each currency's strength toward new values.
+    val levelAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
+    state.nodes.forEach { levelAnims.getOrPut(it.pair) { Animatable(it.level.toFloat()) } }
+    val strengthAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
+    activeCurrencies.forEach { strengthAnims.getOrPut(it.code) { Animatable(it.strength.toFloat()) } }
+
+    // Rim-glow "flash and settle": a brief overshoot the moment a pair *earns* its tradeable/A+
+    // rim, easing back down to its steady glow — the wheel's biggest moment of drama gets to feel
+    // earned, not just appear. Steady state is 1f (no extra flash); a fresh transition snaps up
+    // and springs back down.
+    val rimFlash = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
+    val prevTradeable = remember { mutableMapOf<String, Boolean>() }
+    state.nodes.forEach { rimFlash.getOrPut(it.pair) { Animatable(1f) } }
+
     LaunchedEffect(state.nodes) {
-        val changedPairs = state.nodes.filter { node ->
-            val existing = nodeAnims[node.pair]
-            existing == null || existing.targetLevel != node.level || existing.targetFactorsPassed != node.factorsPassed
-        }.map { it.pair }
-
-        state.nodes.forEach { node ->
-            val anim = nodeAnims.getOrPut(node.pair) { NodeAnim(node.level, node.factorsPassed) }
-            val levelChanged = anim.targetLevel != node.level
-            val factorsChanged = anim.targetFactorsPassed != node.factorsPassed
-            val qualifiesForHalo = node.state == PotentialState.TRADEABLE || node.state == PotentialState.APLUS
-            val haloChanged = anim.targetHaloQualifies != qualifiesForHalo
-            if (!levelChanged && !factorsChanged && !haloChanged) return@forEach
-
-            val staggerIndex = changedPairs.indexOf(node.pair).coerceAtLeast(0)
-            val delayMs = effectiveDelay(reduceMotion, staggerIndex)
-            val durationMs = effectiveDuration(reduceMotion, durationForLevelChange(anim.targetLevel, node.level))
-
-            if (levelChanged) {
-                anim.targetLevel = node.level
-                launch {
-                    delay(delayMs)
-                    anim.level.animateTo(node.level.toFloat(), tween(durationMs, easing = FastOutSlowInEasing))
+        state.nodes.forEach { n -> levelAnims[n.pair]?.animateTo(n.level.toFloat(), tween(500)) }
+    }
+    LaunchedEffect(activeCurrencies) {
+        activeCurrencies.forEach { c -> strengthAnims[c.code]?.animateTo(c.strength.toFloat(), tween(500)) }
+    }
+    LaunchedEffect(state.nodes) {
+        state.nodes.forEach { n ->
+            val isTradeableNow = n.state == PotentialState.TRADEABLE || n.state == PotentialState.APLUS
+            val wasTradeable = prevTradeable[n.pair]
+            if (isTradeableNow && wasTradeable == false) {
+                rimFlash[n.pair]?.let { anim ->
+                    launch {
+                        anim.snapTo(2.4f)
+                        anim.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+                    }
                 }
             }
-            if (factorsChanged) {
-                anim.previousFactorsPassed = anim.targetFactorsPassed
-                anim.targetFactorsPassed = node.factorsPassed
-                launch {
-                    delay(delayMs)
-                    anim.factorBlend.snapTo(0f)
-                    anim.factorBlend.animateTo(1f, tween(durationMs, easing = FastOutSlowInEasing))
-                }
-            }
-            if (haloChanged) {
-                anim.targetHaloQualifies = qualifiesForHalo
-                launch {
-                    val target = if (qualifiesForHalo) haloTargetAlpha(isDark) else 0f
-                    anim.haloAlpha.animateTo(target, tween(effectiveDuration(reduceMotion, 300), easing = FastOutSlowInEasing))
-                }
-            }
+            prevTradeable[n.pair] = isTradeableNow
         }
     }
 
-    val nucleusTargetColor = tintColor(state.nucleus.tint, colors)
-    LaunchedEffect(nucleusTargetColor) {
-        nucleusColorAnim.transitionTo(nucleusTargetColor, effectiveDuration(reduceMotion, 500))
-    }
-    val ringTargetColors = state.rings.map { tintColor(it.tint, colors) }
-    LaunchedEffect(ringTargetColors) {
-        ringTargetColors.forEachIndexed { i, target -> ringColorAnims.getOrNull(i)?.transitionTo(target, effectiveDuration(reduceMotion, 500)) }
-    }
-
     Canvas(
-        modifier = modifier
-            .onSizeChanged { canvasSize = it }
-            .pointerInput(state, density) {
-                detectTapGestures(
-                    onTap = { offset ->
-                        if (canvasSize.width <= 0) return@detectTapGestures
-                        val layout = computeLayout(canvasSize.width.toFloat(), textMeasurer, state, colors, density)
-                        resolveTapTarget(offset, layout, state.nodes, density, textMeasurer)?.let(onTap)
-                    },
-                    onLongPress = { offset ->
-                        if (canvasSize.width <= 0) return@detectTapGestures
-                        val layout = computeLayout(canvasSize.width.toFloat(), textMeasurer, state, colors, density)
-                        val target = resolveTapTarget(offset, layout, state.nodes, density, textMeasurer)
-                        if (target is WheelTapTarget.Node) onLongPress(target.pair)
-                    },
-                )
-            },
+        modifier = modifier.pointerInput(state, mode) {
+            detectTapGestures(
+                onTap = { offset ->
+                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat(), mode)
+                    if (target != null) {
+                        selectedKey = keyOf(target)
+                        onTap(target)
+                    }
+                },
+                onLongPress = { offset ->
+                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat(), mode)
+                    if (target is WheelTapTarget.Node) onLongPress(target.pair)
+                },
+            )
+        },
     ) {
-        drawWheel(state, colors, isDark, textMeasurer, nodeAnims, nucleusColorAnim, ringColorAnims, breathing)
-    }
-}
-
-private fun resolveTapTarget(
-    offset: Offset,
-    layout: WheelLayout,
-    nodes: List<PairNode>,
-    density: Density,
-    textMeasurer: TextMeasurer,
-): WheelTapTarget? {
-    val distFromCenter = offset.distanceTo(layout.center)
-
-    val nearestNode = nodes
-        .map { it to layout.pointAt(it.index, layout.renderRadiusForLevel(it.level.toFloat())).distanceTo(offset) }
-        .filter { (node, dist) -> dist <= with(density) { maxOf(22.dp.toPx(), layout.nodeRadiusFor(node.state) + 6.dp.toPx()) } }
-        .minByOrNull { it.second }
-    if (nearestNode != null) return WheelTapTarget.Node(nearestNode.first.pair)
-
-    // A pair's rim label never moves the way its node does as potential animates, so it's a
-    // second, more stable route into the same pair sheet (Pieter's design review).
-    val labelHit = nodes.firstOrNull { node ->
-        val laid = textMeasurer.measure(node.pair, RimLabelStyle)
-        val point = layout.pointAt(node.index, layout.labelRadiusFor(node))
-        val halfW = laid.size.width / 2f + with(density) { 6.dp.toPx() }
-        val halfH = laid.size.height / 2f + with(density) { 6.dp.toPx() }
-        abs(offset.x - point.x) <= halfW && abs(offset.y - point.y) <= halfH
-    }
-    if (labelHit != null) return WheelTapTarget.Node(labelHit.pair)
-
-    val nucleusHitPad = with(density) { 16.dp.toPx() }
-    if (distFromCenter <= layout.nucleusRadius + nucleusHitPad) return WheelTapTarget.Nucleus
-
-    val ringBandHalf = with(density) { 12.dp.toPx() } // 24dp total touch band (§6.3)
-    val closestRing = (1..6).minByOrNull { i -> abs(distFromCenter - layout.radiusForLevel(i)) }
-    return if (closestRing != null && abs(distFromCenter - layout.radiusForLevel(closestRing)) <= ringBandHalf) {
-        WheelTapTarget.Ring(Factor.entries[closestRing - 1])
-    } else {
-        null
-    }
-}
-
-// Pieter: low-tier (levels 0-2) is now a small fixed dot, independent of this chain entirely.
-// Watch and solid stay a two-step scale — solid 5% bigger than watch — so size still reads as
-// "further out = more potential" without every level needing a visibly distinct disc. Actual
-// pixel sizes are resolved in computeLayout() against the real geometry (ring pitch, angular
-// spacing) so they can never overlap a ring or a neighbouring node — see [WheelLayout].
-private const val TIER_GROWTH = 1.05f
-
-private fun DrawScope.drawWheel(
-    state: WheelUiState,
-    colors: AtomColors,
-    isDark: Boolean,
-    textMeasurer: TextMeasurer,
-    nodeAnims: Map<String, NodeAnim>,
-    nucleusColorAnim: ColorAnim,
-    ringColorAnims: List<ColorAnim>,
-    breathing: Float,
-) {
-    val layout = computeLayout(size.minDimension, textMeasurer, state, colors, this)
-
-    drawBackgroundField(colors, layout.center)
-    drawRings(layout, colors, state, ringColorAnims)
-    drawLegendSpoke(layout, colors)
-    state.nodes.forEach { drawRadialPath(it, colors, layout, nodeAnims.getValue(it.pair)) }
-    state.nodes.forEach { drawFactorMarkers(it, colors, layout, nodeAnims.getValue(it.pair)) }
-    // Pieter: the large (higher-level) nodes must sit on top so nothing behind them shows —
-    // draw smallest-first so bigger discs are painted last.
-    state.nodes.sortedBy { it.level }.forEach { drawPairNode(it, colors, isDark, layout, textMeasurer, nodeAnims.getValue(it.pair), breathing) }
-    state.nodes.forEach { drawRimLabel(it, colors, layout, textMeasurer) }
-    state.nodes.forEach { drawHalo(it, colors, layout, nodeAnims.getValue(it.pair)) }
-    drawRingLegend(layout, colors, textMeasurer)
-    drawNucleus(state, colors, layout, textMeasurer, nucleusColorAnim)
-}
-
-/**
- * Pieter: a 13th radial, fixed at 12 o'clock, that isn't a pair — six small nodes numbered
- * 1..6, one sitting on each ring, so a glance at the wheel itself (not just the key row below
- * it) shows which physical ring is Regime, Flow, Breadth, and so on.
- */
-private fun DrawScope.drawLegendSpoke(layout: WheelLayout, colors: AtomColors) {
-    val start = layout.legendPointAt(layout.nucleusRadius)
-    val edge = layout.legendPointAt(layout.outerRadius)
-    drawLine(color = colors.hairline, start = start, end = edge, strokeWidth = 1.dp.toPx())
-}
-
-private fun DrawScope.drawRingLegend(layout: WheelLayout, colors: AtomColors, textMeasurer: TextMeasurer) {
-    val radius = layout.ringLegendRadius
-    // Pieter: grey, not a status colour — these read as structural (the ring numbering),
-    // never as something tappable, unlike every other coloured element on the wheel.
-    val style = TextStyle(fontWeight = FontWeight.Bold, fontSize = (radius * 1.5f).toSp(), color = colors.textMuted)
-    val gap = 2.dp.toPx()
-    val gradientRadius = size.minDimension * 0.75f
-    for (i in 1..6) {
-        val ringRadius = layout.radiusForLevel(i)
-        val center = layout.legendPointAt(ringRadius)
-        val layoutResult = textMeasurer.measure(i.toString(), style)
-
-        // Pieter: the radial line and ring circles must never touch the number — mask them out
-        // right behind it with a small disc matched to the background gradient at this exact
-        // radius, rather than a flat colour that would visibly mismatch near the nucleus.
-        val bgHere = lerp(colors.groundRadial, colors.ground, (ringRadius / gradientRadius).coerceIn(0f, 1f))
-        val maskRadius = maxOf(layoutResult.size.width, layoutResult.size.height) / 2f + gap
-        drawCircle(color = bgHere, radius = maskRadius, center = center)
-
-        drawText(
-            textLayoutResult = layoutResult,
-            topLeft = Offset(center.x - layoutResult.size.width / 2f, center.y - layoutResult.size.height / 2f),
+        drawDial(
+            state, colors, isDark, textMeasurer, mode, timeframe, activeCurrencies,
+            modeProgress = modeProgress,
+            dotAlpha = dotAlpha,
+            levelAnims = levelAnims,
+            strengthAnims = strengthAnims,
+            rimFlash = rimFlash,
+            selectedKey = selectedKey,
         )
     }
 }
 
+private fun keyOf(t: WheelTapTarget): String = when (t) {
+    is WheelTapTarget.Nucleus -> "hub"
+    is WheelTapTarget.Node -> "pair:${t.pair}"
+    is WheelTapTarget.Currency -> "ccy:${t.code}"
+    is WheelTapTarget.CrossAsset -> "xa:${t.id}"
+    is WheelTapTarget.Ring -> "ring"
+    is WheelTapTarget.ModeToggle -> "toggle:${t.mode}"
+    is WheelTapTarget.TimeframeToggle -> "tf:${t.timeframe}"
+}
+
+// ── Hit testing ──────────────────────────────────────────────────────────────────────────────
+private fun hitTest(offset: Offset, w: Float, h: Float, mode: WheelMode): WheelTapTarget? {
+    val cx = w / 2f
+    val cy = h / 2f
+    val half = min(w, h) / 2f
+    val dx = offset.x - cx
+    val dy = offset.y - cy
+    val dist = kotlin.math.sqrt(dx * dx + dy * dy)
+    val g = WheelGeometry
+
+    if (dist <= g.HUB_FRAC * half) return WheelTapTarget.Nucleus
+
+    val deg = g.compassDeg(cx, cy, offset)
+    if (dist in (g.RING_R0_FRAC * half)..(g.RING_R1_FRAC * half)) {
+        return if (mode == WheelMode.PAIRS) {
+            WheelTapTarget.Node(g.PAIR_ORDER[g.segIndexAt(g.PAIR_ORDER.size, deg)])
+        } else {
+            WheelTapTarget.Currency(g.CCY_ORDER[g.segIndexAt(g.CCY_ORDER.size, deg)])
+        }
+    }
+    if (dist in (g.XA_R0_FRAC * half)..(g.XA_R1_FRAC * half)) {
+        return WheelTapTarget.CrossAsset(g.XASSET_ORDER[g.segIndexAt(g.XASSET_ORDER.size, deg)].first)
+    }
+    if (dist in (g.TOGGLE_R0_FRAC * half)..(g.TOGGLE_R1_FRAC * half)) {
+        val (ccy0, ccy1) = g.cornerHitRange(g.TOGGLE_CURRENCIES_CENTER_DEG)
+        val (pairs0, pairs1) = g.cornerHitRange(g.TOGGLE_PAIRS_CENTER_DEG)
+        val (h40, h41) = g.cornerHitRange(g.TOGGLE_H4_CENTER_DEG)
+        val (d10, d11) = g.cornerHitRange(g.TOGGLE_D1_CENTER_DEG)
+        if (deg in ccy0..ccy1) return WheelTapTarget.ModeToggle(WheelMode.CURRENCIES)
+        if (deg in pairs0..pairs1) return WheelTapTarget.ModeToggle(WheelMode.PAIRS)
+        if (deg in h40..h41) return WheelTapTarget.TimeframeToggle(Timeframe.H4)
+        if (deg in d10..d11) return WheelTapTarget.TimeframeToggle(Timeframe.D1)
+    }
+    return null
+}
+
+// ── Geometry helpers (pixel space) ─────────────────────────────────────────────────────────────
+private fun DrawScope.wedgePath(cx: Float, cy: Float, r0: Float, r1: Float, a0: Float, a1: Float): Path {
+    val p = Path()
+    val outer = Rect(cx - r1, cy - r1, cx + r1, cy + r1)
+    val inner = Rect(cx - r0, cy - r0, cx + r0, cy + r0)
+    val start = a0 - 90f      // compass → Android arc convention (0° at 3 o'clock)
+    val sweep = a1 - a0
+    p.arcTo(outer, start, sweep, forceMoveTo = true)
+    p.arcTo(inner, start + sweep, -sweep, forceMoveTo = false)
+    p.close()
+    return p
+}
+
+/** A real blurred halo behind [path] (Design §2.4: "glow... blurred"), not just an opaque stroke. */
+private fun DrawScope.glowStroke(path: Path, color: Color, widthPx: Float, blurPx: Float) {
+    val paint = Paint().apply {
+        this.color = color.toArgb()
+        style = Paint.Style.STROKE
+        strokeWidth = widthPx
+        isAntiAlias = true
+        maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+    }
+    drawContext.canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
+}
+
+/** A soft blurred disc — used for ambient "lifted off the surface" shadows. */
+private fun DrawScope.glowFillCircle(center: Offset, radius: Float, color: Color, blurPx: Float) {
+    val paint = Paint().apply {
+        this.color = color.toArgb()
+        style = Paint.Style.FILL
+        isAntiAlias = true
+        maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+    }
+    drawContext.canvas.nativeCanvas.drawCircle(center.x, center.y, radius, paint)
+}
+
 /**
- * Pieter: pair names always sit at the rim, clear of the outer ring and every node (including
- * the biggest, solid-tier disc — see the margin in [computeLayout]), regardless of the node's
- * own level: identity (name, angle) is permanent; only the node slides along the spoke as
- * potential changes. Direction now shows inside the node itself, next to the number.
- *
- * Design review: labels are rotated tangent to the rim (flush against it, following the
- * circle) rather than sitting horizontal — the standard circular-diagram technique, including
- * the auto-flip that keeps the bottom half right-side-up instead of reading upside down.
+ * Draws [text] curved along the circle of radius [r], centred at compass-degree [midDeg] and
+ * confined to the wedge's own angular span [a0]..[a1]. Placed manually, glyph by glyph, rather
+ * than via Canvas.drawTextOnPath: each glyph's angle is derived from its own measured width, and
+ * the whole label is shrunk to fit the wedge's actual arc length first — so a label can never
+ * spill into a neighbouring wedge, however narrow the slice.
  */
-private fun DrawScope.drawRimLabel(node: PairNode, colors: AtomColors, layout: WheelLayout, textMeasurer: TextMeasurer) {
-    val rad = WheelGeometry.angleRad(node.index)
-    val point = layout.pointAt(node.index, layout.labelRadiusFor(node))
-    val laid = textMeasurer.measure(node.pair, rimLabelStyleFor(colors))
-    val tangentDeg = WheelGeometry.angleDeg(node.index) + 90f
-    val rotationDeg = if (sin(rad) > 0) tangentDeg + 180f else tangentDeg
-    rotate(degrees = rotationDeg, pivot = point) {
-        drawClampedText(laid, Offset(point.x - laid.size.width / 2f, point.y - laid.size.height / 2f))
+private fun DrawScope.curvedLabel(cx: Float, cy: Float, r: Float, midDeg: Float, a0: Float, a1: Float, text: String, color: Color, sizePx: Float, bold: Boolean) {
+    if (text.isEmpty() || r <= 0f) return
+    val paint = Paint().apply {
+        isAntiAlias = true
+        this.color = color.toArgb()
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.create(Typeface.DEFAULT, if (bold) Typeface.BOLD else Typeface.NORMAL)
+    }
+
+    val availableDeg = (a1 - a0).coerceAtLeast(0.1f)
+    val availableArc = (Math.PI * r * availableDeg / 180.0).toFloat() * 0.94f
+
+    var textSize = sizePx
+    paint.textSize = textSize
+    var totalWidth = paint.measureText(text)
+    if (availableArc > 0f && totalWidth > availableArc) {
+        textSize = (textSize * (availableArc / totalWidth)).coerceAtLeast(sizePx * 0.5f)
+        paint.textSize = textSize
+        totalWidth = paint.measureText(text)
+    }
+
+    val widths = FloatArray(text.length)
+    paint.getTextWidths(text, widths)
+    val lower = midDeg in 90f..270f
+
+    var cursor = -totalWidth / 2f
+    val nativeCanvas = drawContext.canvas.nativeCanvas
+    for (i in text.indices) {
+        val centerOffset = cursor + widths[i] / 2f
+        cursor += widths[i]
+        val deltaDeg = Math.toDegrees((centerOffset / r).toDouble()).toFloat()
+        val glyphDeg = if (lower) midDeg - deltaDeg else midDeg + deltaDeg
+        val pos = WheelGeometry.polar(cx, cy, r, glyphDeg)
+        val rotation = if (lower) glyphDeg + 180f else glyphDeg
+        val save = nativeCanvas.save()
+        nativeCanvas.rotate(rotation, pos.x, pos.y)
+        nativeCanvas.drawText(text, i, i + 1, pos.x, pos.y + textSize / 3f, paint)
+        nativeCanvas.restoreToCount(save)
     }
 }
 
-/**
- * `drawText` derives its own internal layout constraints from (topLeft, DrawScope.size) even
- * when handed an already-measured [TextLayoutResult] — a [topLeft] that falls outside the
- * canvas makes that derived constraint negative and crashes. Clamping is a safety net.
- */
-private fun DrawScope.drawClampedText(layout: TextLayoutResult, desired: Offset) {
-    val maxX = (size.width - layout.size.width).coerceAtLeast(0f)
-    val maxY = (size.height - layout.size.height).coerceAtLeast(0f)
-    val clamped = Offset(desired.x.coerceIn(0f, maxX), desired.y.coerceIn(0f, maxY))
-    drawText(textLayoutResult = layout, topLeft = clamped)
-}
+// ── The draw pass ────────────────────────────────────────────────────────────────────────────
+private fun DrawScope.drawDial(
+    state: WheelUiState,
+    colors: AtomColors,
+    isDark: Boolean,
+    textMeasurer: TextMeasurer,
+    mode: WheelMode,
+    timeframe: Timeframe,
+    activeCurrencies: List<CurrencySeg>,
+    modeProgress: Float,
+    dotAlpha: Float,
+    levelAnims: Map<String, Animatable<Float, *>>,
+    strengthAnims: Map<String, Animatable<Float, *>>,
+    rimFlash: Map<String, Animatable<Float, *>>,
+    selectedKey: String?,
+) {
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    val half = size.minDimension / 2f
+    val g = WheelGeometry
 
-private fun DrawScope.drawBackgroundField(colors: AtomColors, center: Offset) {
+    // Background field.
     drawRect(
         brush = Brush.radialGradient(
             colors = listOf(colors.groundRadial, colors.ground),
-            center = center,
-            radius = size.minDimension * 0.75f,
+            center = Offset(cx, cy), radius = half * 1.1f,
         ),
     )
+
+    drawCrossAssetRing(state, colors, cx, cy, half, selectedKey)
+    drawCornerButtons(mode, timeframe, colors, cx, cy, half, selectedKey)
+
+    // Middle ring cross-fade: draw whichever side has any alpha.
+    val ccyAlpha = 1f - modeProgress
+    val pairAlpha = modeProgress
+    if (ccyAlpha > 0.02f) {
+        scale(lerp01(0.9f, 1f, ccyAlpha), pivot = Offset(cx, cy)) {
+            drawCurrencyRing(activeCurrencies, colors, cx, cy, half, ccyAlpha, strengthAnims, selectedKey)
+        }
+    }
+    if (pairAlpha > 0.02f) {
+        scale(lerp01(0.9f, 1f, pairAlpha), pivot = Offset(cx, cy)) {
+            drawPairRing(state, colors, cx, cy, half, pairAlpha, levelAnims, rimFlash, selectedKey)
+        }
+    }
+
+    drawHub(state, colors, cx, cy, half, dotAlpha, textMeasurer, selectedKey)
 }
 
-private fun DrawScope.drawRings(layout: WheelLayout, colors: AtomColors, state: WheelUiState, ringColorAnims: List<ColorAnim>) {
-    val hairlineWidth = 1.dp.toPx()
-    for (i in 1..6) {
-        val radius = layout.radiusForLevel(i)
-        drawCircle(color = colors.hairline, radius = radius, center = layout.center, style = Stroke(hairlineWidth))
+private fun lerp01(a: Float, b: Float, t: Float): Float = a + (b - a) * t.coerceIn(0f, 1f)
 
-        if (state.rings.getOrNull(i - 1) == null) continue
-        val tint = ringColorAnims[i - 1].current()
-        val isOuter = i == 6
-        drawCircle(
-            color = tint.copy(alpha = if (isOuter) 0.22f else 0.12f),
-            radius = radius,
-            center = layout.center,
-            style = Stroke(if (isOuter) hairlineWidth * 2.5f else hairlineWidth * 1.5f),
+private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float, selectedKey: String?) {
+    val g = WheelGeometry
+    val r0 = g.XA_R0_FRAC * half
+    val r1 = g.XA_R1_FRAC * half
+    val labelR = (r0 + r1) / 2f
+    val count = state.crossAssets.size.coerceAtLeast(1)
+    state.crossAssets.forEach { xa ->
+        val (a0, a1) = g.segAngles(count, xa.index, GAP_DEG * 0.6f)
+        val mid = g.midDeg(count, xa.index)
+        val dirColor = when {
+            xa.flat -> colors.textSecondary
+            xa.up -> colors.bull
+            else -> colors.bear
+        }
+        val bg = if (xa.confirm) colors.surfaceRaised else colors.surface
+        val stroke = if (xa.confirm) dirColor else colors.hairline
+        val path = wedgePath(cx, cy, r0, r1, a0, a1)
+        drawPath(path, color = bg)
+        drawPath(path, color = stroke.copy(alpha = if (xa.confirm) 0.9f else 0.4f), style = Stroke(if (xa.confirm) px(1.6f) else px(0.9f)))
+        val labelColor = if (xa.confirm) colors.textPrimary else colors.textMuted
+        curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = true)
+        if (selectedKey == "xa:${xa.id}") drawPath(path, color = colors.textPrimary.copy(alpha = 0.8f), style = Stroke(px(2f)))
+    }
+}
+
+/**
+ * A tapered wedge — curved top/bottom edges (following the dial's own r0/r1 radii, so it still
+ * "curves around the shape of the wheel"), wide at the hub-facing edge and narrower at the tip,
+ * with only the two outer (narrow-end) corners rounded. Deliberately different from [wedgePath]'s
+ * constant-width curved cells, so a corner button reads as chrome, not another data cell.
+ */
+private fun DrawScope.taperedCornerPath(
+    cx: Float, cy: Float, r0: Float, r1: Float,
+    innerA0: Float, innerA1: Float, outerA0: Float, outerA1: Float,
+    outerCornerRadiusPx: Float,
+): Path {
+    val g = WheelGeometry
+    val pInner0 = g.polar(cx, cy, r0, innerA0)
+    val pInner1 = g.polar(cx, cy, r0, innerA1)
+    val pOuter0 = g.polar(cx, cy, r1, outerA0)
+    val pOuter1 = g.polar(cx, cy, r1, outerA1)
+
+    fun offsetToward(from: Offset, to: Offset, dist: Float): Offset {
+        val dx = to.x - from.x
+        val dy = to.y - from.y
+        val len = kotlin.math.sqrt(dx * dx + dy * dy).coerceAtLeast(0.0001f)
+        val t = (dist / len).coerceIn(0f, 0.45f)
+        return Offset(from.x + dx * t, from.y + dy * t)
+    }
+
+    val cornerAngleDeg = Math.toDegrees((outerCornerRadiusPx / r1).toDouble()).toFloat()
+        .coerceAtMost((outerA1 - outerA0) * 0.45f)
+    val sideNear1 = offsetToward(pOuter1, pInner1, outerCornerRadiusPx)
+    val arcNear1 = g.polar(cx, cy, r1, outerA1 - cornerAngleDeg)
+    val arcNear0 = g.polar(cx, cy, r1, outerA0 + cornerAngleDeg)
+    val sideNear0 = offsetToward(pOuter0, pInner0, outerCornerRadiusPx)
+
+    val outerRect = Rect(cx - r1, cy - r1, cx + r1, cy + r1)
+    val innerRect = Rect(cx - r0, cy - r0, cx + r0, cy + r0)
+
+    return Path().apply {
+        moveTo(pInner0.x, pInner0.y)
+        arcTo(innerRect, innerA0 - 90f, innerA1 - innerA0, forceMoveTo = false) // wide curved base
+        lineTo(sideNear1.x, sideNear1.y)                                        // taper up to the tip
+        quadraticTo(pOuter1.x, pOuter1.y, arcNear1.x, arcNear1.y)               // round outer corner
+        arcTo(outerRect, (outerA1 - cornerAngleDeg) - 90f, -(outerA1 - outerA0 - 2 * cornerAngleDeg), forceMoveTo = false) // narrow curved tip
+        quadraticTo(pOuter0.x, pOuter0.y, sideNear0.x, sideNear0.y)             // round outer corner
+        lineTo(pInner0.x, pInner0.y)                                            // taper back down
+        close()
+    }
+}
+
+/** A single straight (not curved) line of text, rotated to the tangent at [midDeg] — the corner
+ *  buttons' curved-but-tapered shape still gets a straight label, reinforcing that it's chrome. */
+private fun DrawScope.straightLabel(cx: Float, cy: Float, r: Float, midDeg: Float, availableWidthPx: Float, text: String, color: Color, sizePx: Float, bold: Boolean) {
+    val paint = Paint().apply {
+        isAntiAlias = true
+        this.color = color.toArgb()
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.create(Typeface.DEFAULT, if (bold) Typeface.BOLD else Typeface.NORMAL)
+    }
+    var textSize = sizePx
+    paint.textSize = textSize
+    val w = paint.measureText(text)
+    if (w > availableWidthPx && availableWidthPx > 0f) {
+        textSize = (textSize * (availableWidthPx / w)).coerceAtLeast(sizePx * 0.4f)
+        paint.textSize = textSize
+    }
+    val pos = WheelGeometry.polar(cx, cy, r, midDeg)
+    val lower = midDeg in 90f..270f
+    val rotation = if (lower) midDeg + 180f else midDeg
+    val nativeCanvas = drawContext.canvas.nativeCanvas
+    val save = nativeCanvas.save()
+    nativeCanvas.rotate(rotation, pos.x, pos.y)
+    nativeCanvas.drawText(text, pos.x, pos.y + textSize / 3f, paint)
+    nativeCanvas.restoreToCount(save)
+}
+
+private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val key: String)
+
+/**
+ * The four corner buttons — a 4th ring shaped and placed to read as chrome rather than data:
+ * tapered, curved-edge wedges (wide base, narrow rounded tip), thicker than any data ring. Bottom
+ * corners are the Currencies/Pairs mode toggle (thumb zone); top corners are the Currencies-mode
+ * D1/H4 timeframe toggle — drawn dimmer in Pairs mode since it has nothing to affect there.
+ */
+private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float, selectedKey: String?) {
+    val g = WheelGeometry
+    val r0 = g.TOGGLE_R0_FRAC * half
+    val r1 = g.TOGGLE_R1_FRAC * half
+    val labelR = r0 + (r1 - r0) * 0.4f
+    val cornerRadiusPx = px(7f)
+    val tfInert = mode != WheelMode.CURRENCIES
+
+    listOf(
+        CornerButtonSpec("CURRENCIES", g.TOGGLE_CURRENCIES_CENTER_DEG, mode == WheelMode.CURRENCIES, "toggle:${WheelMode.CURRENCIES}"),
+        CornerButtonSpec("PAIRS", g.TOGGLE_PAIRS_CENTER_DEG, mode == WheelMode.PAIRS, "toggle:${WheelMode.PAIRS}"),
+        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, timeframe == Timeframe.H4, "tf:${Timeframe.H4}"),
+        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, timeframe == Timeframe.D1, "tf:${Timeframe.D1}"),
+    ).forEach { spec ->
+        val angles = g.cornerButtonAngles(spec.centerDeg)
+        val isTfButton = spec.key.startsWith("tf:")
+        val dim = isTfButton && tfInert
+        val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
+        val alpha = if (dim) 0.45f else 1f
+        drawPath(path, color = (if (spec.selected) colors.surfaceRaised else colors.surface).copy(alpha = alpha))
+        drawPath(
+            path,
+            color = (if (spec.selected) colors.hairlineStrong else colors.hairline).copy(alpha = alpha),
+            style = Stroke(if (spec.selected) px(2f) else px(1f)),
         )
+        val outerB = g.polar(cx, cy, r1, angles.outerA0)
+        val outerC = g.polar(cx, cy, r1, angles.outerA1)
+        val chordWidth = kotlin.math.sqrt((outerC.x - outerB.x).let { it * it } + (outerC.y - outerB.y).let { it * it }) * 0.9f
+        val labelColor = (if (spec.selected) colors.textPrimary else colors.textMuted).copy(alpha = alpha)
+        straightLabel(cx, cy, labelR, spec.centerDeg, chordWidth, spec.label, labelColor, sp(11f), bold = true)
+        if (selectedKey == spec.key) drawPath(path, color = colors.textPrimary.copy(alpha = 0.8f), style = Stroke(px(2f)))
     }
 }
 
-private fun DrawScope.drawRadialPath(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
-    val start = layout.pointAt(node.index, layout.nucleusRadius)
-    val nodeCenter = layout.pointAt(node.index, layout.renderRadiusForLevel(anim.level.value))
-    val edge = layout.pointAt(node.index, layout.outerRadius)
-    val dirColor = directionColor(node.direction, colors)
-
-    drawLine(color = dirColor.copy(alpha = 0.30f), start = start, end = nodeCenter, strokeWidth = 1.5.dp.toPx())
-    drawLine(color = colors.hairline.copy(alpha = 0.35f), start = nodeCenter, end = edge, strokeWidth = 1.dp.toPx())
-}
-
-/** Design §7.1: "the marker for the changed factor flips its brightness in sync" with the radial move. */
-private fun DrawScope.drawFactorMarkers(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
-    val dirColor = directionColor(node.direction, colors)
-    val mutedColor = colors.textMuted.copy(alpha = 0.35f)
-    Factor.entries.forEachIndexed { i, factor ->
-        val point = layout.pointAt(node.index, layout.radiusForLevel(i + 1))
-        val wasPassed = factor in anim.previousFactorsPassed
-        val isPassed = factor in anim.targetFactorsPassed
-        val color = lerp(if (wasPassed) dirColor else mutedColor, if (isPassed) dirColor else mutedColor, anim.factorBlend.value)
-        val fromRadius = if (wasPassed) 3.5f else 2.5f
-        val toRadius = if (isPassed) 3.5f else 2.5f
-        val radius = fromRadius + (toRadius - fromRadius) * anim.factorBlend.value
-        drawCircle(color = color, radius = radius.dp.toPx(), center = point)
-    }
-}
-
-private fun DrawScope.drawPairNode(
-    node: PairNode,
-    colors: AtomColors,
-    isDark: Boolean,
-    layout: WheelLayout,
-    textMeasurer: TextMeasurer,
-    anim: NodeAnim,
-    breathing: Float,
+private fun DrawScope.drawCurrencyRing(
+    currencies: List<CurrencySeg>, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    alpha: Float, strengthAnims: Map<String, Animatable<Float, *>>, selectedKey: String?,
 ) {
-    val center = layout.pointAt(node.index, layout.renderRadiusForLevel(anim.level.value))
-    val dirColor = directionColor(node.direction, colors)
-    val nodeRadius = layout.nodeRadiusFor(node.state)
+    val g = WheelGeometry
+    val r0 = g.RING_R0_FRAC * half
+    val r1 = g.RING_R1_FRAC * half
+    val span = r1 - r0
+    val plateR0 = r1 - span * PLATE_FRAC
+    val plateR1 = r1 - span * 0.02f
+    val labelR = (plateR0 + plateR1) / 2f
+    val graphMax = plateR0 - span * 0.03f
+    val count = currencies.size.coerceAtLeast(1)
 
-    // Design review: low-tier is a small, empty, muted dot — no thesis, no false-precision
-    // number. Watch and solid are both fully-opaque, direction-coloured discs with white text;
-    // solid is bigger and (see drawHalo) always haloed, which is now the only visual line
-    // between "developing" and "the real thing."
-    val fillColor = when (node.state) {
-        PotentialState.LOW -> colors.textMuted
-        PotentialState.WATCH, PotentialState.TRADEABLE, PotentialState.APLUS -> dirColor
-    }
+    currencies.forEach { c ->
+        val (a0, a1) = g.segAngles(count, c.index, GAP_DEG)
+        val mid = g.midDeg(count, c.index)
+        val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
+        drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
+        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.5f * alpha), style = Stroke(px(0.9f)))
 
-    // Design §7.2/§2.4: a very subtle breathing glow, high-potential tiers only — drawn behind
-    // the node's own opaque fill so it only ever reads outside the disc's edge.
-    if (glowsAtRest(node.state)) {
-        val baseAlpha = if (isDark) GLOW_ALPHA_DARK else GLOW_ALPHA_LIGHT
-        val glowAlpha = baseAlpha * breathing
-        drawCircle(
+        val v = (strengthAnims[c.code]?.value ?: c.strength.toFloat())
+        val fillEnd = r0 + (graphMax - r0) * (v / 100f)
+        val fillPath = wedgePath(cx, cy, r0 + 2f, max(r0 + 3f, fillEnd), a0 + 1.2f, a1 - 1.2f)
+        // Brighter the further from the hub — radius already carries the meaning, so the
+        // fill reinforces it: a muted blend near the hub ramping to the full accent at the tip.
+        val full = csColor(c.strength, colors)
+        val dim = lerp(colors.surfaceRaised, full, 0.35f)
+        val gradRadius = max(fillEnd, r0 + 4f)
+        val innerStop = (r0 / gradRadius).coerceIn(0f, 0.95f)
+        drawPath(
+            fillPath,
             brush = Brush.radialGradient(
-                colors = listOf(dirColor.copy(alpha = glowAlpha), dirColor.copy(alpha = 0f)),
-                center = center,
-                radius = nodeRadius * 2.2f,
+                colorStops = arrayOf(innerStop to dim, 1f to full),
+                center = Offset(cx, cy),
+                radius = gradRadius,
             ),
-            radius = nodeRadius * 2.2f,
-            center = center,
+            alpha = 0.85f * alpha,
         )
-    }
 
-    drawCircle(color = fillColor, radius = nodeRadius, center = center)
+        val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.8f, a1 - 0.8f)
+        drawPath(platePath, color = colors.surface.copy(alpha = alpha))
 
-    if (node.state != PotentialState.LOW) {
-        val numberStyle = TextStyle(fontWeight = FontWeight.Bold, fontSize = (nodeRadius * 0.95f).toSp())
-        val numberLayout = textMeasurer.measure(node.potential.toString(), numberStyle)
-        drawText(
-            textLayoutResult = numberLayout,
-            topLeft = Offset(center.x - numberLayout.size.width / 2f, center.y - numberLayout.size.height / 2f),
-            color = Color.White,
-        )
-    }
-
-    // Pieter: a stroke in a *different* grey than the low-tier dot's own fill read as a fuzzy
-    // edge at that small a size — a plain fill has one crisp anti-aliased boundary instead.
-    if (node.state != PotentialState.LOW) {
-        drawCircle(color = colors.hairlineStrong, radius = nodeRadius, center = center, style = Stroke(1.dp.toPx()))
+        curvedLabel(cx, cy, labelR, mid, a0, a1, c.code, colors.textPrimary.copy(alpha = alpha), sp(15f), bold = true)
+        if (selectedKey == "ccy:${c.code}") drawPath(bgPath, color = colors.textPrimary.copy(alpha = 0.8f * alpha), style = Stroke(px(2f)))
     }
 }
 
-/** Design §6.8/§50, revised: every solid-tier node gets a thin halo, fading in/out with its tier. */
-private fun DrawScope.drawHalo(node: PairNode, colors: AtomColors, layout: WheelLayout, anim: NodeAnim) {
-    val alpha = anim.haloAlpha.value
-    if (alpha <= 0f) return
-    val center = layout.pointAt(node.index, layout.renderRadiusForLevel(anim.level.value))
-    val nodeRadius = layout.nodeRadiusFor(node.state)
-    drawCircle(
-        color = directionColor(node.direction, colors).copy(alpha = alpha),
-        radius = nodeRadius + 3.dp.toPx(),
-        center = center,
-        style = Stroke(1.5.dp.toPx()),
-    )
-}
-
-private fun DrawScope.drawNucleus(
-    state: WheelUiState,
-    colors: AtomColors,
-    layout: WheelLayout,
-    textMeasurer: TextMeasurer,
-    nucleusColorAnim: ColorAnim,
+private fun DrawScope.drawPairRing(
+    state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    alpha: Float, levelAnims: Map<String, Animatable<Float, *>>, rimFlash: Map<String, Animatable<Float, *>>, selectedKey: String?,
 ) {
-    val radius = layout.nucleusRadius
-    val center = layout.center
-    val tint = nucleusColorAnim.current()
+    val g = WheelGeometry
+    val r0 = g.RING_R0_FRAC * half
+    val r1 = g.RING_R1_FRAC * half
+    val span = r1 - r0
+    val plateR0 = r1 - span * PLATE_FRAC
+    val plateR1 = r1 - span * 0.02f
+    val labelR = (plateR0 + plateR1) / 2f
+    val graphMax = plateR0 - span * 0.03f
+    val count = state.nodes.size.coerceAtLeast(1)
 
-    drawCircle(
-        brush = Brush.radialGradient(colors = listOf(colors.groundRadial, colors.ground), center = center, radius = radius),
-        radius = radius,
-        center = center,
-    )
-    drawCircle(color = colors.hairlineStrong, radius = radius, center = center, style = Stroke(1.5.dp.toPx()))
-    drawCircle(color = tint.copy(alpha = 0.5f), radius = radius, center = center, style = Stroke(1.dp.toPx()))
+    state.nodes.forEach { node ->
+        val (a0, a1) = g.segAngles(count, node.index, GAP_DEG)
+        val mid = g.midDeg(count, node.index)
+        val ramp = rampFor(node.direction)
 
-    val laidOut = nucleusLines(state.nucleus, colors, tint).map { (text, style) -> textMeasurer.measure(text, style) }
-    val totalHeight = laidOut.sumOf { it.size.height }
-    var y = center.y - totalHeight / 2f
-    laidOut.forEach { line ->
-        drawClampedText(line, Offset(center.x - line.size.width / 2f, y))
-        y += line.size.height
+        val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
+        drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
+        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.5f * alpha), style = Stroke(px(0.9f)))
+
+        // Step bands, growing to the animated level. Each band is itself a radial gradient —
+        // muted at its own inner edge, full stepColor at its outer edge — same "brighter further
+        // from the hub" language as the currency ring, while keeping the 6 levels visibly
+        // distinct (this is discrete data — a count of factors passed — unlike currency strength).
+        val levelValue = (levelAnims[node.pair]?.value ?: node.level.toFloat()).coerceIn(0f, 6f)
+        val fillFrac = levelValue / 6f
+        for (k in 1..6) {
+            val innerFrac = (k - 1) / 6f
+            val outerFrac = k / 6f
+            if (fillFrac <= innerFrac) break
+            val topFrac = min(outerFrac, fillFrac)
+            val rIn = r0 + (graphMax - r0) * innerFrac
+            val rOut = r0 + (graphMax - r0) * topFrac
+            val bandPath = wedgePath(cx, cy, rIn + 1f, rOut, a0 + 2f, a1 - 2f)
+            val full = stepColor(k, ramp, colors)
+            val dim = lerp(colors.surfaceRaised, full, 0.45f)
+            val gradRadius = max(rOut, rIn + 2f)
+            val innerStop = (rIn / gradRadius).coerceIn(0f, 0.95f)
+            drawPath(
+                bandPath,
+                brush = Brush.radialGradient(
+                    colorStops = arrayOf(innerStop to dim, 1f to full),
+                    center = Offset(cx, cy),
+                    radius = gradRadius,
+                ),
+                alpha = 0.9f * alpha,
+            )
+        }
+
+        // Blocking-factor marker: a bright hairline at the top of the filled stack.
+        if (node.blockedAt != null && node.level in 1..5) {
+            val rMark = r0 + (graphMax - r0) * (node.level / 6f)
+            val markPath = wedgePath(cx, cy, rMark, rMark + px(2f), a0 + 2f, a1 - 2f)
+            drawPath(markPath, color = tintForDir(node.direction, colors).copy(alpha = alpha))
+        }
+
+        val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
+        drawPath(platePath, color = colors.surface.copy(alpha = alpha))
+        curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary.copy(alpha = alpha), sp(12f), bold = true)
+
+        // A+/tradeable rim glow — a real blurred halo (Design §2.4) behind the crisp rim stroke.
+        // The moment a pair earns this rim, [rimFlash] briefly overshoots (bigger, brighter halo)
+        // and eases back to its steady glow — the wheel's biggest moment gets to feel earned.
+        if (node.state == PotentialState.TRADEABLE || node.state == PotentialState.APLUS) {
+            val isAplus = node.state == PotentialState.APLUS
+            val rimColor = tintForDir(node.direction, colors)
+            val flash = (rimFlash[node.pair]?.value ?: 1f).coerceAtLeast(1f)
+            val glowAlpha = ((if (isAplus) 0.5f else 0.28f) * alpha * flash).coerceAtMost(1f)
+            val glowSize = (if (isAplus) 6f else 4f) * flash.coerceAtMost(1.7f)
+            val glowBlur = (if (isAplus) 9f else 6f) * flash.coerceAtMost(1.9f)
+            glowStroke(bgPath, rimColor.copy(alpha = glowAlpha), px(glowSize), px(glowBlur))
+            drawPath(bgPath, color = rimColor.copy(alpha = (if (isAplus) 0.9f else 0.5f) * alpha), style = Stroke(px(2f)))
+        }
+        if (selectedKey == "pair:${node.pair}") drawPath(bgPath, color = colors.textPrimary.copy(alpha = 0.8f * alpha), style = Stroke(px(2f)))
     }
 }
+
+private fun tintForDir(direction: Direction, colors: AtomColors): Color = when (direction) {
+    Direction.BULL -> colors.bull
+    Direction.BEAR -> colors.bear
+    Direction.NEUTRAL -> colors.neutral
+}
+
+private fun DrawScope.drawHub(
+    state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    dotAlpha: Float, textMeasurer: TextMeasurer, selectedKey: String?,
+) {
+    val r = WheelGeometry.HUB_FRAC * half
+    val center = Offset(cx, cy)
+    val tint = tintColor(state.nucleus.tint, colors)
+
+    // Soft ambient shadow — lifts the hub off the dial, a touch of 3-D depth (Design §1's
+    // "depth comes from light and blur" — dark shadow works in both themes, unlike a status glow).
+    glowFillCircle(center + Offset(0f, px(3f)), r * 1.03f, colors.ground.copy(alpha = 0.4f), px(9f))
+    drawCircle(brush = Brush.radialGradient(listOf(colors.surfaceRaised, colors.surface), center, r), radius = r, center = center)
+    drawCircle(color = colors.hairlineStrong, radius = r, center = center, style = Stroke(px(1.5f)))
+    drawCircle(color = tint.copy(alpha = 0.5f), radius = r, center = center, style = Stroke(px(1f)))
+    if (selectedKey == "hub") drawCircle(color = colors.textPrimary.copy(alpha = 0.8f), radius = r, center = center, style = Stroke(px(2f)))
+
+    // Pulsating regime dot near the top of the hub.
+    drawCircle(color = tint.copy(alpha = dotAlpha), radius = px(3f), center = Offset(cx, cy - r * 0.62f))
+
+    // Centred text stack: REGIME · big regime word.
+    val lines = buildList {
+        add("REGIME" to TextStyle(color = colors.textMuted, fontSize = 9.sp, fontWeight = FontWeight.SemiBold))
+        add(state.nucleus.regimeLabel to TextStyle(color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold))
+    }
+    val laid = lines.map { (t, s) -> textMeasurer.measure(t, s) }
+    val totalH = laid.sumOf { it.size.height }
+    var y = cy - totalH / 2f
+    laid.forEach { l ->
+        val topLeft = Offset((cx - l.size.width / 2f).coerceAtLeast(0f), y.coerceAtLeast(0f))
+        drawText(textLayoutResult = l, topLeft = topLeft)
+        y += l.size.height
+    }
+}
+
+// dp / sp → px helpers (DrawScope is a Density).
+private fun DrawScope.px(dp: Float): Float = dp * density
+private fun DrawScope.sp(sp: Float): Float = sp * density * fontScale

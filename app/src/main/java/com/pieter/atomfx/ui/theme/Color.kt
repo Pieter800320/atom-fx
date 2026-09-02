@@ -1,6 +1,8 @@
 package com.pieter.atomfx.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import kotlin.math.ceil
 
 /**
  * The one token set the whole app reads (Design doc §2). Every component/Canvas reads
@@ -62,3 +64,31 @@ val LightColors = AtomColors(
     watchSoft = Color(0xFFB27A16).copy(alpha = 0.08f),
     neutral = Color(0xFF93A0AD),
 )
+
+// ── Wheel v2 step ramps — derived from tokens, so light + dark both work (no literal hex) ─────
+
+/** Which colour ramp a wedge fills with. */
+enum class Ramp { BULL, BEAR, NEUTRAL }
+
+/**
+ * The colour for step [step] (1..6) on a [ramp]. Interpolates the token's soft→full colour so a
+ * level-1 band is muted and a level-6 band is the full accent — the mockup's 6-stop green/red
+ * ladder, but expressed through [AtomColors] so it re-tints correctly in light mode.
+ */
+fun stepColor(step: Int, ramp: Ramp, c: AtomColors): Color {
+    val s = step.coerceIn(1, 6) / 6f
+    val full = when (ramp) {
+        Ramp.BULL -> c.bull
+        Ramp.BEAR -> c.bear
+        Ramp.NEUTRAL -> c.neutral
+    }
+    val lo = lerp(c.surfaceRaised, full, 0.25f)
+    return lerp(lo, full, 0.15f + 0.85f * s)
+}
+
+/** Currency-strength colour (0..100) — mirrors the mockup's csColor: green ramp at/above 50, else red. */
+fun csColor(value: Int, c: AtomColors): Color {
+    val ramp = if (value >= 50) Ramp.BULL else Ramp.BEAR
+    val step = ceil(value / 16.67).toInt().coerceIn(1, 6)
+    return stepColor(step, ramp, c)
+}

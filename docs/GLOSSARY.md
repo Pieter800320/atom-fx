@@ -32,11 +32,17 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
 
 - **LOW** (levels 0–2) · **WATCH** (levels 3–5) · **TRADEABLE** (level 6) · **A+** (level 6 and Setup Rank ≥ 8.5).
 
-## Currency flow (keep the distinction)
+## Currency flow
 
 - **Flow leader** — the currency with the strongest positive CSM Delta (getting stronger fastest).
-- **Absolute leader** — the currency with the highest absolute CSM (strongest right now).
-- **Laggard / Absolute laggard** — the negative equivalents. Flow leader ≠ absolute leader, always.
+  This is what the app shows as "leading" (header flow line, Status Strip, Currency Flow sheet,
+  the wheel's Currency Flow ticker).
+- **Laggard** — the negative equivalent (weakening fastest).
+- **Absolute leader / absolute laggard** — the currency with the highest/lowest absolute CSM
+  right now, distinct from flow leader/laggard. Still computed by the backend and present in
+  `signals.json` (`currency_flow.absolute_leader/absolute_laggard`), but Pieter dropped it from
+  the UI (2026-09-02) to keep the Currency Flow sheet and ticker to one clear number per
+  currency — flow leader/laggard only. Don't resurface it without checking with him first.
 
 ## Macro
 
