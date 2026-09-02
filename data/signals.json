@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T18:36:17.973777+00:00",
+  "updated": "2026-09-02T20:22:34.136189+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -719,42 +719,42 @@
     "signals": -1,
     "total": 3,
     "confidence": "Low",
-    "stable": false
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.38,
-      "delta_pct": -5.9,
+      "value": 15.21,
+      "delta_pct": -6.9,
       "direction": "down",
       "label": "VIX"
     },
     "spx": {
-      "value": 7668.24,
+      "value": 7666.6,
       "delta_pct": 0.5,
       "direction": "up",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4415.4,
-      "delta_pct": 1.6,
+      "value": 4434.6,
+      "delta_pct": 2.0,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.595,
+      "value": 99.542,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.595,
-      "delta_pct": 1.4,
+      "value": 6.607,
+      "delta_pct": 1.5,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.792,
-      "delta_bp": -0.4,
+      "value": 4.796,
+      "delta_bp": 0.0,
       "direction": "flat",
       "label": "US 10Y"
     },
@@ -765,30 +765,30 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.17,
-      "delta_pct": 1.1,
-      "direction": "up",
+      "value": 90.44,
+      "delta_pct": 0.2,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77318.0,
-      "delta_pct": -0.1,
+      "value": 77387.0,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.0,
-      "delta_bp": -0.4,
+      "value": 102.4,
+      "delta_bp": 0.0,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT and USDCHF LONG conflict with stronger USD narrative. DXY strength favors USD pairs, weakening GBP and supporting CHF demand reduction.",
-    "updated": "2026-09-02T17:45:54.069781+00:00"
+    "text": "GBPJPY SHORT and NZDJPY SHORT at risk. Hawkish Fed headlines support USD strength, which typically weakens JPY pairs against higher yielding currencies.",
+    "updated": "2026-09-02T20:22:34.136189+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rising confirms JPY strength bid thesis today.\n\nUSDCHF LONG: Mixed neutral macro offers no directional confirmation or challenge.\n\nGBPJPY SHORT: Gold appreciation supports JPY safe haven demand this session.",
+    "text": "NZDJPY SHORT: Gold rally confirms JPY strength bias today.\n\nGBPJPY SHORT: Gold strength supports yen bid thesis strongly.\n\nUSDCHF LONG: Risk-on low challenges dollar strength conviction here.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -796,21 +796,21 @@
         "score": 7.55
       },
       {
-        "pair": "USDCHF",
-        "direction": "bull",
-        "score": 5.75
-      },
-      {
         "pair": "GBPJPY",
         "direction": "bear",
-        "score": 5.62
+        "score": 6.55
+      },
+      {
+        "pair": "USDCHF",
+        "direction": "bull",
+        "score": 5.92
       }
     ],
-    "updated": "2026-09-02T17:45:54.069781+00:00"
+    "updated": "2026-09-02T20:22:34.136189+00:00"
   },
   "calendar": {
     "events": [],
-    "updated": "2026-09-02T17:45:54.069781+00:00"
+    "updated": "2026-09-02T20:22:34.136189+00:00"
   },
   "deep_analysis": {
     "text": "Unavailable (HTTP Error 404: Not Found)",
@@ -818,11 +818,11 @@
   },
   "breaking": {
     "headlines": [
-      "US factory orders beat at 0.9% versus 0.6% expected",
-      "Hawkish Warsh comments lift DXY as EUR/USD and GBP/USD fall",
-      "IRGC disables two oil tankers in Strait of Hormuz"
+      "US factory orders beat expectations at 0.9% versus 0.6% forecast",
+      "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
+      "European bond yields surge, keeping markets on edge this session"
     ],
-    "updated": "2026-09-02T17:45:54.069781+00:00"
+    "updated": "2026-09-02T20:22:34.136189+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
