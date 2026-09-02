@@ -32,13 +32,12 @@ import com.pieter.atomfx.ui.wheel.WheelViewModel
 
 /**
  * Architecture §8.2 `ui/insights/InsightsScreen.kt` — Functional Spec §7 + quick-reference rows
- * 46–50: recommendation, breaking headlines, the adversarial catalyst check, the calendar, and
- * the daily brief, aggregated onto one screen (Design §19.2's sibling entry: "recommendation card
- * + theme-tagged news + calendar + brief"). Pure consumer of `signals.json` — every section reads
- * a field that's already there; nothing here is computed. Headline theme-tagging (`news_themes`)
- * isn't produced by the backend yet (Build Status — optional/polish), so headlines show without a
- * theme chip for now; the AI narration behind `deep_analysis` is a separate outstanding item, so
- * "Daily brief" reads whatever's there today, including its own honest "not available yet" state.
+ * 46–50: recommendation, breaking headlines, the adversarial catalyst check, the calendar, the
+ * daily brief, and (when present) the week-ahead brief, aggregated onto one screen (Design §19.2's
+ * sibling entry: "recommendation card + theme-tagged news + calendar + brief"). Pure consumer of
+ * `signals.json` — every section reads a field that's already there; nothing here is computed.
+ * Headline theme-tagging (`news_themes`) isn't produced by the backend yet (Build Status —
+ * optional/polish), so headlines show without a theme chip for now.
  */
 @Composable
 fun InsightsScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifier = Modifier) {
@@ -107,6 +106,16 @@ private fun InsightsContent(signals: Signals, colors: AtomColors) {
             Text(text = brief, style = AtomType.Body.copy(color = colors.textPrimary))
         } else {
             NotAvailableRow("Daily brief", colors)
+        }
+
+        // Functional Spec §7 row 50 — generated Sunday evenings only, persisted ~24h server-side.
+        // Its absence the rest of the week is normal, so the section itself only appears when
+        // there's something to show, rather than reading "Not available yet" as a standing gap.
+        val weekAhead = signals.weekAhead?.text
+        if (!weekAhead.isNullOrBlank()) {
+            SheetDivider(colors, modifier = Modifier.padding(top = 12.dp))
+            SectionLabel("WEEK AHEAD", colors)
+            Text(text = weekAhead, style = AtomType.Body.copy(color = colors.textPrimary))
         }
     }
 }

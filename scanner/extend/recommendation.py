@@ -110,6 +110,15 @@ def _build_prompt(seed: dict, signals: dict) -> str:
     )
 
 
+_SYSTEM_PROMPT = (
+    "You narrate a deterministic FX signal for a trader. The bias/action/pair/"
+    "direction below are already decided by a separate rules engine and are not "
+    "yours to change — you only explain why, citing the specific drivers given, "
+    "and what would invalidate the call. Output strict JSON only, no markdown, "
+    "no commentary outside the JSON object."
+)
+
+
 def _call_sonnet(prompt: str):
     """
     Guarded model call. Reuses scan_news._sonnet if present (same model constants).
@@ -117,7 +126,8 @@ def _call_sonnet(prompt: str):
     """
     try:
         from scanner import scan_news
-        raw = scan_news._sonnet(prompt)          # same model constants as the reference
+        # scan_news._sonnet(system, prompt, max_tokens) — both are required positionally.
+        raw = scan_news._sonnet(_SYSTEM_PROMPT, prompt)
         if not raw:
             return None
         text = raw.strip()
@@ -138,12 +148,47 @@ def build_recommendation(signals: dict, use_model: bool = True) -> dict | None:
     Merge deterministic seed + (optional) model text into the `recommendation`
     object. Returns None if there is no primary pair to talk about (caller then
     writes no key). The seed is authoritative; the model only narrates.
+
+    scan_h1.py (hourly, use_model=False) and scan_news.py (its own cadence,
+    use_model=True) both call this. The seed fields refresh every hour either
+    way — but an AI-narrated headline/rationale/invalidation must survive the
+    NEXT hour's seed-only refresh, or it would never outlive an hour regardless
+    of scan_news.py's actual narration cadence. So: when called without the
+    model, if the seed hasn't materially changed since the existing (preserved)
+    `recommendation` and that one was itself AI-narrated, its text and
+    `generated_at` are carried forward untouched rather than replaced by the
+    template fallback. `_narrated` is an internal marker (app ignores unknown
+    keys) — it's how the next hourly pass knows the existing text is worth
+    keeping rather than a stale template.
     """
     seed = build_seed(signals)
     if not seed["primary_pair"]:
         return None
 
-    text = _call_sonnet(_build_prompt(seed, signals)) if use_model else None
+    existing = signals.get("recommendation") or {}
+    seed_unchanged = (
+        existing.get("bias") == seed["bias"]
+        and existing.get("action") == seed["action"]
+        and existing.get("primary_pair") == seed["primary_pair"]
+        and existing.get("direction") == seed["direction"]
+    )
+
+    generated_at = _now_iso()
+    if use_model:
+        text = _call_sonnet(_build_prompt(seed, signals))
+        if text is not None:
+            text["_narrated"] = True
+    elif seed_unchanged and existing.get("_narrated"):
+        text = {
+            "headline": existing.get("headline"),
+            "rationale": existing.get("rationale"),
+            "invalidation": existing.get("invalidation"),
+            "_narrated": True,
+        }
+        generated_at = existing.get("generated_at", generated_at)
+    else:
+        text = None
+
     if text is None:
         # Deterministic fallback framing so the object is still useful offline.
         ranked_text = (signals.get("ranked", {}) or {}).get("text", "")
@@ -154,6 +199,7 @@ def build_recommendation(signals: dict, use_model: bool = True) -> dict | None:
                          f"{seed['bias'].replace('_',' ')} bias; "
                          f"{seed['primary_pair']} leads the deterministic ranking.",
             "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
+            "_narrated": False,
         }
 
     rec = {
@@ -166,6 +212,7 @@ def build_recommendation(signals: dict, use_model: bool = True) -> dict | None:
         "rationale":     text["rationale"],
         "invalidation":  text["invalidation"],
         "next_catalyst": seed["next_catalyst"],
-        "generated_at":  _now_iso(),
+        "generated_at":  generated_at,
+        "_narrated":     text.get("_narrated", False),
     }
     return rec

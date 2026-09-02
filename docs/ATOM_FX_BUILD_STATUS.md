@@ -22,8 +22,8 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | Macro archetype engine (Phase 1b) | ✅ | `scanner/extend/macro_regime.py`, `macro_regime` live |
 | Push transport + firing hook (Phase 6 backend) | ✅ | `push/send_push.py` + `scan_h1.py` `send_push_alert` / `send_push_level_alert` wired; `test_push.yml` green |
 | AI recommendation — deterministic seed | ✅ | `recommendation.py` (use_model=False in `scan_h1`); `recommendation` live |
-| **AI recommendation — Sonnet narration + 12h cadence (Phase 7 full)** | ⬜ | Module ready; NOT wired into `scan_news.py`. This is the "AI implementation" — switch on the model call + cadence (Architecture §6, Functional Spec §7) |
-| **`deep_analysis` daily brief 404 fix** | ⬜ | `scan_news.py:22` `SONNET_MODEL="claude-sonnet-4-20250514"` is retired → update to a current model id. Config fix, not a calc (Rule #1 safe) |
+| **AI recommendation — Sonnet narration + cadence (Phase 7 full)** | ✅ | Wired into `scan_news.py`, `use_model=True`. Cadence is a union of three triggers (Pieter's call, 2026-09-03): a qualifying gold signal newer than the last narration, the regime `bias` flipping, or 12h+ since the last narration — whichever comes first. `recommendation.py` now preserves the AI-narrated text across `scan_h1.py`'s hourly seed-only refresh (was previously clobbered every hour regardless of scan_news's cadence — a real bug, fixed alongside this) |
+| **`deep_analysis` daily brief 404 fix** | ✅ | `scan_news.py` `SONNET_MODEL` updated from the retired `claude-sonnet-4-20250514` to `claude-sonnet-5`. Also fixed a separate, previously-silent bug: `recommendation.py`'s `_call_sonnet` was calling `scan_news._sonnet(prompt)` with only one of its two required positional args, so every `use_model=True` call was silently raising and falling back to template text |
 | **`news_themes` tagging** (headlines → macro axis) | ⬜ | Optional EXTEND (Functional Spec §7). "News adds theme, engine sets direction" |
 
 ---
@@ -58,9 +58,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 **To reach a coherent v1 (the app matches the spec's navigation and surfaces):**
 
 1. ~~**3-tab bottom nav + swipe**~~ — ✅ done. `HorizontalPager` nav: `Wheel · Macro · Insights` (Decision 1 resolved). Currency stays in the wheel toggle.
-2. ~~**Insights screen**~~ — ✅ done. Aggregates recommendation + breaking headlines + catalyst check + calendar + daily brief (Functional Spec §7). "Week ahead" has no distinct backend field yet — folded into the one Daily Brief text block rather than inventing a second one.
-3. **Settings screen + header gear** — theme override, notification toggles + send-test, data/refresh, freshness; optional GitHub PAT section (Functional Spec §9). Add the user theme override into `AtomFxTheme`.
-4. **Turn on the AI narration (Phase 7 full)** — wire `recommendation.build_recommendation(use_model=True)` into `scan_news.py` on the 12h cadence (Architecture §6). This is the "AI implementation." Do the `deep_analysis` model-id fix at the same time.
+2. ~~**Insights screen**~~ — ✅ done. Aggregates recommendation + breaking headlines + catalyst check + calendar + daily brief + week ahead (Functional Spec §7). Week ahead turned out to have its own `week_ahead` backend key after all (generated Sunday evenings, ~24h persistence) — now mapped and shown as its own section when present, rather than folded into Daily Brief as first built.
+3. ~~**Settings screen + header gear**~~ — ✅ done. Theme override, notification toggles + send-test, data/refresh, freshness (Functional Spec §9). Price-level alerts section present but disabled (item 6).
+4. ~~**Turn on the AI narration (Phase 7 full)**~~ — ✅ done. `recommendation.build_recommendation(use_model=True)` wired into `scan_news.py`, firing on gold signal / regime-bias flip / 12h backstop (Pieter's call, 2026-09-03), plus the `deep_analysis` model-id fix.
 5. **Push end-to-end verification** — confirm a gold-signal push actually lands on your phone.
 
 **Polish / optional:**
@@ -81,9 +81,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
    `Wheel · Macro · Insights`.** Currency strength lives inside the wheel's Currencies/Pairs
    toggle (wheel v2); there is no separate Currency tab. This supersedes the Functional Spec §2
    four-tab nav — build the 3-tab `HorizontalPager` accordingly.
-2. **AI cadence & spend.** Sonnet narration every 12h is the spec default. Confirm that cadence
-   (cost is a few $/month) or pick another (e.g. only when bias/primary pair changes).
-3. **Settings theme override** — confirm you want `system · dark · light` (stored) as specced.
+2. **AI cadence & spend. — RESOLVED (Pieter, 2026-09-03): gold signal, regime-bias flip, or
+   12h — whichever comes first**, not a flat timer. Reasoning discussed in-session: gold signal
+   and regime flip are the two moments the narrative actually changes; a flat 12h-only cadence
+   would occasionally sit through a full session cycle re-explaining a stale regime. Cost is
+   still bounded — both event triggers are rare, so this is close to or cheaper than flat 12h in
+   a typical week.
+3. **Settings theme override — RESOLVED**: built as specced, `system · dark · light` (stored).
 
 ---
 
@@ -93,8 +97,8 @@ Each step must read `CLAUDE.md` first, then the cited spec section, and ship bui
 
 1. ~~**Nav shell**~~ — ✅ done. 3-tab bottom nav + `HorizontalPager` (`Wheel · Macro · Insights`); Wheel + Macro moved into it, empty Insights tab added.
 2. ~~**Insights screen**~~ — ✅ done (Functional Spec §7).
-3. **Settings screen + header gear + theme override** (Functional Spec §9, Design §2).
-4. **AI narration on** (Architecture §6) + **`deep_analysis` model fix** (both in `scan_news.py`).
+3. ~~**Settings screen + header gear + theme override**~~ — ✅ done (Functional Spec §9, Design §2).
+4. ~~**AI narration on**~~ — ✅ done (Architecture §6) + **`deep_analysis` model fix** — ✅ done (both in `scan_news.py`).
 5. **Push end-to-end test**, then price-level alerts UI (§9) if wanted.
 6. Journal when you're ready for post-v1.
 

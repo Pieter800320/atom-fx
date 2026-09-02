@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT))
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 TWELVEDATA    = os.environ.get("TWELVEDATA_KEY", "")
 HAIKU_MODEL   = "claude-haiku-4-5-20251001"
-SONNET_MODEL  = "claude-sonnet-4-20250514"
+SONNET_MODEL  = "claude-sonnet-5"
 
 # Yahoo Finance v8 — no API key needed
 # (key, yf_symbol, label, risk_off_when_up)
@@ -984,6 +984,66 @@ def main():
     else:
         signals.pop("week_ahead", None)   # explicitly clear expired week_ahead
     signals["updated"]      = now.isoformat()
+
+    # ── AI-narrated recommendation (Phase 7 full, Architecture §6) ────────────
+    # scan_h1.py refreshes the deterministic seed every hour but preserves this
+    # narration's text across those refreshes (recommendation.py handles that
+    # merge) — so this cadence is really "how often the narration TEXT changes",
+    # not "how often the numbers change". Three independent triggers, whichever
+    # comes first: a qualifying gold signal newer than the last narration, the
+    # regime bias flipping since the last narration, or 12h+ since the last one.
+    print("\n[4b/6] AI-narrated recommendation…")
+    try:
+        from scanner.extend import recommendation as _recommendation
+
+        prev_rec = signals.get("recommendation", {}) or {}
+        try:
+            rec_age_h = (now - datetime.fromisoformat(
+                prev_rec.get("generated_at", "2000-01-01T00:00:00+00:00")
+            )).total_seconds() / 3600
+        except Exception:
+            rec_age_h = 99
+
+        gold = signals.get("gold_signal", {}) or {}
+        gold_qualifies = (
+            gold.get("direction") not in (None, "neutral")
+            and gold.get("h4_confirmed")
+            and gold.get("h1_confirmed")
+            and gold.get("h4_confidence") in ("Medium", "High")
+        )
+        gold_is_new = False
+        if gold_qualifies:
+            try:
+                gold_is_new = datetime.fromisoformat(
+                    gold.get("updated", "2000-01-01T00:00:00+00:00")
+                ) > datetime.fromisoformat(
+                    prev_rec.get("generated_at", "2000-01-01T00:00:00+00:00")
+                )
+            except Exception:
+                gold_is_new = True
+
+        current_bias = _recommendation.build_seed(signals).get("bias")
+        bias_flipped = bool(prev_rec.get("bias")) and current_bias != prev_rec.get("bias")
+
+        if gold_is_new:
+            trigger = "gold signal"
+        elif bias_flipped:
+            trigger = f"regime flip ({prev_rec.get('bias')} → {current_bias})"
+        elif rec_age_h >= 12:
+            trigger = f"{rec_age_h:.1f}h since last narration"
+        else:
+            trigger = None
+
+        if trigger:
+            print(f"  Narrating — trigger: {trigger}")
+            rec = _recommendation.build_recommendation(signals, use_model=True)
+            if rec:
+                signals["recommendation"] = rec
+                print(f"  Recommendation: {rec['headline']}")
+        else:
+            print(f"  Skipping — {rec_age_h:.1f}h old, bias unchanged ({current_bias}), no new gold signal")
+    except Exception as e:
+        print(f"  [recommendation] error (existing recommendation kept if any): {e}")
 
     with open(sig_path, "w") as f:
         json.dump(signals, f, indent=2)

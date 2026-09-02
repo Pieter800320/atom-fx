@@ -344,7 +344,8 @@ def main():
         k: prev.get(k)
         for k in ("regime_w1", "macro", "macro_assets",
                   "catalyst", "ranked", "calendar", "week_ahead",
-                  "deep_analysis", "breaking", "last_alert", "gold_signal")
+                  "deep_analysis", "breaking", "last_alert", "gold_signal",
+                  "recommendation")
         if prev.get(k)
     }
 

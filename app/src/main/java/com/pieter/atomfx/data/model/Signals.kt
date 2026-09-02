@@ -27,6 +27,7 @@ data class Signals(
     @SerialName("deep_analysis") val deepAnalysis: DeepAnalysisBlock? = null,
     val breaking: BreakingBlock? = null,
     val catalyst: CatalystBlock? = null,
+    @SerialName("week_ahead") val weekAhead: WeekAheadBlock? = null,
     val correlations: CorrelationsBlock? = null,
     @SerialName("macro_assets") val macroAssets: Map<String, MacroAssetEntry> = emptyMap(),
     val macro: MacroSummary? = null,
@@ -176,6 +177,14 @@ data class BreakingBlock(
 data class CatalystBlock(
     val text: String? = null,
     val updated: String? = null,
+)
+
+/** Functional Spec §7 row 50 — generated Sunday evenings, persisted ~24h server-side; a normal,
+ *  documented absence the rest of the week (Architecture §4.2), not a bug. */
+@Serializable
+data class WeekAheadBlock(
+    val text: String? = null,
+    @SerialName("generated_at") val generatedAt: String? = null,
 )
 
 @Serializable
