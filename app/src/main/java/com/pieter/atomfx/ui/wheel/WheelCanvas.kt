@@ -95,7 +95,7 @@ fun WheelCanvas(
 ) {
     val textMeasurer = rememberTextMeasurer()
     var selectedKey by remember { mutableStateOf<String?>(null) }
-    val activeCurrencies = if (timeframe == Timeframe.D1) state.currenciesD1 else state.currencies
+    val activeCurrencies = state.currenciesFor(timeframe)
 
     // Cross-fade the middle ring on mode change (1 = pairs, 0 = currencies).
     val modeProgress by animateFloatAsState(
@@ -209,18 +209,21 @@ private fun hitTest(offset: Offset, w: Float, h: Float, mode: WheelMode): WheelT
         return WheelTapTarget.CrossAsset(g.XASSET_ORDER[g.segIndexAt(g.XASSET_ORDER.size, deg)].first)
     }
     if (dist in (g.TOGGLE_R0_FRAC * half)..(g.TOGGLE_R1_FRAC * half)) {
-        val (ccy0, ccy1) = g.cornerHitRange(g.TOGGLE_CURRENCIES_CENTER_DEG)
-        val (pairs0, pairs1) = g.cornerHitRange(g.TOGGLE_PAIRS_CENTER_DEG)
+        val (mode0, mode1) = g.cornerHitRange(g.TOGGLE_MODE_CENTER_DEG)
         val (h40, h41) = g.cornerHitRange(g.TOGGLE_H4_CENTER_DEG)
         val (d10, d11) = g.cornerHitRange(g.TOGGLE_D1_CENTER_DEG)
-        if (deg in ccy0..ccy1) return WheelTapTarget.ModeToggle(WheelMode.CURRENCIES)
-        if (deg in pairs0..pairs1) return WheelTapTarget.ModeToggle(WheelMode.PAIRS)
-        // The D1/H4 buttons are truly inert in Pairs mode — pair `potential` has no timeframe
+        val (h10, h11) = g.cornerHitRange(g.TOGGLE_H1_CENTER_DEG)
+        // Single Pairs/Currencies toggle (2026-09-03) — one trapezoid, tap flips to the other mode.
+        if (deg in mode0..mode1) {
+            return WheelTapTarget.ModeToggle(if (mode == WheelMode.PAIRS) WheelMode.CURRENCIES else WheelMode.PAIRS)
+        }
+        // The D1/H4/H1 buttons are truly inert in Pairs mode — pair `potential` has no timeframe
         // axis, so there's nothing for a tap to do there. Not just dimmed: the tap is dropped
         // entirely, same as tapping empty space.
         if (mode == WheelMode.CURRENCIES) {
             if (deg in h40..h41) return WheelTapTarget.TimeframeToggle(Timeframe.H4)
             if (deg in d10..d11) return WheelTapTarget.TimeframeToggle(Timeframe.D1)
+            if (deg in h10..h11) return WheelTapTarget.TimeframeToggle(Timeframe.H1)
         }
     }
     return null
@@ -340,7 +343,7 @@ private fun DrawScope.drawDial(
     )
 
     drawCrossAssetRing(state, colors, cx, cy, half, selectedKey)
-    drawCornerButtons(mode, timeframe, colors, cx, cy, half, selectedKey)
+    drawCornerButtons(mode, timeframe, colors, cx, cy, half)
 
     // Middle ring cross-fade: draw whichever side has any alpha.
     val ccyAlpha = 1f - modeProgress
@@ -459,45 +462,56 @@ private fun DrawScope.straightLabel(cx: Float, cy: Float, r: Float, midDeg: Floa
     nativeCanvas.restoreToCount(save)
 }
 
-private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val key: String)
+private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean)
 
 /**
  * The four corner buttons — a 4th ring shaped and placed to read as chrome rather than data:
- * tapered, curved-edge wedges (wide base, narrow rounded tip), thicker than any data ring. Bottom
- * corners are the Currencies/Pairs mode toggle (thumb zone); top corners are the Currencies-mode
- * D1/H4 timeframe toggle — drawn dimmer in Pairs mode since it has nothing to affect there.
+ * tapered, curved-edge wedges (wide base, narrow rounded tip), thicker than any data ring.
+ * Bottom-left is the single Pairs/Currencies mode toggle (thumb zone); top-left/top-right/
+ * bottom-right are the Currencies-mode D1/H4/H1 timeframe toggle (Pieter, 2026-09-03 — H1 added,
+ * taking the corner the old separate Currencies button used before it merged into one toggle).
+ *
+ * Exactly two visual states (Pieter's call, 2026-09-03 — was three: a raised fill + strong border
+ * for selected, a plain fill + hairline border for unselected, and a further 45%-alpha wash for
+ * inert on top of that): fill is always [colors.surface], and only the border switches — white
+ * ([colors.textPrimary]) when selected, [colors.hairline] otherwise. An inert timeframe button
+ * gets no separate treatment; it reads identically to any other unselected button, exactly like
+ * its tap being dropped reads identically to tapping empty space.
  */
-private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float, selectedKey: String?) {
+private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float) {
     val g = WheelGeometry
     val r0 = g.TOGGLE_R0_FRAC * half
     val r1 = g.TOGGLE_R1_FRAC * half
     val labelR = r0 + (r1 - r0) * 0.4f
     val cornerRadiusPx = px(7f)
-    val tfInert = mode != WheelMode.CURRENCIES
+    // The mode toggle is always "on" — the wheel is always in one of its two modes, never
+    // neither — so it always carries the selected/white-border look; only its label swaps.
+    val modeLabel = if (mode == WheelMode.PAIRS) "PAIRS" else "CURRENCIES"
+    // Pieter, 2026-09-03: the selection border itself disappears in Pairs mode, not just the tap
+    // response — the TF buttons must read as fully inert (no white anywhere among them) rather
+    // than "H4 is still nominally chosen, just unresponsive." It reappears on the currently-active
+    // TF the instant Currencies is toggled back on.
+    val inCurrencies = mode == WheelMode.CURRENCIES
 
     listOf(
-        CornerButtonSpec("CURRENCIES", g.TOGGLE_CURRENCIES_CENTER_DEG, mode == WheelMode.CURRENCIES, "toggle:${WheelMode.CURRENCIES}"),
-        CornerButtonSpec("PAIRS", g.TOGGLE_PAIRS_CENTER_DEG, mode == WheelMode.PAIRS, "toggle:${WheelMode.PAIRS}"),
-        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, timeframe == Timeframe.H4, "tf:${Timeframe.H4}"),
-        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, timeframe == Timeframe.D1, "tf:${Timeframe.D1}"),
+        CornerButtonSpec(modeLabel, g.TOGGLE_MODE_CENTER_DEG, true),
+        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, inCurrencies && timeframe == Timeframe.D1),
+        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, inCurrencies && timeframe == Timeframe.H4),
+        CornerButtonSpec("H1", g.TOGGLE_H1_CENTER_DEG, inCurrencies && timeframe == Timeframe.H1),
     ).forEach { spec ->
         val angles = g.cornerButtonAngles(spec.centerDeg)
-        val isTfButton = spec.key.startsWith("tf:")
-        val dim = isTfButton && tfInert
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
-        val alpha = if (dim) 0.45f else 1f
-        drawPath(path, color = (if (spec.selected) colors.surfaceRaised else colors.surface).copy(alpha = alpha))
+        drawPath(path, color = colors.surface)
         drawPath(
             path,
-            color = (if (spec.selected) colors.hairlineStrong else colors.hairline).copy(alpha = alpha),
+            color = if (spec.selected) colors.textPrimary else colors.hairline,
             style = Stroke(if (spec.selected) px(2f) else px(1f)),
         )
         val outerB = g.polar(cx, cy, r1, angles.outerA0)
         val outerC = g.polar(cx, cy, r1, angles.outerA1)
         val chordWidth = kotlin.math.sqrt((outerC.x - outerB.x).let { it * it } + (outerC.y - outerB.y).let { it * it }) * 0.9f
-        val labelColor = (if (spec.selected) colors.textPrimary else colors.textMuted).copy(alpha = alpha)
+        val labelColor = if (spec.selected) colors.textPrimary else colors.textMuted
         straightLabel(cx, cy, labelR, spec.centerDeg, chordWidth, spec.label, labelColor, sp(11f), bold = true)
-        if (selectedKey == spec.key) drawPath(path, color = colors.textPrimary.copy(alpha = 0.8f), style = Stroke(px(2f)))
     }
 }
 

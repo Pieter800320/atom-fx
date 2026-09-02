@@ -217,7 +217,7 @@ private fun WheelArea(
             }
             Spacer(modifier = Modifier.height(TICKER_SPACING))
             CurrencyFlowTicker(
-                currencies = if (timeframe == Timeframe.D1) loaded.state.currenciesD1 else loaded.state.currencies,
+                currencies = loaded.state.currenciesFor(timeframe),
                 colors = colors,
                 onClick = { onRingClick(Factor.FLOW) },
                 modifier = Modifier.height(TICKER_HEIGHT).fillMaxWidth().padding(horizontal = 16.dp),

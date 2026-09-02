@@ -34,6 +34,7 @@ object WheelMapper {
             rings = mapRings(nodes),
             currencies = mapCurrencies(signals, "h4"),
             currenciesD1 = mapCurrencies(signals, "d1"),
+            currenciesH1 = mapCurrencies(signals, "h1"),
             crossAssets = mapCrossAssets(signals),
         )
     }

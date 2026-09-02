@@ -19,12 +19,13 @@ enum class PotentialState { LOW, WATCH, TRADEABLE, APLUS }
 enum class WheelMode { PAIRS, CURRENCIES }
 
 /**
- * Currencies-mode timeframe (2026-09-02, Pieter's toggle). `csm`/`csm_delta` are genuinely
- * per-timeframe in `signals.json` (d1/h4/h1 all present) so this changes real data in Currencies
- * mode. Pair `potential` is *not* per-timeframe — it's already a single cross-timeframe verdict —
- * so this has no effect on Pairs mode; the toggle stays visible but inert there.
+ * Currencies-mode timeframe (2026-09-02, Pieter's toggle; H1 added 2026-09-03). `csm`/`csm_delta`
+ * are genuinely per-timeframe in `signals.json` (d1/h4/h1 all present) so this changes real data
+ * in Currencies mode. Pair `potential` is *not* per-timeframe — it's already a single
+ * cross-timeframe verdict — so this has no effect on Pairs mode; the toggle stays visible but
+ * inert there.
  */
-enum class Timeframe { D1, H4 }
+enum class Timeframe { D1, H4, H1 }
 
 /** The six confluence factors, in the fixed order R·F·B·M·S·E (Design §6.7, Glossary). */
 enum class Factor(val glyph: String, val ringLabel: String, val shortLabel: String) {
@@ -93,6 +94,7 @@ data class WheelUiState(
     val rings: List<RingDescriptor>,       // size 6, the six factor legend pills
     val currencies: List<CurrencySeg> = emptyList(),   // size 8, H4 (CURRENCIES mode default)
     val currenciesD1: List<CurrencySeg> = emptyList(), // size 8, D1 (CURRENCIES mode, D1 toggle)
+    val currenciesH1: List<CurrencySeg> = emptyList(), // size 8, H1 (CURRENCIES mode, H1 toggle)
     val crossAssets: List<CrossAssetSeg> = emptyList(), // size 10 (outer ring)
 )
 
@@ -100,6 +102,13 @@ data class WheelUiState(
  * The pair a factor-pill tap defaults to for pair-shaped sheets (Momentum/Structure/Entry):
  * highest potential among tradeable-tier nodes, falling back to highest overall. Display choice.
  */
+/** The currency list for whichever timeframe is currently toggled (Currencies mode). */
+fun WheelUiState.currenciesFor(timeframe: Timeframe): List<CurrencySeg> = when (timeframe) {
+    Timeframe.D1 -> currenciesD1
+    Timeframe.H4 -> currencies
+    Timeframe.H1 -> currenciesH1
+}
+
 fun WheelUiState.topPair(): PairNode =
     nodes.filter { it.state == PotentialState.TRADEABLE || it.state == PotentialState.APLUS }
         .maxByOrNull { it.potential }
