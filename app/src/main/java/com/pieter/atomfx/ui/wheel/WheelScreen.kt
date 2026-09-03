@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,7 +95,14 @@ fun WheelScreen(
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
     ) {
         val loaded = screenState as? WheelScreenState.Loaded
-        Column(modifier = Modifier.fillMaxSize()) {
+        // Pieter, 2026-09-03 — deliberate, flagged supersession of Design §17 ("the landing
+        // screen never scrolls") for the Summary cascade specifically: he doesn't want the wheel
+        // shrinking to make room for it, so the whole Column scrolls instead, wheel included. The
+        // wheel's own square (below) is sized purely from width via aspectRatio(1f) — not
+        // min(width, height-chrome) any more — so it stays the same size whether the cascade is
+        // open or not; §17's original "wheel shrinks to fit" behavior is gone by construction,
+        // not just unused.
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             if (loaded != null) {
                 HeaderBar(
                     state = loaded.state,
@@ -108,10 +118,11 @@ fun WheelScreen(
                     signals = loaded.signals,
                     colors = colors,
                     onCellClick = { target -> activeSheet = target },
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
 
-            Box(modifier = Modifier.weight(1f)) {
+            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
                 when (val current = screenState) {
                     WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)
                     WheelScreenState.Unavailable -> CenteredMessage("DATA UNAVAILABLE", colors)
@@ -187,10 +198,13 @@ private fun WheelArea(
     onLongPress: (String) -> Unit,
     onRingClick: (Factor) -> Unit,
 ) {
+    // Pieter, 2026-09-03 — this Box now arrives pre-sized by the caller (WheelScreen's
+    // Modifier.fillMaxWidth().aspectRatio(1f), inside a scrolling Column), not by "whatever's
+    // left after chrome" — see the flag on that Column. maxWidth == maxHeight here always, so
+    // wheelSide below still only ever reserves room for the ticker, same math as the original
+    // Design §17 formula (min(width, height − chrome)); it just no longer responds to the
+    // Summary strip's own height, because there's nothing left for it to compete with.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        // Design §17: the landing screen never scrolls — the wheel is a centred square sized to
-        // whatever fits (min(width, height − chrome)); it shrinks to fit, the layout never does.
-        // The Currency Flow ticker is always on (both modes) so this reservation is constant too.
         val wheelSide = minOf(maxWidth, maxHeight - TICKER_HEIGHT - TICKER_SPACING)
         Column(
             modifier = Modifier.fillMaxSize(),

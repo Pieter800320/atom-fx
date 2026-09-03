@@ -1,22 +1,43 @@
 package com.pieter.atomfx.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.sheets.SheetTarget
@@ -27,13 +48,41 @@ import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.WheelUiState
 import com.pieter.atomfx.ui.wheel.tintColor
 import com.pieter.atomfx.ui.wheel.topPair
+import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
+
+// Pieter, 2026-09-03 follow-up: the first pass (StiffnessLow) read as sluggish — snappier now
+// (StiffnessMedium + a light settle, not the heavier bounce the wheel's own rimFlash uses).
+private val CASCADE_SPRING = spring<Float>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)
+private val CASCADE_SPRING_SIZE = spring<IntSize>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)
+private const val OPEN_STAGGER_MS = 22L
+private const val CLOSE_STAGGER_MS = 14L
+private val CARD_SHAPE = RoundedCornerShape(14.dp)
 
 /**
- * Design §10 / mockup `strip()` (`atom-fx-screen-kit.html`) — 5 micro-cells, hairline-separated
- * (not cards), no scrolling. Regime is tinted per its status colour (mockup `.cell .v` inline
- * style); leader/laggard carry their signed delta in bull/bear; breadth's band word is coloured
- * by band, same convention as `BreadthSheet`/`CurrencyDetailSheet`. Tapping a cell opens the
- * matching sheet (§14).
+ * Pieter, 2026-09-03 — "Summary": the strip is now a single button driving "the Cascade" (Pieter's
+ * name, 2026-09-03 — reuse this term for the pattern anywhere else in the app it fits): Item
+ * Library #03's grow-from-the-icon mechanic, ported to a vertical list — each card grows/collapses
+ * in place rather than converging on the icon's exact position, since these already sit directly
+ * beneath it in document flow. Collapsed, only the button itself shows; tapping it cascades all 8
+ * fields down as individual grey-squircle cards, staggered — no scrim, no floating layer, same as
+ * Item #3. Closes ONLY on a second tap of the button itself (Pieter's explicit call — no
+ * tap-outside-closes guard here, unlike #3's `dispatchTouchEvent` equivalent). Each card stays
+ * independently tappable to its own sheet, same targets the old always-on cells used; tapping a
+ * card does NOT collapse the cascade (only the button does).
+ *
+ * Follow-up (2026-09-03, same session) — Pieter explicitly does not want the wheel to shrink to
+ * make room for the cascade; the whole landing Column scrolls instead (WheelScreen.kt's
+ * `verticalScroll`), wheel included. This is a deliberate, flagged supersession of Design §17
+ * ("the landing screen never scrolls") for this one interaction — see the comment on
+ * `WheelArea`'s own sizing in WheelScreen.kt for the mechanics and the same flag repeated there.
+ *
+ * Regime/leader/leading-currency/top-pair are also answered at rest elsewhere on the landing
+ * view regardless of this button's state (the wheel hub's regime word+archetype line, the
+ * always-on Currency Flow ticker, and the pair ring itself) — collapsing this strip by default
+ * does not regress the §20 acceptance test, it removes a redundant shortcut to information the
+ * wheel already surfaces at a glance.
  */
 @Composable
 fun StatusStrip(
@@ -43,65 +92,159 @@ fun StatusStrip(
     onCellClick: (SheetTarget) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
     val flow = signals.currencyFlow
     val leaderBreadth = flow?.leader?.let { signals.breadth["h4"]?.get(it) }
+    val topPair = state.topPair()
+
+    val items = listOf(
+        StripItem("REGIME", state.nucleus.regimeLabel, tintColor(state.nucleus.tint, colors)) {
+            onCellClick(SheetTarget.Ring(Factor.REGIME))
+        },
+        StripItem("LEADER", flow?.leader?.let { "$it ${signedInt(flow.leaderDelta)}" } ?: "—", deltaColor(flow?.leaderDelta, colors)) {
+            onCellClick(flow?.leader?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
+        },
+        // Item Library #04's restore, per Pieter (2026-09-03) — Glossary "Absolute leader/
+        // laggard": highest/lowest absolute CSM right now, distinct from flow leader/laggard
+        // (fastest-moving). Dropped from the UI 2026-09-02; back now, inside the cascade only.
+        StripItem("ABSOLUTE LEADER", flow?.absoluteLeader ?: "—", colors.textPrimary) {
+            onCellClick(flow?.absoluteLeader?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
+        },
+        StripItem("LAGGARD", flow?.laggard?.let { "$it ${signedInt(flow.laggardDelta)}" } ?: "—", deltaColor(flow?.laggardDelta, colors)) {
+            onCellClick(flow?.laggard?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
+        },
+        StripItem("ABSOLUTE LAGGARD", flow?.absoluteLaggard ?: "—", colors.textPrimary) {
+            onCellClick(flow?.absoluteLaggard?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
+        },
+        // Architecture §5.1: driver_spread = leader_delta − laggard_delta — how sharply
+        // currencies are diverging right now, not a CSM level. Never shown in the UI before.
+        StripItem("DRIVER SPREAD", flow?.driverSpread?.let { signedInt(it) } ?: "—", colors.textPrimary) {
+            onCellClick(SheetTarget.Ring(Factor.FLOW))
+        },
+        StripItem("BREADTH", leaderBreadth?.band ?: "—", bandColor(leaderBreadth?.band, colors)) {
+            onCellClick(SheetTarget.Ring(Factor.BREADTH))
+        },
+        StripItem("TOP PAIR", topPair.pair, colors.textPrimary) {
+            onCellClick(SheetTarget.Node(topPair.pair))
+        },
+    )
+
+    // One visibility flag per card, flipped in a staggered wave rather than all at once —
+    // AnimatedVisibility's own expandVertically is what reflows WheelArea's weight(1f) box
+    // beneath this, card by card, exactly as each one settles.
+    val cardVisible = remember { mutableStateListOf(*Array(items.size) { false }) }
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            cardVisible.indices.forEach { i -> delay(OPEN_STAGGER_MS); cardVisible[i] = true }
+        } else {
+            cardVisible.indices.reversed().forEach { i -> delay(CLOSE_STAGGER_MS); cardVisible[i] = false }
+        }
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Cell(
-                "REGIME", state.nucleus.regimeLabel,
-                tintColor(state.nucleus.tint, colors), colors, Modifier.weight(1f),
-            ) { onCellClick(SheetTarget.Ring(Factor.REGIME)) }
-            VDivider(colors)
-            Cell(
-                "LEADER", flow?.leader?.let { "$it ${signedInt(flow.leaderDelta)}" } ?: "—",
-                deltaColor(flow?.leaderDelta, colors), colors, Modifier.weight(1f),
-            ) { onCellClick(flow?.leader?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW)) }
-            VDivider(colors)
-            Cell(
-                "LAGGARD", flow?.laggard?.let { "$it ${signedInt(flow.laggardDelta)}" } ?: "—",
-                deltaColor(flow?.laggardDelta, colors), colors, Modifier.weight(1f),
-            ) { onCellClick(flow?.laggard?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW)) }
-            VDivider(colors)
-            Cell(
-                "BREADTH", leaderBreadth?.band ?: "—",
-                bandColor(leaderBreadth?.band, colors), colors, Modifier.weight(1f),
-            ) { onCellClick(SheetTarget.Ring(Factor.BREADTH)) }
-            VDivider(colors)
-            val topPair = state.topPair()
-            Cell(
-                "TOP PAIR", topPair.pair,
-                colors.textPrimary, colors, Modifier.weight(1f),
-            ) { onCellClick(SheetTarget.Node(topPair.pair)) }
+        SummaryButton(expanded = expanded, colors = colors) {
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            expanded = !expanded
         }
-        // strip border-bottom (mockup .strip).
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
+        items.forEachIndexed { i, item ->
+            AnimatedVisibility(
+                visible = cardVisible.getOrElse(i) { false },
+                enter = fadeIn(CASCADE_SPRING) + expandVertically(CASCADE_SPRING_SIZE, expandFrom = Alignment.Top) + scaleIn(CASCADE_SPRING, initialScale = 0.85f),
+                exit = fadeOut(CASCADE_SPRING) + shrinkVertically(CASCADE_SPRING_SIZE, shrinkTowards = Alignment.Top) + scaleOut(CASCADE_SPRING, targetScale = 0.85f),
+            ) {
+                StripCard(item, colors, modifier = Modifier.padding(top = 8.dp))
+            }
+        }
     }
 }
 
+private data class StripItem(val label: String, val value: String, val valueColor: Color, val onClick: () -> Unit)
+
+/** The "Summary" button — Pieter, 2026-09-03: a miniature of the wheel itself (hub + ring +
+ *  4 trapezoid wings, [SummaryGlyph]) as the glyph, since this button IS a summary of the wheel. */
 @Composable
-private fun VDivider(colors: AtomColors) {
-    Box(modifier = Modifier.fillMaxHeight().width(1.dp).background(colors.hairline))
+private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> Unit) {
+    val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "summaryChevron")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.surfaceRaised, CARD_SHAPE)
+            .pressWash(CARD_SHAPE, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SummaryGlyph(color = colors.textPrimary, size = 18.dp)
+        Text(
+            text = "SUMMARY",
+            style = AtomType.Caption.copy(color = colors.textPrimary),
+            modifier = Modifier.padding(start = 10.dp).weight(1f),
+        )
+        Text(
+            text = "▾",
+            style = AtomType.Caption.copy(color = colors.textMuted),
+            modifier = Modifier.rotate(chevronRotation),
+        )
+    }
 }
 
+/** A miniature of the radial dial (Item Library #01): hub + ring + 4 trapezoid wings at the
+ *  diagonals, straight-edged rather than curved — the curvature the real dial's wings use is
+ *  imperceptible at icon scale, and "trapezoid" is the wings' own name in the spec. */
 @Composable
-private fun Cell(label: String, value: String, valueColor: Color, colors: AtomColors, modifier: Modifier, onClick: () -> Unit) {
-    val haptics = LocalHapticFeedback.current
-    Column(
-        modifier = modifier
-            .pressWash {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onClick()
+private fun SummaryGlyph(color: Color, size: Dp) {
+    Canvas(modifier = Modifier.size(size)) {
+        val cx = this.size.width / 2f
+        val cy = this.size.height / 2f
+        val ringR = this.size.minDimension * 0.30f
+        val hubR = ringR * 0.4f
+        drawCircle(color = color, radius = ringR, center = Offset(cx, cy), style = Stroke(width = this.size.minDimension * 0.09f))
+        drawCircle(color = color, radius = hubR, center = Offset(cx, cy))
+
+        val wingInnerR = ringR * 1.15f
+        val wingOuterR = ringR * 1.75f
+        val innerHalfDeg = 22f
+        val outerHalfDeg = 12f
+        fun polar(r: Float, deg: Float): Offset {
+            val a = Math.toRadians((deg - 90f).toDouble())
+            return Offset(cx + r * cos(a).toFloat(), cy + r * sin(a).toFloat())
+        }
+        listOf(45f, 135f, 225f, 315f).forEach { centerDeg ->
+            val path = Path().apply {
+                val pIn0 = polar(wingInnerR, centerDeg - innerHalfDeg)
+                val pIn1 = polar(wingInnerR, centerDeg + innerHalfDeg)
+                val pOut0 = polar(wingOuterR, centerDeg - outerHalfDeg)
+                val pOut1 = polar(wingOuterR, centerDeg + outerHalfDeg)
+                moveTo(pIn0.x, pIn0.y)
+                lineTo(pOut0.x, pOut0.y)
+                lineTo(pOut1.x, pOut1.y)
+                lineTo(pIn1.x, pIn1.y)
+                close()
             }
-            .padding(vertical = 8.dp, horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            drawPath(path, color = color)
+        }
+    }
+}
+
+/** One cascaded line — "info presented inline on the card": label and value share one row on
+ *  their own grey squircle (Pieter's words), not stacked like the old micro-cells. */
+@Composable
+private fun StripCard(item: StripItem, colors: AtomColors, modifier: Modifier = Modifier) {
+    val haptics = LocalHapticFeedback.current
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colors.surfaceRaised, CARD_SHAPE)
+            .pressWash(CARD_SHAPE) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                item.onClick()
+            }
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Text(
-            text = value,
-            style = AtomType.Body.copy(color = valueColor),
-            modifier = Modifier.padding(top = 2.dp),
-        )
+        Text(text = item.label, style = AtomType.Caption.copy(color = colors.textMuted))
+        Text(text = item.value, style = AtomType.Body.copy(color = item.valueColor))
     }
 }
 

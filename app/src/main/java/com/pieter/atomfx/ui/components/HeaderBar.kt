@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -122,8 +121,9 @@ fun HeaderBar(
                 )
             }
         }
-        // app-head border-bottom (mockup .app-head).
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
+        // mockup .app-head's border-bottom is gone (Pieter, 2026-09-03) — with the Summary
+        // button's own squircle immediately below, a hairline here just sandwiched it between
+        // two grey lines instead of reading as one clean transition into it.
     }
 }
 

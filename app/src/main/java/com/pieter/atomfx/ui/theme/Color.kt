@@ -37,12 +37,17 @@ val DarkColors = AtomColors(
     textPrimary = Color(0xFFEAF0F6),
     textSecondary = Color(0xFF9DB0C0),
     textMuted = Color(0xFF61707E),
-    bull = Color(0xFF2FBF71),
-    bullSoft = Color(0xFF2FBF71).copy(alpha = 0.13f),
-    bear = Color(0xFFE5484D),
-    bearSoft = Color(0xFFE5484D).copy(alpha = 0.13f),
-    watch = Color(0xFFE7AE3A),
-    watchSoft = Color(0xFFE7AE3A).copy(alpha = 0.13f),
+    // Pieter, 2026-09-03 — "experiment: darker hues, more gravitas and settled" than the
+    // original bright green/red/amber. Deep pine/brick/ochre instead of a neon-ish signal
+    // palette. Only these three (+ their Soft alpha variants, unchanged formula) moved; every
+    // other token is untouched. Easy to revert to the previous 2FBF71/E5484D/E7AE3A if it reads
+    // too muted on-device.
+    bull = Color(0xFF24995C),
+    bullSoft = Color(0xFF24995C).copy(alpha = 0.13f),
+    bear = Color(0xFFB74246),
+    bearSoft = Color(0xFFB74246).copy(alpha = 0.13f),
+    watch = Color(0xFFB98F3A),
+    watchSoft = Color(0xFFB98F3A).copy(alpha = 0.13f),
     neutral = Color(0xFF61707E),
 )
 
@@ -56,12 +61,14 @@ val LightColors = AtomColors(
     textPrimary = Color(0xFF0E141B),
     textSecondary = Color(0xFF4B5A6B),
     textMuted = Color(0xFF8A98A8),
-    bull = Color(0xFF159E5B),
-    bullSoft = Color(0xFF159E5B).copy(alpha = 0.09f),
-    bear = Color(0xFFD0383D),
-    bearSoft = Color(0xFFD0383D).copy(alpha = 0.08f),
-    watch = Color(0xFFB27A16),
-    watchSoft = Color(0xFFB27A16).copy(alpha = 0.08f),
+    // Same experiment as DarkColors above, ~15% darker than the previous 159E5B/D0383D/B27A16
+    // (already more muted than the dark-theme originals, so a lighter touch here).
+    bull = Color(0xFF128A50),
+    bullSoft = Color(0xFF128A50).copy(alpha = 0.09f),
+    bear = Color(0xFFB43237),
+    bearSoft = Color(0xFFB43237).copy(alpha = 0.08f),
+    watch = Color(0xFF9B6B14),
+    watchSoft = Color(0xFF9B6B14).copy(alpha = 0.08f),
     neutral = Color(0xFF93A0AD),
 )
 
