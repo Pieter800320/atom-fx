@@ -1,7 +1,7 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,8 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.MacroAssetEntry
@@ -21,19 +22,23 @@ import com.pieter.atomfx.ui.wheel.WheelGeometry
 
 /**
  * Wheel v2: tapping an outer cross-asset wedge opens the full 10-asset list with the tapped
- * asset pinned to the top and highlighted (Functional Spec §6.6). Pure consumer of `macro_assets`
- * + `macro_regime.evidence` (the confirm badge); no trading number is computed here.
+ * asset pinned to the top (Functional Spec §6.6). Pure consumer of `macro_assets`; no trading
+ * number is computed here.
+ *
+ * 2026-09-03 — simplified after two rounds of feedback: the wash now tells one thing, the asset's
+ * own direction (bull wash on an up move, bear on a down move, plain otherwise) — no dot, no
+ * arrow glyph, no separate "confirms the regime" signal layered in (that was a second, different
+ * question — "is this axis supporting the regime" — competing with direction in the same colour
+ * and reading as muddled). Value/delta are vertically centred against the *whole* card (title +
+ * impact line), not just the title line, via one `Alignment.CenterVertically` Row.
  */
 @Composable
 fun CrossAssetSheet(selectedId: String, signals: Signals, colors: AtomColors) {
-    val supportingAxes = signals.macroRegime?.evidence
-        ?.filter { it.supports }?.mapNotNull { it.axis }?.toSet() ?: emptySet()
-
     // Canonical order, then float the tapped asset to the top.
     val ordered = WheelGeometry.XASSET_ORDER
         .sortedByDescending { it.first == selectedId }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SheetTitle("Cross-assets", colors)
         ordered.forEach { (key, fallbackLabel) ->
             CrossAssetRow(
@@ -41,19 +46,11 @@ fun CrossAssetSheet(selectedId: String, signals: Signals, colors: AtomColors) {
                 fallbackLabel = fallbackLabel,
                 entry = signals.macroAssets[key],
                 pinned = key == selectedId,
-                confirm = (ASSET_AXES[key] ?: emptyList()).any { it in supportingAxes },
                 colors = colors,
             )
         }
     }
 }
-
-private val ASSET_AXES: Map<String, List<String>> = mapOf(
-    "vix" to listOf("risk"), "spx" to listOf("risk"), "btc" to listOf("risk"),
-    "us10y" to listOf("rates"), "us3m" to listOf("rates"), "curve" to listOf("rates"),
-    "dxy" to listOf("usd"), "wti" to listOf("commodity"),
-    "copper" to listOf("risk", "commodity"), "gold" to listOf("commodity", "safe_haven"),
-)
 
 /** Short, presentational read of what the move implies — copy only, not a computed signal. */
 private val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
@@ -69,13 +66,17 @@ private val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
     ("btc" to true) to "risk-on", ("btc" to false) to "risk-off",
 )
 
+private val XA_CARD_SHAPE = RoundedCornerShape(14.dp)
+// Same evidence formula as Macro's EvidenceAxes / PairSheet's WhyChecklist, now keyed to the
+// asset's own direction instead of regime-support.
+private const val XA_LIT_AMOUNT = 0.08f
+
 @Composable
 private fun CrossAssetRow(
     key: String,
     fallbackLabel: String,
     entry: MacroAssetEntry?,
     pinned: Boolean,
-    confirm: Boolean,
     colors: AtomColors,
 ) {
     val dir = entry?.direction
@@ -93,51 +94,38 @@ private fun CrossAssetRow(
     } ?: "—"
     val delta = entry?.deltaPct?.let { "%+.1f%%".format(java.util.Locale.US, it) }
         ?: entry?.deltaBp?.let { "%+.1fbp".format(java.util.Locale.US, it) } ?: "—"
-    val arrow = if (up) "▲" else if (down) "▼" else "—"
     val impact = IMPACT[key to up] ?: ""
 
-    val rowModifier = if (pinned) {
-        Modifier
-            .fillMaxWidth()
-            .background(colors.surfaceRaised, RoundedCornerShape(10.dp))
-            .border(1.dp, dirColor, RoundedCornerShape(10.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp)
-    } else {
-        Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp)
+    val fill = when {
+        up -> lerp(colors.surfaceRaised, colors.bull, XA_LIT_AMOUNT)
+        down -> lerp(colors.surfaceRaised, colors.bear, XA_LIT_AMOUNT)
+        else -> colors.surfaceRaised
     }
 
-    Column(modifier = rowModifier.padding(vertical = 2.dp)) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+    // Left side (title + impact) stacks top-down inside its own Column; the value/delta on the
+    // right are direct children of this outer Row, so CenterVertically centres them against the
+    // Column's full height instead of pinning them to the title line.
+    Row(
+        modifier = Modifier.fillMaxWidth().background(fill, XA_CARD_SHAPE).padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = entry?.label ?: fallbackLabel,
                 style = AtomType.Body.copy(
                     color = colors.textPrimary,
-                    // Aesthetics pass, 2026-09-03 — was FontWeight.Bold, a weight nothing else in
-                    // AtomType uses; SemiBold is the same weight Display/Title/Caption already
-                    // carry, so pinned rows stay on the app's two established weights.
                     fontWeight = if (pinned) FontWeight.SemiBold else AtomType.Body.fontWeight,
                 ),
-                modifier = Modifier.weight(1f),
             )
-            Text(text = value, style = AtomType.Body.copy(color = colors.textPrimary))
-            Text(
-                text = "  $arrow $delta",
-                style = AtomType.Body.copy(color = dirColor),
-            )
+            if (impact.isNotBlank()) {
+                Text(
+                    text = impact,
+                    style = AtomType.Caption.copy(color = colors.textSecondary),
+                    modifier = Modifier.padding(top = 3.dp),
+                )
+            }
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 2.dp)) {
-            Text(
-                text = if (impact.isNotBlank()) impact else " ",
-                style = AtomType.Caption.copy(color = colors.textSecondary),
-                modifier = Modifier.weight(1f),
-            )
-            ConfirmBadge(confirm, colors)
-        }
+        Text(text = value, style = AtomType.Body.copy(color = colors.textPrimary))
+        Text(text = "  $delta", style = AtomType.Body.copy(color = dirColor))
     }
-}
-
-@Composable
-private fun ConfirmBadge(confirm: Boolean, colors: AtomColors) {
-    val (label, color: Color) = if (confirm) "CONFIRMS" to colors.bull else "—" to colors.textMuted
-    Text(text = label, style = AtomType.Caption.copy(color = color))
 }

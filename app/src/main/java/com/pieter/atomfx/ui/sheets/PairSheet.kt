@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.PairBlock
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.chart.LineChart
+import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.wheel.Direction
@@ -172,6 +173,9 @@ private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomCol
 
 // Same restraint as Macro's EVIDENCE_LIT_AMOUNT (design doc §2.4/§7.4's own glow alphas).
 private const val WHY_LIT_AMOUNT = 0.08f
+// EvidenceDot's own width (7dp) + the row's 10dp spacing after it — see CrossAssetSheet's
+// matching XA_DOT_INDENT.
+private val WHY_DOT_INDENT = 17.dp
 
 @Composable
 private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
@@ -193,27 +197,28 @@ private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?
                 isBlocker -> colors.bear
                 else -> colors.textMuted
             }
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth().background(fill, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.Top,
             ) {
-                Text(text = "●", style = AtomType.Body.copy(color = dotColor), modifier = Modifier.padding(end = 10.dp, top = 1.dp))
-                Column(modifier = Modifier.weight(1f)) {
+                // Dot centred against just the title line — see EvidenceDot's own note on why a
+                // dedicated CenterVertically row beats Alignment.Top + a text glyph.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    EvidenceDot(color = dotColor, modifier = Modifier.padding(end = 10.dp))
                     Text(
                         text = row.factor.shortLabel.uppercase(),
                         style = AtomType.Caption.copy(color = if (isBlocker) colors.bear else colors.textPrimary),
                     )
-                    Text(
-                        text = row.explanation,
-                        style = AtomType.Body.copy(color = colors.textSecondary),
-                        modifier = Modifier.padding(top = 3.dp),
-                    )
-                    Text(
-                        text = row.value,
-                        style = AtomType.Caption.copy(color = colors.textMuted),
-                        modifier = Modifier.padding(top = 3.dp),
-                    )
                 }
+                Text(
+                    text = row.explanation,
+                    style = AtomType.Body.copy(color = colors.textSecondary),
+                    modifier = Modifier.padding(start = WHY_DOT_INDENT, top = 3.dp),
+                )
+                Text(
+                    text = row.value,
+                    style = AtomType.Caption.copy(color = colors.textMuted),
+                    modifier = Modifier.padding(start = WHY_DOT_INDENT, top = 3.dp),
+                )
             }
         }
     }

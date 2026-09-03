@@ -32,6 +32,7 @@ import com.pieter.atomfx.data.model.CurrencyBias
 import com.pieter.atomfx.data.model.MacroAssetEntry
 import com.pieter.atomfx.data.model.MacroEvidence
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -204,10 +205,7 @@ private fun EvidenceAxes(evidence: List<MacroEvidence>, colors: AtomColors) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(
-                    text = "●",
-                    style = AtomType.Body.copy(color = if (e.supports) colors.bull else colors.textMuted),
-                )
+                EvidenceDot(color = if (e.supports) colors.bull else colors.textMuted)
                 Text(
                     text = AXIS_LABELS[e.axis] ?: e.axis ?: "—",
                     style = AtomType.Caption.copy(color = colors.textMuted),
