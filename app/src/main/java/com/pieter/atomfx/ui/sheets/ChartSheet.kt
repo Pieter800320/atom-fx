@@ -1,8 +1,14 @@
 package com.pieter.atomfx.ui.sheets
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,8 +19,12 @@ import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.chart.LineChart
 import com.pieter.atomfx.ui.theme.AtomColors
+import com.pieter.atomfx.ui.theme.AtomType
 
 private val TABS = listOf("D1", "H4", "H1")
+// Same card shape/fill Pair sheet's own Spark3Row cards use — this chart is the same content
+// (LineChart, D1/H4/H1), just one at a time and full-size instead of three small previews.
+private val CARD_SHAPE = RoundedCornerShape(14.dp)
 
 /** Design §16/§19.1 — long-press a node opens this: the native 3-TF close-price line, no candles. */
 @Composable
@@ -40,7 +50,17 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
         if (closes.size < 2) {
             NotAvailableRow("Price history (${TABS[selectedTab]})", colors)
         } else {
-            LineChart(closes, colors, modifier = Modifier.fillMaxWidth().height(160.dp))
+            val pct = (closes.last() - closes.first()) / closes.first() * 100.0
+            Column(modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = TABS[selectedTab], style = AtomType.Body.copy(color = colors.textMuted))
+                    Text(
+                        text = "%+.1f%%".format(java.util.Locale.US, pct),
+                        style = AtomType.Body.copy(color = if (pct >= 0) colors.bull else colors.bear),
+                    )
+                }
+                LineChart(closes, colors, modifier = Modifier.fillMaxWidth().height(160.dp).padding(top = 8.dp))
+            }
         }
     }
 }
