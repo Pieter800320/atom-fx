@@ -75,9 +75,12 @@ const val SIGNALS_TOPIC = "atomfx-signals"
 /** The 3-tab nav (Build Status "Decision 1 RESOLVED"): Currency strength lives in the wheel's
  *  own Currencies/Pairs toggle (wheel v2), so there's no separate Currency tab here — this
  *  supersedes Functional Spec §2's original 4-tab `Wheel · Currency · Macro · Insights` list. */
-private enum class AppTab(val label: String, val glyph: String) {
-    Wheel("WHEEL", "◎"),
-    Macro("MACRO", "◭"),
+private enum class AppTab(val label: String, val glyph: String, val glyphScale: Float = 1f) {
+    Wheel("HOME", "⌂"),
+    // Pieter, 2026-09-03 — the diamond glyph's own glyph box carries a lot of built-in
+    // whitespace vs. the house/star glyphs, so it reads smaller than them at the same
+    // font size; scaled up on its own to visually match.
+    Macro("MACRO", "◈", glyphScale = 1.4f),
     Insights("INSIGHTS", "✦"),
 }
 
@@ -268,6 +271,7 @@ private fun AtomGearBar(
 // Icon-sized, not body-copy-sized — deliberately outside the 4-level type scale (Design §3),
 // same reasoning as the Summary glyph's own independent sizing: these are glyphs, not language.
 private val ICON_GLYPH_SIZE = 22.sp
+private val NAV_GLYPH_SIZE = 22.sp
 
 private fun formatUpdated(updated: String?): String {
     val timestamp = updated ?: return "—"
@@ -298,7 +302,13 @@ private fun AtomBottomNav(
                         onSelect(tab)
                     },
                     icon = {
-                        Text(text = tab.glyph, style = AtomType.Body.copy(color = if (selected) colors.textPrimary else colors.textMuted))
+                        Text(
+                            text = tab.glyph,
+                            style = AtomType.Body.copy(
+                                color = if (selected) colors.textPrimary else colors.textMuted,
+                                fontSize = NAV_GLYPH_SIZE * tab.glyphScale,
+                            ),
+                        )
                     },
                     label = {
                         Text(text = tab.label, style = AtomType.Caption.copy(color = if (selected) colors.textPrimary else colors.textMuted))
