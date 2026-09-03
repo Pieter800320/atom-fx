@@ -31,15 +31,16 @@ fun CalendarSheet(signals: Signals, colors: AtomColors) {
             return@Column
         }
 
-        events.forEach { event -> CalendarEventRow(event, colors) }
+        events.forEachIndexed { index, event ->
+            if (index > 0) SheetDivider(colors)
+            CalendarEventRow(event, colors)
+        }
     }
 }
 
-/** Non-private: also reused by `InsightsScreen` (Architecture §8.2) so a calendar row renders
- *  identically wherever it appears. */
 @Composable
 internal fun CalendarEventRow(event: CalendarEvent, colors: AtomColors) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Text(
             text = event.currency ?: "—",
             style = AtomType.Caption.copy(color = colors.bear),
@@ -48,8 +49,14 @@ internal fun CalendarEventRow(event: CalendarEvent, colors: AtomColors) {
                 .padding(horizontal = 6.dp, vertical = 3.dp),
         )
         Column(modifier = Modifier.padding(start = 10.dp)) {
+            // Name-first, matching InsightsScreen's own InsightsCalendarRow ordering — was
+            // "day time · name", read as a timestamp-led list rather than an event-led one.
             Text(
-                text = "${event.day ?: ""} ${event.time ?: ""} · ${event.name ?: "—"}",
+                text = buildString {
+                    append(event.name ?: "—")
+                    val meta = listOfNotNull(event.day, event.time).joinToString(" ")
+                    if (meta.isNotBlank()) append(" · $meta")
+                },
                 style = AtomType.Body.copy(color = colors.textPrimary),
             )
             Text(

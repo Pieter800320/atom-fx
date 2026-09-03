@@ -42,8 +42,6 @@ fun RecommendationSheet(signals: Signals, colors: AtomColors) {
     }
 }
 
-/** Non-private: also reused by `InsightsScreen` (Architecture §8.2) so the recommendation card
- *  renders identically wherever it appears. */
 @Composable
 internal fun RecommendationContent(rec: RecommendationBlock, colors: AtomColors) {
     SheetTitle(rec.headline ?: "RECOMMENDATION", colors)
@@ -90,10 +88,14 @@ private fun actionTint(action: String?, colors: AtomColors) = when (action) {
     else -> colors.textMuted
 }
 
+// Locale.US explicitly — the default locale can render month abbreviations differently
+// (e.g. "sept." instead of "Sep"), same class of bug swept out of the number formatters elsewhere.
+private val CATALYST_TIME_FORMAT = DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US)
+
 private fun catalystLine(catalyst: NextCatalyst): String {
     val event = catalyst.event ?: return "—"
     val time = catalyst.iso?.let {
-        runCatching { OffsetDateTime.parse(it).format(DateTimeFormatter.ofPattern("MMM d, HH:mm")) }.getOrNull()
+        runCatching { OffsetDateTime.parse(it).format(CATALYST_TIME_FORMAT) }.getOrNull()
     }
     return if (time != null) "$event ($time)" else event
 }
