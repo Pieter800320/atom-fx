@@ -91,9 +91,11 @@ fun BottomSheetHost(
                     Factor.REGIME -> RegimeSheet(signals, colors)
                     Factor.FLOW -> CurrencyFlowSheet(signals, colors, onCurrencyClick = { onNavigate(SheetTarget.Currency(it)) })
                     Factor.BREADTH -> BreadthSheet(signals, colors)
+                    // PairSheet's tabs collapsed to [Overview, Breakdown] (2026-09-03) — Momentum/
+                    // Structure/Entry all now live in the single Breakdown tab (index 1).
                     Factor.MOMENTUM -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
-                    Factor.STRUCTURE -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 2)
-                    Factor.ENTRY -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 3)
+                    Factor.STRUCTURE -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
+                    Factor.ENTRY -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
                 }
 
                 is SheetTarget.Node -> {

@@ -29,7 +29,7 @@ import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 import com.pieter.atomfx.ui.wheel.PotentialState
 
-private val TABS = listOf("Overview", "Momentum", "Structure", "Entry", "Macro", "Correlation")
+private val TABS = listOf("Overview", "Breakdown")
 
 // Mirrors Home/Macro/Insights' CARD_SHAPE — the one standard card radius — but the fill is
 // `surfaceRaised`, not `cardSurface`: a sheet's own background is already `surface`, and
@@ -52,6 +52,12 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * treatment as Macro's EVIDENCE axes, extended with a third state Macro doesn't need: the single
  * blocked factor (§25's "unmistakable" requirement) gets a bear-tinted card of its own, not just
  * red text, so it's not just "not green" but visibly *the* problem.
+ *
+ * Follow-up, same day (Pieter's direct ask) — Momentum/Structure/Entry/Macro/Correlation
+ * collapsed from five separate tabs into one "Breakdown" tab: each was 2-5 rows on its own (Entry
+ * always has two permanently "Not available" rows — Reset score/ATR percentile aren't in the data
+ * contract at all), too little content each to justify its own tab switch. Two tabs now:
+ * "Overview" (the WHY verdict) and "Breakdown" (everything else, one scroll).
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -64,12 +70,31 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {
             0 -> WhyChecklist(node, signals, pairBlock, colors)
-            1 -> MomentumTabContent(pairBlock?.mom, colors)
-            2 -> StructureTabContent(pairBlock?.structure, colors)
-            3 -> EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors)
-            4 -> MacroTabContent(signals, colors)
-            5 -> CorrelationTabContent(node.pair, signals, colors)
+            else -> BreakdownContent(node, signals, pairBlock, colors)
         }
+    }
+}
+
+@Composable
+private fun BreakdownContent(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }
+        SheetDivider(colors)
+        BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
+        SheetDivider(colors)
+        BreakdownSection("ENTRY", colors) { EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors) }
+        SheetDivider(colors)
+        BreakdownSection("MACRO", colors) { MacroTabContent(signals, colors) }
+        SheetDivider(colors)
+        BreakdownSection("CORRELATION", colors) { CorrelationTabContent(node.pair, signals, colors) }
+    }
+}
+
+@Composable
+private fun BreakdownSection(label: String, colors: AtomColors, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(text = label, style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(bottom = 8.dp))
+        content()
     }
 }
 
@@ -137,8 +162,9 @@ private const val WHY_LIT_AMOUNT = 0.08f
 
 @Composable
 private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
+    // Pieter, 2026-09-03 — dropped the "WHY?" caption above the checklist; the six cards read as
+    // a checklist on their own, right under the Overview tab, without needing a label to say so.
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = "WHY?", style = AtomType.Caption.copy(color = colors.textSecondary))
         whyRows(node, signals, pairBlock).forEach { row ->
             val isBlocker = node.blockedAt == row.factor
             // Macro's EVIDENCE treatment (card + dot + subtle wash), extended with a third state
@@ -320,7 +346,7 @@ private fun CorrelationTabContent(pair: String, signals: Signals, colors: AtomCo
             .sortedByDescending { kotlin.math.abs(it.second) }
             .take(5)
             .forEach { (otherPair, value) ->
-                SheetRow(otherPair, "%+.2f".format(value), colors, correlationColor(value, colors))
+                SheetRow(otherPair, "%+.2f".format(java.util.Locale.US, value), colors, correlationColor(value, colors))
             }
     }
 }

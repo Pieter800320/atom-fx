@@ -86,9 +86,13 @@ private fun CrossAssetRow(
         down -> colors.bear
         else -> colors.textSecondary
     }
-    val value = entry?.value?.let { if (kotlin.math.abs(it) >= 100) "%.0f".format(it) else "%.2f".format(it) } ?: "—"
-    val delta = entry?.deltaPct?.let { "%+.1f%%".format(it) }
-        ?: entry?.deltaBp?.let { "%+.1fbp".format(it) } ?: "—"
+    // Locale.US explicitly — the default locale's decimal separator (e.g. a comma) isn't what a
+    // trading number should ever render with, regardless of device region.
+    val value = entry?.value?.let {
+        if (kotlin.math.abs(it) >= 100) "%.0f".format(java.util.Locale.US, it) else "%.2f".format(java.util.Locale.US, it)
+    } ?: "—"
+    val delta = entry?.deltaPct?.let { "%+.1f%%".format(java.util.Locale.US, it) }
+        ?: entry?.deltaBp?.let { "%+.1fbp".format(java.util.Locale.US, it) } ?: "—"
     val arrow = if (up) "▲" else if (down) "▼" else "—"
     val impact = IMPACT[key to up] ?: ""
 

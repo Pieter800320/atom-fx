@@ -16,9 +16,11 @@ import com.pieter.atomfx.ui.theme.AtomColors
 @Composable
 fun EntryTabContent(setupRank: Double?, pairBlock: PairBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        SheetRow("Setup score", setupRank?.let { "%.1f / 10".format(it) } ?: "—", colors)
+        // Locale.US explicitly — the default locale's decimal separator (e.g. a comma) isn't what
+        // a trading number should ever render with, regardless of device region.
+        SheetRow("Setup score", setupRank?.let { "%.1f / 10".format(java.util.Locale.US, it) } ?: "—", colors)
         SheetRow("Continuation", pairBlock?.cont?.let { "$it%" } ?: "—", colors)
-        SheetRow("ADX", pairBlock?.adx?.let { "%.1f".format(it) } ?: "—", colors)
+        SheetRow("ADX", pairBlock?.adx?.let { "%.1f".format(java.util.Locale.US, it) } ?: "—", colors)
         SheetDivider(colors)
         NotAvailableRow("Reset score", colors)
         NotAvailableRow("ATR percentile", colors)

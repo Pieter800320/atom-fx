@@ -25,7 +25,8 @@ fun StructureTabContent(structure: StructureBlock?, colors: AtomColors) {
 
         val h4 = structure.h4
         SheetRow("Last event (H4)", h4?.event?.uppercase() ?: "—", colors)
-        SheetRow("Strength (H4)", h4?.strength?.let { "%.2f".format(it) } ?: "—", colors)
+        // Locale.US — see EntrySheet.kt's same fix.
+        SheetRow("Strength (H4)", h4?.strength?.let { "%.2f".format(java.util.Locale.US, it) } ?: "—", colors)
 
         if (h4?.event == "CHoCH") {
             Text(
