@@ -23,15 +23,25 @@ object WheelGeometry {
     /** 8 currencies — risk-off bloc first so a "bloom" reads risk-on/off at a glance (Design §6A). */
     val CCY_ORDER = listOf("USD", "JPY", "CHF", "EUR", "GBP", "CAD", "AUD", "NZD")
 
-    /** 10 cross-assets: (macro_assets key, display label). Order = outer-ring position. */
+    // Pieter, 2026-09-03 — reordered to match the confirm-rule's own axis groupings
+    // (WHEEL_V2_SPEC.md §3: risk / rates / usd / commodity·safe-haven) instead of the previous
+    // near-arbitrary order, which had BTC stranded at the very end instead of with the rest of
+    // its own risk cluster.
+    /** 10 cross-assets: (macro_assets key, display label). Order = outer-ring position, grouped
+     *  risk (VIX, SPX, BTC) → rates (US10Y, US3M, 10Y-3M curve) → USD (DXY) →
+     *  commodity/safe-haven (WTI, Copper, Gold). */
     val XASSET_ORDER = listOf(
-        "vix" to "VIX", "spx" to "SPX", "us10y" to "US10Y", "us3m" to "US3M",
-        "curve" to "10Y-3M", "dxy" to "DXY", "wti" to "WTI", "copper" to "COPPER",
-        "gold" to "GOLD", "btc" to "BTC",
+        "vix" to "VIX", "spx" to "SPX", "btc" to "BTC",
+        "us10y" to "US10Y", "us3m" to "US3M", "curve" to "10Y-3M",
+        "dxy" to "DXY",
+        "wti" to "WTI", "copper" to "COPPER", "gold" to "GOLD",
     )
 
-    /** Rotates all wedges a touch clockwise so nothing starts exactly at 12 o'clock (mockup). */
-    const val START_OFFSET_DEG = 15f
+    // Pieter, 2026-09-03 — the fixed 15° "nothing starts exactly at 12 o'clock" rotation is gone:
+    // USD (currencies) and EURUSD (pairs) are meant to be the wheel's own anchors — the reserve
+    // currency and the world's most-traded pair — and a shared flat offset put neither of them
+    // there (their wedge CENTRES landed at ~37.5°/~30° respectively, not 0°). See
+    // [centerOffsetDeg] below for why one shared constant could never have centred both anyway.
 
     // Radius fractions of the canvas half-side (mockup viewBox 800, centre 400).
     const val HUB_FRAC = 0.275f      // hub outer radius (110/400)
@@ -79,11 +89,21 @@ object WheelGeometry {
 
     fun sliceDeg(count: Int): Float = 360f / count
 
+    /**
+     * The rotation that puts segment 0's CENTRE exactly at 12 o'clock (0°) for a ring of [count]
+     * segments — segment 0 spans `0..slice` with no offset, so its centre sits at `slice/2`;
+     * this cancels that out. Computed per-[count], not a single shared constant, because rings
+     * of different sizes need different offsets to each achieve this — currencies (8, 45°/slice)
+     * need −22.5°, pairs (12, 30°/slice) need −15°; no one value centres both at once.
+     */
+    fun centerOffsetDeg(count: Int): Float = -180f / count
+
     /** The (a0, a1) compass-degree span of segment [index] of [count], leaving a [gapDeg] gutter. */
     fun segAngles(count: Int, index: Int, gapDeg: Float): Pair<Float, Float> {
         val slice = sliceDeg(count)
-        val a0 = START_OFFSET_DEG + index * slice + gapDeg
-        val a1 = START_OFFSET_DEG + (index + 1) * slice - gapDeg
+        val offset = centerOffsetDeg(count)
+        val a0 = offset + index * slice + gapDeg
+        val a1 = offset + (index + 1) * slice - gapDeg
         return a0 to a1
     }
 
@@ -107,7 +127,8 @@ object WheelGeometry {
     /** Which segment index a compass degree falls in, for a ring of [count] segments. */
     fun segIndexAt(count: Int, deg: Float): Int {
         val slice = sliceDeg(count)
-        val rel = ((deg - START_OFFSET_DEG) % 360f + 360f) % 360f
+        val offset = centerOffsetDeg(count)
+        val rel = ((deg - offset) % 360f + 360f) % 360f
         return (rel / slice).toInt().coerceIn(0, count - 1)
     }
 }

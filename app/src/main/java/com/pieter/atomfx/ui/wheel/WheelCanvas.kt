@@ -134,10 +134,10 @@ fun WheelCanvas(
     activeCurrencies.forEach { strengthAnims.getOrPut(it.code) { Animatable(it.strength.toFloat()) } }
 
     LaunchedEffect(state.nodes) {
-        state.nodes.forEach { n -> levelAnims[n.pair]?.animateTo(n.level.toFloat(), tween(500)) }
+        state.nodes.forEach { n -> levelAnims[n.pair]?.animateTo(n.level.toFloat(), tween(125)) }
     }
     LaunchedEffect(activeCurrencies) {
-        activeCurrencies.forEach { c -> strengthAnims[c.code]?.animateTo(c.strength.toFloat(), tween(500)) }
+        activeCurrencies.forEach { c -> strengthAnims[c.code]?.animateTo(c.strength.toFloat(), tween(125)) }
     }
 
     Canvas(
@@ -472,7 +472,12 @@ private fun DrawScope.drawCornerButtons(
     val cornerRadiusPx = px(7f)
     // The mode toggle is always "on" — the wheel is always in one of its two modes, never
     // neither — so it always carries the selected/white-border look; only its label swaps.
-    val modeLabel = if (mode == WheelMode.PAIRS) "PAIRS" else "CURRENCIES"
+    // Pieter, 2026-09-03 — labelled by the METRIC (what the radius/fill means), not the entity
+    // type (which set of wedges you're looking at) — the ring itself already makes the entity
+    // type obvious (currency codes vs. pair codes), but not what the fill actually represents.
+    // Still never "Strength" for pairs (Glossary/WHEEL_V2_SPEC §0's rule): each mode keeps its
+    // own correct metric name, this just changes which of the two ideas the label leads with.
+    val modeLabel = if (mode == WheelMode.PAIRS) "POTENTIAL" else "STRENGTH"
     // Pieter, 2026-09-03: the selection border itself disappears in Pairs mode, not just the tap
     // response — the TF buttons must read as fully inert (no white anywhere among them) rather
     // than "H4 is still nominally chosen, just unresponsive." It reappears on the currently-active
