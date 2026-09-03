@@ -10,29 +10,24 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.Ramp
 import com.pieter.atomfx.ui.theme.csColor
+import com.pieter.atomfx.ui.theme.darken
+import com.pieter.atomfx.ui.theme.lighten
 import com.pieter.atomfx.ui.theme.stepColor
 import kotlin.math.max
 import kotlin.math.min
@@ -77,6 +74,21 @@ private fun rampFor(direction: Direction): Ramp = when (direction) {
 private const val GAP_DEG = 1.0f          // gutter between wedges
 private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of the ring span
 
+// Pieter, 2026-09-03 — every highlighted/emphasis border on the wheel (selection outlines, the
+// cross-asset "moving" rim, the corner buttons' selected border), thinned from a flat 2px.
+private const val HIGHLIGHT_STROKE_PX = 1.2f
+// The cross-asset ring's own "moving" stroke was 1.6px (not 2px like the rest) — thinned
+// proportionally to the same degree as HIGHLIGHT_STROKE_PX's cut from 2px.
+private const val XA_MOVING_STROKE_PX = 1.0f
+
+// Pieter, 2026-09-03 — tap-selection no longer draws a border anywhere on the wheel (the wings/
+// corner buttons are the one deliberate exception — untouched, see drawCornerButtons): a
+// translucent wash instead, same "electric" technique as the cross-asset moving cells. Uses
+// colors.textPrimary, not a literal Color.White — the exact bug already found and fixed in
+// pressWash (a hardcoded white wash is invisible in light mode; textPrimary is near-white in
+// dark theme and near-black in light theme, so it reads in both).
+private const val TAP_WASH_ALPHA = 0.16f
+
 /**
  * The Wheel v2 radial dial. Three zones: outer cross-asset ring, a middle ring that cross-fades
  * between currencies and pairs, and the regime hub. Angular identity is fixed (WheelGeometry);
@@ -94,7 +106,12 @@ fun WheelCanvas(
     onLongPress: (String) -> Unit = {},
 ) {
     val textMeasurer = rememberTextMeasurer()
-    var selectedKey by remember { mutableStateOf<String?>(null) }
+    // Pieter, 2026-09-03 — tap feedback is a brief flash, not a persistent "selected" state:
+    // snaps to full wash on tap, animates back down to 0. Keyed per-element so multiple wedges/
+    // wings can each hold their own independent fade. Applies to every tappable thing on the
+    // dial, wings included.
+    val tapFlash = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
+    val tapScope = rememberCoroutineScope()
     val activeCurrencies = state.currenciesFor(timeframe)
 
     // Cross-fade the middle ring on mode change (1 = pairs, 0 = currencies).
@@ -116,34 +133,11 @@ fun WheelCanvas(
     val strengthAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
     activeCurrencies.forEach { strengthAnims.getOrPut(it.code) { Animatable(it.strength.toFloat()) } }
 
-    // Rim-glow "flash and settle": a brief overshoot the moment a pair *earns* its tradeable/A+
-    // rim, easing back down to its steady glow — the wheel's biggest moment of drama gets to feel
-    // earned, not just appear. Steady state is 1f (no extra flash); a fresh transition snaps up
-    // and springs back down.
-    val rimFlash = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
-    val prevTradeable = remember { mutableMapOf<String, Boolean>() }
-    state.nodes.forEach { rimFlash.getOrPut(it.pair) { Animatable(1f) } }
-
     LaunchedEffect(state.nodes) {
         state.nodes.forEach { n -> levelAnims[n.pair]?.animateTo(n.level.toFloat(), tween(500)) }
     }
     LaunchedEffect(activeCurrencies) {
         activeCurrencies.forEach { c -> strengthAnims[c.code]?.animateTo(c.strength.toFloat(), tween(500)) }
-    }
-    LaunchedEffect(state.nodes) {
-        state.nodes.forEach { n ->
-            val isTradeableNow = n.state == PotentialState.TRADEABLE || n.state == PotentialState.APLUS
-            val wasTradeable = prevTradeable[n.pair]
-            if (isTradeableNow && wasTradeable == false) {
-                rimFlash[n.pair]?.let { anim ->
-                    launch {
-                        anim.snapTo(2.4f)
-                        anim.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
-                    }
-                }
-            }
-            prevTradeable[n.pair] = isTradeableNow
-        }
     }
 
     Canvas(
@@ -152,7 +146,14 @@ fun WheelCanvas(
                 onTap = { offset ->
                     val target = hitTest(offset, size.width.toFloat(), size.height.toFloat(), mode)
                     if (target != null) {
-                        selectedKey = keyOf(target)
+                        val key = keyOf(target)
+                        // Launched on a scope outside detectTapGestures' own coroutine, so the
+                        // ~350ms fade never blocks the next tap from being detected.
+                        tapScope.launch {
+                            val anim = tapFlash.getOrPut(key) { Animatable(0f) }
+                            anim.snapTo(1f)
+                            anim.animateTo(0f, tween(350))
+                        }
                         onTap(target)
                     }
                 },
@@ -169,20 +170,23 @@ fun WheelCanvas(
             dotAlpha = dotAlpha,
             levelAnims = levelAnims,
             strengthAnims = strengthAnims,
-            rimFlash = rimFlash,
-            selectedKey = selectedKey,
+            tapFlash = tapFlash,
         )
     }
 }
 
+// Fixed, mode/timeframe-VALUE-independent keys for the two wing kinds — a ModeToggle target
+// carries the mode it would switch TO (not which physical button was pressed, and there's only
+// one mode button anyway), so a fixed key sidesteps that entirely; a TimeframeToggle target's
+// own timeframe already unambiguously identifies which of the three buttons was tapped.
 private fun keyOf(t: WheelTapTarget): String = when (t) {
     is WheelTapTarget.Nucleus -> "hub"
     is WheelTapTarget.Node -> "pair:${t.pair}"
     is WheelTapTarget.Currency -> "ccy:${t.code}"
     is WheelTapTarget.CrossAsset -> "xa:${t.id}"
     is WheelTapTarget.Ring -> "ring"
-    is WheelTapTarget.ModeToggle -> "toggle:${t.mode}"
-    is WheelTapTarget.TimeframeToggle -> "tf:${t.timeframe}"
+    is WheelTapTarget.ModeToggle -> "wing:mode"
+    is WheelTapTarget.TimeframeToggle -> "wing:${t.timeframe.name.lowercase()}"
 }
 
 // ── Hit testing ──────────────────────────────────────────────────────────────────────────────
@@ -240,18 +244,6 @@ private fun DrawScope.wedgePath(cx: Float, cy: Float, r0: Float, r1: Float, a0: 
     p.arcTo(inner, start + sweep, -sweep, forceMoveTo = false)
     p.close()
     return p
-}
-
-/** A real blurred halo behind [path] (Design §2.4: "glow... blurred"), not just an opaque stroke. */
-private fun DrawScope.glowStroke(path: Path, color: Color, widthPx: Float, blurPx: Float) {
-    val paint = Paint().apply {
-        this.color = color.toArgb()
-        style = Paint.Style.STROKE
-        strokeWidth = widthPx
-        isAntiAlias = true
-        maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
-    }
-    drawContext.canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
 }
 
 /** A soft blurred disc — used for ambient "lifted off the surface" shadows. */
@@ -326,8 +318,7 @@ private fun DrawScope.drawDial(
     dotAlpha: Float,
     levelAnims: Map<String, Animatable<Float, *>>,
     strengthAnims: Map<String, Animatable<Float, *>>,
-    rimFlash: Map<String, Animatable<Float, *>>,
-    selectedKey: String?,
+    tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val cx = size.width / 2f
     val cy = size.height / 2f
@@ -342,29 +333,42 @@ private fun DrawScope.drawDial(
         ),
     )
 
-    drawCrossAssetRing(state, colors, cx, cy, half, selectedKey)
-    drawCornerButtons(mode, timeframe, colors, cx, cy, half)
+    drawCrossAssetRing(state, colors, cx, cy, half, tapFlash)
+    drawCornerButtons(mode, timeframe, colors, cx, cy, half, tapFlash)
 
     // Middle ring cross-fade: draw whichever side has any alpha.
     val ccyAlpha = 1f - modeProgress
     val pairAlpha = modeProgress
     if (ccyAlpha > 0.02f) {
         scale(lerp01(0.9f, 1f, ccyAlpha), pivot = Offset(cx, cy)) {
-            drawCurrencyRing(activeCurrencies, colors, cx, cy, half, ccyAlpha, strengthAnims, selectedKey)
+            drawCurrencyRing(activeCurrencies, colors, cx, cy, half, ccyAlpha, strengthAnims, tapFlash)
         }
     }
     if (pairAlpha > 0.02f) {
         scale(lerp01(0.9f, 1f, pairAlpha), pivot = Offset(cx, cy)) {
-            drawPairRing(state, colors, cx, cy, half, pairAlpha, levelAnims, rimFlash, selectedKey)
+            drawPairRing(state, colors, cx, cy, half, pairAlpha, levelAnims, tapFlash)
         }
     }
 
-    drawHub(state, colors, cx, cy, half, dotAlpha, textMeasurer, selectedKey)
+    drawHub(state, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
 }
+
+/** Reads the current tap-flash value (0f if never/no-longer flashing) for [key]. */
+private fun flashOf(tapFlash: Map<String, Animatable<Float, *>>, key: String): Float =
+    tapFlash[key]?.value ?: 0f
 
 private fun lerp01(a: Float, b: Float, t: Float): Float = a + (b - a) * t.coerceIn(0f, 1f)
 
-private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float, selectedKey: String?) {
+/**
+ * Pieter, 2026-09-03 — simplified to a two-state indicator: moving (any non-flat direction, up or
+ * down alike) is green, inert (flat) is dim. Was previously three dimensions at once (up/down/
+ * flat direction × regime-confirm × label emphasis) — deliberately dropped the direction (green
+ * vs. red) and regime-confirm distinctions from the ring itself; both are still one tap away in
+ * the Cross Asset sheet (Functional Spec §6.6), which keeps its full up/down arrows and
+ * confirm/dim badges unchanged. The ring's own job now is exactly what Pieter asked for: "which
+ * cross assets are moving, and which aren't" — nothing more.
+ */
+private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float, tapFlash: Map<String, Animatable<Float, *>>) {
     val g = WheelGeometry
     val r0 = g.XA_R0_FRAC * half
     val r1 = g.XA_R1_FRAC * half
@@ -373,19 +377,23 @@ private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors
     state.crossAssets.forEach { xa ->
         val (a0, a1) = g.segAngles(count, xa.index, GAP_DEG * 0.6f)
         val mid = g.midDeg(count, xa.index)
-        val dirColor = when {
-            xa.flat -> colors.textSecondary
-            xa.up -> colors.bull
-            else -> colors.bear
-        }
-        val bg = if (xa.confirm) colors.surfaceRaised else colors.surface
-        val stroke = if (xa.confirm) dirColor else colors.hairline
+        val moving = !xa.flat
+        // Item Library-worthy pattern, per Pieter (2026-09-03) — the noting app's selected
+        // control-pill "electric" look (bright edge + a translucent wash of the SAME hue, not a
+        // neutral fill): bright rim colour repeated as a low-alpha fill rather than the neutral
+        // surfaceRaised the wedge used before. Drawn over the dial's own radial ground gradient,
+        // so it reads as a tinted glass wash, not an opaque card.
+        val bg = if (moving) colors.bull.copy(alpha = 0.18f) else colors.surface
+        val stroke = if (moving) colors.bull else colors.hairline
         val path = wedgePath(cx, cy, r0, r1, a0, a1)
         drawPath(path, color = bg)
-        drawPath(path, color = stroke.copy(alpha = if (xa.confirm) 0.9f else 0.4f), style = Stroke(if (xa.confirm) px(1.6f) else px(0.9f)))
-        val labelColor = if (xa.confirm) colors.textPrimary else colors.textMuted
-        curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = true)
-        if (selectedKey == "xa:${xa.id}") drawPath(path, color = colors.textPrimary.copy(alpha = 0.8f), style = Stroke(px(2f)))
+        drawPath(path, color = stroke.copy(alpha = if (moving) 0.9f else 0.4f), style = Stroke(if (moving) px(XA_MOVING_STROKE_PX) else px(0.9f)))
+        // Pieter, 2026-09-03 — the label matches the wash/rim colour when moving, brighter still
+        // (lighten further than the rim itself) so it reads as the most vivid part of the cell.
+        val labelColor = if (moving) lighten(colors.bull, 0.45f) else colors.textMuted
+        curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = false)
+        val flash = flashOf(tapFlash, "xa:${xa.id}")
+        if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
     }
 }
 
@@ -462,7 +470,7 @@ private fun DrawScope.straightLabel(cx: Float, cy: Float, r: Float, midDeg: Floa
     nativeCanvas.restoreToCount(save)
 }
 
-private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean)
+private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val flashKey: String)
 
 /**
  * The four corner buttons — a 4th ring shaped and placed to read as chrome rather than data:
@@ -478,7 +486,10 @@ private data class CornerButtonSpec(val label: String, val centerDeg: Float, val
  * gets no separate treatment; it reads identically to any other unselected button, exactly like
  * its tap being dropped reads identically to tapping empty space.
  */
-private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float) {
+private fun DrawScope.drawCornerButtons(
+    mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    tapFlash: Map<String, Animatable<Float, *>>,
+) {
     val g = WheelGeometry
     val r0 = g.TOGGLE_R0_FRAC * half
     val r1 = g.TOGGLE_R1_FRAC * half
@@ -494,10 +505,10 @@ private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, c
     val inCurrencies = mode == WheelMode.CURRENCIES
 
     listOf(
-        CornerButtonSpec(modeLabel, g.TOGGLE_MODE_CENTER_DEG, true),
-        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, inCurrencies && timeframe == Timeframe.D1),
-        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, inCurrencies && timeframe == Timeframe.H4),
-        CornerButtonSpec("H1", g.TOGGLE_H1_CENTER_DEG, inCurrencies && timeframe == Timeframe.H1),
+        CornerButtonSpec(modeLabel, g.TOGGLE_MODE_CENTER_DEG, true, "wing:mode"),
+        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, inCurrencies && timeframe == Timeframe.D1, "wing:d1"),
+        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, inCurrencies && timeframe == Timeframe.H4, "wing:h4"),
+        CornerButtonSpec("H1", g.TOGGLE_H1_CENTER_DEG, inCurrencies && timeframe == Timeframe.H1, "wing:h1"),
     ).forEach { spec ->
         val angles = g.cornerButtonAngles(spec.centerDeg)
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
@@ -505,19 +516,27 @@ private fun DrawScope.drawCornerButtons(mode: WheelMode, timeframe: Timeframe, c
         drawPath(
             path,
             color = if (spec.selected) colors.textPrimary else colors.hairline,
-            style = Stroke(if (spec.selected) px(2f) else px(1f)),
+            style = Stroke(if (spec.selected) px(HIGHLIGHT_STROKE_PX) else px(1f)),
         )
+        // Pieter, 2026-09-03 — wings get the same brief tap wash as every other cell (the one
+        // deliberate exception is that they KEEP their own white border on top of it, unlike
+        // every other ring, whose persistent selection border was replaced by a wash entirely).
+        val flash = flashOf(tapFlash, spec.flashKey)
+        if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
         val outerB = g.polar(cx, cy, r1, angles.outerA0)
         val outerC = g.polar(cx, cy, r1, angles.outerA1)
         val chordWidth = kotlin.math.sqrt((outerC.x - outerB.x).let { it * it } + (outerC.y - outerB.y).let { it * it }) * 0.9f
-        val labelColor = if (spec.selected) colors.textPrimary else colors.textMuted
-        straightLabel(cx, cy, labelR, spec.centerDeg, chordWidth, spec.label, labelColor, sp(11f), bold = true)
+        // Pieter, 2026-09-03 — inert (Pairs mode) D1/H4/H1 labels now match their own border
+        // colour (hairline) instead of textMuted, so an inert wing reads as one dim unit exactly
+        // like the cross-asset ring's inert cells do. Currencies-mode behaviour is unchanged.
+        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else colors.hairline
+        straightLabel(cx, cy, labelR, spec.centerDeg, chordWidth, spec.label, labelColor, sp(11f), bold = false)
     }
 }
 
 private fun DrawScope.drawCurrencyRing(
     currencies: List<CurrencySeg>, colors: AtomColors, cx: Float, cy: Float, half: Float,
-    alpha: Float, strengthAnims: Map<String, Animatable<Float, *>>, selectedKey: String?,
+    alpha: Float, strengthAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
     val r0 = g.RING_R0_FRAC * half
@@ -539,16 +558,23 @@ private fun DrawScope.drawCurrencyRing(
         val v = (strengthAnims[c.code]?.value ?: c.strength.toFloat())
         val fillEnd = r0 + (graphMax - r0) * (v / 100f)
         val fillPath = wedgePath(cx, cy, r0 + 2f, max(r0 + 3f, fillEnd), a0 + 1.2f, a1 - 1.2f)
-        // Brighter the further from the hub — radius already carries the meaning, so the
-        // fill reinforces it: a muted blend near the hub ramping to the full accent at the tip.
+        // Depth via shade, not a blend toward a neutral surface token (Pieter, 2026-09-03 — the
+        // old version read as dirty/washed out, not shadowed) — a true shadow of the same hue
+        // near the hub, growing in gradations out to a highlight catching the light at the tip.
+        // Continuous, unlike the pair ring's flat per-band steps: CSM strength is a continuous
+        // 0-100 value, not a discrete factor count, so its depth cue should read as one smooth
+        // gradient across the whole fill, not a stepped one.
+        // 2026-09-03 follow-up — inner shade brought down from 0.3f (read as too dark at the
+        // hub); outer lift raised to keep the "gradually brighter toward the rim" shape strong.
         val full = csColor(c.strength, colors)
-        val dim = lerp(colors.surfaceRaised, full, 0.35f)
+        val inner = darken(full, 0.15f)
+        val outer = lighten(full, 0.2f)
         val gradRadius = max(fillEnd, r0 + 4f)
         val innerStop = (r0 / gradRadius).coerceIn(0f, 0.95f)
         drawPath(
             fillPath,
             brush = Brush.radialGradient(
-                colorStops = arrayOf(innerStop to dim, 1f to full),
+                colorStops = arrayOf(innerStop to inner, 1f to outer),
                 center = Offset(cx, cy),
                 radius = gradRadius,
             ),
@@ -558,14 +584,15 @@ private fun DrawScope.drawCurrencyRing(
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.8f, a1 - 0.8f)
         drawPath(platePath, color = colors.surface.copy(alpha = alpha))
 
-        curvedLabel(cx, cy, labelR, mid, a0, a1, c.code, colors.textPrimary.copy(alpha = alpha), sp(15f), bold = true)
-        if (selectedKey == "ccy:${c.code}") drawPath(bgPath, color = colors.textPrimary.copy(alpha = 0.8f * alpha), style = Stroke(px(2f)))
+        curvedLabel(cx, cy, labelR, mid, a0, a1, c.code, colors.textPrimary.copy(alpha = alpha), sp(15f), bold = false)
+        val flash = flashOf(tapFlash, "ccy:${c.code}")
+        if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash * alpha))
     }
 }
 
 private fun DrawScope.drawPairRing(
     state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
-    alpha: Float, levelAnims: Map<String, Animatable<Float, *>>, rimFlash: Map<String, Animatable<Float, *>>, selectedKey: String?,
+    alpha: Float, levelAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
     val r0 = g.RING_R0_FRAC * half
@@ -586,10 +613,12 @@ private fun DrawScope.drawPairRing(
         drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
         drawPath(bgPath, color = colors.hairline.copy(alpha = 0.5f * alpha), style = Stroke(px(0.9f)))
 
-        // Step bands, growing to the animated level. Each band is itself a radial gradient —
-        // muted at its own inner edge, full stepColor at its outer edge — same "brighter further
-        // from the hub" language as the currency ring, while keeping the 6 levels visibly
-        // distinct (this is discrete data — a count of factors passed — unlike currency strength).
+        // Step bands, growing to the animated level. Pieter, 2026-09-03: each band is now a
+        // FLAT fill (stepColor(k, ...) is already a genuine shade of the ramp colour, darker at
+        // low k, full accent at k=6 — see Color.kt) rather than its own internal radial gradient
+        // — the depth cue here is the discrete jump between adjacent bands' shades, not a smooth
+        // blend within one, since this is discrete data (a count of factors passed), unlike the
+        // currency ring's continuous strength value.
         val levelValue = (levelAnims[node.pair]?.value ?: node.level.toFloat()).coerceIn(0f, 6f)
         val fillFrac = levelValue / 6f
         for (k in 1..6) {
@@ -600,19 +629,7 @@ private fun DrawScope.drawPairRing(
             val rIn = r0 + (graphMax - r0) * innerFrac
             val rOut = r0 + (graphMax - r0) * topFrac
             val bandPath = wedgePath(cx, cy, rIn + 1f, rOut, a0 + 2f, a1 - 2f)
-            val full = stepColor(k, ramp, colors)
-            val dim = lerp(colors.surfaceRaised, full, 0.45f)
-            val gradRadius = max(rOut, rIn + 2f)
-            val innerStop = (rIn / gradRadius).coerceIn(0f, 0.95f)
-            drawPath(
-                bandPath,
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(innerStop to dim, 1f to full),
-                    center = Offset(cx, cy),
-                    radius = gradRadius,
-                ),
-                alpha = 0.9f * alpha,
-            )
+            drawPath(bandPath, color = stepColor(k, ramp, colors), alpha = 0.9f * alpha)
         }
 
         // Blocking-factor marker: a bright hairline at the top of the filled stack.
@@ -624,22 +641,13 @@ private fun DrawScope.drawPairRing(
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
         drawPath(platePath, color = colors.surface.copy(alpha = alpha))
-        curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary.copy(alpha = alpha), sp(12f), bold = true)
+        curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary.copy(alpha = alpha), sp(12f), bold = false)
 
-        // A+/tradeable rim glow — a real blurred halo (Design §2.4) behind the crisp rim stroke.
-        // The moment a pair earns this rim, [rimFlash] briefly overshoots (bigger, brighter halo)
-        // and eases back to its steady glow — the wheel's biggest moment gets to feel earned.
-        if (node.state == PotentialState.TRADEABLE || node.state == PotentialState.APLUS) {
-            val isAplus = node.state == PotentialState.APLUS
-            val rimColor = tintForDir(node.direction, colors)
-            val flash = (rimFlash[node.pair]?.value ?: 1f).coerceAtLeast(1f)
-            val glowAlpha = ((if (isAplus) 0.5f else 0.28f) * alpha * flash).coerceAtMost(1f)
-            val glowSize = (if (isAplus) 6f else 4f) * flash.coerceAtMost(1.7f)
-            val glowBlur = (if (isAplus) 9f else 6f) * flash.coerceAtMost(1.9f)
-            glowStroke(bgPath, rimColor.copy(alpha = glowAlpha), px(glowSize), px(glowBlur))
-            drawPath(bgPath, color = rimColor.copy(alpha = (if (isAplus) 0.9f else 0.5f) * alpha), style = Stroke(px(2f)))
-        }
-        if (selectedKey == "pair:${node.pair}") drawPath(bgPath, color = colors.textPrimary.copy(alpha = 0.8f * alpha), style = Stroke(px(2f)))
+        // Pieter, 2026-09-03 — the A+/tradeable rim glow is gone entirely (was a blurred halo,
+        // before that also a crisp stroke). A level-6 pair is now indicated by its fill alone
+        // (stepColor's own full accent colour at step 6) — no separate rim treatment at all.
+        val flash = flashOf(tapFlash, "pair:${node.pair}")
+        if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash * alpha))
     }
 }
 
@@ -651,7 +659,7 @@ private fun tintForDir(direction: Direction, colors: AtomColors): Color = when (
 
 private fun DrawScope.drawHub(
     state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
-    dotAlpha: Float, textMeasurer: TextMeasurer, selectedKey: String?,
+    dotAlpha: Float, textMeasurer: TextMeasurer, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val r = WheelGeometry.HUB_FRAC * half
     val center = Offset(cx, cy)
@@ -663,7 +671,8 @@ private fun DrawScope.drawHub(
     drawCircle(brush = Brush.radialGradient(listOf(colors.surfaceRaised, colors.surface), center, r), radius = r, center = center)
     drawCircle(color = colors.hairlineStrong, radius = r, center = center, style = Stroke(px(1.5f)))
     drawCircle(color = tint.copy(alpha = 0.5f), radius = r, center = center, style = Stroke(px(1f)))
-    if (selectedKey == "hub") drawCircle(color = colors.textPrimary.copy(alpha = 0.8f), radius = r, center = center, style = Stroke(px(2f)))
+    val hubFlash = flashOf(tapFlash, "hub")
+    if (hubFlash > 0f) drawCircle(color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * hubFlash), radius = r, center = center)
 
     // Pulsating regime dot near the top of the hub.
     drawCircle(color = tint.copy(alpha = dotAlpha), radius = px(3f), center = Offset(cx, cy - r * 0.62f))

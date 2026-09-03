@@ -78,19 +78,36 @@ val LightColors = AtomColors(
 enum class Ramp { BULL, BEAR, NEUTRAL }
 
 /**
- * The colour for step [step] (1..6) on a [ramp]. Interpolates the token's soft→full colour so a
- * level-1 band is muted and a level-6 band is the full accent — the mockup's 6-stop green/red
- * ladder, but expressed through [AtomColors] so it re-tints correctly in light mode.
+ * Darkens [color] toward black by [amount] (0..1) — a genuine shade of the same hue, not a blend
+ * toward a neutral background token. Blending toward `surfaceRaised` (the wheel's original
+ * technique) desaturates the colour as it darkens, which reads as "washed out"/dirty rather than
+ * "in shadow" — mixing toward black keeps the hue intact the way a real shadow would.
  */
+fun darken(color: Color, amount: Float): Color = lerp(color, Color.Black, amount.coerceIn(0f, 1f))
+
+/** Lightens [color] toward white by [amount] (0..1) — the highlight counterpart to [darken],
+ *  for the "catches the light" end of a shaded gradient. */
+fun lighten(color: Color, amount: Float): Color = lerp(color, Color.White, amount.coerceIn(0f, 1f))
+
+/**
+ * The colour for step [step] (1..6) on a [ramp] — a genuine shade of the ramp's accent colour
+ * (darker at low steps, the full accent at step 6), not a blend toward a neutral background
+ * token (Pieter, 2026-09-03: the old blend-toward-`surfaceRaised` version read as "dirty" rather
+ * than shadowed). Evenly spaced: each step down from 6 darkens by another 1/6 of [MAX_STEP_SHADE].
+ *
+ * 2026-09-03 follow-up — brought down from 0.4f: step 1 (the innermost/lowest band) still read as
+ * too dark. Lower [MAX_STEP_SHADE] = a lighter starting point at step 1, same gradual brightening
+ * shape up to the untouched full colour at step 6.
+ */
+private const val MAX_STEP_SHADE = 0.2f
 fun stepColor(step: Int, ramp: Ramp, c: AtomColors): Color {
-    val s = step.coerceIn(1, 6) / 6f
+    val clamped = step.coerceIn(1, 6)
     val full = when (ramp) {
         Ramp.BULL -> c.bull
         Ramp.BEAR -> c.bear
         Ramp.NEUTRAL -> c.neutral
     }
-    val lo = lerp(c.surfaceRaised, full, 0.25f)
-    return lerp(lo, full, 0.15f + 0.85f * s)
+    return darken(full, (6 - clamped) / 6f * MAX_STEP_SHADE)
 }
 
 /** Currency-strength colour (0..100) — mirrors the mockup's csColor: green ramp at/above 50, else red. */
