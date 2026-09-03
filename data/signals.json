@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T23:44:49.087267+00:00",
+  "updated": "2026-09-03T02:26:05.006632+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -735,20 +735,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4428.2,
-      "delta_pct": 1.8,
+      "value": 4457.4,
+      "delta_pct": 2.5,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.596,
-      "delta_pct": -0.1,
+      "value": 99.529,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.605,
-      "delta_pct": 1.5,
+      "value": 6.611,
+      "delta_pct": 1.6,
       "direction": "up",
       "label": "Copper"
     },
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.68,
-      "delta_pct": 0.5,
+      "value": 91.06,
+      "delta_pct": 0.9,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77118.0,
-      "delta_pct": -0.4,
+      "value": 77478.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT accelerates: GBP/USD falling on hawkish Fed supports JPY strength, validates short setup.",
-    "updated": "2026-09-02T23:44:49.087267+00:00"
+    "text": "GBPJPY SHORT accelerates: stronger BOJ hike case from Japan PMI supports JPY strength. USDCHF LONG supported by hawkish Fed narrative lifting DXY broadly.",
+    "updated": "2026-09-03T02:26:05.006632+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rising confirms JPY strength bid thesis clearly.\n\nGBPJPY SHORT: Gold rising confirms JPY strength bid thesis clearly.\n\nUSDCHF LONG: Risk-on low challenges USD strength narrative weakly.",
+    "text": "NZDJPY SHORT: Gold rally confirms JPY strength bias today.\n\nGBPJPY SHORT: Gold appreciation reinforces safe haven yen demand signal.\n\nUSDCHF LONG: Risk-on weakness challenges dollar strength confirmation thesis.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -806,7 +806,7 @@
         "score": 5.35
       }
     ],
-    "updated": "2026-09-02T23:44:49.087267+00:00"
+    "updated": "2026-09-03T02:26:05.006632+00:00"
   },
   "calendar": {
     "events": [
@@ -861,24 +861,24 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-02T23:44:49.087267+00:00"
+    "updated": "2026-09-03T02:26:05.006632+00:00"
   },
   "deep_analysis": {
-    "text": "Unavailable (HTTP Error 404: Not Found)",
-    "generated_at": "2026-09-02T14:00:05.009959+00:00"
+    "text": "Cross-asset signals are pulling in different directions this session. Gold's firmer while VIX slides and equities grind higher, a combination that doesn't fit a clean risk-off or risk-on script, and DXY sitting flat reinforces that indecision. Headlines lean hawkish-Fed, with commentary pointing to lifted rate-hike bets pressuring European currencies while yen support builds on stronger Japanese inflation data. Copper and oil both firming hints at underlying demand resilience despite the mixed tape. The dollar bloc and risk-sensitive currencies remain in a tug-of-war",
+    "generated_at": "2026-09-03T02:26:32.746495+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hawkish rhetoric lifts DXY; EUR/USD and GBP/USD fall sharply",
-      "DXY targets 99.58 as jobs week tests Fed rate hike bets",
-      "Jackson Hole volatility expected for EUR/JPY and AUD/USD pairs"
+      "Fed hike bets lift DXY as EUR/USD and GBP/USD fall sharply",
+      "Japan services PMI hits five-month high, strengthens BOJ hike case",
+      "DXY eyes 99.58 as jobs week tests hawkish Fed expectations"
     ],
     "themes": [
       "rates",
       "rates",
-      "usd"
+      "rates"
     ],
-    "updated": "2026-09-02T23:44:49.087267+00:00"
+    "updated": "2026-09-03T02:26:05.006632+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
