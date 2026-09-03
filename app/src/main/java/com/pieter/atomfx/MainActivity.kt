@@ -164,10 +164,14 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 AtomGearBar(
                     colors = colors,
-                    // Pieter, 2026-09-03 — the Macro tab reads "MACRO" instead of the "ATOM FX"
-                    // wordmark, matching the mockup's own per-screen header(...) calls
-                    // (header("MACRO", …) vs header("ATOM FX", …)). Wheel/Insights unchanged.
-                    wordmark = if (AppTab.entries.getOrNull(pagerState.currentPage) == AppTab.Macro) "MACRO" else "ATOM FX",
+                    // Pieter, 2026-09-03 — Macro/Insights read their own tab name instead of the
+                    // "ATOM FX" wordmark, matching the mockup's own per-screen header(...) calls
+                    // (header("MACRO", …), header("INSIGHTS", …)). Wheel/Home keeps the wordmark.
+                    wordmark = when (AppTab.entries.getOrNull(pagerState.currentPage)) {
+                        AppTab.Macro -> "MACRO"
+                        AppTab.Insights -> "INSIGHTS"
+                        else -> "ATOM FX"
+                    },
                     updated = loaded?.signals?.updated,
                     isFresh = loaded?.freshness == Freshness.FRESH,
                     onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
