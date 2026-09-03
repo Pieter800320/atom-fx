@@ -3,19 +3,29 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Quiet nucleus + two rings, echoing the Energy Wheel this app is named for. -->
+    <!-- Pieter, 2026-09-03 — mirrors the wheel itself: the Summary button's own glyph
+         (StatusStrip.kt's SummaryGlyph — hub + ring + 4 tapered trapezoid wings at the
+         diagonals), not a generic rings-and-dot mark. Same geometry ratios as the in-app
+         glyph (ringR/hubR/wingInnerR/wingOuterR, the 22°/12° wing taper), scaled so the
+         wing tips sit inside the 66dp adaptive-icon safe zone (radius 33 from centre). -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#2FBF71"
-        android:strokeWidth="1.5"
-        android:pathData="M54,30 a24,24 0 1,1 -0.1,0 z" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#2FBF71"
-        android:strokeWidth="1.5"
-        android:strokeAlpha="0.5"
-        android:pathData="M54,18 a36,36 0 1,1 -0.1,0 z" />
+        android:strokeWidth="5.22"
+        android:pathData="M54,36.6 a17.4,17.4 0 1,1 -0.1,0 z" />
     <path
         android:fillColor="#2FBF71"
-        android:pathData="M54,46 a8,8 0 1,1 -0.1,0 z" />
+        android:pathData="M54,47.04 a6.96,6.96 0 1,1 -0.1,0 z" />
+    <group android:pivotX="54" android:pivotY="54" android:rotation="0">
+        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="90">
+        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="180">
+        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="270">
+        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+    </group>
 </vector>

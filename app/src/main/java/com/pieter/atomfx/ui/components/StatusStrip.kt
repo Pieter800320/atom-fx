@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -190,7 +191,11 @@ private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> 
         SummaryGlyph(color = colors.textPrimary, size = 18.dp)
         Text(
             text = "SUMMARY",
-            style = AtomType.Caption.copy(color = colors.textPrimary),
+            // Pieter, 2026-09-03 — Caption's default weight is SemiBold, same tier Display/Title
+            // (the app's actual heading styles) use, so it read as a heading despite being the
+            // smallest size. Normal here, same move ScrollingPills' electric pills already made
+            // for the same reason.
+            style = AtomType.Caption.copy(color = colors.textPrimary, fontWeight = FontWeight.Normal),
             modifier = Modifier.padding(start = 10.dp).weight(1f),
         )
         Text(

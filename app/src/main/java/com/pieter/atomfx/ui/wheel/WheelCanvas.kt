@@ -25,7 +25,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -63,28 +63,25 @@ internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
 private const val GAP_DEG = 1.0f          // gutter between wedges
 private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of the ring span
 
-// Pieter, 2026-09-03 — every highlighted/emphasis border on the wheel (selection outlines, the
-// cross-asset "moving" rim, the corner buttons' selected border), thinned from a flat 2px.
-private const val HIGHLIGHT_STROKE_PX = 1.2f
-// The cross-asset ring's own "moving" stroke was 1.6px (not 2px like the rest) — thinned
-// proportionally to the same degree as HIGHLIGHT_STROKE_PX's cut from 2px.
-private const val XA_MOVING_STROKE_PX = 1.0f
-
-// Pieter, 2026-09-03 — tap-selection no longer draws a border anywhere on the wheel (the wings/
-// corner buttons are the one deliberate exception — untouched, see drawCornerButtons): a
-// translucent wash instead, same "electric" technique as the cross-asset moving cells. Uses
-// colors.textPrimary, not a literal Color.White — the exact bug already found and fixed in
-// pressWash (a hardcoded white wash is invisible in light mode; textPrimary is near-white in
-// dark theme and near-black in light theme, so it reads in both).
+// Pieter, 2026-09-03 — tap-selection no longer draws a border anywhere on the wheel, corner
+// buttons included (2026-09-03 follow-up dropped their own selected-state white border too — see
+// drawCornerButtons): a translucent wash instead, same "electric" technique as the cross-asset
+// moving cells. Uses colors.textPrimary, not a literal Color.White — the exact bug already found
+// and fixed in pressWash (a hardcoded white wash is invisible in light mode; textPrimary is
+// near-white in dark theme and near-black in light theme, so it reads in both).
 private const val TAP_WASH_ALPHA = 0.16f
 
-// Aesthetics pass, 2026-09-03 — was 0.18f with no base plate beneath it (drawn straight onto the
-// wheel's near-black radial field), measuring ~1.2:1 fill-vs-ground separation — well under the
-// 3:1 WCAG non-text minimum, i.e. barely readable as a coloured region (the label text carried
-// all the legibility). Raised, and drawCrossAssetRing now plates each wedge with surfaceRaised
-// first — the same base the pair/currency rings already use — so the wash has something lighter
-// to sit on. Still a wash, not a solid fill; revisit if it now reads as too heavy.
-private const val XA_WASH_ALPHA = 0.4f
+// "Soft corners everywhere else in the app, why not the wheel" experiment, 2026-09-03 — every
+// wash cell (cross-asset cells, the green/red graph fill on the Potential/Strength rings) now
+// uses the exact same colour formula as an Electric Treatment pill (ScrollingPills.kt's own
+// wash = tint@18%, see the Macro "Confidence" pill), no border, corners rounded via
+// [roundedWedgePath]. Previously 0.4f with a coloured border, added when the un-plated wash read
+// as nearly invisible (~1.2:1) — that fix was to the wrong thing; the pill's own 18% reads fine
+// once composited onto the surfaceRaised plate every wash cell already sits on.
+private const val XA_WASH_ALPHA = 0.18f
+
+// Matches the corner buttons' own outer-corner rounding (drawCornerButtons' cornerRadiusPx).
+private const val WHEEL_CELL_CORNER_RADIUS_DP = 7f
 
 /**
  * The Wheel v2 radial dial. Three zones: outer cross-asset ring, a middle ring that cross-fades
@@ -244,14 +241,52 @@ private fun DrawScope.wedgePath(cx: Float, cy: Float, r0: Float, r1: Float, a0: 
 }
 
 /**
- * The graph fill's own border stroke (a [Stroke] on the same closed path as the fill). Aesthetics
- * pass, 2026-09-03 follow-up — [StrokeJoin.Round] specifically: the default miter join, stroked
- * along [wedgePath]'s curved arcs (themselves built from short bezier segments), was catching
- * miter spikes at those internal segment joints — the outer arc's the longest, most visibly
- * curved edge, so it read as a thicker, more saturated leading edge than the dead-straight radial
- * sides even though the stroke width was identical everywhere. Round join has no spike to catch.
+ * Same shape as [wedgePath], all four corners rounded by [cornerRadiusPx]. Pieter, 2026-09-03
+ * follow-up — the first cut used Skia's `CornerPathEffect` on the plain [wedgePath]; on-device
+ * that read as a straight chamfer cut into each corner, not a curve — `CornerPathEffect` doesn't
+ * reliably round joins on a path built from `arcTo` segments the way it does on plain polylines.
+ * This hand-rounds each corner instead: trim a small amount off both adjoining edges (an angular
+ * trim on each arc, a radial trim on each straight side) and connect the trimmed ends with a
+ * `quadraticTo` through the original sharp corner — the exact technique `taperedCornerPath`
+ * already uses for the corner buttons' own two rounded corners, just applied to all four here.
  */
-private val GRAPH_BORDER_JOIN = StrokeJoin.Round
+private fun DrawScope.roundedWedgePath(cx: Float, cy: Float, r0: Float, r1: Float, a0: Float, a1: Float, cornerRadiusPx: Float): Path {
+    val g = WheelGeometry
+    val outerRect = Rect(cx - r1, cy - r1, cx + r1, cy + r1)
+    val innerRect = Rect(cx - r0, cy - r0, cx + r0, cy + r0)
+    val sweep = a1 - a0
+    val maxTrimDeg = kotlin.math.abs(sweep) * 0.45f
+    val outerTrimDeg = Math.toDegrees((cornerRadiusPx / r1).toDouble()).toFloat().coerceIn(0f, maxTrimDeg)
+    val innerTrimDeg = if (r0 > 1f) Math.toDegrees((cornerRadiusPx / r0).toDouble()).toFloat().coerceIn(0f, maxTrimDeg) else 0f
+    val sideLen = (r1 - r0).coerceAtLeast(0.01f)
+    val radialTrim = cornerRadiusPx.coerceIn(0f, sideLen * 0.45f)
+
+    val pOuterA0 = g.polar(cx, cy, r1, a0)
+    val pOuterA1 = g.polar(cx, cy, r1, a1)
+    val pInnerA0 = g.polar(cx, cy, r0, a0)
+    val pInnerA1 = g.polar(cx, cy, r0, a1)
+    val pSideA0Outer = g.polar(cx, cy, r1 - radialTrim, a0)
+    val pSideA0Inner = g.polar(cx, cy, r0 + radialTrim, a0)
+    val pSideA1Outer = g.polar(cx, cy, r1 - radialTrim, a1)
+    val pSideA1Inner = g.polar(cx, cy, r0 + radialTrim, a1)
+    val pOuterArcStart = g.polar(cx, cy, r1, a0 + outerTrimDeg)
+    val pInnerArcNearA1 = g.polar(cx, cy, r0, a1 - innerTrimDeg)
+
+    val startDeg = a0 - 90f // compass → Android arc convention (0° at 3 o'clock), as in wedgePath
+
+    return Path().apply {
+        moveTo(pSideA0Outer.x, pSideA0Outer.y)
+        quadraticTo(pOuterA0.x, pOuterA0.y, pOuterArcStart.x, pOuterArcStart.y)                 // round outer-a0 corner
+        arcTo(outerRect, startDeg + outerTrimDeg, sweep - 2 * outerTrimDeg, forceMoveTo = false) // outer arc
+        quadraticTo(pOuterA1.x, pOuterA1.y, pSideA1Outer.x, pSideA1Outer.y)                      // round outer-a1 corner
+        lineTo(pSideA1Inner.x, pSideA1Inner.y)                                                   // side at a1
+        quadraticTo(pInnerA1.x, pInnerA1.y, pInnerArcNearA1.x, pInnerArcNearA1.y)                // round inner-a1 corner
+        arcTo(innerRect, startDeg + sweep - innerTrimDeg, -(sweep - 2 * innerTrimDeg), forceMoveTo = false) // inner arc
+        quadraticTo(pInnerA0.x, pInnerA0.y, pSideA0Inner.x, pSideA0Inner.y)                      // round inner-a0 corner
+        lineTo(pSideA0Outer.x, pSideA0Outer.y)                                                   // side at a0, back to start
+        close()
+    }
+}
 
 /** A soft blurred disc — used for ambient "lifted off the surface" shadows. */
 private fun DrawScope.glowFillCircle(center: Offset, radius: Float, color: Color, blurPx: Float) {
@@ -341,7 +376,7 @@ private fun DrawScope.drawDial(
     )
 
     drawCrossAssetRing(state, colors, isDark, cx, cy, half, tapFlash)
-    drawCornerButtons(mode, timeframe, colors, cx, cy, half, tapFlash)
+    drawCornerButtons(mode, timeframe, colors, isDark, cx, cy, half, tapFlash)
 
     // Middle ring cross-fade: draw whichever side has any alpha.
     val ccyAlpha = 1f - modeProgress
@@ -393,14 +428,13 @@ private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors
         // dim/hairline grey when flat — the mechanics are unchanged from the two-state version,
         // only which hue (or none) drives them.
         val hue = if (xa.flat) null else if (xa.up) colors.bull else colors.bear
-        val stroke = hue ?: colors.hairline
-        val path = wedgePath(cx, cy, r0, r1, a0, a1)
+        val path = roundedWedgePath(cx, cy, r0, r1, a0, a1, px(WHEEL_CELL_CORNER_RADIUS_DP))
         // Plate first (matches drawPairRing/drawCurrencyRing's own base), then the hue wash on
-        // top — see XA_WASH_ALPHA above for why.
+        // top — see XA_WASH_ALPHA above for why. Borderless, corners rounded — the pill treatment,
+        // not the old bordered/sharp-cornered cell.
         drawPath(path, color = colors.surfaceRaised)
         val bg = hue?.copy(alpha = XA_WASH_ALPHA) ?: colors.surface
         drawPath(path, color = bg)
-        drawPath(path, color = stroke.copy(alpha = if (hue != null) 0.9f else 0.4f), style = Stroke(if (hue != null) px(XA_MOVING_STROKE_PX) else px(0.9f)))
         // Aesthetics pass, 2026-09-03 — lighten(hue, 0.45) only reads against a near-black wedge
         // fill (dark theme); on a light wedge it washed the label toward white on white, nearly
         // invisible. Same fix shape as ScrollingPills' pill text: raw hue in light theme, it's
@@ -468,17 +502,15 @@ private data class CornerButtonSpec(val label: String, val centerDeg: Float, val
  * bottom-right are the Currencies-mode D1/H4/H1 timeframe toggle (Pieter, 2026-09-03 — H1 added,
  * taking the corner the old separate Currencies button used before it merged into one toggle).
  *
- * Exactly two visual states (Pieter's call, 2026-09-03 — was three: a raised fill + strong border
- * for selected, a plain fill + hairline border for unselected, and a further 45%-alpha wash for
- * inert on top of that): fill is always [colors.controlSurface] (control treatment, 2026-09-03 —
- * these are buttons, same as the Summary button/Cascade rows/ticker chips), and only the border
- * switches — white ([colors.textPrimary]) when selected (a stronger, separate "this is the active
- * choice" signal layered on top of the plain control border), [colors.controlBorder] otherwise.
- * An inert timeframe button gets no separate treatment; it reads identically to any other
+ * Fill is always [colors.controlSurface] and the border is always [colors.controlBorder] — no
+ * separate selected-state border (Pieter, 2026-09-03 follow-up: the white border read as heavy;
+ * "pressed and active" is carried by the label colour alone, [colors.textPrimary] when selected,
+ * same signal the rest of the wheel already uses text/fill colour for rather than a border). An
+ * inert timeframe button gets no separate treatment either; it reads identically to any other
  * unselected button, exactly like its tap being dropped reads identically to tapping empty space.
  */
 private fun DrawScope.drawCornerButtons(
-    mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    mode: WheelMode, timeframe: Timeframe, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float,
     tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
@@ -486,8 +518,13 @@ private fun DrawScope.drawCornerButtons(
     val r1 = g.TOGGLE_R1_FRAC * half
     val labelR = r0 + (r1 - r0) * 0.4f
     val cornerRadiusPx = px(7f)
+    // Pieter, 2026-09-03 follow-up — light theme only: controlBorder (shared with the Summary
+    // button/Cascade rows/ticker chips) read too faint against the trapezoids' own controlSurface
+    // fill specifically, so these get their own slightly-darker border rather than changing the
+    // shared token everywhere else it's used. Dark theme is untouched.
+    val borderColor = if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
     // The mode toggle is always "on" — the wheel is always in one of its two modes, never
-    // neither — so it always carries the selected/white-border look; only its label swaps.
+    // neither — so it always carries the selected look; only its label swaps.
     // Pieter, 2026-09-03 — labelled by the METRIC (what the radius/fill means), not the entity
     // type (which set of wedges you're looking at) — the ring itself already makes the entity
     // type obvious (currency codes vs. pair codes), but not what the fill actually represents.
@@ -509,14 +546,8 @@ private fun DrawScope.drawCornerButtons(
         val angles = g.cornerButtonAngles(spec.centerDeg)
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
         drawPath(path, color = colors.controlSurface)
-        drawPath(
-            path,
-            color = if (spec.selected) colors.textPrimary else colors.controlBorder,
-            style = Stroke(if (spec.selected) px(HIGHLIGHT_STROKE_PX) else px(1f)),
-        )
-        // Pieter, 2026-09-03 — wings get the same brief tap wash as every other cell (the one
-        // deliberate exception is that they KEEP their own white border on top of it, unlike
-        // every other ring, whose persistent selection border was replaced by a wash entirely).
+        drawPath(path, color = borderColor, style = Stroke(px(1f)))
+        // Pieter, 2026-09-03 — wings get the same brief tap wash as every other cell.
         val flash = flashOf(tapFlash, spec.flashKey)
         if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
         // Pieter, 2026-09-03 follow-up — curved now, not straight: every other label on the
@@ -531,10 +562,10 @@ private fun DrawScope.drawCornerButtons(
         val la0 = angles.innerA0 + (angles.outerA0 - angles.innerA0) * labelT
         val la1 = angles.innerA1 + (angles.outerA1 - angles.innerA1) * labelT
         // Pieter, 2026-09-03 — inert (Pairs mode) D1/H4/H1 labels now match their own border
-        // colour (controlBorder, was hairline before the control treatment) instead of textMuted,
+        // colour (borderColor, was hairline before the control treatment) instead of textMuted,
         // so an inert wing reads as one dim unit exactly like the cross-asset ring's inert cells
         // do. Currencies-mode behaviour is unchanged.
-        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else colors.controlBorder
+        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else borderColor
         curvedLabel(cx, cy, labelR, spec.centerDeg, la0, la1, spec.label, labelColor, sp(11f), bold = false)
     }
 }
@@ -562,16 +593,14 @@ private fun DrawScope.drawCurrencyRing(
 
         val v = (strengthAnims[c.code]?.value ?: c.strength.toFloat())
         val fillEnd = r0 + (graphMax - r0) * (v / 100f)
-        // Aesthetics pass, 2026-09-03 follow-up — wash + border now both trace fillPath, not the
-        // whole cell (bgPath): a border on bgPath put a bright ring at the wedge's OUTER edge
-        // regardless of how full the bar actually was — a mismatched "leading edge" in a different
-        // shade from the fill itself, not the fill's own edge. The electric treatment belongs to
-        // the graph (the bar), not the cell it sits in — the cell keeps only its quiet hairline.
+        // "Soft corners" experiment, 2026-09-03 — borderless, rounded, the same pill-matching
+        // wash as the cross-asset cells (XA_WASH_ALPHA). The cell itself (bgPath, above) is
+        // untouched — sharp-cornered plate + quiet hairline, same as before; only the graph fill
+        // gets the new treatment.
         val hue = if (v >= 50f) colors.bull else colors.bear
         if (fillEnd > r0 + 2f) {
-            val fillPath = wedgePath(cx, cy, r0 + 2f, fillEnd, a0 + 1.2f, a1 - 1.2f)
+            val fillPath = roundedWedgePath(cx, cy, r0 + 2f, fillEnd, a0 + 1.2f, a1 - 1.2f, px(WHEEL_CELL_CORNER_RADIUS_DP))
             drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
-            drawPath(fillPath, color = hue.copy(alpha = 0.9f), alpha = alpha, style = Stroke(px(XA_MOVING_STROKE_PX), join = GRAPH_BORDER_JOIN))
         }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.8f, a1 - 0.8f)
@@ -606,18 +635,16 @@ private fun DrawScope.drawPairRing(
         drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
         drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f * alpha), style = Stroke(px(0.9f)))
 
-        // Aesthetics pass, 2026-09-03 follow-up — wash + border now both trace the graph itself
-        // (the filled arc up to the animated level), not the whole cell: a border on the full
-        // wedge put a bright ring at its OUTER edge regardless of the actual level, reading as a
-        // mismatched "leading edge" in a different shade from the fill. The cell keeps only its
-        // quiet hairline; the electric treatment belongs to the bar, not the space around it.
+        // "Soft corners" experiment, 2026-09-03 — borderless, rounded, the same pill-matching
+        // wash as the cross-asset cells (XA_WASH_ALPHA). The cell itself (bgPath, above) is
+        // untouched — sharp-cornered plate + quiet hairline, same as before; only the graph fill
+        // gets the new treatment.
         val levelValue = (levelAnims[node.pair]?.value ?: node.level.toFloat()).coerceIn(0f, 6f)
         val fillFrac = levelValue / 6f
         if (fillFrac > 0f) {
             val rOut = r0 + (graphMax - r0) * fillFrac
-            val fillPath = wedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f)
+            val fillPath = roundedWedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f, px(WHEEL_CELL_CORNER_RADIUS_DP))
             drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
-            drawPath(fillPath, color = hue.copy(alpha = 0.9f), alpha = alpha, style = Stroke(px(XA_MOVING_STROKE_PX), join = GRAPH_BORDER_JOIN))
         }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
