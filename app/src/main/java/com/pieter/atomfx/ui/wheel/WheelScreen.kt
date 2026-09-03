@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -55,6 +56,8 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private val TICKER_HEIGHT = 30.dp
 private val TICKER_SPACING = 8.dp
@@ -86,6 +89,7 @@ fun WheelScreen(
     var mode by remember { mutableStateOf(WheelMode.PAIRS) }
     var timeframe by remember { mutableStateOf(Timeframe.H4) }
     val haptics = LocalHapticFeedback.current
+    val hapticScope = rememberCoroutineScope()
 
     LaunchedEffect(initialDeepLink) {
         if (initialDeepLink != null) activeSheet = initialDeepLink
@@ -151,12 +155,25 @@ fun WheelScreen(
                             mode = mode,
                             timeframe = timeframe,
                             onModeChange = {
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                // Aesthetics pass, 2026-09-03 — Pieter: turn the trapezoid presses'
+                                // haptics way up. LongPress (not TextHandleMove, used for every
+                                // other plain-selection tap on the dial) is the strongest standard
+                                // feedback Compose exposes — these corner buttons drive a real
+                                // mode/timeframe switch, not just a selection.
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 mode = it
                             },
                             onTimeframeChange = {
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                 timeframe = it
+                                // A second pulse once the currency ring's radial "living dial"
+                                // animation (WheelCanvas: strengthAnims, tween(125) per currency)
+                                // has landed on the new timeframe's values — the press alone
+                                // doesn't communicate that the wheel actually moved.
+                                hapticScope.launch {
+                                    delay(150)
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
                             },
                             onTap = { target ->
                                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)

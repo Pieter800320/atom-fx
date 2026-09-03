@@ -470,10 +470,12 @@ private data class CornerButtonSpec(val label: String, val centerDeg: Float, val
  *
  * Exactly two visual states (Pieter's call, 2026-09-03 — was three: a raised fill + strong border
  * for selected, a plain fill + hairline border for unselected, and a further 45%-alpha wash for
- * inert on top of that): fill is always [colors.surface], and only the border switches — white
- * ([colors.textPrimary]) when selected, [colors.hairline] otherwise. An inert timeframe button
- * gets no separate treatment; it reads identically to any other unselected button, exactly like
- * its tap being dropped reads identically to tapping empty space.
+ * inert on top of that): fill is always [colors.controlSurface] (control treatment, 2026-09-03 —
+ * these are buttons, same as the Summary button/Cascade rows/ticker chips), and only the border
+ * switches — white ([colors.textPrimary]) when selected (a stronger, separate "this is the active
+ * choice" signal layered on top of the plain control border), [colors.controlBorder] otherwise.
+ * An inert timeframe button gets no separate treatment; it reads identically to any other
+ * unselected button, exactly like its tap being dropped reads identically to tapping empty space.
  */
 private fun DrawScope.drawCornerButtons(
     mode: WheelMode, timeframe: Timeframe, colors: AtomColors, cx: Float, cy: Float, half: Float,
@@ -506,10 +508,10 @@ private fun DrawScope.drawCornerButtons(
     ).forEach { spec ->
         val angles = g.cornerButtonAngles(spec.centerDeg)
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
-        drawPath(path, color = colors.surface)
+        drawPath(path, color = colors.controlSurface)
         drawPath(
             path,
-            color = if (spec.selected) colors.textPrimary else colors.hairline,
+            color = if (spec.selected) colors.textPrimary else colors.controlBorder,
             style = Stroke(if (spec.selected) px(HIGHLIGHT_STROKE_PX) else px(1f)),
         )
         // Pieter, 2026-09-03 — wings get the same brief tap wash as every other cell (the one
@@ -529,9 +531,10 @@ private fun DrawScope.drawCornerButtons(
         val la0 = angles.innerA0 + (angles.outerA0 - angles.innerA0) * labelT
         val la1 = angles.innerA1 + (angles.outerA1 - angles.innerA1) * labelT
         // Pieter, 2026-09-03 — inert (Pairs mode) D1/H4/H1 labels now match their own border
-        // colour (hairline) instead of textMuted, so an inert wing reads as one dim unit exactly
-        // like the cross-asset ring's inert cells do. Currencies-mode behaviour is unchanged.
-        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else colors.hairline
+        // colour (controlBorder, was hairline before the control treatment) instead of textMuted,
+        // so an inert wing reads as one dim unit exactly like the cross-asset ring's inert cells
+        // do. Currencies-mode behaviour is unchanged.
+        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else colors.controlBorder
         curvedLabel(cx, cy, labelR, spec.centerDeg, la0, la1, spec.label, labelColor, sp(11f), bold = false)
     }
 }

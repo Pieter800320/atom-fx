@@ -94,7 +94,9 @@ fun TradeableNow(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .background(colors.surface, CARD_SHAPE)
+                    // Card treatment (Color.kt) — was plain `surface`, missed when Tradeable Now's
+                    // card moved to `cardSurface`; a card is a card regardless of which side it's on.
+                    .background(colors.cardSurface, CARD_SHAPE)
                     .padding(16.dp),
             ) {
                 Text(
