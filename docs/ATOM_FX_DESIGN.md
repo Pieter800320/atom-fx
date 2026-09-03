@@ -346,9 +346,21 @@ Edge panels use `surface`, 20px inner corner, a drag handle, swipe-to-dismiss, t
 
 ## 13. Bottom sheets — mechanics (spec §44)
 
-A single reusable draggable bottom sheet with **three detents**: `collapsed` (peek ~12%), `half` (~48%, **wheel remains visible behind** — spec §44), `expanded` (~92%). Supports: drag handle, swipe-down to dismiss, tap-scrim to dismiss, smooth spring. Opening any sheet keeps spatial context (the wheel breathes behind at half).
+**Superseded 2026-09-03 (Pieter, direct in-session ask) — the three-detent model below is
+replaced by a single-rise model.** `skipPartiallyExpanded = true`: a sheet rises straight to fit
+its content, no intermediate `collapsed`/`half` stop to drag through and none to get stuck at on
+the way back down — the old two-detent dismiss (drag to `half`, drag again to close) needed two
+flicks; skipping the stop means one drag-down closes it. Capped at **80% of the screen height**
+(`MAX_SHEET_HEIGHT_FRACTION`, `BottomSheetHost.kt`) so the scrim above it always shows enough of
+the screen behind to read as an overlay, not a takeover; content taller than that scrolls inside
+the sheet instead of clipping (the bug that prompted this: the Pair sheet's last WHY card was cut
+off with no way to reach it — there was no scroll container at all under the old three-detent
+setup). The wheel-visible-behind-at-half spatial-context idea is gone along with the half detent.
 
-Every sheet: `surface`, 20px top corners, drag handle, a Title, then content. Numbers tabular. No dense tables — use aligned rows and small bar meters.
+~~A single reusable draggable bottom sheet with three detents: `collapsed` (peek ~12%), `half`
+(~48%, wheel remains visible behind), `expanded` (~92%).~~ Still current: drag handle, swipe-down
+to dismiss, tap-scrim to dismiss, smooth spring, `surface`, 20px top corners, drag handle, a
+Title, then content. Numbers tabular. No dense tables — use aligned rows and small bar meters.
 
 ### 13.1 Ring → factor sheet routing
 
