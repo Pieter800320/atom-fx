@@ -1,0 +1,280 @@
+package com.pieter.atomfx.ui.settings
+
+/**
+ * The Library — Pieter's own study material (2026-09-03 ask): "a full library that explains
+ * every single element, calculation and item in the app," replacing the six-line ABOUT section.
+ *
+ * Every entry here is grounded directly in the frozen `scanner` package's own source (and the
+ * `scanner.extend` additive layer) — read in full while writing this, not paraphrased from a doc. Numbers
+ * (weights, thresholds) are quoted exactly as they appear in code as of 2026-09-03; if a frozen
+ * file or an EXTEND config value ever changes, this file goes stale and needs a re-read, the same
+ * way any other "expose, don't recompute" surface would.
+ *
+ * [howItWorks] describes the calculation in prose, not code — accurate, but for a reader who
+ * wants to understand the mechanism, not re-implement it. [whyItMatters] is the actual "why do I
+ * care" context — what a term means for reading the app day to day.
+ */
+data class LibraryEntry(
+    val id: String,
+    val term: String,
+    val category: String,
+    val summary: String,
+    val howItWorks: String,
+    val whyItMatters: String,
+)
+
+val LIBRARY_CATEGORIES = listOf(
+    "The Wheel", "The Six Factors", "Momentum & Price Action", "Currency Strength",
+    "Setup Quality", "Regime & Macro", "Cross-Asset & Correlation", "Alerts & Recommendation",
+)
+
+val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
+    LibraryEntry(
+        id = "potential",
+        term = "Potential",
+        category = "The Wheel",
+        summary = "0–100. The number that sets a pair's radius on the wheel — how far it's advanced through the six-factor gate.",
+        howItWorks = "Each pair walks through six factors in strict order (Regime → Flow → Breadth → Momentum → Structure → Entry). It only advances past a factor if it passes it; the first fail sets \"blocked at\" and stops the count there — later factors are never even checked. Level = however many it passed in a row, 0–6. Level maps to a base score (0→10, 1→25, 2→40, 3→55, 4→70, 5→85, 6→100), and Setup Rank then nudges that base up or down by up to 7 points as a quality modifier.",
+        whyItMatters = "Potential answers \"how far along is this idea\" before you even open the pair — a level-6 pair has cleared every gate; a level-2 pair stalled early, and the WHY checklist tells you exactly where.",
+    ),
+    LibraryEntry(
+        id = "level-state",
+        term = "Level & State",
+        category = "The Wheel",
+        summary = "0–6 factors passed, mapped to four labels: LOW, WATCH, TRADEABLE, A+.",
+        howItWorks = "LOW = levels 0–2. WATCH = levels 3–5. TRADEABLE = level 6. A+ is TRADEABLE's top tier: level 6 and Setup Rank ≥ 8.5.",
+        whyItMatters = "These four states are what the Tradeable Now / Watch bands and the wheel's colour language sort pairs into — the fastest read of \"is this worth a look\" on the whole app.",
+    ),
+    LibraryEntry(
+        id = "six-factor-engine",
+        term = "The Six-Factor Engine",
+        category = "The Wheel",
+        summary = "The sequential gate every pair walks through — the mechanism behind Potential and the WHY checklist.",
+        howItWorks = "Six tests run in fixed order: Regime, Flow, Breadth, Momentum, Structure, Entry. A pair must pass each one to attempt the next — there's no partial credit and no reordering. The direction being tested (long or short) comes from the pair's own D1 pill.",
+        whyItMatters = "This is why the WHY checklist always reads top-to-bottom the same way, and why the \"blocked factor\" is always the first one that failed, not just any failed one — it's the real bottleneck.",
+    ),
+    LibraryEntry(
+        id = "factor-regime",
+        term = "Factor 1 — Regime",
+        category = "The Six Factors",
+        summary = "Does the current H4 regime favour this pair's direction?",
+        howItWorks = "Passes only when the H4 regime is Risk-On or Risk-Off (never Mixed or Ranging) and a regime-fit score — built from which of the pair's two currencies belong to that regime's favoured basket, scaled by the regime's own confidence — reaches at least 7 out of 10.",
+        whyItMatters = "Stops a thesis before it starts if the broad macro backdrop doesn't support the direction at all.",
+    ),
+    LibraryEntry(
+        id = "factor-flow",
+        term = "Factor 2 — Flow",
+        category = "The Six Factors",
+        summary = "Is the base currency's momentum pulling away from the quote's, in the right direction?",
+        howItWorks = "Uses H4 CSM Delta — the spread between the base currency's delta and the quote's. Needs to be at least ±4.0 in the trade's favour (positive for a long, negative for a short).",
+        whyItMatters = "Momentum and Structure look at price; Flow looks at whether the currencies themselves are actually diverging — a different, complementary lens.",
+    ),
+    LibraryEntry(
+        id = "factor-breadth",
+        term = "Factor 3 — Breadth",
+        category = "The Six Factors",
+        summary = "Is the move broad across a currency's relationships, or just one or two pairs doing all the work?",
+        howItWorks = "For a long, the base currency needs \"strong\" breadth with at least 50% support and the quote needs \"weak\" breadth at 50%+ (or the reverse for a short). See the Breadth entry for exactly what that percentage means.",
+        whyItMatters = "A currency that's \"strong\" against only one pair is a much weaker thesis than one that's strong broadly — this factor screens out the former.",
+    ),
+    LibraryEntry(
+        id = "factor-momentum",
+        term = "Factor 4 — Momentum",
+        category = "The Six Factors",
+        summary = "Does the composite momentum reading agree with the direction?",
+        howItWorks = "Checks CMP: 60 or above passes for a long, 40 or below passes for a short. Anything in between, or missing, fails.",
+        whyItMatters = "The most direct \"is price actually moving that way right now\" check in the sequence.",
+    ),
+    LibraryEntry(
+        id = "factor-structure",
+        term = "Factor 5 — Structure",
+        category = "The Six Factors",
+        summary = "Does H4 market structure agree, without a live counter-trend warning?",
+        howItWorks = "The H4 structure direction must match the thesis, and the last structure event must not be a CHoCH (a counter-trend change of character) — BOS or no event at all is fine.",
+        whyItMatters = "A CHoCH is the market's own warning sign that the prior trend may be turning — this factor makes sure that warning isn't currently flashing against you.",
+    ),
+    LibraryEntry(
+        id = "factor-entry",
+        term = "Factor 6 — Entry",
+        category = "The Six Factors",
+        summary = "Is this actually a good place to get in — not just a good direction?",
+        howItWorks = "Needs Continuation Score of 70 or above. If Reset Score and ATR Percentile are available, Reset Score must be 55 or below (not overstretched) and ATR Percentile must sit between 20 and 70 (not dead-quiet, not spiking).",
+        whyItMatters = "The other five factors ask \"is this the right trade.\" Entry asks \"is this the right moment\" — the difference between a good idea and a good fill.",
+    ),
+    LibraryEntry(
+        id = "mom1212",
+        term = "MOM1212",
+        category = "Momentum & Price Action",
+        summary = "The core momentum oscillator, 0–100, one reading per timeframe (D1/H4/H1).",
+        howItWorks = "Compares a 12-bar moving average to itself 12 bars earlier, normalised by 14-bar ATR, then squashed through a sigmoid (tanh) curve so it always lands between 0 and 100 with 50 as neutral. Each timeframe also carries its own delta — how much that reading has moved over a fixed lookback (5 bars on D1, 30 on H4, 120 on H1).",
+        whyItMatters = "This is what \"momentum\" means everywhere in the app — the raw ingredient both CMP and the Momentum tab's bars are built from.",
+    ),
+    LibraryEntry(
+        id = "cmp",
+        term = "CMP (Composite Momentum Position)",
+        category = "Momentum & Price Action",
+        summary = "0–100. One number blending D1/H4/H1 momentum into a single composite read.",
+        howItWorks = "Weighted 50% D1, 30% H4, 20% H1 — computed on the raw, pre-sigmoid momentum values and squashed once at the end, not averaged from three already-squashed numbers.",
+        whyItMatters = "CMP is what Factor 4 (Momentum) actually gates on, and what the Momentum tab's CMP square shows.",
+    ),
+    LibraryEntry(
+        id = "structure-events",
+        term = "Structure — BOS / CHoCH",
+        category = "Momentum & Price Action",
+        summary = "Market-structure events built from genuine swing highs/lows, not an indicator.",
+        howItWorks = "Finds swing pivots (a bar strictly higher/lower than several bars on both sides), reads the trend from the last two swings (higher highs + higher lows = bull, the reverse = bear), then classifies the latest close: breaking beyond the last swing in the trend's own direction is a BOS (continuation); breaking the opposite way is a CHoCH (a potential reversal warning). A strength score, 0–1, from how far price broke past that swing relative to ATR, then scales the pair's technical score up to +30% on a BOS or down to −60% on a CHoCH.",
+        whyItMatters = "This is the one purely price-action-based signal in the whole engine — no oscillator, just where price actually broke.",
+    ),
+    LibraryEntry(
+        id = "five-state-score",
+        term = "The 5-State Technical Score",
+        category = "Momentum & Price Action",
+        summary = "The underlying Strong Buy / Buy / Neutral / Sell / Strong Sell read behind every pill colour.",
+        howItWorks = "Blends an EMA200 trend read, a 3-vote momentum group (EMA50 vs price, DMI, and MACD histogram direction), and a graduated RSI score, then scales the total by ADX strength — below ADX 15 it's zeroed out entirely, since there's no real trend to read. A structure multiplier (see BOS/CHoCH) and a same-direction-conflict penalty adjust it further before the five-state label is assigned by regime-specific thresholds.",
+        whyItMatters = "Every pill you see — D1/H4/H1, bull, bull_strong, neutral, bear, bear_strong — comes from this one engine. It's the single source of truth for \"what does this timeframe think.\"",
+    ),
+    LibraryEntry(
+        id = "csm",
+        term = "CSM (Currency Strength Model)",
+        category = "Currency Strength",
+        summary = "0–100 per currency, per timeframe — how strong or weak each of the 8 currencies is right now.",
+        howItWorks = "Every one of 16 fixed currency pairs contributes an ATR-normalised return to both its base currency (positive) and its quote currency (negative). Average each currency's contributions, then stretch the 8 currencies' averages so the weakest sits at 0 and the strongest at 100. D1 blends 14-bar D1 (70%) and H4 (30%) returns; H4 blends 5-bar H4 (80%) and 8-bar H1 (20%); H1 is pure 6-bar H1.",
+        whyItMatters = "CSM is the foundation Currency Flow, Breadth, and the Currency Wheel's own radius are all built on.",
+    ),
+    LibraryEntry(
+        id = "csm-delta",
+        term = "CSM Delta",
+        category = "Currency Strength",
+        summary = "How much a currency's CSM has moved over a defined lookback — \"getting stronger\" vs \"strong.\"",
+        howItWorks = "Recomputes CSM on a price history sliced back by a fixed offset — about a day for D1/H4, six hours for H1 — using the exact same CSM function, then subtracts: now minus then.",
+        whyItMatters = "CSM tells you a level; Delta tells you a direction of travel — together they separate a currency that's strong-and-fading from one that's strong-and-accelerating.",
+    ),
+    LibraryEntry(
+        id = "currency-flow",
+        term = "Currency Flow — Leader / Laggard",
+        category = "Currency Strength",
+        summary = "The fastest-moving currencies right now, by CSM Delta — not the strongest/weakest in absolute terms.",
+        howItWorks = "Leader = the currency with the highest H4 CSM Delta; laggard = the lowest. Absolute leader/laggard is a separate, simpler read: whichever currency has the highest or lowest raw CSM level right now, regardless of how fast it's moving.",
+        whyItMatters = "A currency can be an absolute laggard (weak) while still being the flow leader (getting less weak, fastest) — the two numbers answer different questions, and the app deliberately keeps them apart rather than blending them.",
+    ),
+    LibraryEntry(
+        id = "breadth",
+        term = "Breadth",
+        category = "Currency Strength",
+        summary = "The share of a currency's 16-pair relationships that agree with its net direction — proof a move isn't just one pair.",
+        howItWorks = "Each currency appears in a different number of the 16 CSM pairs (USD in 7, AUD in 5, GBP and JPY in 4, EUR/CHF/CAD/NZD in 3). Breadth is how many of those relationships point the same way as the currency's own net direction, divided by how many it appears in at all — always compared as a percentage, never a raw count, because the totals differ per currency. 70% or above is \"strong,\" 50% or above is \"moderate,\" below that is \"weak.\"",
+        whyItMatters = "This is the difference between \"EUR is strong\" (broad, real) and \"EUR is strong against JPY\" (one relationship — could be a JPY story, not a EUR story).",
+    ),
+    LibraryEntry(
+        id = "setup-rank",
+        term = "Setup Rank",
+        category = "Setup Quality",
+        summary = "0–10. A deterministic, frozen quality score for a pair's trade idea — independent of Potential.",
+        howItWorks = "A weighted blend: Continuation 25%, CMP 20%, momentum delta 15%, D1 CSM divergence 20%, regime fit 10%, cross-asset tailwinds 10%. Pairs with a Continuation Score below 45 are excluded from ranking entirely.",
+        whyItMatters = "Setup Rank is what nudges Potential's score up or down within a level, what the pair sheet's \"Setup score\" shows, and what decides A+ status (level 6 and Setup Rank ≥ 8.5).",
+    ),
+    LibraryEntry(
+        id = "continuation",
+        term = "Continuation Score",
+        category = "Setup Quality",
+        summary = "0–100. How likely the current move is to keep going, once you're already aware of the direction.",
+        howItWorks = "Six weighted components: timeframe alignment across D1/H4/H1 (35%), entry position — a blend of Reset Score and ATR Percentile (23%), CSM divergence (16%), regime fit (13%), rate differential (5%, currently a fixed neutral placeholder — no live rates feed), session fit (8%). Then two gates apply: capped at 45 if H4 ADX is below 20, and capped further on a counter-regime trade.",
+        whyItMatters = "This is the single number Factor 6 (Entry) and Setup Rank both lean on hardest — the app's best answer to \"will this actually continue.\"",
+    ),
+    LibraryEntry(
+        id = "reset-score",
+        term = "Reset Score",
+        category = "Setup Quality",
+        summary = "0–100. A directional mean-reversion oscillator — how \"stretched\" price is from its recent equilibrium.",
+        howItWorks = "Blends an RSI-derived position, distance from the 20-period SMA, a momentum-divergence term, and a volatility z-score. Read directionally: for a long, oversold or below-mean scores low — that's a fresh, good entry; for a short, overbought or above-mean scores low.",
+        whyItMatters = "A low Reset Score means price has pulled back to a sensible entry in your direction; a high one means you'd be chasing an already-extended move.",
+    ),
+    LibraryEntry(
+        id = "atr-percentile",
+        term = "ATR Percentile",
+        category = "Setup Quality",
+        summary = "0–100. Where today's volatility (ATR) ranks against the last 52 bars.",
+        howItWorks = "A straight percentile rank — what share of the last 52 ATR readings sit below today's.",
+        whyItMatters = "Too low, below roughly 20, means the market's too quiet to trust a breakout; too high means you might be entering into a volatility spike. 20–70 is the app's own \"sane\" entry band.",
+    ),
+    LibraryEntry(
+        id = "h4-regime",
+        term = "H4 Structural Regime",
+        category = "Regime & Macro",
+        summary = "Risk-On / Risk-Off / Mixed / Ranging — the app's read of the whole market's current mood.",
+        howItWorks = "Four votes are cast: (1) safe-havens JPY/CHF vs risk currencies AUD/NZD/CAD by CSM, (2) USD vs the other majors by CSM, (3) how many of six risk pairs' pills are bullish vs bearish, (4) a ranging override that forces \"Ranging\" outright if fewer than 40% of all 12 pairs have any directional pill at all. Two or more votes agreeing on the same side wins; all three agreeing is High confidence, two is Medium. No majority is Mixed.",
+        whyItMatters = "This is the regime shown at the wheel's hub, and it gates Factor 1 — nothing can pass Regime under a Mixed or Ranging backdrop.",
+    ),
+    LibraryEntry(
+        id = "macro-archetype",
+        term = "Macro Archetype",
+        category = "Regime & Macro",
+        summary = "One of ten named macro regimes (A–J) from the FX macro handbook, matched against real cross-asset moves.",
+        howItWorks = "Ten regimes each have a fixed strong/weak currency signature — e.g. Growth-positive risk-on favours AUD/NZD/CAD over JPY/CHF; Disinflationary easing favours AUD/NZD/EUR/GBP over USD. Five evidence axes (Risk, Rates, USD, Commodity, Safe-haven) are each read up/down/flat from the 10 cross-asset instruments, and every archetype is scored by how many distinct axes support it — not how many correlated indicators happen to agree. Confidence: High at 3 or more distinct axes, Medium at 2, Low at 1 or fewer. Liquidity Shock is always capped at Low — its correlations are considered too unstable to trust.",
+        whyItMatters = "This is the anti-double-counting discipline the whole Macro screen is built on: ten raw instruments collapse to five real, independent pieces of evidence.",
+    ),
+    LibraryEntry(
+        id = "evidence-axis",
+        term = "Evidence Axis",
+        category = "Regime & Macro",
+        summary = "One of five buckets — Risk, Rates, USD, Commodity, Safe-haven — that groups correlated cross-asset signals so they're only counted once.",
+        howItWorks = "Risk = the net of SPX/VIX/Copper/BTC direction. Rates = US10Y and US3M direction. USD = DXY direction alone. Commodity = WTI or Copper direction. Safe-haven = Gold direction.",
+        whyItMatters = "Without this grouping, a single risk-off move could look like four or five \"independent\" confirmations just because VIX, SPX, Copper and BTC all move together — axes make sure it only ever counts once.",
+    ),
+    LibraryEntry(
+        id = "gold-overlay",
+        term = "Gold Overlay",
+        category = "Regime & Macro",
+        summary = "Defensive gold vs diversification gold — two different reasons gold can be rising.",
+        howItWorks = "Only evaluated when gold is actually up. It reads as \"defensive\" if gold is rising alongside stress signals — VIX up, SPX down, or yields falling; otherwise it reads as \"diversification.\"",
+        whyItMatters = "Gold up means something different in a panic than it does in a steady reflation trade — this overlay names which story you're actually in.",
+    ),
+    LibraryEntry(
+        id = "usd-regime",
+        term = "USD Regime",
+        category = "Regime & Macro",
+        summary = "Rate dominance / growth dominance / global risk-off / confidence shock — what a USD move actually means right now.",
+        howItWorks = "If DXY isn't rising, it reads as growth dominance (when risk-on) or neutral. If DXY is rising: a VIX spike makes it a confidence shock; rising rates make it rate dominance; risk-off without a rates story makes it global risk-off; otherwise it defaults to rate dominance.",
+        whyItMatters = "\"USD up\" is one of the most overloaded signals in FX — this classifies why before you read too much into the direction alone.",
+    ),
+    LibraryEntry(
+        id = "cross-assets",
+        term = "Cross-Asset Instruments",
+        category = "Cross-Asset & Correlation",
+        summary = "10 non-FX instruments the app watches for macro context: VIX, US10Y, US3M, the 10Y–3M curve, DXY, Gold, S&P 500, Copper, WTI, Bitcoin.",
+        howItWorks = "Each gets a direction (up/down/flat) and a percentage or basis-point change over its window — the raw material every evidence axis and every archetype signature is built from.",
+        whyItMatters = "These never get their own ring on the wheel — the spec calls them supporting evidence only — but they're the entire backbone of the Macro screen and the Cross-Assets sheet.",
+    ),
+    LibraryEntry(
+        id = "correlation",
+        term = "Correlation",
+        category = "Cross-Asset & Correlation",
+        summary = "How closely two pairs have moved together over the last ~8 trading days, from −1 to +1.",
+        howItWorks = "Pearson correlation of H4 percentage returns over the last 50 H4 bars, for every pair against every other pair.",
+        whyItMatters = "A pair at +0.85 correlation with one you already hold isn't a second independent idea — it's largely the same trade twice. The pair sheet's Correlation tab exists to catch that before you double up risk.",
+    ),
+    LibraryEntry(
+        id = "gold-signal",
+        term = "Gold Signal",
+        category = "Alerts & Recommendation",
+        summary = "An alert that fires when gold's move and the market regime line up in a specific way.",
+        howItWorks = "Fires bearish when gold is falling and the H4 regime is Risk-Off; bullish when gold is rising and the H4 regime is Risk-On. It also checks whether the H1 regime independently agrees, as a secondary confirmation flag.",
+        whyItMatters = "One of two push-notification types the app can send, alongside price-level alerts — a live, regime-aware gold read rather than a bare price alert.",
+    ),
+    LibraryEntry(
+        id = "recommendation-engine",
+        term = "Recommendation Engine",
+        category = "Alerts & Recommendation",
+        summary = "One headline trade idea per scan — a deterministic pick, with AI only writing the explanation.",
+        howItWorks = "A fully deterministic \"seed\" picks the bias, action, primary pair, direction, confidence, and next catalyst from data already in signals.json — no model is involved in that decision. An optional AI call then writes the human-readable headline, rationale, and invalidation text around that seed; if the model's wording ever contradicted the seed, the seed wins, not the model. If the AI call fails for any reason, no recommendation is published at all, rather than showing something half-written.",
+        whyItMatters = "Worth knowing which parts of a recommendation are computed and which are narrated — the pair, direction and confidence are a real signal; the prose around them is commentary on that signal, not a separate one.",
+    ),
+    LibraryEntry(
+        id = "level-ema-alerts",
+        term = "Level & EMA Alerts",
+        category = "Alerts & Recommendation",
+        summary = "Two always-on price-based alert types, separate from the Gold Signal.",
+        howItWorks = "Level alerts fire on user-configured price levels. EMA touch alerts run on all 12 pairs automatically with no configuration, firing when price touches its own EMA200.",
+        whyItMatters = "The most direct, no-analysis alert type in the app — a plain price event, not a computed signal.",
+    ),
+)

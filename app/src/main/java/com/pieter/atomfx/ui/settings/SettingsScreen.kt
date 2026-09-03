@@ -6,6 +6,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +59,7 @@ import com.pieter.atomfx.data.DEFAULT_SIGNALS_URL
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPrefsState
 import com.pieter.atomfx.data.UserPreferences
+import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.SheetTabs
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -95,6 +97,7 @@ fun SettingsScreen(
     onClose: () -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
+    var showLibrary by remember { mutableStateOf(false) }
     // Entrance only (slide + scrim fade in) — closing removes the composable immediately, same
     // as the full-screen version did before; a matching slide-out would need the visibility gate
     // to live one level up in MainActivity (AnimatedVisibility), out of this composable's reach.
@@ -138,30 +141,40 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
+                if (showLibrary) {
+                    LibraryScreen(colors) { showLibrary = false }
+                    return@Column
+                }
+
                 SettingsHeader(colors, onClose)
 
                 SettingsSection("THEME", colors) {
                     ThemeControl(prefsState.themeMode, colors) { preferences.setThemeMode(it) }
                 }
+                SheetDivider(colors)
 
                 SettingsSection("NOTIFICATIONS", colors) {
                     NotificationsGroup(prefsState, colors, preferences)
                 }
+                SheetDivider(colors)
 
                 SettingsSection("DATA SOURCE", colors) {
                     DataSourceGroup(prefsState, colors, preferences)
                 }
+                SheetDivider(colors)
 
                 SettingsSection("PRICE-LEVEL ALERTS", colors) {
                     PriceLevelAlertsGroup(colors)
                 }
+                SheetDivider(colors)
 
                 SettingsSection("FRESHNESS / DIAGNOSTICS", colors) {
                     FreshnessGroup(loaded, colors, onRefreshNow)
                 }
+                SheetDivider(colors)
 
                 SettingsSection("ABOUT", colors) {
-                    AboutGroup(colors)
+                    AboutGroup(colors) { showLibrary = true }
                 }
             }
         }
@@ -420,7 +433,9 @@ private fun PriceLevelAlertsGroup(colors: AtomColors) {
 private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors, onRefreshNow: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     val updated = loaded?.signals?.updated?.let {
-        runCatching { OffsetDateTime.parse(it).format(DateTimeFormatter.ofPattern("MMM d, HH:mm")) }.getOrNull()
+        // Locale.US explicitly — the default locale can render month abbreviations differently
+        // (e.g. "sept." instead of "Sep"), same bug class swept out of every other formatter.
+        runCatching { OffsetDateTime.parse(it).format(DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US)) }.getOrNull()
     } ?: "—"
     val freshnessWord = when (loaded?.freshness) {
         Freshness.FRESH -> "Fresh"
@@ -450,28 +465,42 @@ private fun DiagRow(label: String, value: String, colors: AtomColors, valueColor
     }
 }
 
-/** Sourced directly from `docs/GLOSSARY.md` — the app's own canonical term definitions, not
- *  re-explained from scratch. */
+/**
+ * 2026-09-03 — the six-line term list moved out into [LibraryScreen], "a full library that
+ * explains every single element, calculation and item in the app," searchable, and grounded in
+ * the actual frozen source rather than paraphrased. This group is now just the privacy note plus
+ * the entry point into it.
+ */
 @Composable
-private fun AboutGroup(colors: AtomColors) {
+private fun AboutGroup(colors: AtomColors, onOpenLibrary: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     Text(
         text = "No API keys live on this device. Market-data and AI keys stay server-side; " +
             "the app only reads signals.json and receives push.",
         style = AtomType.Caption.copy(color = colors.textMuted),
-        modifier = Modifier.padding(bottom = 12.dp),
+        modifier = Modifier.padding(bottom = 14.dp),
     )
-    AboutEntry("Potential", "0–100, radius on the pair wheel. How many of the six confluence factors a pair has passed.", colors)
-    AboutEntry("Rings 1–6", "Regime · Currency Flow · Breadth · Momentum · Structure · Entry Setup, in this order.", colors)
-    AboutEntry("Level / state", "0–6 factors passed. LOW (0–2) · WATCH (3–5) · TRADEABLE (6) · A+ (6 and Setup Rank ≥ 8.5).", colors)
-    AboutEntry("CSM / CSM Delta", "Currency Strength, 0–100 per currency. Delta is the flow signal — getting stronger or weaker.", colors)
-    AboutEntry("Breadth", "How many of a currency's relationships agree with its move — broad vs narrow.", colors)
-    AboutEntry("Macro archetype", "One of ten handbook regimes (A–J). Confidence = how many distinct evidence axes agree.", colors)
-}
-
-@Composable
-private fun AboutEntry(term: String, definition: String, colors: AtomColors) {
-    Column(modifier = Modifier.padding(bottom = 10.dp)) {
-        Text(text = term, style = AtomType.Body.copy(color = colors.textPrimary))
-        Text(text = definition, style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(top = 2.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.controlSurface, RoundedCornerShape(10.dp))
+            .border(1.dp, colors.controlBorder, RoundedCornerShape(10.dp))
+            .pressWash(RoundedCornerShape(10.dp)) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onOpenLibrary()
+            }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column {
+            Text(text = "Library", style = AtomType.Body.copy(color = colors.textPrimary))
+            Text(
+                text = "Every calculation in the app, explained and searchable",
+                style = AtomType.Caption.copy(color = colors.textSecondary),
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        Text(text = "→", style = AtomType.Body.copy(color = colors.textSecondary))
     }
 }
