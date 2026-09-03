@@ -377,20 +377,21 @@ private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors
     state.crossAssets.forEach { xa ->
         val (a0, a1) = g.segAngles(count, xa.index, GAP_DEG * 0.6f)
         val mid = g.midDeg(count, xa.index)
-        val moving = !xa.flat
-        // Item Library-worthy pattern, per Pieter (2026-09-03) — the noting app's selected
-        // control-pill "electric" look (bright edge + a translucent wash of the SAME hue, not a
-        // neutral fill): bright rim colour repeated as a low-alpha fill rather than the neutral
-        // surfaceRaised the wedge used before. Drawn over the dial's own radial ground gradient,
-        // so it reads as a tinted glass wash, not an opaque card.
-        val bg = if (moving) colors.bull.copy(alpha = 0.18f) else colors.surface
-        val stroke = if (moving) colors.bull else colors.hairline
+        // Pieter, 2026-09-03 follow-up — back to three states (up/down/flat), not two: the
+        // two-state "just moving vs. inert" simplification read as a real bug in practice — a
+        // falling DXY still showed green, since green meant "moving," not "up." Direction is
+        // real information, not redundant with anything else at a glance (only the Cross Asset
+        // sheet, one tap away, had it). Electric Treatment (wash + bright rim + brighter-still
+        // text, all one hue) now keyed on direction: bull green when up, bear red when down,
+        // dim/hairline grey when flat — the mechanics are unchanged from the two-state version,
+        // only which hue (or none) drives them.
+        val hue = if (xa.flat) null else if (xa.up) colors.bull else colors.bear
+        val bg = hue?.copy(alpha = 0.18f) ?: colors.surface
+        val stroke = hue ?: colors.hairline
         val path = wedgePath(cx, cy, r0, r1, a0, a1)
         drawPath(path, color = bg)
-        drawPath(path, color = stroke.copy(alpha = if (moving) 0.9f else 0.4f), style = Stroke(if (moving) px(XA_MOVING_STROKE_PX) else px(0.9f)))
-        // Pieter, 2026-09-03 — the label matches the wash/rim colour when moving, brighter still
-        // (lighten further than the rim itself) so it reads as the most vivid part of the cell.
-        val labelColor = if (moving) lighten(colors.bull, 0.45f) else colors.textMuted
+        drawPath(path, color = stroke.copy(alpha = if (hue != null) 0.9f else 0.4f), style = Stroke(if (hue != null) px(XA_MOVING_STROKE_PX) else px(0.9f)))
+        val labelColor = hue?.let { lighten(it, 0.45f) } ?: colors.textMuted
         curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = false)
         val flash = flashOf(tapFlash, "xa:${xa.id}")
         if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
@@ -442,32 +443,6 @@ private fun DrawScope.taperedCornerPath(
         lineTo(pInner0.x, pInner0.y)                                            // taper back down
         close()
     }
-}
-
-/** A single straight (not curved) line of text, rotated to the tangent at [midDeg] — the corner
- *  buttons' curved-but-tapered shape still gets a straight label, reinforcing that it's chrome. */
-private fun DrawScope.straightLabel(cx: Float, cy: Float, r: Float, midDeg: Float, availableWidthPx: Float, text: String, color: Color, sizePx: Float, bold: Boolean) {
-    val paint = Paint().apply {
-        isAntiAlias = true
-        this.color = color.toArgb()
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, if (bold) Typeface.BOLD else Typeface.NORMAL)
-    }
-    var textSize = sizePx
-    paint.textSize = textSize
-    val w = paint.measureText(text)
-    if (w > availableWidthPx && availableWidthPx > 0f) {
-        textSize = (textSize * (availableWidthPx / w)).coerceAtLeast(sizePx * 0.4f)
-        paint.textSize = textSize
-    }
-    val pos = WheelGeometry.polar(cx, cy, r, midDeg)
-    val lower = midDeg in 90f..270f
-    val rotation = if (lower) midDeg + 180f else midDeg
-    val nativeCanvas = drawContext.canvas.nativeCanvas
-    val save = nativeCanvas.save()
-    nativeCanvas.rotate(rotation, pos.x, pos.y)
-    nativeCanvas.drawText(text, pos.x, pos.y + textSize / 3f, paint)
-    nativeCanvas.restoreToCount(save)
 }
 
 private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val flashKey: String)
@@ -523,14 +498,22 @@ private fun DrawScope.drawCornerButtons(
         // every other ring, whose persistent selection border was replaced by a wash entirely).
         val flash = flashOf(tapFlash, spec.flashKey)
         if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
-        val outerB = g.polar(cx, cy, r1, angles.outerA0)
-        val outerC = g.polar(cx, cy, r1, angles.outerA1)
-        val chordWidth = kotlin.math.sqrt((outerC.x - outerB.x).let { it * it } + (outerC.y - outerB.y).let { it * it }) * 0.9f
+        // Pieter, 2026-09-03 follow-up — curved now, not straight: every other label on the
+        // dial already curves to match the wheel's own curvature, and having the wings be the
+        // one straight exception (originally deliberate — WHEEL_V2_SPEC.md §11: "reinforcing
+        // that it's chrome") read as inconsistent once seen next to everything else. Supersedes
+        // that addendum note. curvedLabel needs an angular span at the LABEL's own radius, not
+        // the wedge's wide base or narrow tip — a wing tapers between them, so interpolate the
+        // actual boundary angles at the same 0.4 fraction labelR itself was placed at (below),
+        // rather than reusing either end's span verbatim.
+        val labelT = 0.4f
+        val la0 = angles.innerA0 + (angles.outerA0 - angles.innerA0) * labelT
+        val la1 = angles.innerA1 + (angles.outerA1 - angles.innerA1) * labelT
         // Pieter, 2026-09-03 — inert (Pairs mode) D1/H4/H1 labels now match their own border
         // colour (hairline) instead of textMuted, so an inert wing reads as one dim unit exactly
         // like the cross-asset ring's inert cells do. Currencies-mode behaviour is unchanged.
         val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else colors.hairline
-        straightLabel(cx, cy, labelR, spec.centerDeg, chordWidth, spec.label, labelColor, sp(11f), bold = false)
+        curvedLabel(cx, cy, labelR, spec.centerDeg, la0, la1, spec.label, labelColor, sp(11f), bold = false)
     }
 }
 
