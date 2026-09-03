@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.DarkColors
 import com.pieter.atomfx.ui.theme.lighten
 import com.pieter.atomfx.ui.theme.pressWash
 
@@ -46,7 +47,16 @@ data class Pill(
 )
 
 @Composable
-fun ScrollingPills(pills: List<Pill>, colors: AtomColors, modifier: Modifier = Modifier) {
+fun ScrollingPills(
+    pills: List<Pill>,
+    colors: AtomColors,
+    // Defaults from `colors` itself (Dark/LightColors are the only two instances ever passed —
+    // see Theme.kt) so call sites that don't already thread an explicit isDark (Macro,
+    // RecommendationSheet) don't need to; TradeableNow passes the real one explicitly since it
+    // already has it from WheelScreen.
+    isDark: Boolean = colors == DarkColors,
+    modifier: Modifier = Modifier,
+) {
     val haptics = LocalHapticFeedback.current
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
@@ -58,7 +68,12 @@ fun ScrollingPills(pills: List<Pill>, colors: AtomColors, modifier: Modifier = M
             // entirely unchanged.
             val shape = if (pill.electric) ELECTRIC_PILL_SHAPE else RoundedCornerShape(999.dp)
             val wash = if (pill.electric) pill.tint.copy(alpha = 0.18f) else pill.tint.copy(alpha = 0.13f)
-            val textColor = if (pill.electric) lighten(pill.tint, 0.45f) else pill.tint
+            // Aesthetics pass, 2026-09-03 — lighten(tint, 0.45) only reads correctly against a
+            // near-black electric-pill fill. Reused unconditionally in light theme it washed the
+            // colour toward white on a fill that's already pale — measured ~1.5-1.9:1 text
+            // contrast, well under WCAG AA's 4.5:1. Light theme's tint is already tuned to sit on
+            // white (Design §2.4), so it needs no lightening at all.
+            val textColor = if (pill.electric) { if (isDark) lighten(pill.tint, 0.45f) else pill.tint } else pill.tint
             val hasBorder = if (pill.electric) pill.withBorder else pill.emphasized
             // Pieter, 2026-09-03 — thinner border + lighter text, matched to the wheel's own
             // cross-asset cell treatment (1.0px stroke, un-bolded/regular-weight text) rather

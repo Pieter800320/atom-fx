@@ -173,6 +173,7 @@ fun WheelScreen(
                         nodes = loaded.state.nodes,
                         signals = loaded.signals,
                         colors = colors,
+                        isDark = isDark,
                         onSelect = { target -> activeSheet = target },
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )

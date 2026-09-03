@@ -44,6 +44,7 @@ fun TradeableNow(
     nodes: List<PairNode>,
     signals: Signals,
     colors: AtomColors,
+    isDark: Boolean,
     onSelect: (SheetTarget) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,6 +84,7 @@ fun TradeableNow(
                         node.toPill(colors, withBorder = i == 0) { onSelect(SheetTarget.Node(node.pair)) }
                     },
                     colors = colors,
+                    isDark = isDark,
                 )
             }
         }
@@ -109,6 +111,7 @@ fun TradeableNow(
                         )
                     },
                     colors = colors,
+                    isDark = isDark,
                 )
             }
         }

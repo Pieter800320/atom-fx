@@ -77,10 +77,10 @@ const val SIGNALS_TOPIC = "atomfx-signals"
  *  supersedes Functional Spec §2's original 4-tab `Wheel · Currency · Macro · Insights` list. */
 private enum class AppTab(val label: String, val glyph: String, val glyphScale: Float = 1f) {
     Wheel("HOME", "⌂"),
-    // Pieter, 2026-09-03 — the diamond glyph's own glyph box carries a lot of built-in
-    // whitespace vs. the house/star glyphs, so it reads smaller than them at the same
-    // font size; scaled up on its own to visually match.
-    Macro("MACRO", "◈", glyphScale = 1.4f),
+    // Aesthetics pass, 2026-09-03 — circle-with-a-dot (was the diamond ◈, which needed its own
+    // 1.4x scale to visually match the house/star glyphs' box; a plain circle doesn't have that
+    // quirk, so no override here).
+    Macro("MACRO", "⊙"),
     Insights("INSIGHTS", "✦"),
 }
 

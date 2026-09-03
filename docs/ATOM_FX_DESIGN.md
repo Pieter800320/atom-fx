@@ -294,6 +294,14 @@ Risk-On     EUR +8     USD −10    Strong     EURUSD
 ```
 Each cell: Caption label + Body value; leader/laggard carry signed deltas and arrows; breadth shows the band word coloured by band. Tapping a cell opens the matching sheet (regime/flow/flow/breadth/pair).
 
+**Superseded 2026-09-03 (commit `658d2a2`) — the strip is now a single "SUMMARY" button.**
+Collapsed, only the button shows; tapping it grows a vertical list of cards in place ("the
+Cascade" — Item Library #03's grow-from-the-icon mechanic, staggered open/close) covering the
+same five values above plus four more the strip never had room for. Same tap-a-row → matching
+sheet behaviour, same Caption label / Body value per row. Kept here as the smallest strip layout
+the design ever specified; `StatusStrip.kt` is current truth over the five-cell mock above where
+they disagree.
+
 ---
 
 ## 11. Tradeable Now / Watch (spec §32–§34)

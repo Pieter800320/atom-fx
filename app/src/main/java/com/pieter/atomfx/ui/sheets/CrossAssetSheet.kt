@@ -107,8 +107,11 @@ private fun CrossAssetRow(
             Text(
                 text = entry?.label ?: fallbackLabel,
                 style = AtomType.Body.copy(
-                    color = if (pinned) colors.textPrimary else colors.textPrimary,
-                    fontWeight = if (pinned) FontWeight.Bold else FontWeight.Medium,
+                    color = colors.textPrimary,
+                    // Aesthetics pass, 2026-09-03 — was FontWeight.Bold, a weight nothing else in
+                    // AtomType uses; SemiBold is the same weight Display/Title/Caption already
+                    // carry, so pinned rows stay on the app's two established weights.
+                    fontWeight = if (pinned) FontWeight.SemiBold else AtomType.Body.fontWeight,
                 ),
                 modifier = Modifier.weight(1f),
             )

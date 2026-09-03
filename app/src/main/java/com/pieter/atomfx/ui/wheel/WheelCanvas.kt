@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -32,18 +33,11 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.theme.AtomColors
-import com.pieter.atomfx.ui.theme.Ramp
-import com.pieter.atomfx.ui.theme.csColor
-import com.pieter.atomfx.ui.theme.darken
+import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.lighten
-import com.pieter.atomfx.ui.theme.stepColor
-import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.launch
 
@@ -65,11 +59,6 @@ internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
     Tint.NEUTRAL -> colors.neutral
 }
 
-private fun rampFor(direction: Direction): Ramp = when (direction) {
-    Direction.BULL -> Ramp.BULL
-    Direction.BEAR -> Ramp.BEAR
-    Direction.NEUTRAL -> Ramp.NEUTRAL
-}
 
 private const val GAP_DEG = 1.0f          // gutter between wedges
 private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of the ring span
@@ -88,6 +77,14 @@ private const val XA_MOVING_STROKE_PX = 1.0f
 // pressWash (a hardcoded white wash is invisible in light mode; textPrimary is near-white in
 // dark theme and near-black in light theme, so it reads in both).
 private const val TAP_WASH_ALPHA = 0.16f
+
+// Aesthetics pass, 2026-09-03 — was 0.18f with no base plate beneath it (drawn straight onto the
+// wheel's near-black radial field), measuring ~1.2:1 fill-vs-ground separation — well under the
+// 3:1 WCAG non-text minimum, i.e. barely readable as a coloured region (the label text carried
+// all the legibility). Raised, and drawCrossAssetRing now plates each wedge with surfaceRaised
+// first — the same base the pair/currency rings already use — so the wash has something lighter
+// to sit on. Still a wash, not a solid fill; revisit if it now reads as too heavy.
+private const val XA_WASH_ALPHA = 0.4f
 
 /**
  * The Wheel v2 radial dial. Three zones: outer cross-asset ring, a middle ring that cross-fades
@@ -246,6 +243,16 @@ private fun DrawScope.wedgePath(cx: Float, cy: Float, r0: Float, r1: Float, a0: 
     return p
 }
 
+/**
+ * The graph fill's own border stroke (a [Stroke] on the same closed path as the fill). Aesthetics
+ * pass, 2026-09-03 follow-up — [StrokeJoin.Round] specifically: the default miter join, stroked
+ * along [wedgePath]'s curved arcs (themselves built from short bezier segments), was catching
+ * miter spikes at those internal segment joints — the outer arc's the longest, most visibly
+ * curved edge, so it read as a thicker, more saturated leading edge than the dead-straight radial
+ * sides even though the stroke width was identical everywhere. Round join has no spike to catch.
+ */
+private val GRAPH_BORDER_JOIN = StrokeJoin.Round
+
 /** A soft blurred disc — used for ambient "lifted off the surface" shadows. */
 private fun DrawScope.glowFillCircle(center: Offset, radius: Float, color: Color, blurPx: Float) {
     val paint = Paint().apply {
@@ -333,7 +340,7 @@ private fun DrawScope.drawDial(
         ),
     )
 
-    drawCrossAssetRing(state, colors, cx, cy, half, tapFlash)
+    drawCrossAssetRing(state, colors, isDark, cx, cy, half, tapFlash)
     drawCornerButtons(mode, timeframe, colors, cx, cy, half, tapFlash)
 
     // Middle ring cross-fade: draw whichever side has any alpha.
@@ -368,7 +375,7 @@ private fun lerp01(a: Float, b: Float, t: Float): Float = a + (b - a) * t.coerce
  * confirm/dim badges unchanged. The ring's own job now is exactly what Pieter asked for: "which
  * cross assets are moving, and which aren't" — nothing more.
  */
-private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float, tapFlash: Map<String, Animatable<Float, *>>) {
+private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float, tapFlash: Map<String, Animatable<Float, *>>) {
     val g = WheelGeometry
     val r0 = g.XA_R0_FRAC * half
     val r1 = g.XA_R1_FRAC * half
@@ -386,12 +393,19 @@ private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors
         // dim/hairline grey when flat — the mechanics are unchanged from the two-state version,
         // only which hue (or none) drives them.
         val hue = if (xa.flat) null else if (xa.up) colors.bull else colors.bear
-        val bg = hue?.copy(alpha = 0.18f) ?: colors.surface
         val stroke = hue ?: colors.hairline
         val path = wedgePath(cx, cy, r0, r1, a0, a1)
+        // Plate first (matches drawPairRing/drawCurrencyRing's own base), then the hue wash on
+        // top — see XA_WASH_ALPHA above for why.
+        drawPath(path, color = colors.surfaceRaised)
+        val bg = hue?.copy(alpha = XA_WASH_ALPHA) ?: colors.surface
         drawPath(path, color = bg)
         drawPath(path, color = stroke.copy(alpha = if (hue != null) 0.9f else 0.4f), style = Stroke(if (hue != null) px(XA_MOVING_STROKE_PX) else px(0.9f)))
-        val labelColor = hue?.let { lighten(it, 0.45f) } ?: colors.textMuted
+        // Aesthetics pass, 2026-09-03 — lighten(hue, 0.45) only reads against a near-black wedge
+        // fill (dark theme); on a light wedge it washed the label toward white on white, nearly
+        // invisible. Same fix shape as ScrollingPills' pill text: raw hue in light theme, it's
+        // already tuned to sit on a light fill.
+        val labelColor = hue?.let { if (isDark) lighten(it, 0.45f) else it } ?: colors.textMuted
         curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = false)
         val flash = flashOf(tapFlash, "xa:${xa.id}")
         if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
@@ -541,33 +555,21 @@ private fun DrawScope.drawCurrencyRing(
         val mid = g.midDeg(count, c.index)
         val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
         drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
-        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.5f * alpha), style = Stroke(px(0.9f)))
+        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f * alpha), style = Stroke(px(0.9f)))
 
         val v = (strengthAnims[c.code]?.value ?: c.strength.toFloat())
         val fillEnd = r0 + (graphMax - r0) * (v / 100f)
-        val fillPath = wedgePath(cx, cy, r0 + 2f, max(r0 + 3f, fillEnd), a0 + 1.2f, a1 - 1.2f)
-        // Depth via shade, not a blend toward a neutral surface token (Pieter, 2026-09-03 — the
-        // old version read as dirty/washed out, not shadowed) — a true shadow of the same hue
-        // near the hub, growing in gradations out to a highlight catching the light at the tip.
-        // Continuous, unlike the pair ring's flat per-band steps: CSM strength is a continuous
-        // 0-100 value, not a discrete factor count, so its depth cue should read as one smooth
-        // gradient across the whole fill, not a stepped one.
-        // 2026-09-03 follow-up — inner shade brought down from 0.3f (read as too dark at the
-        // hub); outer lift raised to keep the "gradually brighter toward the rim" shape strong.
-        val full = csColor(c.strength, colors)
-        val inner = darken(full, 0.15f)
-        val outer = lighten(full, 0.2f)
-        val gradRadius = max(fillEnd, r0 + 4f)
-        val innerStop = (r0 / gradRadius).coerceIn(0f, 0.95f)
-        drawPath(
-            fillPath,
-            brush = Brush.radialGradient(
-                colorStops = arrayOf(innerStop to inner, 1f to outer),
-                center = Offset(cx, cy),
-                radius = gradRadius,
-            ),
-            alpha = 0.85f * alpha,
-        )
+        // Aesthetics pass, 2026-09-03 follow-up — wash + border now both trace fillPath, not the
+        // whole cell (bgPath): a border on bgPath put a bright ring at the wedge's OUTER edge
+        // regardless of how full the bar actually was — a mismatched "leading edge" in a different
+        // shade from the fill itself, not the fill's own edge. The electric treatment belongs to
+        // the graph (the bar), not the cell it sits in — the cell keeps only its quiet hairline.
+        val hue = if (v >= 50f) colors.bull else colors.bear
+        if (fillEnd > r0 + 2f) {
+            val fillPath = wedgePath(cx, cy, r0 + 2f, fillEnd, a0 + 1.2f, a1 - 1.2f)
+            drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
+            drawPath(fillPath, color = hue.copy(alpha = 0.9f), alpha = alpha, style = Stroke(px(XA_MOVING_STROKE_PX), join = GRAPH_BORDER_JOIN))
+        }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.8f, a1 - 0.8f)
         drawPath(platePath, color = colors.surface.copy(alpha = alpha))
@@ -595,45 +597,31 @@ private fun DrawScope.drawPairRing(
     state.nodes.forEach { node ->
         val (a0, a1) = g.segAngles(count, node.index, GAP_DEG)
         val mid = g.midDeg(count, node.index)
-        val ramp = rampFor(node.direction)
+        val hue = tintForDir(node.direction, colors)
 
         val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
         drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
-        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.5f * alpha), style = Stroke(px(0.9f)))
+        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f * alpha), style = Stroke(px(0.9f)))
 
-        // Step bands, growing to the animated level. Pieter, 2026-09-03: each band is now a
-        // FLAT fill (stepColor(k, ...) is already a genuine shade of the ramp colour, darker at
-        // low k, full accent at k=6 — see Color.kt) rather than its own internal radial gradient
-        // — the depth cue here is the discrete jump between adjacent bands' shades, not a smooth
-        // blend within one, since this is discrete data (a count of factors passed), unlike the
-        // currency ring's continuous strength value.
+        // Aesthetics pass, 2026-09-03 follow-up — wash + border now both trace the graph itself
+        // (the filled arc up to the animated level), not the whole cell: a border on the full
+        // wedge put a bright ring at its OUTER edge regardless of the actual level, reading as a
+        // mismatched "leading edge" in a different shade from the fill. The cell keeps only its
+        // quiet hairline; the electric treatment belongs to the bar, not the space around it.
         val levelValue = (levelAnims[node.pair]?.value ?: node.level.toFloat()).coerceIn(0f, 6f)
         val fillFrac = levelValue / 6f
-        for (k in 1..6) {
-            val innerFrac = (k - 1) / 6f
-            val outerFrac = k / 6f
-            if (fillFrac <= innerFrac) break
-            val topFrac = min(outerFrac, fillFrac)
-            val rIn = r0 + (graphMax - r0) * innerFrac
-            val rOut = r0 + (graphMax - r0) * topFrac
-            val bandPath = wedgePath(cx, cy, rIn + 1f, rOut, a0 + 2f, a1 - 2f)
-            drawPath(bandPath, color = stepColor(k, ramp, colors), alpha = 0.9f * alpha)
-        }
-
-        // Blocking-factor marker: a bright hairline at the top of the filled stack.
-        if (node.blockedAt != null && node.level in 1..5) {
-            val rMark = r0 + (graphMax - r0) * (node.level / 6f)
-            val markPath = wedgePath(cx, cy, rMark, rMark + px(2f), a0 + 2f, a1 - 2f)
-            drawPath(markPath, color = tintForDir(node.direction, colors).copy(alpha = alpha))
+        if (fillFrac > 0f) {
+            val rOut = r0 + (graphMax - r0) * fillFrac
+            val fillPath = wedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f)
+            drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
+            drawPath(fillPath, color = hue.copy(alpha = 0.9f), alpha = alpha, style = Stroke(px(XA_MOVING_STROKE_PX), join = GRAPH_BORDER_JOIN))
         }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
         drawPath(platePath, color = colors.surface.copy(alpha = alpha))
         curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary.copy(alpha = alpha), sp(12f), bold = false)
 
-        // Pieter, 2026-09-03 — the A+/tradeable rim glow is gone entirely (was a blurred halo,
-        // before that also a crisp stroke). A level-6 pair is now indicated by its fill alone
-        // (stepColor's own full accent colour at step 6) — no separate rim treatment at all.
+        // A level-6 pair is indicated by its fill/border alone — no separate rim glow treatment.
         val flash = flashOf(tapFlash, "pair:${node.pair}")
         if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash * alpha))
     }
@@ -667,8 +655,11 @@ private fun DrawScope.drawHub(
 
     // Centred text stack: REGIME · big regime word.
     val lines = buildList {
-        add("REGIME" to TextStyle(color = colors.textMuted, fontSize = 9.sp, fontWeight = FontWeight.SemiBold))
-        add(state.nucleus.regimeLabel to TextStyle(color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold))
+        // Aesthetics pass, 2026-09-03 — was a one-off TextStyle (9.sp/Bold, off the 4-level
+        // scale); now the actual Caption/Title tokens, which also gives the hub Inter once
+        // AtomType picks it up, and drops a fifth ad-hoc font weight nothing else used.
+        add("REGIME" to AtomType.Caption.copy(color = colors.textMuted))
+        add(state.nucleus.regimeLabel to AtomType.Title.copy(color = tint))
     }
     val laid = lines.map { (t, s) -> textMeasurer.measure(t, s) }
     val totalH = laid.sumOf { it.size.height }
