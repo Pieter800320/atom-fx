@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T02:26:05.006632+00:00",
+  "updated": "2026-09-03T08:26:57.837364+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -710,22 +710,22 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -2,
-    "total": 2,
+    "signals": -1,
+    "total": 1,
     "stable": true
   },
   "macro": {
-    "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
-    "stable": true
+    "label": "Mixed",
+    "signals": 0,
+    "total": 2,
+    "confidence": "Neutral",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 15.2,
-      "delta_pct": -7.0,
-      "direction": "down",
+      "value": 15.15,
+      "delta_pct": -0.3,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
@@ -735,20 +735,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4457.4,
-      "delta_pct": 2.5,
+      "value": 4480.1,
+      "delta_pct": 2.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.529,
-      "delta_pct": -0.0,
-      "direction": "flat",
+      "value": 99.296,
+      "delta_pct": -0.3,
+      "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.611,
-      "delta_pct": 1.6,
+      "value": 6.595,
+      "delta_pct": 1.4,
       "direction": "up",
       "label": "Copper"
     },
@@ -765,14 +765,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.06,
-      "delta_pct": 0.9,
+      "value": 90.37,
+      "delta_pct": -0.7,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77478.0,
-      "delta_pct": 0.1,
+      "value": 77839.0,
+      "delta_pct": 0.7,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -784,11 +784,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT accelerates: stronger BOJ hike case from Japan PMI supports JPY strength. USDCHF LONG supported by hawkish Fed narrative lifting DXY broadly.",
-    "updated": "2026-09-03T02:26:05.006632+00:00"
+    "text": "GBPJPY SHORT at risk: hawkish Fed bets accelerate JPY strength, contradicting GBP weakness narrative.",
+    "updated": "2026-09-03T08:26:57.837364+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rally confirms JPY strength bias today.\n\nGBPJPY SHORT: Gold appreciation reinforces safe haven yen demand signal.\n\nUSDCHF LONG: Risk-on weakness challenges dollar strength confirmation thesis.",
+    "text": "NZDJPY SHORT: Gold bid confirms JPY strength, supports short thesis.\n\nGBPJPY SHORT: Gold bid confirms JPY strength, supports short thesis.\n\nUSDCHF LONG: Risk-on low challenges USD strength assumption here.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -806,7 +806,7 @@
         "score": 5.35
       }
     ],
-    "updated": "2026-09-03T02:26:05.006632+00:00"
+    "updated": "2026-09-03T08:26:57.837364+00:00"
   },
   "calendar": {
     "events": [
@@ -861,7 +861,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-03T02:26:05.006632+00:00"
+    "updated": "2026-09-03T08:26:57.837364+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions this session. Gold's firmer while VIX slides and equities grind higher, a combination that doesn't fit a clean risk-off or risk-on script, and DXY sitting flat reinforces that indecision. Headlines lean hawkish-Fed, with commentary pointing to lifted rate-hike bets pressuring European currencies while yen support builds on stronger Japanese inflation data. Copper and oil both firming hints at underlying demand resilience despite the mixed tape. The dollar bloc and risk-sensitive currencies remain in a tug-of-war",
@@ -870,15 +870,15 @@
   "breaking": {
     "headlines": [
       "Fed hike bets lift DXY as EUR/USD and GBP/USD fall sharply",
-      "Japan services PMI hits five-month high, strengthens BOJ hike case",
-      "DXY eyes 99.58 as jobs week tests hawkish Fed expectations"
+      "DXY eyes 99.58 as jobs week tests hawkish Fed expectations",
+      "Jackson Hole volatility braces EUR/JPY and AUD/USD ahead"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      "usd"
     ],
-    "updated": "2026-09-03T02:26:05.006632+00:00"
+    "updated": "2026-09-03T08:26:57.837364+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
