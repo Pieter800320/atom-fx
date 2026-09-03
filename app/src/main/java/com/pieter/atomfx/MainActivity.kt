@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -42,6 +44,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -54,13 +57,16 @@ import com.pieter.atomfx.push.parseDeepLink
 import com.pieter.atomfx.ui.insights.InsightsScreen
 import com.pieter.atomfx.ui.macro.MacroScreen
 import com.pieter.atomfx.ui.settings.SettingsScreen
+import com.pieter.atomfx.ui.sheets.BottomSheetHost
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomFxTheme
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
+import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreen
+import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 import kotlinx.coroutines.launch
 
@@ -139,13 +145,27 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
         )
         val colors = AtomTheme.colors
         val screenState by viewModel.screenState.collectAsState()
+        val loaded = screenState as? WheelScreenState.Loaded
         val pagerState = rememberPagerState(initialPage = AppTab.Wheel.ordinal) { AppTab.entries.size }
         val scope = rememberCoroutineScope()
         var settingsOpen by remember { mutableStateOf(false) }
+        // Pieter, 2026-09-03 follow-up — the calendar affordance moved here from the Wheel-tab-
+        // only HeaderBar, next to the gear. BottomSheetHost handles SheetTarget.Calendar as a
+        // pure leaf (CalendarSheet(signals, colors), no onNavigate, wheelState unused for this
+        // branch) — reused directly rather than duplicating sheet-rendering logic, and it now
+        // opens correctly from any tab, matching the gear's own already-established "any tab"
+        // reach (Functional Spec §2/§3.1) instead of being silently Wheel-only.
+        var activeAppSheet by remember { mutableStateOf<SheetTarget?>(null) }
 
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                AtomGearBar(colors = colors) { settingsOpen = true }
+                AtomGearBar(
+                    colors = colors,
+                    updated = loaded?.signals?.updated,
+                    isFresh = loaded?.freshness == Freshness.FRESH,
+                    onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
+                    onSettingsClick = { settingsOpen = true },
+                )
                 HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                     // Design §17: only the Wheel tab is the no-scroll landing screen — Macro/
                     // Insights may scroll internally; the pager itself never adds scroll of its own.
@@ -165,10 +185,22 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                 SettingsScreen(
                     preferences = userPreferences,
                     prefsState = prefsState,
-                    loaded = screenState as? com.pieter.atomfx.ui.wheel.WheelScreenState.Loaded,
+                    loaded = loaded,
                     colors = colors,
                     onRefreshNow = { viewModel.refresh() },
                     onClose = { settingsOpen = false },
+                )
+            }
+
+            val appSheet = activeAppSheet
+            if (appSheet != null && loaded != null) {
+                BottomSheetHost(
+                    target = appSheet,
+                    wheelState = loaded.state,
+                    signals = loaded.signals,
+                    colors = colors,
+                    onDismiss = { activeAppSheet = null },
+                    onNavigate = { activeAppSheet = it },
                 )
             }
         }
@@ -177,27 +209,71 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
 
 /** Functional Spec §2/§3.1: "Settings is reached from the header gear on any tab." A slim,
  *  always-visible strip above the pager (rather than duplicated per-tab) is the smallest change
- *  that's true on all three tabs without restructuring Macro/Insights' own layouts. */
+ *  that's true on all three tabs without restructuring Macro/Insights' own layouts.
+ *
+ *  Pieter, 2026-09-03 follow-up — the whole header masthead now lives here, not split across this
+ *  strip and the Wheel-tab-only `HeaderBar` (deleted): the wordmark, `Updated HH:mm` + the
+ *  freshness dot, and a calendar glyph, all next to the gear — bigger than the old plain-Body
+ *  gear glyph was, per Pieter's request. All of it now reads on Macro/Insights too, not just
+ *  Wheel; "brief" is gone outright (its content is Cascade item #2 now). No `DATA STALE` text —
+ *  the dot + timestamp already say it. */
 @Composable
-private fun AtomGearBar(colors: AtomColors, onClick: () -> Unit) {
+private fun AtomGearBar(
+    colors: AtomColors,
+    updated: String?,
+    isFresh: Boolean,
+    onCalendarClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
     val haptics = LocalHapticFeedback.current
+    fun tap(action: () -> Unit) {
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        action()
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(colors.ground)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
-            .padding(horizontal = 16.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.End,
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = "⚙",
-            style = AtomType.Body.copy(color = colors.textSecondary),
-            modifier = Modifier.pressWash {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onClick()
-            },
-        )
+        Text(text = "ATOM FX", style = AtomType.Title.copy(color = colors.textPrimary))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .padding(end = 6.dp)
+                    .size(7.dp)
+                    .background(if (isFresh) colors.bull else colors.bear, CircleShape),
+            )
+            Text(
+                text = "Updated ${formatUpdated(updated)}",
+                style = AtomType.Caption.copy(color = colors.textMuted),
+            )
+            Text(
+                text = "▦",
+                style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
+                modifier = Modifier.padding(start = 16.dp).pressWash { tap(onCalendarClick) },
+            )
+            Text(
+                text = "⚙",
+                style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
+                modifier = Modifier.padding(start = 14.dp).pressWash { tap(onSettingsClick) },
+            )
+        }
     }
+}
+
+// Icon-sized, not body-copy-sized — deliberately outside the 4-level type scale (Design §3),
+// same reasoning as the Summary glyph's own independent sizing: these are glyphs, not language.
+private val ICON_GLYPH_SIZE = 22.sp
+
+private fun formatUpdated(updated: String?): String {
+    val timestamp = updated ?: return "—"
+    return runCatching {
+        java.time.OffsetDateTime.parse(timestamp).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+    }.getOrDefault("—")
 }
 
 /** Design §5.1 — a Material 3 bottom nav bar on `surface` with a hairline top border, simple

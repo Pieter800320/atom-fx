@@ -44,7 +44,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pieter.atomfx.ui.components.HeaderBar
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
@@ -104,21 +103,19 @@ fun WheelScreen(
         // not just unused.
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             if (loaded != null) {
-                HeaderBar(
-                    state = loaded.state,
-                    updated = loaded.signals.updated,
-                    isFresh = loaded.freshness == Freshness.FRESH,
-                    colors = colors,
-                    onCalendarClick = { activeSheet = SheetTarget.Calendar },
-                    onRecommendationClick = { activeSheet = SheetTarget.Recommendation },
-                    recommendationHeadline = loaded.signals.recommendation?.headline,
-                )
+                // Pieter, 2026-09-03 follow-up — HeaderBar.kt is gone: "ATOM FX", the calendar
+                // affordance, and Updated+dot all moved into MainActivity's AtomGearBar (same
+                // reasoning as before — that's where the gear actually lives, shared across all
+                // three tabs); "brief" is gone outright now that its content is Cascade item #2
+                // (RECOMMENDATION), reachable there instead. This top padding replaces the gap
+                // HeaderBar's own content used to provide — without it Summary would sit flush
+                // against AtomGearBar the instant HeaderBar had nothing left to render.
                 StatusStrip(
                     state = loaded.state,
                     signals = loaded.signals,
                     colors = colors,
                     onCellClick = { target -> activeSheet = target },
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
 

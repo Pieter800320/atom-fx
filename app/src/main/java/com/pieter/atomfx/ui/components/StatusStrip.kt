@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -65,7 +67,7 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * name, 2026-09-03 — reuse this term for the pattern anywhere else in the app it fits): Item
  * Library #03's grow-from-the-icon mechanic, ported to a vertical list — each card grows/collapses
  * in place rather than converging on the icon's exact position, since these already sit directly
- * beneath it in document flow. Collapsed, only the button itself shows; tapping it cascades all 8
+ * beneath it in document flow. Collapsed, only the button itself shows; tapping it cascades all 9
  * fields down as individual grey-squircle cards, staggered — no scrim, no floating layer, same as
  * Item #3. Closes ONLY on a second tap of the button itself (Pieter's explicit call — no
  * tap-outside-closes guard here, unlike #3's `dispatchTouchEvent` equivalent). Each card stays
@@ -101,6 +103,13 @@ fun StatusStrip(
     val items = listOf(
         StripItem("REGIME", state.nucleus.regimeLabel, tintColor(state.nucleus.tint, colors)) {
             onCellClick(SheetTarget.Ring(Factor.REGIME))
+        },
+        // Item 2, per Pieter (2026-09-03) — moved here from HeaderBar.kt's own preview line
+        // rather than dropped: AI-generated (recommendation.py, Sonnet), so unlike Regime/Leader/
+        // Laggard it isn't redundant with anything else on the landing view. Same tap target
+        // (SheetTarget.Recommendation) HeaderBar used to route straight to.
+        StripItem("RECOMMENDATION", signals.recommendation?.headline ?: "—", colors.textPrimary) {
+            onCellClick(SheetTarget.Recommendation)
         },
         StripItem("LEADER", flow?.leader?.let { "$it ${signedInt(flow.leaderDelta)}" } ?: "—", deltaColor(flow?.leaderDelta, colors)) {
             onCellClick(flow?.leader?.let { SheetTarget.Currency(it) } ?: SheetTarget.Ring(Factor.FLOW))
@@ -240,11 +249,21 @@ private fun StripCard(item: StripItem, colors: AtomColors, modifier: Modifier = 
                 item.onClick()
             }
             .padding(horizontal = 14.dp, vertical = 11.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = item.label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Text(text = item.value, style = AtomType.Body.copy(color = item.valueColor))
+        Text(text = item.label, style = AtomType.Caption.copy(color = colors.textMuted), maxLines = 1)
+        // RECOMMENDATION's value is an AI headline sentence, not a short code/number like every
+        // other card — weight(1f) + end-align + ellipsis keeps it on one line without pushing the
+        // label, while every short value just right-aligns in the leftover space as before.
+        Text(
+            text = item.value,
+            style = AtomType.Body.copy(color = item.valueColor),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
