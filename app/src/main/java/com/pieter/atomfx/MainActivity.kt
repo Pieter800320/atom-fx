@@ -164,6 +164,10 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 AtomGearBar(
                     colors = colors,
+                    // Pieter, 2026-09-03 — the Macro tab reads "MACRO" instead of the "ATOM FX"
+                    // wordmark, matching the mockup's own per-screen header(...) calls
+                    // (header("MACRO", …) vs header("ATOM FX", …)). Wheel/Insights unchanged.
+                    wordmark = if (AppTab.entries.getOrNull(pagerState.currentPage) == AppTab.Macro) "MACRO" else "ATOM FX",
                     updated = loaded?.signals?.updated,
                     isFresh = loaded?.freshness == Freshness.FRESH,
                     onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
@@ -223,6 +227,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
 @Composable
 private fun AtomGearBar(
     colors: AtomColors,
+    wordmark: String,
     updated: String?,
     isFresh: Boolean,
     onCalendarClick: () -> Unit,
@@ -242,7 +247,7 @@ private fun AtomGearBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = "ATOM FX", style = AtomType.Title.copy(color = colors.textPrimary))
+        Text(text = wordmark, style = AtomType.Title.copy(color = colors.textPrimary))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
