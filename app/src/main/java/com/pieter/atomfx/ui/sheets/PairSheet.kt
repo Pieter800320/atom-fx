@@ -1,19 +1,27 @@
 package com.pieter.atomfx.ui.sheets
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.PairBlock
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.chart.LineChart
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.wheel.Direction
@@ -23,12 +31,27 @@ import com.pieter.atomfx.ui.wheel.PotentialState
 
 private val TABS = listOf("Overview", "Momentum", "Structure", "Entry", "Macro", "Correlation")
 
+// Mirrors Home/Macro/Insights' CARD_SHAPE — the one standard card radius — but the fill is
+// `surfaceRaised`, not `cardSurface`: a sheet's own background is already `surface`, and
+// `cardSurface` (tuned to sit on the *screen* background, `ground`) is identical to `surface` in
+// light theme, so it'd be invisible here the same way Macro's bias boxes were before that fix.
+// `surfaceRaised` reliably differs from `surface` in both themes — see SheetTabs' own active-tab
+// fill for the existing precedent.
+private val CARD_SHAPE = RoundedCornerShape(14.dp)
+
 /**
  * Design §14.7 — the most important surface. Overview (default, never hidden behind a tab)
  * is the six-factor WHY checklist; the blocked factor is the one visually distinct row.
  * Momentum/Structure/Entry are the same per-pair content Design §14.4-§14.6 describe — reused
  * here as tabs rather than duplicated as separate ring-tap sheets (Architecture never asks for
  * two surfaces to show the same numbers twice).
+ *
+ * Rebuilt 2026-09-03 against the mockup's `shPair()`: the D1/H4/H1 sparkline row (§19.1's
+ * LineChart, already built for ChartSheet) now sits permanently under the header — pair-level
+ * context that doesn't change with the tab — and the WHY checklist takes the same card/dot/wash
+ * treatment as Macro's EVIDENCE axes, extended with a third state Macro doesn't need: the single
+ * blocked factor (§25's "unmistakable" requirement) gets a bear-tinted card of its own, not just
+ * red text, so it's not just "not green" but visibly *the* problem.
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -37,6 +60,7 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
 
     Column(modifier = Modifier.fillMaxWidth()) {
         PairHeader(node, allNodes, colors)
+        Spark3Row(node.pair, signals, colors)
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {
             0 -> WhyChecklist(node, signals, pairBlock, colors)
@@ -45,6 +69,44 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
             3 -> EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors)
             4 -> MacroTabContent(signals, colors)
             5 -> CorrelationTabContent(node.pair, signals, colors)
+        }
+    }
+}
+
+/** The mockup's `.spark3` — D1/H4/H1 close-price lines with their own window % change, each on a
+ *  standard card. Absent entirely (not a "Not available" placeholder) when there's no spark data
+ *  at all for this pair — same "don't invent a gap that isn't there" call Macro's bias baskets and
+ *  evidence axes already make when their own source list is empty. */
+@Composable
+private fun Spark3Row(pair: String, signals: Signals, colors: AtomColors) {
+    val spark = signals.spark[pair] ?: return
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SparkCell("D1", spark.d1, colors, Modifier.weight(1f))
+        SparkCell("H4", spark.h4, colors, Modifier.weight(1f))
+        SparkCell("H1", spark.h1, colors, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun SparkCell(label: String, closes: List<Double>, colors: AtomColors, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 10.dp, vertical = 8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
+            if (closes.size >= 2) {
+                val pct = (closes.last() - closes.first()) / closes.first() * 100.0
+                Text(
+                    text = "%+.1f%%".format(java.util.Locale.US, pct),
+                    style = AtomType.Caption.copy(color = if (pct >= 0) colors.bull else colors.bear),
+                )
+            }
+        }
+        if (closes.size >= 2) {
+            LineChart(closes, colors, modifier = Modifier.fillMaxWidth().height(34.dp).padding(top = 4.dp))
+        } else {
+            Box(modifier = Modifier.fillMaxWidth().height(34.dp).padding(top = 4.dp))
         }
     }
 }
@@ -70,31 +132,48 @@ private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomCol
     )
 }
 
+// Same restraint as Macro's EVIDENCE_LIT_AMOUNT (design doc §2.4/§7.4's own glow alphas).
+private const val WHY_LIT_AMOUNT = 0.08f
+
 @Composable
 private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "WHY?",
-            style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.padding(bottom = 8.dp),
-        )
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = "WHY?", style = AtomType.Caption.copy(color = colors.textSecondary))
         whyRows(node, signals, pairBlock).forEach { row ->
             val isBlocker = node.blockedAt == row.factor
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                Text(
-                    text = if (row.passed) "✓" else "✗",
-                    style = AtomType.Body.copy(color = if (row.passed) colors.bull else colors.bear),
-                    modifier = Modifier.padding(end = 8.dp),
-                )
+            // Macro's EVIDENCE treatment (card + dot + subtle wash), extended with a third state
+            // Macro's own axes never needed: the blocked factor gets its own bear-tinted card —
+            // §25's "unmistakable," not just red text on an otherwise plain row.
+            val fill = when {
+                row.passed -> lerp(colors.surfaceRaised, colors.bull, WHY_LIT_AMOUNT)
+                isBlocker -> lerp(colors.surfaceRaised, colors.bear, WHY_LIT_AMOUNT)
+                else -> colors.surfaceRaised
+            }
+            val dotColor = when {
+                row.passed -> colors.bull
+                isBlocker -> colors.bear
+                else -> colors.textMuted
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().background(fill, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Text(text = "●", style = AtomType.Body.copy(color = dotColor), modifier = Modifier.padding(end = 10.dp, top = 1.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = row.factor.shortLabel.uppercase(),
-                        style = AtomType.Caption.copy(
-                            color = if (isBlocker) colors.bear else colors.textPrimary,
-                        ),
+                        style = AtomType.Caption.copy(color = if (isBlocker) colors.bear else colors.textPrimary),
                     )
-                    Text(text = row.explanation, style = AtomType.Body.copy(color = colors.textSecondary))
-                    Text(text = row.value, style = AtomType.Caption.copy(color = colors.textMuted))
+                    Text(
+                        text = row.explanation,
+                        style = AtomType.Body.copy(color = colors.textSecondary),
+                        modifier = Modifier.padding(top = 3.dp),
+                    )
+                    Text(
+                        text = row.value,
+                        style = AtomType.Caption.copy(color = colors.textMuted),
+                        modifier = Modifier.padding(top = 3.dp),
+                    )
                 }
             }
         }
