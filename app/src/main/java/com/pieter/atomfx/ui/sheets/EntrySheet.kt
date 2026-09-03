@@ -9,9 +9,12 @@ import com.pieter.atomfx.ui.theme.AtomColors
 
 /**
  * Design §14.6. `Setup Score` = the frozen `rank.py` score, surfaced via `potential.<PAIR>.setup_rank`
- * (Architecture §5.4) — not recomputed here. Reset score and ATR percentile aren't part of the
- * `signals.json` contract at all (confirmed by reading the live file — no `reset_score`/`atr_pct`
- * key exists anywhere), so those rows are honestly "not available" rather than invented.
+ * (Architecture §5.4) — not recomputed here.
+ *
+ * 2026-09-03 — Reset score and ATR percentile were previously "not available": `scan_h1.py`
+ * computed both every hour (they feed `compute_cont()` and the WHY checklist's ENTRY gate) but
+ * never wrote them to `signals.json`. Now additive keys `pairs.<PAIR>.reset_score`/`.atr_pct` —
+ * no frozen calculation touched, just also surfacing values that already existed.
  */
 @Composable
 fun EntryTabContent(setupRank: Double?, pairBlock: PairBlock?, colors: AtomColors) {
@@ -22,7 +25,7 @@ fun EntryTabContent(setupRank: Double?, pairBlock: PairBlock?, colors: AtomColor
         SheetRow("Continuation", pairBlock?.cont?.let { "$it%" } ?: "—", colors)
         SheetRow("ADX", pairBlock?.adx?.let { "%.1f".format(java.util.Locale.US, it) } ?: "—", colors)
         SheetDivider(colors)
-        NotAvailableRow("Reset score", colors)
-        NotAvailableRow("ATR percentile", colors)
+        pairBlock?.resetScore?.let { SheetRow("Reset score", "$it / 100", colors) } ?: NotAvailableRow("Reset score", colors)
+        pairBlock?.atrPct?.let { SheetRow("ATR percentile", "$it%", colors) } ?: NotAvailableRow("ATR percentile", colors)
     }
 }

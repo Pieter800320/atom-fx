@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -58,7 +59,8 @@ fun BreadthSheet(signals: Signals, colors: AtomColors) {
                 Text(
                     text = "${entry.support ?: "—"}/${entry.total ?: "—"}",
                     style = AtomType.Caption.copy(color = colors.textSecondary),
-                    modifier = Modifier.width(40.dp),
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.width(40.dp).padding(end = 8.dp),
                 )
                 Text(
                     text = entry.band ?: "—",

@@ -11,7 +11,14 @@ import com.pieter.atomfx.data.model.StructureBlock
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 
-/** Design §14.5 — a counter-CHoCH gets the prominent warning treatment; everything else is a straight read of `pairs.<PAIR>.structure`. */
+/**
+ * Design §14.5 — a counter-CHoCH gets the prominent warning treatment; everything else is a
+ * straight read of `pairs.<PAIR>.structure`.
+ *
+ * Reverted 2026-09-03 (Pieter's direct ask, after seeing the Correlation tab's lollipop chart
+ * land well) — back to plain rows, no card/dot/wash. Structure and Entry read as one plain,
+ * quiet block now that Correlation is where the visual weight of this sheet lives.
+ */
 @Composable
 fun StructureTabContent(structure: StructureBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth()) {

@@ -335,6 +335,11 @@ def main():
             "prev_close":  prev_close,
             "prev5_close": prev5_close,
             "cont":        cont,
+            # Additive, 2026-09-03 — already computed above (step 6/9) to feed compute_cont() and
+            # potential.py's ENTRY gate; just also surfacing them so the app can show real numbers
+            # instead of "Not available yet". No calculation changed, no existing key touched.
+            "reset_score": pair_reset.get(key),
+            "atr_pct":     pair_atr_pct.get(key),
         }
         print(f"  {key}: cont={cont}%")
 

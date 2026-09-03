@@ -90,6 +90,10 @@ data class PairBlock(
     val adx: Double? = null,
     val cont: Int? = null,
     val structure: StructureBlock? = null,
+    // Added 2026-09-03 — scan_h1.py already computed these to feed cont/the WHY-checklist ENTRY
+    // gate; now also written to signals.json so EntrySheet can show real numbers.
+    @SerialName("reset_score") val resetScore: Int? = null,
+    @SerialName("atr_pct") val atrPct: Int? = null,
 )
 
 @Serializable

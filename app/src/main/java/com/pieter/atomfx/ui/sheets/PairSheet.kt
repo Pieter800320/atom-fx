@@ -1,5 +1,6 @@
 package com.pieter.atomfx.ui.sheets
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,7 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.PairBlock
 import com.pieter.atomfx.data.model.Signals
@@ -29,7 +34,7 @@ import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 import com.pieter.atomfx.ui.wheel.PotentialState
 
-private val TABS = listOf("Overview", "Breakdown")
+private val TABS = listOf("Overview", "Breakdown", "Correlation")
 
 // Mirrors Home/Macro/Insights' CARD_SHAPE — the one standard card radius — but the fill is
 // `surfaceRaised`, not `cardSurface`: a sheet's own background is already `surface`, and
@@ -56,8 +61,17 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * Follow-up, same day (Pieter's direct ask) — Momentum/Structure/Entry/Macro/Correlation
  * collapsed from five separate tabs into one "Breakdown" tab: each was 2-5 rows on its own (Entry
  * always has two permanently "Not available" rows — Reset score/ATR percentile aren't in the data
- * contract at all), too little content each to justify its own tab switch. Two tabs now:
- * "Overview" (the WHY verdict) and "Breakdown" (everything else, one scroll).
+ * contract at all), too little content each to justify its own tab switch.
+ *
+ * Second follow-up, same day — Macro cut entirely: its five cross-asset lines never varied by
+ * pair (no reference to the pair's own base/quote), and the same `macro_assets` data is already
+ * one tap away twice over — the app-level Macro tab's full table, and any cross-asset wedge's
+ * `CrossAssetSheet` (a richer 10-asset read with impact copy). Correlation promoted the other
+ * way, out of Breakdown into its own tab: unlike Macro it *is* pair-relative (this pair's row of
+ * the matrix), so it has nowhere else to live, and now renders as a lollipop chart of all 11
+ * other pairs (not a `.take(5)` text list) — substantial enough on its own to earn the tab
+ * Breakdown's other two sections (Momentum/Structure/Entry) still don't individually justify.
+ * Three tabs now: "Overview" (WHY verdict), "Breakdown" (Momentum/Structure/Entry), "Correlation".
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -70,7 +84,8 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {
             0 -> WhyChecklist(node, signals, pairBlock, colors)
-            else -> BreakdownContent(node, signals, pairBlock, colors)
+            1 -> BreakdownContent(node, signals, pairBlock, colors)
+            else -> CorrelationTabContent(node.pair, signals, colors)
         }
     }
 }
@@ -83,10 +98,6 @@ private fun BreakdownContent(node: PairNode, signals: Signals, pairBlock: PairBl
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
         SheetDivider(colors)
         BreakdownSection("ENTRY", colors) { EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors) }
-        SheetDivider(colors)
-        BreakdownSection("MACRO", colors) { MacroTabContent(signals, colors) }
-        SheetDivider(colors)
-        BreakdownSection("CORRELATION", colors) { CorrelationTabContent(node.pair, signals, colors) }
     }
 }
 
@@ -105,8 +116,10 @@ private fun BreakdownSection(label: String, colors: AtomColors, content: @Compos
 @Composable
 private fun Spark3Row(pair: String, signals: Signals, colors: AtomColors) {
     val spark = signals.spark[pair] ?: return
+    // Pieter, 2026-09-03 — more room below the sparklines than a normal section gap: the header
+    // (pair name/state/sparklines) should read as one block, tabs+content as "the rest".
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SparkCell("D1", spark.d1, colors, Modifier.weight(1f))
@@ -117,7 +130,7 @@ private fun Spark3Row(pair: String, signals: Signals, colors: AtomColors) {
 
 @Composable
 private fun SparkCell(label: String, closes: List<Double>, colors: AtomColors, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 10.dp, vertical = 8.dp)) {
+    Column(modifier = modifier.background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 10.dp, vertical = 12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
             if (closes.size >= 2) {
@@ -139,13 +152,13 @@ private fun SparkCell(label: String, closes: List<Double>, colors: AtomColors, m
 @Composable
 private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomColors) {
     val rank = allNodes.sortedByDescending { it.potential }.indexOfFirst { it.pair == node.pair } + 1
-    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
-        Text(text = node.pair, style = AtomType.Display.copy(color = colors.textPrimary))
-        Text(
-            text = "  ${node.pair.take(3)} / ${node.pair.takeLast(3)}",
-            style = AtomType.Body.copy(color = colors.textSecondary),
-        )
-    }
+    // Pieter, 2026-09-03 — dropped the small "EUR / JPY" line; the big pair-code heading already
+    // says it, just without the slash.
+    Text(
+        text = node.pair,
+        style = AtomType.Display.copy(color = colors.textPrimary),
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
     Text(
         text = "${stateWord(node.state)} · ${directionWord(node.direction)}",
         style = AtomType.Caption.copy(color = directionColorFor(node.direction, colors)),
@@ -298,61 +311,90 @@ private fun directionColorFor(direction: Direction, colors: AtomColors) = when (
     Direction.NEUTRAL -> colors.neutral
 }
 
-// Macro/Correlation tabs live here rather than their own MomentumSheet.kt-style file to avoid
-// a naming clash with the unrelated Macro *screen* (Phase 9's MacroScreen.kt).
+// Correlation tab lives here rather than its own MomentumSheet.kt-style file to avoid a naming
+// clash with the unrelated Correlation *matrix* model (data/model/Signals.kt).
 
-/** Design §14.7/§26 Macro tab: cross-asset support lines, spec §36's exact phrasing style, from real `macro_assets` directions. */
-@Composable
-private fun MacroTabContent(signals: Signals, colors: AtomColors) {
-    val ma = signals.macroAssets
-    val lines = listOfNotNull(
-        ma["dxy"]?.direction?.let { supportLine("DXY", it, "USD bid", "USD offered") },
-        ma["spx"]?.direction?.let { supportLine("SPX", it, "risk appetite", "risk aversion") },
-        ma["vix"]?.direction?.let { supportLine("VIX", it, "risk aversion", "risk appetite") },
-        ma["gold"]?.direction?.let { supportLine("Gold", it, "safe-haven bid", "safe-haven offered") },
-        ma["copper"]?.direction?.let { supportLine("Copper", it, "growth demand", "growth concern") },
-    )
-    Column(modifier = Modifier.fillMaxWidth()) {
-        if (lines.isEmpty()) {
-            NotAvailableRow("Cross-asset context", colors)
-        } else {
-            lines.forEach { line ->
-                Text(text = line, style = AtomType.Body.copy(color = colors.textSecondary), modifier = Modifier.padding(vertical = 4.dp))
-            }
-        }
-    }
-}
+private const val CORR_HIGHLIGHT = 0.75
 
-private fun supportLine(label: String, direction: String, upPhrase: String, downPhrase: String): String = when (direction) {
-    "up" -> "$label↑ → $upPhrase"
-    "down" -> "$label↓ → $downPhrase"
-    else -> "$label flat"
-}
-
-/** Design §14.7/§26/§37 Correlation tab: the frozen `correlations` matrix, sorted by |correlation|. */
+/** Design §14.7/§26/§37 Correlation tab: the frozen `correlations` matrix, sorted by |correlation|.
+ *
+ *  Redesigned 2026-09-03 (Pieter's ask, "make it visual... dedicated tab") — promoted out of
+ *  Breakdown into its own tab, all 11 other pairs shown (not `.take(5)`) as a lollipop chart: a
+ *  -1..+1 axis per row, a stem from the zero-line to the pair's correlation, a dot at the tip.
+ *  Same Canvas convention `LineChart.kt` already uses (no library, native DrawScope). Any pair at
+ *  or above ±[CORR_HIGHLIGHT] gets the bull/bear-tinted dot + bold label; everything else stays a
+ *  quiet grey read — this is the "duplicate exposure" signal spec §37 asks for, now a shape to
+ *  scan instead of five numbers to read one at a time.
+ */
 @Composable
 private fun CorrelationTabContent(pair: String, signals: Signals, colors: AtomColors) {
     val corr = signals.correlations
     val rowIndex = corr?.pairs?.indexOf(pair) ?: -1
+    if (corr == null || rowIndex < 0) {
+        NotAvailableRow("Correlation", colors)
+        return
+    }
+    val row = corr.matrix.getOrNull(rowIndex).orEmpty()
+    val rows = corr.pairs.indices
+        .filter { it != rowIndex }
+        .mapNotNull { i -> corr.pairs.getOrNull(i)?.let { p -> row.getOrNull(i)?.let { v -> p to v } } }
+        .sortedByDescending { kotlin.math.abs(it.second) }
+
     Column(modifier = Modifier.fillMaxWidth()) {
-        if (corr == null || rowIndex < 0) {
-            NotAvailableRow("Correlation", colors)
-            return@Column
-        }
-        val row = corr.matrix.getOrNull(rowIndex).orEmpty()
-        corr.pairs.indices
-            .filter { it != rowIndex }
-            .mapNotNull { i -> corr.pairs.getOrNull(i)?.let { p -> row.getOrNull(i)?.let { v -> p to v } } }
-            .sortedByDescending { kotlin.math.abs(it.second) }
-            .take(5)
-            .forEach { (otherPair, value) ->
-                SheetRow(otherPair, "%+.2f".format(java.util.Locale.US, value), colors, correlationColor(value, colors))
-            }
+        rows.forEach { (otherPair, value) -> CorrelationLollipopRow(otherPair, value, colors) }
     }
 }
 
-private fun correlationColor(value: Double, colors: AtomColors) = when {
-    kotlin.math.abs(value) >= 0.7 -> colors.textPrimary
-    kotlin.math.abs(value) >= 0.4 -> colors.textSecondary
-    else -> colors.textMuted
+@Composable
+private fun CorrelationLollipopRow(otherPair: String, value: Double, colors: AtomColors) {
+    val highlighted = kotlin.math.abs(value) >= CORR_HIGHLIGHT
+    val hue = if (value >= 0) colors.bull else colors.bear
+    val dotColor = if (highlighted) hue else colors.textMuted
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(
+            text = otherPair,
+            style = AtomType.Caption.copy(
+                color = if (highlighted) colors.textPrimary else colors.textSecondary,
+                fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
+            ),
+            modifier = Modifier.width(64.dp),
+        )
+        Canvas(modifier = Modifier.weight(1f).height(20.dp)) {
+            val centerX = size.width / 2f
+            val centerY = size.height / 2f
+            val valueX = ((value + 1.0) / 2.0).toFloat().coerceIn(0f, 1f) * size.width
+            drawLine(
+                color = colors.hairline,
+                start = Offset(0f, centerY),
+                end = Offset(size.width, centerY),
+                strokeWidth = 1.dp.toPx(),
+            )
+            drawLine(
+                color = colors.hairline,
+                start = Offset(centerX, centerY - 4.dp.toPx()),
+                end = Offset(centerX, centerY + 4.dp.toPx()),
+                strokeWidth = 1.dp.toPx(),
+            )
+            drawLine(
+                color = dotColor,
+                start = Offset(centerX, centerY),
+                end = Offset(valueX, centerY),
+                strokeWidth = 2.dp.toPx(),
+            )
+            drawCircle(color = dotColor, radius = (if (highlighted) 5f else 3.5f).dp.toPx(), center = Offset(valueX, centerY))
+        }
+        Text(
+            text = "%+.2f".format(java.util.Locale.US, value),
+            style = AtomType.Caption.copy(
+                color = if (highlighted) hue else colors.textMuted,
+                fontWeight = if (highlighted) FontWeight.SemiBold else FontWeight.Normal,
+            ),
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(52.dp),
+        )
+    }
 }

@@ -1,6 +1,7 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -82,9 +84,20 @@ fun NotAvailableRow(label: String, colors: AtomColors) {
     SheetRow(label = label, value = "Not available yet", colors = colors, valueColor = colors.textMuted)
 }
 
+// Exactly ScrollingPills' ELECTRIC_PILL_HEIGHT/SHAPE (matched there to the wheel's own Currency
+// Flow Ticker chips) — Pieter, 2026-09-03 follow-up: "exactly the same size... text included," so
+// this mirrors that recipe wholesale rather than approximating it with wrap-content padding.
+private val SHEET_TAB_HEIGHT = 26.dp
+private val SHEET_TAB_SHAPE = RoundedCornerShape(11.dp)
+
 /**
  * Scrolling-pill-style tab row (Design §15). Horizontally scrollable — Phase 9 grew PairSheet
  * to 6 tabs, past what a fixed non-scrolling Row could fit without individual labels wrapping.
+ *
+ * Aesthetics pass, 2026-09-03 — control treatment (Color.kt): fill/border always
+ * `controlSurface`/`controlBorder` (was `surfaceRaised`/`surface`, no border, full capsule), the
+ * selected tab distinguished by text colour alone, same convention the wheel's own corner buttons
+ * use since dropping their white selected-state border.
  */
 @Composable
 fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (Int) -> Unit) {
@@ -97,22 +110,30 @@ fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (
     ) {
         tabs.forEachIndexed { index, tab ->
             val isOn = index == selected
-            Box(
+            Row(
                 modifier = Modifier
                     .padding(end = 8.dp)
+                    .height(SHEET_TAB_HEIGHT)
                     // Item Library #04 — pressWash() masks the ripple to this pill's own rounded
                     // shape instead of letting it bleed past the rounded corners as a rectangle.
-                    .background(if (isOn) colors.surfaceRaised else colors.surface, RoundedCornerShape(999.dp))
-                    .pressWash(RoundedCornerShape(999.dp)) {
+                    .background(colors.controlSurface, SHEET_TAB_SHAPE)
+                    .border(1.dp, colors.controlBorder, SHEET_TAB_SHAPE)
+                    .pressWash(SHEET_TAB_SHAPE) {
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onSelect(index)
                     }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center,
+                    // No vertical padding — ELECTRIC_PILL_HEIGHT already fixes the height;
+                    // CenterVertically below centres the text within it (ScrollingPills' own fix
+                    // for the same "8dp padding on top of a fixed height clips the text" bug).
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = tab,
-                    style = AtomType.Caption.copy(color = if (isOn) colors.textPrimary else colors.textSecondary),
+                    style = AtomType.Caption.copy(
+                        color = if (isOn) colors.textPrimary else colors.textSecondary,
+                        fontWeight = FontWeight.Normal,
+                    ),
                 )
             }
         }
