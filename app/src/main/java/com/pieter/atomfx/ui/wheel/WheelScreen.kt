@@ -421,8 +421,10 @@ private fun TickerMarquee(currencies: List<CurrencySeg>, colors: AtomColors, mod
         val cornerRadiusPx = chipHeightPx * 0.42f // a soft squircle, not a full capsule
         val baselineY = size.height / 2f + textSizePx / 3f
         val nativeCanvas = drawContext.canvas.nativeCanvas
-        chipBgPaint.color = colors.surfaceRaised.toArgb()
-        chipBorderPaint.color = colors.hairline.toArgb()
+        // Experiment, 2026-09-03 — control treatment (Color.kt): brighter fill in dark theme,
+        // darker in light, bordered darker than the fill (it's a pressable chip).
+        chipBgPaint.color = colors.controlSurface.toArgb()
+        chipBorderPaint.color = colors.controlBorder.toArgb()
         chipBorderPaint.strokeWidth = borderWidthPx
 
         var cycleStartX = -(rawOffsetPx % cycleWidthPx) - cycleWidthPx

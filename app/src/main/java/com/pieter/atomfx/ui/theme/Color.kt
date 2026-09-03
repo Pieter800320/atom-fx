@@ -24,6 +24,18 @@ data class AtomColors(
     val watch: Color,
     val watchSoft: Color,
     val neutral: Color,
+    // The control/card distinction (2026-09-03, confirmed on-device) — see design doc §2.2 for
+    // the full rule; this is the short version. A CONTROL is anything directly pressable that
+    // isn't already its own pill/chip (Summary button, Cascade rows, ticker chips) — lighter than
+    // [ground] in BOTH themes (elevated = lighter, dark or light, same direction either way),
+    // always bordered with [controlBorder] (a grey, never a status colour) marking it as "has an
+    // edge you can press" — the border itself is LIGHTER than the fill in dark theme, DARKER than
+    // the fill in light theme. A CARD is a non-pressable grouping container (Tradeable Now /
+    // Watch) — never a border; dark theme reads too close to [ground] as plain [surface], so it
+    // gets its own, lighter fill, while light theme's plain [surface] was already right.
+    val controlSurface: Color,
+    val controlBorder: Color,
+    val cardSurface: Color,
 )
 
 val DarkColors = AtomColors(
@@ -50,6 +62,15 @@ val DarkColors = AtomColors(
     watch = Color(0xFFE7AE3A),
     watchSoft = Color(0xFFE7AE3A).copy(alpha = 0.13f),
     neutral = Color(0xFF61707E),
+    // Between surfaceRaised and hairlineStrong — clearly brighter than the old button fill
+    // (surfaceRaised) without reaching all the way to a stroke colour.
+    controlSurface = Color(0xFF212C38),
+    // = hairlineStrong, reused — lighter than controlSurface, so the border reads as a highlight
+    // catching the edge rather than a shadow. (Was the old surfaceRaised fill, darker than
+    // controlSurface; Pieter: lighter reads better here.)
+    controlBorder = Color(0xFF2C3947),
+    // = surfaceRaised — lighter than plain `surface`, which sat almost on top of `ground`.
+    cardSurface = Color(0xFF161F29),
 )
 
 val LightColors = AtomColors(
@@ -70,6 +91,15 @@ val LightColors = AtomColors(
     watch = Color(0xFFB27A16),
     watchSoft = Color(0xFFB27A16).copy(alpha = 0.08f),
     neutral = Color(0xFF93A0AD),
+    // = surfaceRaised, reused — lighter than `ground`, same "elevated = lighter" direction as
+    // dark theme now uses. (Was a darker-than-ground grey in the first cut of this experiment;
+    // Pieter: lighter reads better, matching the Tradeable Now card's own direction.)
+    controlSurface = Color(0xFFF2F6FA),
+    // = hairline — darker than the new controlSurface; unchanged from the first cut, confirmed
+    // working as-is.
+    controlBorder = Color(0xFFDDE4EC),
+    // Unchanged from plain `surface` — Pieter: light theme's Tradeable Now card is already fine.
+    cardSurface = Color(0xFFFFFFFF),
 )
 
 // ── Wheel v2 helpers — derived from tokens, so light + dark both work (no literal hex) ─────────

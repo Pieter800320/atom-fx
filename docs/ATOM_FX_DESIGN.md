@@ -47,6 +47,26 @@ Define **one token set** (a `data class AtomColors`) and provide two instances, 
 | `surface-raised` | `#161F29` | `#F2F6FA` | pressed/active rows, chips |
 | `hairline` | `#1E2833` | `#DDE4EC` | 1px separators, ring base strokes |
 | `hairline-strong` | `#2C3947` | `#C6D1DD` | active ring / selected outline |
+| `control-surface` | `#212C38` | `#F2F6FA` | fill for a **control** — see below |
+| `control-border` | `#2C3947` | `#DDE4EC` | border for a **control** — see below |
+| `card-surface` | `#161F29` | `#FFFFFF` | fill for a **card** — see below |
+
+**Controls vs. cards (added 2026-09-03, confirmed on-device — the precedent for every future card
+or button).** Two kinds of surface, never a third:
+
+- **A control is anything directly pressable** that isn't already its own pill/chip — the Summary
+  button, a Cascade row, a Currency Flow ticker chip. Fill `control-surface`; always bordered with
+  `control-border` (a plain grey, never a status colour) so a control reads as "this has an edge
+  you can press." A control is always **lighter than `ground`, in both themes** — dark theme reads
+  "brighter," light theme reads "lighter than the page," but it's the same direction: elevated =
+  lighter. The border itself flips per theme: **lighter than the fill in dark** (a highlight
+  catching the edge), **darker than the fill in light** (unchanged from the first pass — it was
+  already right).
+- **A card is a non-pressable grouping container** — Tradeable Now, Watch. Fill `card-surface`;
+  **never a border**, in either theme — a card just groups content, it doesn't invite a tap itself
+  (whatever's tappable inside it, e.g. a pill, carries its own border). Light theme's plain white
+  card was already right and is untouched; dark theme's plain `surface` sat almost on top of
+  `ground`, so cards get their own, lighter fill (`= surface-raised`).
 
 ### 2.3 Text
 

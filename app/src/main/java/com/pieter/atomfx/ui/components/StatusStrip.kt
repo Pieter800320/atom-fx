@@ -12,6 +12,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -178,7 +179,10 @@ private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.surfaceRaised, CARD_SHAPE)
+            // Experiment, 2026-09-03 — control treatment (Color.kt): brighter fill in dark theme,
+            // darker in light, always bordered since this is pressable.
+            .background(colors.controlSurface, CARD_SHAPE)
+            .border(1.dp, colors.controlBorder, CARD_SHAPE)
             .pressWash(CARD_SHAPE, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -243,7 +247,9 @@ private fun StripCard(item: StripItem, colors: AtomColors, modifier: Modifier = 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.surfaceRaised, CARD_SHAPE)
+            // Same control treatment as the Summary button — a Cascade row is just as pressable.
+            .background(colors.controlSurface, CARD_SHAPE)
+            .border(1.dp, colors.controlBorder, CARD_SHAPE)
             .pressWash(CARD_SHAPE) {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 item.onClick()

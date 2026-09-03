@@ -57,9 +57,10 @@ fun TradeableNow(
         Column(
             modifier = Modifier
                 .weight(1f)
-                // Pieter, 2026-09-03 — darker than surfaceRaised (the Summary button's own
-                // colour), so the two don't read as the same kind of control.
-                .background(colors.surface, CARD_SHAPE)
+                // Experiment, 2026-09-03 — card treatment (Color.kt): a non-pressable grouping
+                // container, so no border, ever; cardSurface (not controlSurface) keeps it
+                // visually distinct from the pressable Summary button/Cascade rows/ticker chips.
+                .background(colors.cardSurface, CARD_SHAPE)
                 .padding(16.dp),
         ) {
             Text(
