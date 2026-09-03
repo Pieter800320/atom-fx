@@ -23,6 +23,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,6 +58,9 @@ import com.pieter.atomfx.ui.theme.pressWash
 
 private val TICKER_HEIGHT = 30.dp
 private val TICKER_SPACING = 8.dp
+// Pieter, 2026-09-03 — more breathing room than TICKER_SPACING before the Tradeable Now card
+// specifically; the wheel-to-ticker gap stays at TICKER_SPACING, unchanged.
+private val CARD_TOP_SPACING = 16.dp
 
 /**
  * Design §5's landing screen, Wheel v2: header (incl. freshness/stale, Design §8-9) → status
@@ -85,15 +91,25 @@ fun WheelScreen(
         if (initialDeepLink != null) activeSheet = initialDeepLink
     }
 
-    Box(
+    // Pieter, 2026-09-03 follow-up — BoxWithConstraints (not a plain Box) so the true viewport
+    // height (maxHeight, below) is captured OUTSIDE the verticalScroll boundary further down —
+    // inside a scrollable Column, incoming height constraints are unbounded (Constraints.Infinity),
+    // same reason the wheel's own aspectRatio sizing had to be resolved at this level too.
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)
             // Top is owned by MainActivity's persistent gear bar (Functional Spec §3.1's
             // "gear icon on any tab") — consuming it here too would double the status-bar gap.
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
+            // Pieter, 2026-09-03 — Bottom dropped too: it was reserving safe-drawing bottom inset
+            // a SECOND time, above AtomBottomNav's own Material3 NavigationBar, which already
+            // applies its own bottom system-bar padding. That double reservation was exactly the
+            // "dead area right above the bottom nav" — the scrollable content now runs flush to
+            // where AtomBottomNav (correctly inset on its own) begins.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         val loaded = screenState as? WheelScreenState.Loaded
+        val viewportHeight = maxHeight
         // Pieter, 2026-09-03 — deliberate, flagged supersession of Design §17 ("the landing
         // screen never scrolls") for the Summary cascade specifically: he doesn't want the wheel
         // shrinking to make room for it, so the whole Column scrolls instead, wheel included. The
@@ -102,59 +118,70 @@ fun WheelScreen(
         // open or not; §17's original "wheel shrinks to fit" behavior is gone by construction,
         // not just unused.
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            if (loaded != null) {
-                // Pieter, 2026-09-03 follow-up — HeaderBar.kt is gone: "ATOM FX", the calendar
-                // affordance, and Updated+dot all moved into MainActivity's AtomGearBar (same
-                // reasoning as before — that's where the gear actually lives, shared across all
-                // three tabs); "brief" is gone outright now that its content is Cascade item #2
-                // (RECOMMENDATION), reachable there instead. This top padding replaces the gap
-                // HeaderBar's own content used to provide — without it Summary would sit flush
-                // against AtomGearBar the instant HeaderBar had nothing left to render.
-                StatusStrip(
-                    state = loaded.state,
-                    signals = loaded.signals,
-                    colors = colors,
-                    onCellClick = { target -> activeSheet = target },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-            }
-
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
-                when (val current = screenState) {
-                    WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)
-                    WheelScreenState.Unavailable -> CenteredMessage("DATA UNAVAILABLE", colors)
-                    is WheelScreenState.Loaded -> WheelArea(
-                        loaded = current,
-                        isDark = isDark,
+            // Pieter, 2026-09-03 follow-up — "distribute the leftover space evenly": Summary,
+            // the wheel+ticker (kept as one element, per Pieter — WheelArea already draws them
+            // together), and the Tradeable Now/Watch cards get one shared, evenly-sized gap
+            // between each consecutive pair, computed from real leftover space (EvenlySpacedColumn
+            // below) rather than a fixed padding value. The header (AtomGearBar) stays a fixed,
+            // small gap — it's a sibling of the pager in MainActivity, shared across all three
+            // tabs, not something this screen should stretch differently from Macro/Insights.
+            EvenlySpacedColumn(
+                modifier = Modifier.fillMaxWidth(),
+                targetHeight = viewportHeight,
+                minGap = CARD_TOP_SPACING,
+            ) {
+                if (loaded != null) {
+                    StatusStrip(
+                        state = loaded.state,
+                        signals = loaded.signals,
                         colors = colors,
-                        mode = mode,
-                        timeframe = timeframe,
-                        onModeChange = {
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            mode = it
-                        },
-                        onTimeframeChange = {
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            timeframe = it
-                        },
-                        onTap = { target ->
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            activeSheet = target.toSheetTarget()
-                        },
-                        onLongPress = { pair -> activeSheet = SheetTarget.Chart(pair) },
-                        onRingClick = { factor -> activeSheet = SheetTarget.Ring(factor) },
+                        onCellClick = { target -> activeSheet = target },
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(top = 12.dp),
                     )
                 }
-            }
 
-            if (loaded != null) {
-                TradeableNow(
-                    nodes = loaded.state.nodes,
-                    signals = loaded.signals,
-                    colors = colors,
-                    onSelect = { target -> activeSheet = target },
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                )
+                Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f)) {
+                    when (val current = screenState) {
+                        WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)
+                        WheelScreenState.Unavailable -> CenteredMessage("DATA UNAVAILABLE", colors)
+                        is WheelScreenState.Loaded -> WheelArea(
+                            loaded = current,
+                            isDark = isDark,
+                            colors = colors,
+                            mode = mode,
+                            timeframe = timeframe,
+                            onModeChange = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                mode = it
+                            },
+                            onTimeframeChange = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                timeframe = it
+                            },
+                            onTap = { target ->
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                activeSheet = target.toSheetTarget()
+                            },
+                            onLongPress = { pair -> activeSheet = SheetTarget.Chart(pair) },
+                            onRingClick = { factor -> activeSheet = SheetTarget.Ring(factor) },
+                        )
+                    }
+                }
+
+                if (loaded != null) {
+                    TradeableNow(
+                        nodes = loaded.state.nodes,
+                        signals = loaded.signals,
+                        colors = colors,
+                        onSelect = { target -> activeSheet = target },
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+                // Zero-height phantom child — gives EvenlySpacedColumn a 3rd gap slot (cards →
+                // the bottom of the scrollable area, i.e. where AtomBottomNav begins) instead of
+                // just 2 (Summary→wheel, wheel→cards). Nothing is drawn; only the GAP before it
+                // (sized the same as the other two) matters.
+                Spacer(modifier = Modifier.fillMaxWidth().height(0.dp))
             }
         }
 
@@ -425,5 +452,48 @@ private fun TickerMarquee(currencies: List<CurrencySeg>, colors: AtomColors, mod
 private fun CenteredMessage(text: String, colors: AtomColors) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = text, style = AtomType.Body.copy(color = colors.textSecondary))
+    }
+}
+
+/**
+ * Pieter, 2026-09-03 — "distribute the leftover space evenly" between Summary, the wheel+ticker,
+ * and the Tradeable Now/Watch cards. Places [content]'s direct children top-to-bottom with ONE
+ * shared gap size between every consecutive pair: leftover space (`targetHeight` minus the
+ * children's own natural heights) split evenly across the gaps, floored at [minGap]. A single
+ * measure-and-place pass, not a measure-then-react-to-a-remembered-height loop — the gap's own
+ * size would otherwise feed back into "how much height is already used," which doesn't converge
+ * (each frame's correction overshoots the other way rather than settling).
+ *
+ * When content is already taller than [targetHeight] (the Summary cascade open), gaps collapse
+ * to [minGap] and this composable simply reports its own larger height — the ancestor's
+ * `verticalScroll` takes over from there, same as it already did before this existed.
+ */
+@Composable
+private fun EvenlySpacedColumn(
+    modifier: Modifier = Modifier,
+    targetHeight: Dp,
+    minGap: Dp,
+    content: @Composable () -> Unit,
+) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        // Only height is relaxed — width stays exactly as given (already bounded, even inside a
+        // scrollable ancestor, since verticalScroll only makes height unbounded), so a child like
+        // the wheel's own Modifier.aspectRatio(1f) still has the one bounded dimension it needs.
+        val looseConstraints = constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+        val placeables = measurables.map { it.measure(looseConstraints) }
+        val contentHeightPx = placeables.sumOf { it.height }
+        val gapCount = (placeables.size - 1).coerceAtLeast(0)
+        val targetHeightPx = targetHeight.roundToPx()
+        val minGapPx = minGap.roundToPx()
+        val leftoverPx = (targetHeightPx - contentHeightPx).coerceAtLeast(0)
+        val gapPx = if (gapCount > 0) maxOf(leftoverPx / gapCount, minGapPx) else 0
+        val totalHeightPx = maxOf(targetHeightPx, contentHeightPx + gapPx * gapCount)
+        layout(constraints.maxWidth, totalHeightPx) {
+            var y = 0
+            placeables.forEach { placeable ->
+                placeable.placeRelative(0, y)
+                y += placeable.height + gapPx
+            }
+        }
     }
 }
