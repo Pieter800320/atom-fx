@@ -9,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,6 +59,7 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomFxTheme
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.WheelScreen
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 import kotlinx.coroutines.launch
@@ -192,7 +192,7 @@ private fun AtomGearBar(colors: AtomColors, onClick: () -> Unit) {
         Text(
             text = "⚙",
             style = AtomType.Body.copy(color = colors.textSecondary),
-            modifier = Modifier.clickable {
+            modifier = Modifier.pressWash {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
             },

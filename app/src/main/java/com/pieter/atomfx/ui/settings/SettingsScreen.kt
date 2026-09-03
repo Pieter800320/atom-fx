@@ -2,15 +2,20 @@ package com.pieter.atomfx.ui.settings
 
 import android.app.NotificationManager
 import android.os.Build
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +31,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,8 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -52,17 +61,29 @@ import com.pieter.atomfx.data.UserPreferences
 import com.pieter.atomfx.ui.sheets.SheetTabs
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
+/** Fraction of the screen width the settings panel occupies (Item Library #05 — mirrors the
+ *  noting app's `SettingsSheet.PANEL_WIDTH_PERCENT`, Pieter's own established value across his
+ *  apps for a one-handed-reachable side panel). Judgment call, since Functional Spec §9 only
+ *  said "full-screen or top sheet" — flagged per CLAUDE.md §4; Pieter asked for this shape
+ *  explicitly (2026-09-03), superseding the full-screen presentation described there. */
+private const val PANEL_WIDTH_FRACTION = 0.82f
+
 /**
- * Functional Spec §9 — reached from the header gear "on any tab" (Functional Spec §2/§3.1), shown
- * full-screen over whichever tab was active (spec: "full-screen or top sheet"). Six groups, in the
- * spec's own order: Theme, Notifications, Data source, Price-level alerts, Freshness/diagnostics,
- * About. No market-data or AI key fields anywhere — those live server-side (Architecture §8.1);
- * the only optional on-device credential is a GitHub PAT, and only inside Price-level alerts.
+ * Functional Spec §9 — reached from the header gear "on any tab" (Functional Spec §2/§3.1). A
+ * side panel (Item Library #05), not full-screen: the gear sits top-right (Design §5's
+ * `AtomGearBar`), so the panel slides in from the right at [PANEL_WIDTH_FRACTION] of the screen
+ * width with a scrim over the remaining area — tapping the scrim closes it, same as the gear's
+ * "Close" text and the system back button (MainActivity's `BackHandler`). Six groups inside,
+ * unchanged, in the spec's own order: Theme, Notifications, Data source, Price-level alerts,
+ * Freshness/diagnostics, About. No market-data or AI key fields anywhere — those live server-side
+ * (Architecture §8.1); the only optional on-device credential is a GitHub PAT, and only inside
+ * Price-level alerts.
  */
 @Composable
 fun SettingsScreen(
@@ -73,38 +94,75 @@ fun SettingsScreen(
     onRefreshNow: () -> Unit,
     onClose: () -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize().background(colors.ground)) {
-        Column(
+    val haptics = LocalHapticFeedback.current
+    // Entrance only (slide + scrim fade in) — closing removes the composable immediately, same
+    // as the full-screen version did before; a matching slide-out would need the visibility gate
+    // to live one level up in MainActivity (AnimatedVisibility), out of this composable's reach.
+    val entrance = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { entrance.animateTo(1f, tween(220)) }
+    val dismiss: () -> Unit = {
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onClose()
+    }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val panelWidthPx = with(density) { (maxWidth * PANEL_WIDTH_FRACTION).toPx() }
+
+        // Scrim over the tab content still visible on the left — tap anywhere on it to dismiss.
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .background(Color.Black.copy(alpha = 0.6f * entrance.value))
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = dismiss,
+                ),
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(PANEL_WIDTH_FRACTION)
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .graphicsLayer { translationX = (1f - entrance.value) * panelWidthPx }
+                .background(colors.ground)
+                // Swallows taps so they don't fall through to the scrim behind the panel.
+                .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {},
         ) {
-            SettingsHeader(colors, onClose)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                SettingsHeader(colors, onClose)
 
-            SettingsSection("THEME", colors) {
-                ThemeControl(prefsState.themeMode, colors) { preferences.setThemeMode(it) }
-            }
+                SettingsSection("THEME", colors) {
+                    ThemeControl(prefsState.themeMode, colors) { preferences.setThemeMode(it) }
+                }
 
-            SettingsSection("NOTIFICATIONS", colors) {
-                NotificationsGroup(prefsState, colors, preferences)
-            }
+                SettingsSection("NOTIFICATIONS", colors) {
+                    NotificationsGroup(prefsState, colors, preferences)
+                }
 
-            SettingsSection("DATA SOURCE", colors) {
-                DataSourceGroup(prefsState, colors, preferences)
-            }
+                SettingsSection("DATA SOURCE", colors) {
+                    DataSourceGroup(prefsState, colors, preferences)
+                }
 
-            SettingsSection("PRICE-LEVEL ALERTS", colors) {
-                PriceLevelAlertsGroup(colors)
-            }
+                SettingsSection("PRICE-LEVEL ALERTS", colors) {
+                    PriceLevelAlertsGroup(colors)
+                }
 
-            SettingsSection("FRESHNESS / DIAGNOSTICS", colors) {
-                FreshnessGroup(loaded, colors, onRefreshNow)
-            }
+                SettingsSection("FRESHNESS / DIAGNOSTICS", colors) {
+                    FreshnessGroup(loaded, colors, onRefreshNow)
+                }
 
-            SettingsSection("ABOUT", colors) {
-                AboutGroup(colors)
+                SettingsSection("ABOUT", colors) {
+                    AboutGroup(colors)
+                }
             }
         }
     }
@@ -122,7 +180,7 @@ private fun SettingsHeader(colors: AtomColors, onClose: () -> Unit) {
         Text(
             text = "Close",
             style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.clickable {
+            modifier = Modifier.pressWash {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClose()
             },
@@ -179,21 +237,24 @@ private fun SettingsSwitch(checked: Boolean, colors: AtomColors, enabled: Boolea
         else -> colors.hairlineStrong
     }
     val thumbOffset by animateDpAsState(if (checked) 16.dp else 0.dp, label = "switchThumb")
+    val trackShape = RoundedCornerShape(999.dp)
     Box(
         modifier = Modifier
             .size(width = 40.dp, height = 24.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .background(trackColor)
-            .then(
+            .background(trackColor, trackShape)
+            // Item Library #04 — pressWash() (clip + clickable) comes AFTER the fill, not
+            // before: the ripple must draw on top of the track colour, not get hidden underneath
+            // an opaque fill drawn later in the chain.
+            .let { base ->
                 if (enabled) {
-                    Modifier.clickable {
+                    base.pressWash(trackShape) {
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onCheckedChange(!checked)
                     }
                 } else {
-                    Modifier
-                },
-            )
+                    base.clip(trackShape)
+                }
+            }
             .padding(4.dp),
     ) {
         Box(
@@ -244,7 +305,7 @@ private fun NotificationsGroup(prefsState: UserPrefsState, colors: AtomColors, p
         style = AtomType.Caption.copy(color = if (notif.enabled) colors.textSecondary else colors.textMuted),
         modifier = Modifier
             .padding(top = 8.dp)
-            .clickable(enabled = notif.enabled) {
+            .pressWash(enabled = notif.enabled) {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 sendTestNotification(context)
             },
@@ -286,6 +347,7 @@ private fun sendTestNotification(context: android.content.Context) {
 
 @Composable
 private fun DataSourceGroup(prefsState: UserPrefsState, colors: AtomColors, preferences: UserPreferences) {
+    val haptics = LocalHapticFeedback.current
     var urlText by remember(prefsState.signalsUrl) { mutableStateOf(prefsState.signalsUrl) }
     var minutesText by remember(prefsState.refreshMinutes) { mutableStateOf(prefsState.refreshMinutes.toString()) }
 
@@ -300,7 +362,8 @@ private fun DataSourceGroup(prefsState: UserPrefsState, colors: AtomColors, pref
         Text(
             text = "Reset to default",
             style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.padding(top = 4.dp).clickable {
+            modifier = Modifier.padding(top = 4.dp).pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 urlText = DEFAULT_SIGNALS_URL
                 preferences.setSignalsUrl(DEFAULT_SIGNALS_URL)
             },
@@ -372,7 +435,7 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
     Text(
         text = "Force refresh",
         style = AtomType.Caption.copy(color = colors.textSecondary),
-        modifier = Modifier.padding(top = 8.dp).clickable {
+        modifier = Modifier.padding(top = 8.dp).pressWash {
             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             onRefreshNow()
         },

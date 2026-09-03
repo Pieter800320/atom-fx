@@ -2,7 +2,6 @@ package com.pieter.atomfx.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -11,12 +10,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 
 /**
  * Design §15 — a reusable horizontally-scrollable pill row: Tradeable Now / Watch, calendar
@@ -36,19 +37,24 @@ fun ScrollingPills(pills: List<Pill>, colors: AtomColors, modifier: Modifier = M
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         pills.forEach { pill ->
-            val clickable = pill.onClick?.let { onClick ->
-                Modifier.clickable {
-                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onClick()
-                }
-            } ?: Modifier
             val shape = RoundedCornerShape(999.dp)
             Row(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .background(pill.tint.copy(alpha = 0.13f), shape)
                     .let { if (pill.emphasized) it.border(1.dp, pill.tint, shape) else it }
-                    .then(clickable)
+                    // Item Library #04 — pressWash() (clip + clickable) comes AFTER the fill/
+                    // border, not before: the ripple must draw on top of the background, and
+                    // clip needs to wrap only the ripple, not hide it underneath an opaque fill
+                    // drawn later in the chain. It's a no-op when the pill has no onClick.
+                    .let { base ->
+                        pill.onClick?.let { onClick ->
+                            base.pressWash(shape) {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onClick()
+                            }
+                        } ?: base.clip(shape)
+                    }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 Text(text = pill.text, style = AtomType.Caption.copy(color = pill.tint))

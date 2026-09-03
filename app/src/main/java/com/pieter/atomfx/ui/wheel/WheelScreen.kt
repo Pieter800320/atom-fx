@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,6 +49,7 @@ import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 
 private val TICKER_HEIGHT = 30.dp
 private val TICKER_SPACING = 8.dp
@@ -255,6 +255,7 @@ private fun CurrencyFlowTicker(
     }
 
     val density = LocalDensity.current
+    val haptics = LocalHapticFeedback.current
     TickerMarquee(
         currencies = currencies,
         colors = colors,
@@ -265,7 +266,10 @@ private fun CurrencyFlowTicker(
                 scaleX = 0.92f + 0.08f * entrance.value
                 scaleY = 0.92f + 0.08f * entrance.value
             }
-            .clickable(onClick = onClick),
+            .pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            },
     )
 }
 

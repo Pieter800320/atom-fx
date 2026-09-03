@@ -1,7 +1,6 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,9 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 
 /** Design §13: "surface, 20px top corners, drag handle, a Title, then content. Numbers tabular." */
 @Composable
@@ -86,6 +88,7 @@ fun NotAvailableRow(label: String, colors: AtomColors) {
  */
 @Composable
 fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (Int) -> Unit) {
+    val haptics = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,11 +100,13 @@ fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (
             Box(
                 modifier = Modifier
                     .padding(end = 8.dp)
-                    .background(
-                        if (isOn) colors.surfaceRaised else colors.surface,
-                        RoundedCornerShape(999.dp),
-                    )
-                    .clickable { onSelect(index) }
+                    // Item Library #04 — pressWash() masks the ripple to this pill's own rounded
+                    // shape instead of letting it bleed past the rounded corners as a rectangle.
+                    .background(if (isOn) colors.surfaceRaised else colors.surface, RoundedCornerShape(999.dp))
+                    .pressWash(RoundedCornerShape(999.dp)) {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onSelect(index)
+                    }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
             ) {

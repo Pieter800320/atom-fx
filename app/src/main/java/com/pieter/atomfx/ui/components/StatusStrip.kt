@@ -1,7 +1,6 @@
 package com.pieter.atomfx.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -23,6 +22,7 @@ import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.WheelUiState
 import com.pieter.atomfx.ui.wheel.tintColor
@@ -89,7 +89,7 @@ private fun Cell(label: String, value: String, valueColor: Color, colors: AtomCo
     val haptics = LocalHapticFeedback.current
     Column(
         modifier = modifier
-            .clickable {
+            .pressWash {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
             }

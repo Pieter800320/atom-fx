@@ -1,6 +1,5 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +9,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 
 /** Design §14.2 — strength from frozen `csm.h4`; Δ/arrows from `csm_delta.h4` when the backend has it. */
 @Composable
@@ -49,10 +51,14 @@ fun CurrencyFlowSheet(signals: Signals, colors: AtomColors, onCurrencyClick: (St
 /** A `SheetRow` that opens this currency's detail sheet — same shape, just tappable. */
 @Composable
 private fun ClickableRow(label: String, value: String, colors: AtomColors, valueColor: Color, onClick: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            }
             .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {

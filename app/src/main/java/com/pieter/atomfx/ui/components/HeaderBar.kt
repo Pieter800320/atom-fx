@@ -1,7 +1,6 @@
 package com.pieter.atomfx.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Tint
 import com.pieter.atomfx.ui.wheel.WheelUiState
 import com.pieter.atomfx.ui.wheel.tintColor
@@ -68,12 +68,12 @@ fun HeaderBar(
                     Text(
                         text = "brief",
                         style = AtomType.Caption.copy(color = colors.textSecondary),
-                        modifier = Modifier.clickable { tap(onRecommendationClick) },
+                        modifier = Modifier.pressWash { tap(onRecommendationClick) },
                     )
                     Text(
                         text = "  events",
                         style = AtomType.Caption.copy(color = colors.textSecondary),
-                        modifier = Modifier.clickable { tap(onCalendarClick) },
+                        modifier = Modifier.pressWash { tap(onCalendarClick) },
                     )
                 }
             }
@@ -118,7 +118,7 @@ fun HeaderBar(
                     style = AtomType.Caption.copy(color = colors.textMuted),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.clickable { tap(onRecommendationClick) }.padding(top = 2.dp),
+                    modifier = Modifier.pressWash { tap(onRecommendationClick) }.padding(top = 2.dp),
                 )
             }
         }
