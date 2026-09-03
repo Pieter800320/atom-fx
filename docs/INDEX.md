@@ -16,6 +16,7 @@ cross-references by section number. **Claude Code should read this file first.**
 | **[mockups/atom-fx-screen-kit.html](mockups/atom-fx-screen-kit.html)** | Visual mockup of every surface + the screen-flow map. Open in a browser. | Building any screen. |
 | **[ATOM_FX_WHEEL_V2_SPEC.md](ATOM_FX_WHEEL_V2_SPEC.md)** | The radial-dial wheel redesign — supersedes `ATOM_FX_DESIGN.md` §6/§6A's wheel specifics where they conflict. §11 is a running addendum of what actually shipped vs the original brief. | Any wheel/dial work. |
 | **[mockups/atom-fx-wheel-preview.html](mockups/atom-fx-wheel-preview.html)** | Interactive reference render of the Wheel v2 dial (dark/light × currencies/pairs). Open in a browser. | Any wheel/dial work. |
+| **[ATOM_FX_SIGNALS_ROADMAP.md](ATOM_FX_SIGNALS_ROADMAP.md)** | Phased plan for new signals/notifications (state-transition alerts, COT conviction, Bollinger reversals, rate differential), from a full audit of the frozen scanner against both upstream zips. | Implementing any new signal or push notification. |
 
 ## The safety net & test data
 
@@ -39,3 +40,4 @@ Each spec has a version at the top. When a spec changes, bump its version and no
 what changed in a short line here:
 
 - v1.0 — initial architecture, design, functional spec, setup, runbook, fixtures, Rule #1 test.
+- 2026-09-04 — added ATOM_FX_SIGNALS_ROADMAP.md v1.0 (phased plan for new signals/notifications, from a full audit of the frozen scanner against both upstream zips).
