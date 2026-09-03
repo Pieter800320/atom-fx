@@ -106,7 +106,7 @@ fun BottomSheetHost(
                 SheetTarget.Calendar -> CalendarSheet(signals, colors)
                 SheetTarget.Recommendation -> RecommendationSheet(signals, colors)
                 is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
-                is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors)
+                is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors, onPairClick = { onNavigate(SheetTarget.Node(it)) })
                 is SheetTarget.CrossAsset -> CrossAssetSheet(target.id, signals, colors)
             }
         }
