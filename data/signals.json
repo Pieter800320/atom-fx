@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T21:39:20.039437+00:00",
+  "updated": "2026-09-03T22:10:58.922393+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -747,72 +747,72 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 14.46,
-      "delta_pct": -4.9,
-      "direction": "flat",
+      "value": 14.32,
+      "delta_pct": -5.8,
+      "direction": "down",
       "label": "VIX"
     },
     "spx": {
-      "value": 7751.24,
+      "value": 7747.71,
       "delta_pct": 1.1,
       "direction": "up",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4525.3,
+      "value": 4521.6,
       "delta_pct": 3.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.922,
+      "value": 98.992,
       "delta_pct": -0.6,
       "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6745,
-      "delta_pct": 2.7,
+      "value": 6.6695,
+      "delta_pct": 2.6,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.76,
-      "delta_bp": -3.6,
+      "value": 4.762,
+      "delta_bp": -3.4,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.743,
-      "delta_bp": -2.9,
+      "value": 3.74,
+      "delta_bp": -3.2,
       "direction": "down",
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.45,
-      "delta_pct": 0.5,
+      "value": 91.62,
+      "delta_pct": 0.7,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81241.0,
-      "delta_pct": 5.1,
+      "value": 81464.0,
+      "delta_pct": 5.4,
       "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 101.7,
-      "delta_bp": -0.7,
+      "value": 102.2,
+      "delta_bp": -0.2,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT, GBPJPY SHORT, CADJPY SHORT at risk; strong USD data and surging JPY both pressure yen-short positions significantly.",
-    "updated": "2026-09-03T19:01:02.729708+00:00"
+    "text": "CADJPY SHORT: Weak ADP and strong ISM signal mixed US data; NFP risk could weaken USD carry demand.",
+    "updated": "2026-09-03T22:10:58.922393+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold bid confirms JPY strength, challenges risk-on equity flows.\n\nGBPJPY SHORT: Gold rising supports JPY safe-haven, contradicts medium risk-on tone.\n\nCADJPY SHORT: Gold strength backs JPY bid, but copper rally favors risk assets.",
+    "text": "NZDJPY SHORT: Gold rising confirms JPY bid, challenges risk-on equity flows.\n\nGBPJPY SHORT: Gold strength supports JPY safe-haven bid strongly today.\n\nCADJPY SHORT: Risk-on contradicts short, but gold-driven JPY bid prevails.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -822,15 +822,15 @@
       {
         "pair": "GBPJPY",
         "direction": "bear",
-        "score": 6.9
+        "score": 6.92
       },
       {
         "pair": "CADJPY",
         "direction": "bear",
-        "score": 6.38
+        "score": 6.12
       }
     ],
-    "updated": "2026-09-03T19:01:02.729708+00:00"
+    "updated": "2026-09-03T22:10:58.922393+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-03T19:01:02.729708+00:00"
+    "updated": "2026-09-03T22:10:58.922393+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-on today: gold, equities, copper and bitcoin all higher while the VIX retreats and the dollar index softens, a fairly clean cross-asset alignment favoring risk-sensitive currencies over the greenback. Falling US yields reinforce the softer-dollar tone even as headlines flag lingering hawkish Fed hike bets and a choppy dollar picture heading into jobs data. Commodity-linked currencies get some support from firmer oil and copper. The next catalyst is the US ISM Services PMI at 14:00 UTC, a modest but relevant test of the services-sector",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "ISM non-manufacturing PMI 55.4 beats 54.2 estimate; stronger US data ahead",
-      "DXY eyes 99.58 as NFP tests hawkish Fed expectations this week",
-      "Japanese yen surges higher for second consecutive day; strength accelerates"
+      "DXY eyes 99.58 as jobs week tests hawkish Fed expectations",
+      "Weak ADP hits DXY; NFP becomes next critical test today",
+      "ISM non-manufacturing PMI 55.4 beats 54.2 estimate, stronger growth signal"
     ],
     "themes": [
-      "risk",
       "rates",
-      "rates"
+      "rates",
+      "risk"
     ],
-    "updated": "2026-09-03T19:01:02.729708+00:00"
+    "updated": "2026-09-03T22:10:58.922393+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
