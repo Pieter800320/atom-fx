@@ -31,6 +31,12 @@ data class NotificationRecord(
     // flipped INTO, so a history card can show the playbook entry that actually fired, not
     // whatever's live by the time it's read. Null for every other alert type.
     val regimeFlipTo: String? = null,
+    // Alert Playbook pass, 2026-09-04 — structure_event's own equivalent: "BOS" or "CHoCH",
+    // keying STRUCTURE_EVENT_PLAYBOOK (AlertPlaybookContent.kt). Null for every other alert type.
+    // gold_signal and conviction_extreme don't need an equivalent field — both already key their
+    // own playbook maps off the existing `direction` field ("bull"/"bear"); volatility_spike and
+    // tf_alignment need no key at all, each is a single static entry.
+    val structureKind: String? = null,
     val timestamp: Long,
     val read: Boolean = false,
 )
@@ -86,6 +92,7 @@ class NotificationHistoryStore(context: Context) {
         direction: String?,
         regimeCode: String? = null,
         regimeFlipTo: String? = null,
+        structureKind: String? = null,
     ) {
         val cutoff = System.currentTimeMillis() - RETENTION_MILLIS
         val entry = NotificationRecord(
@@ -97,6 +104,7 @@ class NotificationHistoryStore(context: Context) {
             direction = direction,
             regimeCode = regimeCode,
             regimeFlipTo = regimeFlipTo,
+            structureKind = structureKind,
             timestamp = System.currentTimeMillis(),
         )
         val next = (listOf(entry) + _state.value)

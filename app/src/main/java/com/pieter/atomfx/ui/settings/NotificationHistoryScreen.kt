@@ -16,7 +16,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.NotificationRecord
 import com.pieter.atomfx.push.ALERT_GUIDANCE
+import com.pieter.atomfx.push.CONVICTION_EXTREME_PLAYBOOK
+import com.pieter.atomfx.push.GOLD_SIGNAL_PLAYBOOK
+import com.pieter.atomfx.push.STRUCTURE_EVENT_PLAYBOOK
 import com.pieter.atomfx.push.TECHNICAL_REGIME_PLAYBOOK
+import com.pieter.atomfx.push.TF_ALIGNMENT_PLAYBOOK
+import com.pieter.atomfx.push.VOLATILITY_SPIKE_PLAYBOOK
 import com.pieter.atomfx.push.buildRegimeExplanation
 import com.pieter.atomfx.push.parseDeepLink
 import com.pieter.atomfx.ui.components.BookPlusGlyph
@@ -107,6 +112,18 @@ private fun NotificationCard(
             buildRegimeExplanation(record.regimeCode, emptyList(), emptyList())?.let { ReadingTarget.MacroArchetype(it) }
         record.type == "regime_flip" && record.regimeFlipTo != null ->
             TECHNICAL_REGIME_PLAYBOOK[record.regimeFlipTo]?.let { ReadingTarget.TechnicalRegime(it) }
+        // Alert Playbook pass, 2026-09-04 — same "resolve once, up here" shape as the two cases
+        // above, now covering the five remaining alert types (level_alert and potential_state
+        // deliberately excluded, Pieter's own call — see AlertPlaybookContent.kt's own doc
+        // comment for why).
+        record.type == "structure_event" && record.structureKind != null ->
+            STRUCTURE_EVENT_PLAYBOOK[record.structureKind]?.let { ReadingTarget.Alert(it, "STRUCTURE PLAYBOOK") }
+        record.type == "gold_signal" && record.direction != null ->
+            GOLD_SIGNAL_PLAYBOOK[record.direction]?.let { ReadingTarget.Alert(it, "GOLD SIGNAL PLAYBOOK") }
+        record.type == "conviction_extreme" && record.direction != null ->
+            CONVICTION_EXTREME_PLAYBOOK[record.direction]?.let { ReadingTarget.Alert(it, "POSITIONING PLAYBOOK") }
+        record.type == "volatility_spike" -> ReadingTarget.Alert(VOLATILITY_SPIKE_PLAYBOOK, "VOLATILITY PLAYBOOK")
+        record.type == "tf_alignment" -> ReadingTarget.Alert(TF_ALIGNMENT_PLAYBOOK, "ALIGNMENT PLAYBOOK")
         else -> null
     }
 

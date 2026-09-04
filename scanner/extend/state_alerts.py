@@ -64,6 +64,11 @@ def _structure_event_alerts(out: dict, prev: dict) -> list:
             "msg": f"<b>{pair} — {event} on H4</b>\n{dir_word} · strength {h4.get('strength', 0.0):.2f}",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction if direction in ("bull", "bear") else None,
+            # Alert Playbook pass, 2026-09-04 — same mechanism as archetype_change's regime_code /
+            # regime_flip's regime_flip_to: the app's own STRUCTURE_EVENT_PLAYBOOK
+            # (AlertPlaybookContent.kt) is keyed by exactly this ("BOS"/"CHoCH"), so a history card
+            # can assemble the right playbook entry without re-deriving it.
+            "structure_kind": event,
         })
     return alerts
 

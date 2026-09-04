@@ -1,5 +1,6 @@
 package com.pieter.atomfx.ui.reading
 
+import com.pieter.atomfx.push.AlertPlaybookEntry
 import com.pieter.atomfx.push.RegimeExplanation
 import com.pieter.atomfx.push.TechnicalRegimeEntry
 
@@ -17,4 +18,11 @@ import com.pieter.atomfx.push.TechnicalRegimeEntry
 sealed interface ReadingTarget {
     data class TechnicalRegime(val entry: TechnicalRegimeEntry) : ReadingTarget
     data class MacroArchetype(val explanation: RegimeExplanation) : ReadingTarget
+    // Alert Playbook pass, 2026-09-04 — one shared case for all five remaining alert types
+    // (structure_event/volatility_spike/tf_alignment/conviction_extreme/gold_signal), matching
+    // AlertPlaybookEntry's own "one shared shape" design (see AlertPlaybookContent.kt) — five
+    // sealed subtypes here would just be five copies of the same single field. [eyebrow] is the
+    // small label the Reading Window shows above the title (e.g. "STRUCTURE PLAYBOOK"), since
+    // there's no single regime-style name to derive it from the way the other two cases can.
+    data class Alert(val entry: AlertPlaybookEntry, val eyebrow: String) : ReadingTarget
 }

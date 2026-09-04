@@ -21,6 +21,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.macro.RegimePlaybookDetail
+import com.pieter.atomfx.ui.sheets.AlertPlaybookDetail
 import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.TechnicalRegimePlaybookDetail
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -61,17 +62,20 @@ fun ReadingWindow(target: ReadingTarget, colors: AtomColors, onClose: () -> Unit
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                    Text(text = "REGIME PLAYBOOK", style = AtomType.Caption.copy(color = colors.textSecondary))
+                    Text(text = readingEyebrow(target), style = AtomType.Caption.copy(color = colors.textSecondary))
                     Text(
                         text = readingTitle(target),
                         style = AtomType.Display.copy(color = colors.textPrimary),
                         modifier = Modifier.padding(top = 4.dp),
                     )
-                    Text(
-                        text = readingSubtitle(target),
-                        style = AtomType.Caption.copy(color = colors.textMuted),
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
+                    val subtitle = readingSubtitle(target)
+                    if (subtitle.isNotEmpty()) {
+                        Text(
+                            text = subtitle,
+                            style = AtomType.Caption.copy(color = colors.textMuted),
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
                 }
                 Text(
                     text = "Close",
@@ -89,18 +93,27 @@ fun ReadingWindow(target: ReadingTarget, colors: AtomColors, onClose: () -> Unit
                 when (target) {
                     is ReadingTarget.TechnicalRegime -> TechnicalRegimePlaybookDetail(target.entry, colors)
                     is ReadingTarget.MacroArchetype -> RegimePlaybookDetail(target.explanation, colors)
+                    is ReadingTarget.Alert -> AlertPlaybookDetail(target.entry, colors)
                 }
             }
         }
     }
 }
 
+private fun readingEyebrow(target: ReadingTarget): String = when (target) {
+    is ReadingTarget.TechnicalRegime -> "REGIME PLAYBOOK"
+    is ReadingTarget.MacroArchetype -> "REGIME PLAYBOOK"
+    is ReadingTarget.Alert -> target.eyebrow
+}
+
 private fun readingTitle(target: ReadingTarget): String = when (target) {
     is ReadingTarget.TechnicalRegime -> target.entry.regime
     is ReadingTarget.MacroArchetype -> target.explanation.entry.name
+    is ReadingTarget.Alert -> target.entry.title
 }
 
 private fun readingSubtitle(target: ReadingTarget): String = when (target) {
     is ReadingTarget.TechnicalRegime -> "H4 Structural Regime"
     is ReadingTarget.MacroArchetype -> "Macro Archetype ${target.explanation.entry.code}"
+    is ReadingTarget.Alert -> ""
 }
