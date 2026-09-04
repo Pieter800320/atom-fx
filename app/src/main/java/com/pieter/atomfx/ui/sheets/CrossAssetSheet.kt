@@ -27,13 +27,21 @@ import com.pieter.atomfx.ui.wheel.WheelGeometry
  *
  * 2026-09-03 — simplified after two rounds of feedback: the wash now tells one thing, the asset's
  * own direction (bull wash on an up move, bear on a down move, plain otherwise) — no dot, no
- * arrow glyph, no separate "confirms the regime" signal layered in (that was a second, different
- * question — "is this axis supporting the regime" — competing with direction in the same colour
- * and reading as muddled). Value/delta are vertically centred against the *whole* card (title +
- * impact line), not just the title line, via one `Alignment.CenterVertically` Row.
+ * arrow glyph. A separate "confirms the regime" signal was tried as a second wash/dot layered on
+ * top of direction and reverted — two different questions competing in the same colour read as
+ * muddled. Value/delta are vertically centred against the *whole* card (title + impact line), not
+ * just the title line, via one `Alignment.CenterVertically` Row.
+ *
+ * 2026-09-04 — "confirms" is back, as plain text appended to the impact caption instead of a
+ * colour/dot: no new colour channel, so it can't muddle with the direction wash above. Shown only
+ * when true (no "—" placeholder on non-confirming rows) — same evidence source
+ * (`macro_regime.evidence`, keyed by axis) the pre-rebuild `ConfirmBadge` used.
  */
 @Composable
 fun CrossAssetSheet(selectedId: String, signals: Signals, colors: AtomColors) {
+    val supportingAxes = signals.macroRegime?.evidence
+        ?.filter { it.supports }?.mapNotNull { it.axis }?.toSet() ?: emptySet()
+
     // Canonical order, then float the tapped asset to the top.
     val ordered = WheelGeometry.XASSET_ORDER
         .sortedByDescending { it.first == selectedId }
@@ -46,11 +54,20 @@ fun CrossAssetSheet(selectedId: String, signals: Signals, colors: AtomColors) {
                 fallbackLabel = fallbackLabel,
                 entry = signals.macroAssets[key],
                 pinned = key == selectedId,
+                confirms = (ASSET_AXES[key] ?: emptyList()).any { it in supportingAxes },
                 colors = colors,
             )
         }
     }
 }
+
+/** Which regime evidence axis (or axes) each asset speaks to — mirrors Macro's own EvidenceAxes. */
+private val ASSET_AXES: Map<String, List<String>> = mapOf(
+    "vix" to listOf("risk"), "spx" to listOf("risk"), "btc" to listOf("risk"),
+    "us10y" to listOf("rates"), "us3m" to listOf("rates"), "curve" to listOf("rates"),
+    "dxy" to listOf("usd"), "wti" to listOf("commodity"),
+    "copper" to listOf("risk", "commodity"), "gold" to listOf("commodity", "safe_haven"),
+)
 
 /** Short, presentational read of what the move implies — copy only, not a computed signal. */
 private val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
@@ -77,6 +94,7 @@ private fun CrossAssetRow(
     fallbackLabel: String,
     entry: MacroAssetEntry?,
     pinned: Boolean,
+    confirms: Boolean,
     colors: AtomColors,
 ) {
     val dir = entry?.direction
@@ -95,6 +113,11 @@ private fun CrossAssetRow(
     val delta = entry?.deltaPct?.let { "%+.1f%%".format(java.util.Locale.US, it) }
         ?: entry?.deltaBp?.let { "%+.1fbp".format(java.util.Locale.US, it) } ?: "—"
     val impact = IMPACT[key to up] ?: ""
+    val caption = if (confirms) {
+        if (impact.isNotBlank()) "$impact · confirms regime" else "confirms regime"
+    } else {
+        impact
+    }
 
     val fill = when {
         up -> lerp(colors.surfaceRaised, colors.bull, XA_LIT_AMOUNT)
@@ -117,9 +140,9 @@ private fun CrossAssetRow(
                     fontWeight = if (pinned) FontWeight.SemiBold else AtomType.Body.fontWeight,
                 ),
             )
-            if (impact.isNotBlank()) {
+            if (caption.isNotBlank()) {
                 Text(
-                    text = impact,
+                    text = caption,
                     style = AtomType.Caption.copy(color = colors.textSecondary),
                     modifier = Modifier.padding(top = 3.dp),
                 )

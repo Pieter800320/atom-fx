@@ -242,8 +242,8 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         term = "Cross-Asset Instruments",
         category = "Cross-Asset & Correlation",
         summary = "10 non-FX instruments the app watches for macro context: VIX, US10Y, US3M, the 10Y–3M curve, DXY, Gold, S&P 500, Copper, WTI, Bitcoin.",
-        howItWorks = "Each gets a direction (up/down/flat) and a percentage or basis-point change over its window — the raw material every evidence axis and every archetype signature is built from.",
-        whyItMatters = "These never get their own ring on the wheel — the spec calls them supporting evidence only — but they're the entire backbone of the Macro screen and the Cross-Assets sheet.",
+        howItWorks = "Each gets a direction (up/down/flat) and a percentage or basis-point change over its window — the raw material every evidence axis and every archetype signature is built from. In the Cross-Assets sheet, an instrument whose Evidence Axis currently supports the regime gets \"confirms regime\" appended to its caption — a plain-text read of the same axis data, not a separate calculation.",
+        whyItMatters = "These never get their own ring on the wheel — the spec calls them supporting evidence only — but they're the entire backbone of the Macro screen and the Cross-Assets sheet. \"Confirms regime\" is the fastest way to see, instrument by instrument, which moves are actually backing the regime you're trading and which are just noise.",
     ),
     LibraryEntry(
         id = "correlation",

@@ -91,3 +91,7 @@ violated:
 - Never commit `.venv/` or build output.
 - Keep reference mockups in `docs/mockups/` and commit them, so they are always readable here.
 - Feature work on `feat/*` branches; `main` stays buildable.
+- **The in-app Library (`LibraryContent.kt`) is updated with every pertinent change** — a new
+  signal, a new sheet element, a changed calculation, a renamed term. It claims to explain "every
+  single element, calculation and item in the app," so it goes stale the moment a shipped change
+  isn't reflected there. Update it in the same session the change ships, not deferred to later.
