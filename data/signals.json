@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-04T12:34:08.295054+00:00",
+  "updated": "2026-09-04T13:54:56.031449+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -741,96 +741,96 @@
   "macro": {
     "label": "Risk-On",
     "signals": -2,
-    "total": 4,
+    "total": 2,
     "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 14.17,
-      "delta_pct": -1.0,
+      "value": 14.11,
+      "delta_pct": -1.5,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7747.71,
-      "delta_pct": 1.1,
-      "direction": "up",
+      "value": 7739.85,
+      "delta_pct": -0.1,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4528.8,
-      "delta_pct": 0.8,
-      "direction": "up",
+      "value": 4470.9,
+      "delta_pct": -0.5,
+      "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.084,
+      "value": 99.114,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.679,
-      "delta_pct": 1.6,
+      "value": 6.6775,
+      "delta_pct": 1.5,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.762,
-      "delta_bp": -3.4,
+      "value": 4.77,
+      "delta_bp": 0.8,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.74,
-      "delta_bp": -3.2,
-      "direction": "down",
+      "value": 3.765,
+      "delta_bp": 2.5,
+      "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.68,
-      "delta_pct": -0.7,
-      "direction": "flat",
+      "value": 89.21,
+      "delta_pct": -2.3,
+      "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80853.0,
-      "delta_pct": -0.5,
+      "value": 79315.0,
+      "delta_pct": -2.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.2,
-      "delta_bp": -0.2,
+      "value": 100.5,
+      "delta_bp": -1.7,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT, GBPJPY SHORT, CADJPY SHORT at risk. Waller hawkish comments tamp down rate hike bets, weakening JPY carry appeal and reducing upside.",
-    "updated": "2026-09-04T08:22:34.502636+00:00"
+    "text": "CADJPY SHORT: Strong US NFP +162K vs +56K expected accelerates USD strength, boosts JPY shorts via carry unwind pressure.",
+    "updated": "2026-09-04T13:54:56.031449+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold bid confirms JPY strength thesis, macro supports.\n\nGBPJPY SHORT: Risk-on conflicts with JPY bid, mixed regime challenges.\n\nCADJPY SHORT: Copper strength contradicts CAD weakness, macro setup challenged.",
+    "text": "NZDJPY SHORT: Risk-off regime confirms setup, NZD commodity sensitivity driver.\n\nCADJPY SHORT: WTI oil falling strongly confirms CAD weakness setup.\n\nGBPJPY SHORT: Risk-off regime confirms setup, GBP carry unwind driver.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.35
-      },
-      {
-        "pair": "GBPJPY",
-        "direction": "bear",
-        "score": 6.92
+        "score": 7.88
       },
       {
         "pair": "CADJPY",
         "direction": "bear",
-        "score": 6.12
+        "score": 7.28
+      },
+      {
+        "pair": "GBPJPY",
+        "direction": "bear",
+        "score": 7.17
       }
     ],
-    "updated": "2026-09-04T08:22:34.502636+00:00"
+    "updated": "2026-09-04T13:54:56.031449+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-04T08:22:34.502636+00:00"
+    "updated": "2026-09-04T13:54:56.031449+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today. Gold and equities are firmer, VIX and yields are lower, yet the dollar index holds a slight bid and Bitcoin has slipped, muddying the classic risk-on read. Copper's strength hints at underlying growth optimism, but the mixed H4/H1 regime and neutral gold signal suggest no clean directional conviction yet. Headlines center on the dollar's jobs-week test, with hawkish Fed repricing offsetting soft ADP data. Traders should watch the 14:00 UTC ISM Services PMI, a key input ahead",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar Price Forecast: DXY Eyes 99.58 as Jobs Week Tests Hawkish Fed",
-      "Weak ADP Hits DXY as NFP Becomes the Next Test Today",
-      "Fed Official Waller Tamps Down Rate Hike Bets; Dollar Weakens"
+      "US August non-farm payrolls +162K vs +56K expected",
+      "DXY eyes 99.58 as jobs week tests hawkish Fed",
+      "Trump tells Fed lower rates or stop trading deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-04T08:22:34.502636+00:00"
+    "updated": "2026-09-04T13:54:56.031449+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
