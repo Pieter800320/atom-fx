@@ -10,7 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,16 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
@@ -53,8 +48,6 @@ import com.pieter.atomfx.ui.wheel.WheelUiState
 import com.pieter.atomfx.ui.wheel.tintColor
 import com.pieter.atomfx.ui.wheel.topPair
 import kotlinx.coroutines.delay
-import kotlin.math.cos
-import kotlin.math.sin
 
 // Pieter, 2026-09-03 follow-up: the first pass (StiffnessLow) read as sluggish — snappier now
 // (StiffnessMedium + a light settle, not the heavier bounce the wheel's own rimFlash uses).
@@ -172,8 +165,8 @@ fun StatusStrip(
 
 private data class StripItem(val label: String, val value: String, val valueColor: Color, val onClick: () -> Unit)
 
-/** The "Summary" button — Pieter, 2026-09-03: a miniature of the wheel itself (hub + ring +
- *  4 trapezoid wings, [SummaryGlyph]) as the glyph, since this button IS a summary of the wheel. */
+/** The "Summary" button. Was a miniature of the wheel itself (hub + ring + 4 trapezoid wings) as
+ *  the glyph (Pieter, 2026-09-03) — dropped 2026-09-04 (Pieter's ask), text + chevron only now. */
 @Composable
 private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> Unit) {
     val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "summaryChevron")
@@ -188,7 +181,6 @@ private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> 
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SummaryGlyph(color = colors.textPrimary, size = 18.dp)
         Text(
             text = "SUMMARY",
             // Pieter, 2026-09-03 — Caption's default weight is SemiBold, same tier Display/Title
@@ -196,51 +188,13 @@ private fun SummaryButton(expanded: Boolean, colors: AtomColors, onClick: () -> 
             // smallest size. Normal here, same move ScrollingPills' electric pills already made
             // for the same reason.
             style = AtomType.Caption.copy(color = colors.textPrimary, fontWeight = FontWeight.Normal),
-            modifier = Modifier.padding(start = 10.dp).weight(1f),
+            modifier = Modifier.weight(1f),
         )
         Text(
             text = "▾",
             style = AtomType.Caption.copy(color = colors.textMuted),
             modifier = Modifier.rotate(chevronRotation),
         )
-    }
-}
-
-/** A miniature of the radial dial (Item Library #01): hub + ring + 4 trapezoid wings at the
- *  diagonals, straight-edged rather than curved — the curvature the real dial's wings use is
- *  imperceptible at icon scale, and "trapezoid" is the wings' own name in the spec. */
-@Composable
-private fun SummaryGlyph(color: Color, size: Dp) {
-    Canvas(modifier = Modifier.size(size)) {
-        val cx = this.size.width / 2f
-        val cy = this.size.height / 2f
-        val ringR = this.size.minDimension * 0.30f
-        val hubR = ringR * 0.4f
-        drawCircle(color = color, radius = ringR, center = Offset(cx, cy), style = Stroke(width = this.size.minDimension * 0.09f))
-        drawCircle(color = color, radius = hubR, center = Offset(cx, cy))
-
-        val wingInnerR = ringR * 1.15f
-        val wingOuterR = ringR * 1.75f
-        val innerHalfDeg = 22f
-        val outerHalfDeg = 12f
-        fun polar(r: Float, deg: Float): Offset {
-            val a = Math.toRadians((deg - 90f).toDouble())
-            return Offset(cx + r * cos(a).toFloat(), cy + r * sin(a).toFloat())
-        }
-        listOf(45f, 135f, 225f, 315f).forEach { centerDeg ->
-            val path = Path().apply {
-                val pIn0 = polar(wingInnerR, centerDeg - innerHalfDeg)
-                val pIn1 = polar(wingInnerR, centerDeg + innerHalfDeg)
-                val pOut0 = polar(wingOuterR, centerDeg - outerHalfDeg)
-                val pOut1 = polar(wingOuterR, centerDeg + outerHalfDeg)
-                moveTo(pIn0.x, pIn0.y)
-                lineTo(pOut0.x, pOut0.y)
-                lineTo(pOut1.x, pOut1.y)
-                lineTo(pIn1.x, pIn1.y)
-                close()
-            }
-            drawPath(path, color = color)
-        }
     }
 }
 

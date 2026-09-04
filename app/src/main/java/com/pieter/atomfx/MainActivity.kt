@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -275,15 +282,13 @@ private fun AtomGearBar(
                 text = "Updated ${formatUpdated(updated)}",
                 style = AtomType.Caption.copy(color = colors.textMuted),
             )
-            Text(
-                text = "▦",
-                style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
+            CalendarGlyph(
+                colors = colors,
                 modifier = Modifier.padding(start = 16.dp).pressWash { tap(onCalendarClick) },
             )
             Box(modifier = Modifier.padding(start = 14.dp)) {
-                Text(
-                    text = "⚙",
-                    style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
+                GearGlyph(
+                    colors = colors,
                     modifier = Modifier.pressWash { tap(onSettingsClick) },
                 )
                 if (hasUnreadNotifications) {
@@ -303,8 +308,74 @@ private fun AtomGearBar(
 
 // Icon-sized, not body-copy-sized — deliberately outside the 4-level type scale (Design §3),
 // same reasoning as the Summary glyph's own independent sizing: these are glyphs, not language.
-private val ICON_GLYPH_SIZE = 22.sp
 private val NAV_GLYPH_SIZE = 22.sp
+
+// Pieter, 2026-09-04 — the calendar/gear header icons were "▦"/"⚙" Unicode text glyphs at a
+// shared font-size, which LOOKS like "same size" but isn't: two arbitrary pictographic glyphs at
+// one declared font-size render at different optical sizes and baselines (font-metric quirks, not
+// a bug in this app), which is exactly why the calendar glyph read smaller and slightly off-kilter
+// next to the gear. Both are now hand-drawn on a Canvas at this one fixed box, same stroke width,
+// same centring — "same size, precisely aligned" by construction instead of by font luck.
+private val HEADER_ICON_SIZE = 22.dp
+
+@Composable
+private fun GearGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(HEADER_ICON_SIZE)) {
+        val stroke = size.minDimension * 0.11f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val ringRadius = size.minDimension * 0.28f
+        val toothLength = size.minDimension * 0.15f
+        repeat(8) { i ->
+            rotate(degrees = i * 45f, pivot = center) {
+                drawLine(
+                    color = colors.textSecondary,
+                    start = Offset(center.x, center.y - ringRadius),
+                    end = Offset(center.x, center.y - ringRadius - toothLength),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+        }
+        drawCircle(color = colors.textSecondary, radius = ringRadius, center = center, style = Stroke(width = stroke))
+        drawCircle(color = colors.textSecondary, radius = size.minDimension * 0.1f, center = center)
+    }
+}
+
+@Composable
+private fun CalendarGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(HEADER_ICON_SIZE)) {
+        val stroke = size.minDimension * 0.11f
+        val bodyTop = size.height * 0.24f
+        val left = size.width * 0.08f
+        val right = size.width * 0.92f
+        val bottom = size.height * 0.92f
+        val cornerRadius = size.minDimension * 0.14f
+        drawRoundRect(
+            color = colors.textSecondary,
+            topLeft = Offset(left, bodyTop),
+            size = Size(right - left, bottom - bodyTop),
+            cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+            style = Stroke(width = stroke),
+        )
+        val headerY = bodyTop + (bottom - bodyTop) * 0.32f
+        drawLine(
+            color = colors.textSecondary,
+            start = Offset(left, headerY),
+            end = Offset(right, headerY),
+            strokeWidth = stroke,
+        )
+        val tabTop = bodyTop - size.height * 0.12f
+        listOf(0.28f, 0.72f).forEach { xFrac ->
+            drawLine(
+                color = colors.textSecondary,
+                start = Offset(size.width * xFrac, tabTop),
+                end = Offset(size.width * xFrac, bodyTop + stroke / 2f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
 
 private fun formatUpdated(updated: String?): String {
     val timestamp = updated ?: return "—"

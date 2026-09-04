@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Pieter, 2026-09-04 — a dedicated notification/status-bar icon, not a reuse of the launcher
+         foreground. Android renders a small icon from its alpha channel alone (tinting the shape
+         itself, ignoring source colour), but the launcher glyph's thin ring stroke and taper-fine
+         wing points — fine detail that reads well at 108dp — collapse into a blurry smudge at the
+         ~24dp status-bar size. Same wheel-glyph identity (ring + hub + 4 wings) and same
+         proportions/gap logic as ic_launcher_foreground.xml's "Depth ring" redraw, scaled up 1.5x
+         within this drawable's own canvas — the launcher icon is adaptive-masked (safe zone radius
+         33) but a plain notification drawable isn't, so there's no reason to leave it that small.
+         Pieter's ask, 2026-09-04: match Instagram's icon weight in the status bar — the unscaled
+         version left too much empty margin around the glyph and read visibly smaller/fainter next
+         to other apps' icons. Solid white fill per Android's own small-icon convention (the OS
+         still re-tints it regardless). -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="10.5"
+        android:pathData="M54,27.9 a26.1,26.1 0 1,1 -0.1,0 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,42.75 a11.25,11.25 0 1,1 -0.1,0 z" />
+    <group android:pivotX="54" android:pivotY="54" android:rotation="0">
+        <path android:fillColor="#FFFFFF" android:pathData="M74.2,21.1 L84.8,16.9 L91.1,23.2 L86.9,33.8 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="90">
+        <path android:fillColor="#FFFFFF" android:pathData="M74.2,21.1 L84.8,16.9 L91.1,23.2 L86.9,33.8 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="180">
+        <path android:fillColor="#FFFFFF" android:pathData="M74.2,21.1 L84.8,16.9 L91.1,23.2 L86.9,33.8 Z" />
+    </group>
+    <group android:pivotX="54" android:pivotY="54" android:rotation="270">
+        <path android:fillColor="#FFFFFF" android:pathData="M74.2,21.1 L84.8,16.9 L91.1,23.2 L86.9,33.8 Z" />
+    </group>
+</vector>

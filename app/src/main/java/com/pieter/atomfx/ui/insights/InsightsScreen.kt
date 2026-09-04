@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pieter.atomfx.data.model.CalendarEvent
 import com.pieter.atomfx.data.model.NextCatalyst
 import com.pieter.atomfx.data.model.RecommendationBlock
 import com.pieter.atomfx.data.model.Signals
@@ -125,21 +124,10 @@ private fun InsightsContent(signals: Signals, colors: AtomColors) {
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "CALENDAR", style = AtomType.Caption.copy(color = colors.textSecondary))
-            val events = signals.calendar?.events.orEmpty()
-            if (events.isEmpty()) {
-                Text(text = "No upcoming events", style = AtomType.Body.copy(color = colors.textMuted))
-            } else {
-                Column {
-                    events.forEachIndexed { index, event ->
-                        if (index > 0) RowDivider(colors)
-                        InsightsCalendarRow(event, colors)
-                    }
-                }
-            }
-        }
-
+        // A CALENDAR section lived here until 2026-09-04 — dropped as pure duplication (Pieter's
+        // call): the gear bar's own calendar glyph already opens CalendarSheet with the identical
+        // event data, on every tab, one tap away. That sheet is now the dedicated calendar surface
+        // (day-grouped, with a relative countdown) instead of two copies of the same flat list.
         val brief = signals.deepAnalysis?.text
         if (!brief.isNullOrBlank()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -295,31 +283,6 @@ private fun axisTint(axis: String?, colors: AtomColors) = when (axis) {
     "commodity" -> colors.bull
     "safe_haven" -> colors.neutral
     else -> colors.neutral
-}
-
-/** The mockup's `.cal-row`: a divided list, currency tag + bold event name + meta line. */
-@Composable
-private fun InsightsCalendarRow(event: CalendarEvent, colors: AtomColors) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-        InlineTag(event.currency ?: "—", colors.bear, colors, modifier = Modifier.padding(top = 1.dp))
-        Column {
-            Text(
-                text = buildString {
-                    append(event.name ?: "—")
-                    val meta = listOfNotNull(event.day, event.time).joinToString(" ")
-                    if (meta.isNotBlank()) append(" · $meta")
-                },
-                style = AtomType.Body.copy(color = colors.textPrimary),
-            )
-            Text(
-                text = "Forecast ${event.forecast ?: "—"} vs previous ${event.previous ?: "—"}",
-                style = AtomType.Caption.copy(color = colors.textSecondary),
-            )
-            if (event.note != null) {
-                Text(text = event.note, style = AtomType.Caption.copy(color = colors.textMuted))
-            }
-        }
-    }
 }
 
 /** A quiet hairline between list items — Macro's `Divider`, same shape. */

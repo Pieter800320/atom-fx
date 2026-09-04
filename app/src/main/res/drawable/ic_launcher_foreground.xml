@@ -1,31 +1,48 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Pieter, 2026-09-03 — mirrors the wheel itself: the Summary button's own glyph
-         (StatusStrip.kt's SummaryGlyph — hub + ring + 4 tapered trapezoid wings at the
-         diagonals), not a generic rings-and-dot mark. Same geometry ratios as the in-app
-         glyph (ringR/hubR/wingInnerR/wingOuterR, the 22°/12° wing taper), scaled so the
-         wing tips sit inside the 66dp adaptive-icon safe zone (radius 33 from centre). -->
+    <!-- Pieter, 2026-09-04 — "Depth ring" direction, picked from a design-canvas pass
+         (https://claude.ai/code/artifact/d85e407b-fe16-44a2-b23f-f8efad11b093) after the launcher
+         icon moved to a white background. Same wheel-glyph identity as before (ring + hub + 4
+         wings, mirroring StatusStrip.kt's SummaryGlyph): ring centreline radius unchanged from the
+         original (17.4). Two earlier passes (stroke 13/hub 9.5, then stroke 9/hub 8, both with the
+         wings starting too close in) rendered as a solid blob on-device — the wings' inner edge sat
+         inside or right at the ring's own painted band, fusing hub+ring+wings into one shape with
+         no visible ring identity. This pass keeps the boldness modest (stroke 7, was 5.22; hub
+         radius 7.5, was 6.96) and — the actual fix — pushes the wings' inner edge out to radius 25,
+         a clear ~4-unit gap past the ring's outer edge (20.9), so the ring reads as its own thin
+         band again. The ring runs a light-to-deep green gradient, the hub is a shade darker, and
+         the wings are genuine trapezoids (parallel inner/outer edges, tapering to a point outward,
+         matching the original kite shape's own taper direction) instead of the 4-point kite —
+         Pieter's ask on the canvas review. -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="#2FBF71"
-        android:strokeWidth="5.22"
-        android:pathData="M54,36.6 a17.4,17.4 0 1,1 -0.1,0 z" />
-    <path
-        android:fillColor="#2FBF71"
-        android:pathData="M54,47.04 a6.96,6.96 0 1,1 -0.1,0 z" />
+        android:strokeWidth="7"
+        android:pathData="M54,36.6 a17.4,17.4 0 1,1 -0.1,0 z">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="36"
+                android:startY="36"
+                android:endX="72"
+                android:endY="72"
+                android:startColor="#3FCB86"
+                android:endColor="#0C6E3E" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#0C6E3E" android:pathData="M54,46.5 a7.5,7.5 0 1,1 -0.1,0 z" />
     <group android:pivotX="54" android:pivotY="54" android:rotation="0">
-        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+        <path android:fillColor="#159E5B" android:pathData="M67.4,32.1 L74.5,29.3 L78.7,33.5 L75.9,40.6 Z" />
     </group>
     <group android:pivotX="54" android:pivotY="54" android:rotation="90">
-        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+        <path android:fillColor="#159E5B" android:pathData="M67.4,32.1 L74.5,29.3 L78.7,33.5 L75.9,40.6 Z" />
     </group>
     <group android:pivotX="54" android:pivotY="54" android:rotation="180">
-        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+        <path android:fillColor="#159E5B" android:pathData="M67.4,32.1 L74.5,29.3 L78.7,33.5 L75.9,40.6 Z" />
     </group>
     <group android:pivotX="54" android:pivotY="54" android:rotation="270">
-        <path android:fillColor="#2FBF71" android:pathData="M61.819,35.581 L70.584,28.462 L79.538,37.416 L72.419,46.181 Z" />
+        <path android:fillColor="#159E5B" android:pathData="M67.4,32.1 L74.5,29.3 L78.7,33.5 L75.9,40.6 Z" />
     </group>
 </vector>

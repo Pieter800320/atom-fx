@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -159,12 +161,20 @@ private fun MacroBannerCard(
 }
 
 /** Strong/weak currency baskets, side by side inside the banner card — a nested grouping, not a
- *  card of its own, so `surfaceRaised` (not `cardSurface`) and no border. */
+ *  card of its own, so `surfaceRaised` (not `cardSurface`) and no border.
+ *
+ *  2026-09-04 (Pieter's ask) — always the same size as each other, not just the same width. The
+ *  archetype table lets STRONG hold up to 4 currencies (regime C) and WEAK up to 5 (regime E), so
+ *  whichever side wraps to more lines used to stretch the row unevenly. `IntrinsicSize.Max` on the
+ *  Row + `fillMaxHeight()` on each box makes both stretch to match whichever is taller. */
 @Composable
 private fun BiasBaskets(bias: CurrencyBias, colors: AtomColors, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        BiasBox("STRONG", bias.strong, colors.bull, colors, Modifier.weight(1f))
-        BiasBox("WEAK", bias.weak, colors.bear, colors, Modifier.weight(1f))
+    Row(
+        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Max),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BiasBox("STRONG", bias.strong, colors.bull, colors, Modifier.weight(1f).fillMaxHeight())
+        BiasBox("WEAK", bias.weak, colors.bear, colors, Modifier.weight(1f).fillMaxHeight())
     }
 }
 

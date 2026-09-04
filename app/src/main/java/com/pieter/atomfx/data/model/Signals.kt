@@ -47,6 +47,7 @@ data class CalendarBlock(
 data class CalendarEvent(
     val day: String? = null,
     val time: String? = null,
+    val iso: String? = null,
     val currency: String? = null,
     val name: String? = null,
     val forecast: String? = null,

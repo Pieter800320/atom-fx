@@ -429,7 +429,7 @@ private fun sendTestNotification(context: android.content.Context) {
         context.getSystemService<NotificationManager>()?.createNotificationChannel(channel)
     }
     val notification = NotificationCompat.Builder(context, channelId)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle("ATOM FX")
         .setContentText("Test notification — push is working.")
         .setAutoCancel(true)
