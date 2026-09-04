@@ -291,6 +291,7 @@ def test_state_alerts_regime_flip_fires():
     out = {"regime_h4": {"regime": "Risk-On", "confidence": "Medium", "stable": False}}
     alerts = state_alerts.compute_state_alerts(out, prev)
     assert len(alerts) == 1 and alerts[0]["type"] == "regime_flip"
+    assert alerts[0]["regime_flip_to"] == "Risk-On"
     # a stable regime (no flip) fires nothing
     stable_out = {"regime_h4": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
     assert state_alerts.compute_state_alerts(stable_out, prev) == []

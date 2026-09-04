@@ -24,9 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,9 +38,11 @@ import com.pieter.atomfx.data.model.MacroEvidence
 import com.pieter.atomfx.data.model.MacroRegimeBlock
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.push.buildRegimeExplanation
+import com.pieter.atomfx.ui.components.BookPlusGlyph
 import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
+import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -71,7 +70,12 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * Electric Treatment) rather than bare text rows.
  */
 @Composable
-fun MacroScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifier = Modifier) {
+fun MacroScreen(
+    viewModel: WheelViewModel,
+    colors: AtomColors,
+    modifier: Modifier = Modifier,
+    onOpenReading: (ReadingTarget) -> Unit = {},
+) {
     val screenState by viewModel.screenState.collectAsState()
 
     Box(
@@ -84,7 +88,7 @@ fun MacroScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifie
         when (val state = screenState) {
             WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)
             WheelScreenState.Unavailable -> CenteredMessage("DATA UNAVAILABLE", colors)
-            is WheelScreenState.Loaded -> MacroContent(state.signals, colors)
+            is WheelScreenState.Loaded -> MacroContent(state.signals, colors, onOpenReading)
         }
     }
 }
@@ -97,7 +101,7 @@ private fun CenteredMessage(text: String, colors: AtomColors) {
 }
 
 @Composable
-private fun MacroContent(signals: Signals, colors: AtomColors) {
+private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
     val regime = signals.macroRegime
 
     Column(
@@ -108,7 +112,7 @@ private fun MacroContent(signals: Signals, colors: AtomColors) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         if (regime?.primary != null) {
-            MacroBannerCard(regime, colors)
+            MacroBannerCard(regime, colors, onOpenReading)
             EvidenceAxes(regime.evidence, colors)
         } else {
             // No archetype read yet — same card position/shape as the real banner, so the layout
@@ -139,19 +143,39 @@ private fun MacroContent(signals: Signals, colors: AtomColors) {
 /** The archetype banner — mockup's `.mbanner`: code, name, chips (confidence/USD/gold), the
  *  narrative, and the strong/weak bias baskets, all on one standard card.
  *
- *  2026-09-04 (Pieter's "living handbook" vision) — gained a "REGIME PLAYBOOK" expand row:
- *  the handbook's own theory for this exact live regime, assembled from which evidence axes
- *  are actually confirming it right now (`buildRegimeExplanation`), not a static reference.
- *  Same tap-to-expand recipe `LibraryScreen`'s `LibraryCard` already established. */
+ *  2026-09-04 (Pieter's "living handbook" vision) — the "REGIME {code}" kicker row carries a
+ *  book+ icon, right-aligned, that opens the Reading Window with the handbook's own theory for
+ *  this exact live regime, assembled from which evidence axes are actually confirming it right
+ *  now (`buildRegimeExplanation`), not a static reference. Superseded the original inline-expand
+ *  block the same day — see ReadingWindow.kt's doc comment for why. */
 @Composable
-private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors) {
+private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
     val haptics = LocalHapticFeedback.current
-    var playbookExpanded by remember { mutableStateOf(false) }
     val primary = regime.primary
     val bias = regime.currencyBias
+    val explanation = buildRegimeExplanation(
+        primary?.code,
+        regime.evidence.filter { it.supports }.mapNotNull { it.axis },
+        regime.conflicts,
+    )
 
     Column(modifier = Modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
-        Text(text = "REGIME ${primary?.code ?: "—"}", style = AtomType.Caption.copy(color = colors.textMuted))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "REGIME ${primary?.code ?: "—"}", style = AtomType.Caption.copy(color = colors.textMuted))
+            if (explanation != null) {
+                BookPlusGlyph(
+                    colors = colors,
+                    modifier = Modifier.pressWash {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onOpenReading(ReadingTarget.MacroArchetype(explanation))
+                    },
+                )
+            }
+        }
         Text(
             text = primary?.name ?: "—",
             style = AtomType.Title.copy(color = colors.textPrimary),
@@ -171,32 +195,6 @@ private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors) {
         }
         if (bias != null && (bias.strong.isNotEmpty() || bias.weak.isNotEmpty())) {
             BiasBaskets(bias, colors, modifier = Modifier.padding(top = 10.dp))
-        }
-
-        val explanation = buildRegimeExplanation(
-            primary?.code,
-            regime.evidence.filter { it.supports }.mapNotNull { it.axis },
-            regime.conflicts,
-        )
-        if (explanation != null) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-                    .pressWash {
-                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        playbookExpanded = !playbookExpanded
-                    },
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(text = "REGIME PLAYBOOK", style = AtomType.Caption.copy(color = colors.textSecondary))
-                Text(text = if (playbookExpanded) "−" else "+", style = AtomType.Caption.copy(color = colors.textMuted))
-            }
-            if (playbookExpanded) {
-                Column(modifier = Modifier.padding(top = 10.dp)) {
-                    RegimePlaybookDetail(explanation, colors)
-                }
-            }
         }
     }
 }

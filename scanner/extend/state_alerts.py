@@ -82,6 +82,11 @@ def _regime_flip_alert(out: dict, prev: dict) -> list:
         "msg": f"<b>Regime: {old} → {new}</b>\nH4 confidence: {h4.get('confidence', 'Low')}",
         "deeplink": "atomfx://regime",
         "direction": None,
+        # Signals Roadmap "living handbook" pass, part 2 (2026-09-04) — mirrors
+        # archetype_change's regime_code: the app's Technical Regime Playbook
+        # (TechnicalRegimePlaybookContent.kt) is keyed by this exact regime name, so a
+        # notification/history card can assemble its explanation directly.
+        "regime_flip_to": new,
     }]
 
 

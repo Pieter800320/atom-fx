@@ -85,18 +85,53 @@ push, wire the toggle. All **EXTEND**.
   (`regime.py`'s own `stable` field already computes this exact comparison for its own output —
   reuse the logic, don't recompute it a second way.)
 - **Push:** `type: "regime_flip"`, title `"Regime: {OLD} → {NEW}"`, body confidence, deeplink
-  `atomfx://regime`.
+  `atomfx://regime`. Payload also carries `regime_flip_to` (the new regime name) so the
+  client can key its own content off it (see below) without re-parsing the title.
 - **Settings toggle:** "Regime alerts."
 - **Effort:** S.
+- **2026-09-04 — Technical Regime Playbook** (living-handbook pass, part 2, after
+  `archetype_change`'s own Regime Playbook below): `RegimeSheet` and a `regime_flip`
+  Notification History card each carry a book+ icon at heading level that opens the **Reading
+  Window** (see §2.4's own note and `ReadingWindow.kt`) with a per-regime explanation grounded
+  in `regime.py`'s actual three-vote + ranging-override mechanics — what the vote count and
+  score mean for this specific regime, how it differs from the Macro Archetype's confidence
+  badge (same word, different formula), and Gold Signal's hard dependency on this exact
+  classification. `app/.../push/TechnicalRegimePlaybookContent.kt` (content) +
+  `app/.../ui/sheets/TechnicalRegimePlaybookDetail.kt` (the detail composable, hosted inside
+  the shared Reading Window). No live evidence array exists on this data shape (`RegimeBlock`
+  is just `regime/confidence/score/stable`), so unlike `archetype_change`'s fragment-assembly,
+  this is static entry-level content per regime name.
 
 ### 2.4 Macro Archetype change
 
 - **Trigger:** `macro_regime.primary.code` differs from the previous scan's value.
 - **Push:** `type: "archetype_change"`, title `"Macro: {OLD_NAME} → {NEW_NAME}"`, body the new
-  narrative line (`macro_regime.narrative` already exists), deeplink to Macro tab.
+  narrative line (`macro_regime.narrative` already exists), deeplink to Macro tab. Payload also
+  carries `regime_code` (the new `primary.code`).
 - **Settings toggle:** can share "Regime alerts" with §2.3, or split — flag as an open call for
-  whoever implements this phase, not a hard requirement either way.
+  whoever implements this phase, not a hard requirement either way. (Shipped shared.)
 - **Effort:** S.
+- **2026-09-04 — Regime Playbook** (living-handbook pass, part 1 — the proof-of-concept the
+  whole mechanism was proven on before §2.3's own extension above): `MacroScreen`'s archetype
+  banner and an `archetype_change` Notification History card each carry a book+ icon
+  (`BookPlusGlyph`, top-right at heading level) that opens a per-regime explanation assembled
+  from the LIVE `macro_regime.evidence`/`conflicts` — which axis fragments and conflict
+  callouts actually apply to this exact firing, not a static lookup. 10 regime entries (A–J),
+  5 axis fragments, 3 conflict fragments, grounded in `macro_regime.py` and deepened against a
+  professional review of `FX_Macro_Flow_Handbook_Expanded.pdf`.
+  `app/.../push/RegimePlaybookContent.kt` (content) + `app/.../ui/macro/RegimePlaybookDetail.kt`
+  (the detail composable). A standalone rewritten regime chapter was also published as its own
+  document (same content, one source of truth) — first installment of a larger handbook
+  rewrite, not the finished replacement.
+  **Superseded same day (Pieter's own framing — "sheets inspect data, a window is for study and
+  reading"):** the original inline expand/collapse row is gone; the book+ icon now opens a
+  dedicated full-screen **Reading Window** (`app/.../ui/reading/ReadingWindow.kt` +
+  `ReadingTarget.kt`), rendered via a `Dialog` (not a `Box`, since Material3's own
+  `ModalBottomSheet` renders in its own always-on-top Popup window and would otherwise sit in
+  front of a plain composable) so it wins the z-order over whatever's open underneath — a
+  sheet, the Macro tab, or the Settings panel — and closes back to exactly that. Same pattern
+  now shared by both Regime Playbooks (§2.3's Technical one included) and reachable from all
+  three of RegimeSheet, MacroScreen, and Notification History.
 
 ### 2.5 ATR Percentile spike
 

@@ -61,6 +61,7 @@ import com.pieter.atomfx.data.NotificationHistoryStore
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPrefsState
 import com.pieter.atomfx.data.UserPreferences
+import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.SheetTabs
 import com.pieter.atomfx.ui.sheets.SheetTarget
@@ -100,6 +101,7 @@ fun SettingsScreen(
     onRefreshNow: () -> Unit,
     onClose: () -> Unit,
     onNavigate: (SheetTarget) -> Unit,
+    onOpenReading: (ReadingTarget) -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
     var showLibrary by remember { mutableStateOf(false) }
@@ -169,6 +171,7 @@ fun SettingsScreen(
                             showHistory = false
                             showLibrary = true
                         },
+                        onOpenReading = onOpenReading,
                         onBack = { showHistory = false },
                     )
                     return@Column

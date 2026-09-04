@@ -203,7 +203,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Regime & Macro",
         summary = "Risk-On / Risk-Off / Mixed / Ranging — the app's read of the whole market's current mood.",
         howItWorks = "Four votes are cast: (1) safe-havens JPY/CHF vs risk currencies AUD/NZD/CAD by CSM, (2) USD vs the other majors by CSM, (3) how many of six risk pairs' pills are bullish vs bearish, (4) a ranging override that forces \"Ranging\" outright if fewer than 40% of all 12 pairs have any directional pill at all. Two or more votes agreeing on the same side wins; all three agreeing is High confidence, two is Medium. No majority is Mixed.",
-        whyItMatters = "This is the regime shown at the wheel's hub, and it gates Factor 1 — nothing can pass Regime under a Mixed or Ranging backdrop.",
+        whyItMatters = "This is the regime shown at the wheel's hub, and it gates Factor 1 — nothing can pass Regime under a Mixed or Ranging backdrop. Tap the book icon on the Regime sheet (2026-09-04) to open its Regime Playbook — the deeper per-regime read of what the three votes and the score actually mean for whichever regime is live, and how this technical read relates to the separate Macro Archetype and to Gold Signal's own confirmation gate.",
     ),
     LibraryEntry(
         id = "macro-archetype",

@@ -24,14 +24,29 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 
-/** Design §13: "surface, 20px top corners, drag handle, a Title, then content. Numbers tabular." */
+/** Design §13: "surface, 20px top corners, drag handle, a Title, then content. Numbers tabular."
+ *
+ * [trailingContent] (2026-09-04, the Reading Window's book+ entry point) is optional and defaults
+ * to none — every existing caller keeps the plain centred title untouched; only a sheet that
+ * offers a Reading Window opts in, right-aligned on the same row as the heading. */
 @Composable
-fun SheetTitle(text: String, colors: AtomColors) {
-    Text(
-        text = text,
-        style = AtomType.Title.copy(color = colors.textPrimary),
-        modifier = Modifier.padding(bottom = 12.dp),
-    )
+fun SheetTitle(text: String, colors: AtomColors, trailingContent: (@Composable () -> Unit)? = null) {
+    if (trailingContent == null) {
+        Text(
+            text = text,
+            style = AtomType.Title.copy(color = colors.textPrimary),
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+        return
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = text, style = AtomType.Title.copy(color = colors.textPrimary))
+        trailingContent()
+    }
 }
 
 /** A single aligned label/value row — Design §13: "no dense tables, use aligned rows." */

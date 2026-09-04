@@ -26,6 +26,11 @@ data class NotificationRecord(
     // history card can assemble its contextual explanation (RegimePlaybookContent.kt) without
     // re-deriving it. Null for every other alert type.
     val regimeCode: String? = null,
+    // Technical Regime Playbook, part 2 (2026-09-04) — regime_flip's own equivalent of
+    // regimeCode: the H4 regime name ("Risk-On"/"Risk-Off"/"Mixed"/"Ranging") this alert
+    // flipped INTO, so a history card can show the playbook entry that actually fired, not
+    // whatever's live by the time it's read. Null for every other alert type.
+    val regimeFlipTo: String? = null,
     val timestamp: Long,
     val read: Boolean = false,
 )
@@ -73,7 +78,15 @@ class NotificationHistoryStore(context: Context) {
         _state.value = records
     }
 
-    fun record(type: String, title: String, body: String, deeplink: String?, direction: String?, regimeCode: String? = null) {
+    fun record(
+        type: String,
+        title: String,
+        body: String,
+        deeplink: String?,
+        direction: String?,
+        regimeCode: String? = null,
+        regimeFlipTo: String? = null,
+    ) {
         val cutoff = System.currentTimeMillis() - RETENTION_MILLIS
         val entry = NotificationRecord(
             id = UUID.randomUUID().toString(),
@@ -83,6 +96,7 @@ class NotificationHistoryStore(context: Context) {
             deeplink = deeplink,
             direction = direction,
             regimeCode = regimeCode,
+            regimeFlipTo = regimeFlipTo,
             timestamp = System.currentTimeMillis(),
         )
         val next = (listOf(entry) + _state.value)

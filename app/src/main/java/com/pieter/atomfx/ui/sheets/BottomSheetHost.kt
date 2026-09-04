@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.WheelUiState
@@ -70,6 +71,7 @@ fun BottomSheetHost(
     colors: AtomColors,
     onDismiss: () -> Unit,
     onNavigate: (SheetTarget) -> Unit,
+    onOpenReading: (ReadingTarget) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val maxSheetHeight = (LocalConfiguration.current.screenHeightDp * MAX_SHEET_HEIGHT_FRACTION).dp
@@ -86,9 +88,9 @@ fun BottomSheetHost(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
             when (target) {
-                SheetTarget.Nucleus -> RegimeSheet(signals, colors)
+                SheetTarget.Nucleus -> RegimeSheet(signals, colors, onOpenReading)
                 is SheetTarget.Ring -> when (target.factor) {
-                    Factor.REGIME -> RegimeSheet(signals, colors)
+                    Factor.REGIME -> RegimeSheet(signals, colors, onOpenReading)
                     Factor.FLOW -> CurrencyFlowSheet(signals, colors, onCurrencyClick = { onNavigate(SheetTarget.Currency(it)) })
                     Factor.BREADTH -> BreadthSheet(signals, colors)
                     // PairSheet's tabs collapsed to [Overview, Breakdown] (2026-09-03) — Momentum/

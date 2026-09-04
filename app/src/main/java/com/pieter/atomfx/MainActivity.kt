@@ -52,6 +52,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -64,6 +66,8 @@ import com.pieter.atomfx.push.extractDeepLinkUri
 import com.pieter.atomfx.push.parseDeepLink
 import com.pieter.atomfx.ui.insights.InsightsScreen
 import com.pieter.atomfx.ui.macro.MacroScreen
+import com.pieter.atomfx.ui.reading.ReadingTarget
+import com.pieter.atomfx.ui.reading.ReadingWindow
 import com.pieter.atomfx.ui.settings.SettingsScreen
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
 import com.pieter.atomfx.ui.sheets.SheetTarget
@@ -174,6 +178,12 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
         // opens correctly from any tab, matching the gear's own already-established "any tab"
         // reach (Functional Spec §2/§3.1) instead of being silently Wheel-only.
         var activeAppSheet by remember { mutableStateOf<SheetTarget?>(null) }
+        // The Reading Window (2026-09-04, Pieter's own framing) — "sheets inspect data, a window
+        // is for study and reading." Deliberately its own top-level state, not folded into
+        // activeAppSheet: it needs to be able to open OVER a sheet, a tab, or the Settings panel
+        // alike and close back to exactly what was underneath, so it's rendered last (highest
+        // z-order) in the Box below, same layering reasoning as settingsOpen/activeAppSheet.
+        var readingTarget by remember { mutableStateOf<ReadingTarget?>(null) }
 
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -197,8 +207,13 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     // Design §17: only the Wheel tab is the no-scroll landing screen — Macro/
                     // Insights may scroll internally; the pager itself never adds scroll of its own.
                     when (AppTab.entries[page]) {
-                        AppTab.Wheel -> WheelScreen(viewModel = viewModel, isDark = isDark, initialDeepLink = deepLink)
-                        AppTab.Macro -> MacroScreen(viewModel = viewModel, colors = colors)
+                        AppTab.Wheel -> WheelScreen(
+                            viewModel = viewModel,
+                            isDark = isDark,
+                            initialDeepLink = deepLink,
+                            onOpenReading = { readingTarget = it },
+                        )
+                        AppTab.Macro -> MacroScreen(viewModel = viewModel, colors = colors, onOpenReading = { readingTarget = it })
                         AppTab.Insights -> InsightsScreen(viewModel = viewModel, colors = colors)
                     }
                 }
@@ -218,6 +233,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     onRefreshNow = { viewModel.refresh() },
                     onClose = { settingsOpen = false },
                     onNavigate = { activeAppSheet = it },
+                    onOpenReading = { readingTarget = it },
                 )
             }
 
@@ -230,7 +246,25 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     colors = colors,
                     onDismiss = { activeAppSheet = null },
                     onNavigate = { activeAppSheet = it },
+                    onOpenReading = { readingTarget = it },
                 )
+            }
+
+            val reading = readingTarget
+            if (reading != null) {
+                // ModalBottomSheet (RegimeSheet's own host) renders in its own Popup window,
+                // always above plain composition content — a Box here, however late in the tree,
+                // would render BEHIND an open sheet, not over it (found on-device: the sheet was
+                // visibly still on top). A Dialog gets the Reading Window its own top-level
+                // window too, so it wins regardless of what's open underneath — a sheet, a tab,
+                // or the Settings panel.
+                Dialog(
+                    onDismissRequest = { readingTarget = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+                ) {
+                    BackHandler { readingTarget = null }
+                    ReadingWindow(target = reading, colors = colors, onClose = { readingTarget = null })
+                }
             }
         }
     }

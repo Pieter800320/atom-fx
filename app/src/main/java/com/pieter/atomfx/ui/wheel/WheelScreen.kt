@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.components.TradeableNow
+import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -82,6 +83,7 @@ fun WheelScreen(
     isDark: Boolean,
     modifier: Modifier = Modifier,
     initialDeepLink: SheetTarget? = null,
+    onOpenReading: (ReadingTarget) -> Unit = {},
 ) {
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
@@ -212,6 +214,7 @@ fun WheelScreen(
                 colors = colors,
                 onDismiss = { activeSheet = null },
                 onNavigate = { activeSheet = it },
+                onOpenReading = onOpenReading,
             )
         }
     }

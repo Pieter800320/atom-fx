@@ -14,10 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.push.TECHNICAL_REGIME_PLAYBOOK
+import com.pieter.atomfx.ui.components.BookPlusGlyph
+import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Tint
 import com.pieter.atomfx.ui.wheel.tintColor
 
@@ -34,11 +40,28 @@ import com.pieter.atomfx.ui.wheel.tintColor
  * D1/H4/H1 also collapsed from three separate rows into the mockup's single combined row.
  */
 @Composable
-fun RegimeSheet(signals: Signals, colors: AtomColors) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        SheetTitle("MARKET REGIME", colors)
+fun RegimeSheet(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    val h4 = signals.regimeH4
+    val playbookEntry = TECHNICAL_REGIME_PLAYBOOK[h4?.regime]
 
-        val h4 = signals.regimeH4
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SheetTitle(
+            "MARKET REGIME",
+            colors,
+            trailingContent = if (playbookEntry == null) null else {
+                {
+                    BookPlusGlyph(
+                        colors = colors,
+                        modifier = Modifier.pressWash {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onOpenReading(ReadingTarget.TechnicalRegime(playbookEntry))
+                        },
+                    )
+                }
+            },
+        )
+
         val tint = tintColor(regimeTint(h4?.regime), colors)
         Text(
             text = regimeDisplayName(h4?.regime),
