@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T22:10:58.922393+00:00",
+  "updated": "2026-09-04T02:21:21.770433+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -759,20 +759,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4521.6,
+      "value": 4525.5,
       "delta_pct": 3.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.992,
+      "value": 98.967,
       "delta_pct": -0.6,
       "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6695,
-      "delta_pct": 2.6,
+      "value": 6.689,
+      "delta_pct": 2.9,
       "direction": "up",
       "label": "Copper"
     },
@@ -789,14 +789,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.62,
-      "delta_pct": 0.7,
+      "value": 91.86,
+      "delta_pct": 0.9,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81464.0,
-      "delta_pct": 5.4,
+      "value": 80716.0,
+      "delta_pct": 4.4,
       "direction": "up",
       "label": "Bitcoin"
     },
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "CADJPY SHORT: Weak ADP and strong ISM signal mixed US data; NFP risk could weaken USD carry demand.",
-    "updated": "2026-09-03T22:10:58.922393+00:00"
+    "text": "CADJPY SHORT at risk. Waller dovish comments reduce Fed hike bets, weakening USD strength needed for carry trade.",
+    "updated": "2026-09-04T02:21:21.770433+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rising confirms JPY bid, challenges risk-on equity flows.\n\nGBPJPY SHORT: Gold strength supports JPY safe-haven bid strongly today.\n\nCADJPY SHORT: Risk-on contradicts short, but gold-driven JPY bid prevails.",
+    "text": "NZDJPY SHORT: Gold surge confirms JPY strength, challenges risk-on equity bid.\n\nGBPJPY SHORT: Gold rising validates JPY safe haven, contradicts risk-on sentiment.\n\nCADJPY SHORT: Gold bid supports JPY, but copper strength suggests risk appetite.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.12
       }
     ],
-    "updated": "2026-09-03T22:10:58.922393+00:00"
+    "updated": "2026-09-04T02:21:21.770433+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-03T22:10:58.922393+00:00"
+    "updated": "2026-09-04T02:21:21.770433+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-on today: gold, equities, copper and bitcoin all higher while the VIX retreats and the dollar index softens, a fairly clean cross-asset alignment favoring risk-sensitive currencies over the greenback. Falling US yields reinforce the softer-dollar tone even as headlines flag lingering hawkish Fed hike bets and a choppy dollar picture heading into jobs data. Commodity-linked currencies get some support from firmer oil and copper. The next catalyst is the US ISM Services PMI at 14:00 UTC, a modest but relevant test of the services-sector",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "DXY eyes 99.58 as jobs week tests hawkish Fed expectations",
-      "Weak ADP hits DXY; NFP becomes next critical test today",
-      "ISM non-manufacturing PMI 55.4 beats 54.2 estimate, stronger growth signal"
+      "Weak ADP hits DXY; NFP becomes next critical test for dollar",
+      "ISM non-manufacturing PMI beats 54.2 estimate at 55.4 in August",
+      "Waller tamps down rate hike bets; Fed hawkish narrative weakens"
     ],
     "themes": [
-      "rates",
-      "rates",
-      "risk"
+      "usd",
+      "risk",
+      "rates"
     ],
-    "updated": "2026-09-03T22:10:58.922393+00:00"
+    "updated": "2026-09-04T02:21:21.770433+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
