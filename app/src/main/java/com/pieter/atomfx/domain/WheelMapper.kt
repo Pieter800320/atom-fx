@@ -15,6 +15,7 @@ import com.pieter.atomfx.ui.wheel.Tint
 import com.pieter.atomfx.ui.wheel.WheelGeometry
 import com.pieter.atomfx.ui.wheel.WheelUiState
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Pure `signals.json` → `WheelUiState` mapping (Architecture §8.3): every field is a straight
@@ -26,7 +27,7 @@ object WheelMapper {
 
     fun map(signals: Signals): WheelUiState {
         val nodes = WheelGeometry.PAIR_ORDER.mapIndexed { index, pair ->
-            mapNode(pair, index, signals.potential[pair])
+            mapNode(pair, index, signals)
         }
         return WheelUiState(
             nucleus = mapNucleus(signals),
@@ -39,10 +40,23 @@ object WheelMapper {
         )
     }
 
-    // ── Pairs (PAIRS mode) ────────────────────────────────────────────────────────────────
-    private fun mapNode(pair: String, index: Int, entry: PotentialEntry?): PairNode {
+    // ── Pairs (the wheel's 4 modes: Potential/Momentum(D1)/ADX/Reset Score) ───────────────
+    private fun mapNode(pair: String, index: Int, signals: Signals): PairNode {
+        // All three already computed backend-side (Rule #1, never re-derived here), all straight
+        // off the pair's own `pairs` block entry (mom.d1 the frozen D1-only momentum oscillator,
+        // adx the frozen trend-strength read, resetScore the frozen mean-reversion entry-quality
+        // oscillator).
+        val pairBlock = signals.pairs[pair]
+        val momentumScore = pairBlock?.mom?.d1 ?: 0
+        val adxScore = pairBlock?.adx?.roundToInt() ?: 0
+        val resetScore = pairBlock?.resetScore ?: 0
+
+        val entry = signals.potential[pair]
         if (entry == null) {
-            return PairNode(pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null)
+            return PairNode(
+                pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null,
+                momentum = momentumScore, adx = adxScore, resetScore = resetScore,
+            )
         }
         return PairNode(
             pair = pair,
@@ -53,6 +67,9 @@ object WheelMapper {
             potential = entry.score ?: 0,
             factorsPassed = mapFactors(entry.factors),
             blockedAt = mapFactor(entry.blockedAt),
+            momentum = momentumScore,
+            adx = adxScore,
+            resetScore = resetScore,
         )
     }
 
@@ -98,7 +115,7 @@ object WheelMapper {
     private fun mapCurrencies(signals: Signals, timeframe: String): List<CurrencySeg> {
         val csmTf = signals.csm[timeframe] ?: emptyMap()
         val deltaTf = signals.csmDelta[timeframe] ?: emptyMap()
-        val breadthH4 = signals.breadth["h4"] ?: emptyMap()
+        val breadthH4 = signals.breadth.h4
         return WheelGeometry.CCY_ORDER.mapIndexed { index, code ->
             val strength = (csmTf[code] ?: 0.0).toInt()
             CurrencySeg(

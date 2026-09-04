@@ -16,7 +16,7 @@ Rule #1: this module calls the SAME frozen helpers csm.py uses (_adj_return) wit
 the SAME lookbacks/weights. It never edits csm.py or changes any frozen output.
 """
 from scanner import csm
-from scanner.config import CURRENCIES
+from scanner.config import CURRENCIES, PAIRS
 from scanner.extend import potential_config as cfg
 
 
@@ -95,6 +95,41 @@ def _breadth_for_tf(ohlcv: dict, tf: str) -> dict:
     return out
 
 
+def _currency_breadth_score(entry: dict) -> float:
+    """
+    Signed +-100-ish score: how broadly supported is this currency's own net
+    direction. Same semantics as the pass/fail gate `potential.py::_f_breadth`
+    already tests (`dir == "strong"` <-> `net > 0`, `dir == "weak"` <-> `net < 0`) —
+    this just turns that boolean gate into a magnitude, weighted by `pct`.
+    """
+    if not entry or entry.get("total", 0) == 0:
+        return 0.0
+    net = entry.get("net", 0.0)
+    sign = 1 if net > 0 else (-1 if net < 0 else 0)
+    return entry.get("pct", 0.0) * sign * 100
+
+
+def _pair_breadth_for_tf(currency_breadth: dict) -> dict:
+    """
+    Per-pair breadth (2026-09-04, Wheel v3 — the wheel's 4 wings all read the 12-pair
+    ring now, CSM moved to its own always-visible strip). Same differential technique
+    `conviction.py::compute_conviction` already uses for its own `pairs` block: base's
+    signed score minus the quote's, halved and clamped to +-100. A pair reads
+    bullish-breadth when its base is broadly rising and/or its quote is broadly
+    falling — mirrors `_f_breadth`'s own base-OR-quote gate, just continuous.
+    """
+    scores = {ccy: _currency_breadth_score(currency_breadth.get(ccy, {})) for ccy in CURRENCIES}
+    out = {}
+    for pair in PAIRS:
+        base, quote = pair.split("/")
+        pair_val = int(round((scores.get(base, 0.0) - scores.get(quote, 0.0)) / 2))
+        out[pair.replace("/", "")] = max(-100, min(100, pair_val))
+    return out
+
+
 def compute_breadth(ohlcv: dict) -> dict:
-    """Returns {"h4": {CCY:{support,total,pct,band,net,dir}}, "d1": {...}}."""
-    return {tf: _breadth_for_tf(ohlcv, tf) for tf in cfg.BREADTH_TFS}
+    """Returns {"h4": {CCY:{support,total,pct,band,net,dir}}, "d1": {...},
+    "pairs": {"h4": {PAIR: score}, "d1": {...}}}."""
+    per_tf = {tf: _breadth_for_tf(ohlcv, tf) for tf in cfg.BREADTH_TFS}
+    per_tf["pairs"] = {tf: _pair_breadth_for_tf(currencies) for tf, currencies in per_tf.items()}
+    return per_tf

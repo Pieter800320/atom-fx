@@ -19,7 +19,7 @@ data class Signals(
     val csm: Map<String, Map<String, Double>> = emptyMap(),
     @SerialName("csm_delta") val csmDelta: Map<String, Map<String, Double>> = emptyMap(),
     @SerialName("currency_flow") val currencyFlow: CurrencyFlow? = null,
-    val breadth: Map<String, Map<String, BreadthEntry>> = emptyMap(),
+    val breadth: BreadthBlock = BreadthBlock(),
     val pairs: Map<String, PairBlock> = emptyMap(),
     val potential: Map<String, PotentialEntry> = emptyMap(),
     val calendar: CalendarBlock? = null,
@@ -83,6 +83,22 @@ data class BreadthEntry(
     val total: Int? = null,
     val pct: Double? = null,
     val band: String? = null,
+)
+
+/**
+ * 2026-09-04 — was a raw `Map<String, Map<String, BreadthEntry>>` (dynamic "h4"/"d1" keys); now a
+ * real shape so the new `pairs` sub-block (added to `breadth.py` this session — same base-minus-
+ * quote differential technique `conviction.py`'s own `pairs` block already uses) can sit alongside
+ * the per-currency `h4`/`d1` maps without forcing every leaf in the JSON object to share one type.
+ * Every current call site only ever read the `h4` key (breadth has no real per-timeframe UI use
+ * yet), so `signals.breadth["h4"]` becomes `signals.breadth.h4` — a mechanical rename, not a
+ * behavior change.
+ */
+@Serializable
+data class BreadthBlock(
+    val h4: Map<String, BreadthEntry> = emptyMap(),
+    val d1: Map<String, BreadthEntry> = emptyMap(),
+    val pairs: Map<String, Map<String, Int>> = emptyMap(), // tf ("h4"/"d1") -> pair -> signed score
 )
 
 @Serializable

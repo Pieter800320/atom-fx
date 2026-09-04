@@ -23,7 +23,7 @@ import com.pieter.atomfx.ui.theme.AtomType
  */
 @Composable
 fun BreadthSheet(signals: Signals, colors: AtomColors) {
-    val h4 = signals.breadth["h4"].orEmpty()
+    val h4 = signals.breadth.h4
 
     Column(modifier = Modifier.fillMaxWidth()) {
         SheetTitle("CURRENCY BREADTH", colors)

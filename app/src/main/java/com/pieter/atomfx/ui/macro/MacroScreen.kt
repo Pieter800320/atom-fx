@@ -56,7 +56,7 @@ internal val AXIS_LABELS = mapOf(
     "commodity" to "Commodity", "safe_haven" to "Safe-haven",
 )
 
-// Mirrors Home's CARD_SHAPE (TradeableNow.kt / StatusStrip.kt) — the one standard card radius.
+// Mirrors Home's CARD_SHAPE (StatusStrip.kt) — the one standard card radius.
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
 
 /**

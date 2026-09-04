@@ -46,7 +46,7 @@ import com.pieter.atomfx.ui.theme.AtomType
 @Composable
 fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, onPairClick: (String) -> Unit = {}) {
     val h4Delta = signals.csmDelta["h4"]?.get(currency)
-    val breadth = signals.breadth["h4"]?.get(currency)
+    val breadth = signals.breadth.h4[currency]
     val bandColor = when (breadth?.band?.lowercase()) {
         "strong" -> colors.bull
         "moderate" -> colors.watch

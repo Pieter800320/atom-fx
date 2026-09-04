@@ -92,7 +92,7 @@ fun StatusStrip(
     var expanded by remember { mutableStateOf(false) }
     val haptics = LocalHapticFeedback.current
     val flow = signals.currencyFlow
-    val leaderBreadth = flow?.leader?.let { signals.breadth["h4"]?.get(it) }
+    val leaderBreadth = flow?.leader?.let { signals.breadth.h4[it] }
     val topPair = state.topPair()
 
     val items = listOf(

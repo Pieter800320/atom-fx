@@ -53,21 +53,24 @@ object WheelGeometry {
     // The four corner buttons — a 4th ring, but deliberately different from every data cell:
     // tapered trapezoids (wide at the hub-facing edge, narrower at the tip — [TOGGLE_INNER_SPAN_DEG]
     // vs [TOGGLE_OUTER_SPAN_DEG]) with curved top/bottom edges (following the dial's own radii, not
-    // flat chords) and only the two outer corners rounded. Bottom-left is the single Pairs/
-    // Currencies mode toggle (thumb zone in portrait grip; Pieter, 2026-09-03 — was two separate
-    // buttons at bottom-left/bottom-right, merged into one so bottom-right could become a third
-    // timeframe button). Top corners + bottom-right are the Currencies-mode D1/H4/H1 timeframe
-    // toggle — inert in Pairs mode, since pair `potential` isn't computed per-timeframe.
+    // flat chords) and only the two outer corners rounded.
+    //
+    // 2026-09-04 — repurposed from Pairs/Currencies + D1/H4/H1 (D1/H4/H1 moved off the wheel
+    // entirely, into WheelScreen's own bottom TimeframeButtons row) into 4 direct mode selectors,
+    // one per [WheelMode]: each wing IS a mode now, tapping it switches straight to that mode,
+    // not a 2-way toggle. Potential keeps the thumb-zone bottom-left corner (flagship/most-reached-
+    // for mode, matching the old single mode-toggle's own prominence); the other three are an
+    // independent judgment call (flag if a different arrangement reads better on-device).
     const val TOGGLE_R0_FRAC = 0.935f    // gap from XA_R1_FRAC ~0.03 — matches the other ring gaps
                                           // (hub→ring 0.035, ring→XA 0.025), not the near-zero gap before
     const val TOGGLE_R1_FRAC = 1.18f     // thickness ~0.245 vs the XA ring's 0.14 — ~75% thicker
     const val TOGGLE_INNER_SPAN_DEG = 34f // angular width at r0 (wide base)
     const val TOGGLE_OUTER_SPAN_DEG = 18f // angular width at r1 (tapered tip)
 
-    const val TOGGLE_MODE_CENTER_DEG = 225f // bottom-left — Pairs/Currencies (single toggle)
-    const val TOGGLE_H1_CENTER_DEG = 135f   // bottom-right
-    const val TOGGLE_H4_CENTER_DEG = 45f    // top-right
-    const val TOGGLE_D1_CENTER_DEG = 315f   // top-left
+    const val TOGGLE_POTENTIAL_CENTER_DEG = 225f // bottom-left (thumb zone) — flagship mode
+    const val TOGGLE_RESET_CENTER_DEG = 135f     // bottom-right
+    const val TOGGLE_MOMENTUM_CENTER_DEG = 45f   // top-right
+    const val TOGGLE_ADX_CENTER_DEG = 315f       // top-left
 
     /** A corner button's curved-and-tapered boundary: wide at r0, narrow at r1. */
     data class CornerAngles(val innerA0: Float, val innerA1: Float, val outerA0: Float, val outerA1: Float)

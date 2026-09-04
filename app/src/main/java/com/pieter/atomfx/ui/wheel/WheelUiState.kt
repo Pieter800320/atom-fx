@@ -15,8 +15,21 @@ enum class Direction { BULL, BEAR, NEUTRAL }
 
 enum class PotentialState { LOW, WATCH, TRADEABLE, APLUS }
 
-/** Which ring the middle band shows. */
-enum class WheelMode { PAIRS, CURRENCIES }
+/**
+ * Which value the middle ring's 12 pair-wedges show (2026-09-04 — third and settled pass, per
+ * Pieter's own real workflow: by the time he reaches the wheel, CSM + correlation have already
+ * settled *direction* — what the wheel needs to answer is "of several directionally-agreed
+ * candidates, which is the best entry right now," a triage question, not a second direction
+ * check. Continuation and Conviction (both tried first) mostly re-confirmed direction/gate-passing
+ * already visible via Potential or already checked via CSM upstream. ADX (trend strength) and
+ * Reset Score (entry-timing/overextension) don't — neither has any other home on the wheel or in
+ * the upstream CSM check, and both directly differentiate "which candidate is actually moving,
+ * and is it too late to chase it." The ring is exclusively pair-shaped, always — CSM/currency
+ * strength has its own permanent strip below (`CsmBarStrip` in `WheelScreen.kt`). Each mode reads
+ * a different score already sitting on [PairNode] — see [PairNode.level]/[PairNode.momentum]/
+ * [PairNode.adx]/[PairNode.resetScore].
+ */
+enum class WheelMode { POTENTIAL, MOMENTUM, ADX, RESET }
 
 /**
  * Currencies-mode timeframe (2026-09-02, Pieter's toggle; H1 added 2026-09-03). `csm`/`csm_delta`
@@ -44,11 +57,29 @@ data class PairNode(
     val pair: String,
     val index: Int, // 0..11, fixed position in WheelGeometry.PAIR_ORDER (angle = identity)
     val direction: Direction,
-    val level: Int, // 0..6
+    val level: Int, // 0..6 — WheelMode.POTENTIAL's own value
     val state: PotentialState,
     val potential: Int, // 0..100
     val factorsPassed: Set<Factor>,
     val blockedAt: Factor?,
+    // 2026-09-04 — the other 3 wheel-wing values, all already computed backend-side (Rule #1: the
+    // app never re-derives these, only reads them), all direction-agnostic technical reads (none
+    // is itself bull/bear-signed), so all three take their wedge colour from `direction`, same as
+    // Potential does.
+    // Unsigned 0..100, 50 = neutral — pairs[pair].mom.d1, the frozen D1-only momentum oscillator
+    // (not the D1/H4/H1-blended CMP — Pieter's own pick: a fast-moving, single-timeframe read).
+    val momentum: Int = 0,
+    // 0..100ish (ADX is mathematically bounded 0-100 but rarely exceeds ~60-70 in practice) —
+    // pairs[pair].adx, frozen trend-strength indicator. Answers "is this pair actually trending,
+    // or just directionally biased and choppy" — a question neither Potential nor Momentum
+    // answers (ADX only enters the frozen pipeline as a *gate* elsewhere, capping Continuation's
+    // score below 45 when ADX < 20, never as a primary reading of its own until now).
+    val adx: Int = 0,
+    // 0..100 — pairs[pair].reset_score, frozen mean-reversion entry-quality oscillator. LOW is
+    // GOOD here (price has reset toward equilibrium; high = overextended/chasing) — the wheel
+    // inverts this for display (WheelCanvas.modeFillFrac) so a bigger wedge still reads as "better"
+    // everywhere on the dial, not just here.
+    val resetScore: Int = 0,
 )
 
 /** One currency wedge in CURRENCIES mode. */

@@ -43,7 +43,15 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "The Wheel",
         summary = "0–6 factors passed, mapped to four labels: LOW, WATCH, TRADEABLE, A+.",
         howItWorks = "LOW = levels 0–2. WATCH = levels 3–5. TRADEABLE = level 6. A+ is TRADEABLE's top tier: level 6 and Setup Rank ≥ 8.5.",
-        whyItMatters = "These four states are what the Tradeable Now / Watch bands and the wheel's colour language sort pairs into — the fastest read of \"is this worth a look\" on the whole app.",
+        whyItMatters = "These four states are what the wheel's own POTENTIAL wing and colour language sort pairs into — the fastest read of \"is this worth a look\" on the whole app.",
+    ),
+    LibraryEntry(
+        id = "wheel-four-wings",
+        term = "The Wheel's 4 Wings",
+        category = "The Wheel",
+        summary = "The wheel's middle ring always shows the same 12 pairs — the 4 corner wings pick which value fills them: Potential, Momentum, ADX, or Reset Score.",
+        howItWorks = "Every wing's wedge fill is a magnitude of signal, never a raw value — a bigger wedge always means a stronger reading, on every wing, so the visual language stays the same regardless of which wing is active; colour is the separate channel that carries direction. Potential is its own 0–6 level (see \"Potential\" above). Momentum is the pair's own D1-only momentum oscillator (0–100, 50 = neutral) — deliberately just the D1 reading, not the D1/H4/H1-blended CMP, for a fast-moving single-timeframe read; because it's bipolar (0 and 100 are opposite extremes, not \"none\" and \"max\"), the wheel folds it around the neutral point (|momentum − 50|) before filling, so a strongly bearish 5 and a strongly bullish 95 fill the wedge exactly the same amount — a raw-value fill would have drawn 5 as nearly empty, misreading a strong signal as a weak one. ADX is the frozen trend-strength indicator (0–100, rarely above ~60–70 in practice) — how strongly this pair is actually trending, regardless of direction; it has no neutral midpoint, so it's already a magnitude and scales directly. Reset Score is the frozen mean-reversion entry-quality oscillator (0–100) — LOW is the good reading here (price has reset toward equilibrium; high means overextended/chasing) and it's already direction-adjusted at the source, so the wheel inverts it (100 − score) to turn it into the same \"bigger is better\" magnitude. ADX and Reset Score don't carry their own bull/bear sign, so both colour from the pair's own direction, same as Potential; Momentum colours from its own raw reading (≥50 bull, <50 bear) since the sign is already sitting in the value itself.",
+        whyItMatters = "Pieter's own workflow (2026-09-04): by the time you reach the wheel, CSM plus a correlation check have already settled *direction* — what's actually useful there is picking the best of several directionally-agreed candidates, not re-confirming direction a third time. ADX answers \"is this one actually trending, or just biased and choppy\" (two pairs from the same strong currency can read very differently); Reset Score answers \"is it too late to chase this one.\" Neither had any home on the wheel before, and neither duplicates what CSM already told you upstream.",
     ),
     LibraryEntry(
         id = "six-factor-engine",
@@ -139,7 +147,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Currency Strength",
         summary = "0–100 per currency, per timeframe — how strong or weak each of the 8 currencies is right now.",
         howItWorks = "Every one of 16 fixed currency pairs contributes an ATR-normalised return to both its base currency (positive) and its quote currency (negative). Average each currency's contributions, then stretch the 8 currencies' averages so the weakest sits at 0 and the strongest at 100. D1 blends 14-bar D1 (70%) and H4 (30%) returns; H4 blends 5-bar H4 (80%) and 8-bar H1 (20%); H1 is pure 6-bar H1.",
-        whyItMatters = "CSM is the foundation Currency Flow, Breadth, and the Currency Wheel's own radius are all built on.",
+        whyItMatters = "CSM is the foundation Currency Flow, Breadth, and the home screen's Currency Strength strip (below the wheel) are all built on.",
     ),
     LibraryEntry(
         id = "csm-delta",

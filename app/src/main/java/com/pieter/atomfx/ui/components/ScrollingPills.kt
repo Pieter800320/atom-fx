@@ -52,12 +52,21 @@ fun ScrollingPills(
     colors: AtomColors,
     // Defaults from `colors` itself (Dark/LightColors are the only two instances ever passed —
     // see Theme.kt) so call sites that don't already thread an explicit isDark (Macro,
-    // RecommendationSheet) don't need to; TradeableNow passes the real one explicitly since it
-    // already has it from WheelScreen.
+    // RecommendationSheet) don't need to.
     isDark: Boolean = colors == DarkColors,
     modifier: Modifier = Modifier,
 ) {
     val haptics = LocalHapticFeedback.current
+    // 2026-09-04 — this row lives inside MainActivity's HorizontalPager (Home/Macro/Insights are
+    // its three pages), and a same-axis nested scrollable loses gesture ownership to the Pager's
+    // own drag detector by default. Three custom-gesture attempts (a NestedScrollConnection, a
+    // reactive Pager userScrollEnabled lock, a hand-rolled raw-consumption drag with its own
+    // fling) all either didn't stop the tab-swipe conflict or made the row feel heavy/sticky
+    // compared to native scrolling. Pieter's call once he'd tested each on-device (2026-09-04):
+    // keep swipe-to-change-tab working everywhere, so this stays plain, unmodified
+    // `Modifier.horizontalScroll` — any surface that genuinely needs to avoid the conflict
+    // (Home's Potential strip) is redesigned not to need horizontal scrolling at all, rather than
+    // this shared component fighting the Pager for gesture ownership.
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {

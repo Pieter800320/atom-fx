@@ -232,8 +232,8 @@ private fun whyRows(node: PairNode, signals: Signals, pairBlock: PairBlock?): Li
     val flow = signals.currencyFlow
     val base = node.pair.take(3)
     val quote = node.pair.takeLast(3)
-    val baseBreadth = signals.breadth["h4"]?.get(base)
-    val quoteBreadth = signals.breadth["h4"]?.get(quote)
+    val baseBreadth = signals.breadth.h4[base]
+    val quoteBreadth = signals.breadth.h4[quote]
     val h4Structure = pairBlock?.structure?.h4
 
     return Factor.entries.map { factor ->

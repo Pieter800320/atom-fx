@@ -8,7 +8,6 @@ import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,11 +43,12 @@ import kotlinx.coroutines.launch
 sealed interface WheelTapTarget {
     data object Nucleus : WheelTapTarget
     data class Node(val pair: String) : WheelTapTarget          // a pair wedge
-    data class Currency(val code: String) : WheelTapTarget      // a currency wedge
+    data class Currency(val code: String) : WheelTapTarget      // reachable via CsmBarStrip, not the dial itself
     data class CrossAsset(val id: String) : WheelTapTarget      // an outer-ring wedge
     data class Ring(val factor: Factor) : WheelTapTarget         // emitted by the factor pills, not the dial
-    data class ModeToggle(val mode: WheelMode) : WheelTapTarget  // bottom corners: Currencies/Pairs
-    data class TimeframeToggle(val timeframe: Timeframe) : WheelTapTarget // top corners: D1/H4
+    // 2026-09-04 — the 4 corner wings, one per WheelMode, each a direct selector (not a 2-way
+    // toggle) now that D1/H4/H1 moved off the wheel entirely into WheelScreen's own bottom row.
+    data class ModeToggle(val mode: WheelMode) : WheelTapTarget
 }
 
 internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
@@ -77,16 +76,39 @@ private const val TAP_WASH_ALPHA = 0.16f
 // wash = tint@18%, see the Macro "Confidence" pill), no border, corners rounded via
 // [roundedWedgePath]. Previously 0.4f with a coloured border, added when the un-plated wash read
 // as nearly invisible (~1.2:1) — that fix was to the wrong thing; the pill's own 18% reads fine
-// once composited onto the surfaceRaised plate every wash cell already sits on.
-private const val XA_WASH_ALPHA = 0.18f
+// once composited onto the surfaceRaised plate every wash cell already sits on. Cross-asset ring
+// only — Pieter's own call, 2026-09-04: the pair-ring wedges/CSM bars unified onto the same wash
+// TECHNIQUE but not this exact alpha, see [PAIR_WASH_ALPHA] below.
+const val XA_WASH_ALPHA = 0.18f
 
-// Matches the corner buttons' own outer-corner rounding (drawCornerButtons' cornerRadiusPx).
+// Pieter, 2026-09-04 — the pair-ring wedges and the CSM bars (`WheelScreen.kt`'s `CsmBarStrip`)
+// share this slightly-brighter wash: "slightly brighter, slightly more solid" than the cross-
+// asset ring's own 18%, one step back from the fully-solid fill that read as too loud when tried.
+const val PAIR_WASH_ALPHA = 0.28f
+
+// Cross-asset ring cells — matches the corner buttons' own outer-corner rounding
+// (drawCornerButtons' cornerRadiusPx). Pair-ring wedges use their own, smaller
+// [PAIR_WEDGE_FILL_CORNER_RADIUS_DP] instead (matches the CSM bars' own corner radius).
 private const val WHEEL_CELL_CORNER_RADIUS_DP = 7f
 
+// Pieter, 2026-09-04 — "wedges' corners the same roundedness as the bars'": matches
+// `WheelScreen.kt`'s `CSM_BAR_CORNER` (RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)) by
+// value — two different drawing systems (raw Canvas path vs. a Compose Modifier shape) so it
+// can't be one shared constant, but it's the same number by design; keep them in sync by hand.
+private const val PAIR_WEDGE_FILL_CORNER_RADIUS_DP = 3f
+
 /**
- * The Wheel v2 radial dial. Three zones: outer cross-asset ring, a middle ring that cross-fades
- * between currencies and pairs, and the regime hub. Angular identity is fixed (WheelGeometry);
- * only radial fill animates as data changes (Design §7). Pure consumer of [WheelUiState].
+ * The Wheel v2 radial dial. Three zones: outer cross-asset ring, the middle 12-pair ring, and the
+ * regime hub. Angular identity is fixed (WheelGeometry); only radial fill animates as data
+ * changes (Design §7). Pure consumer of [WheelUiState].
+ *
+ * 2026-09-04 — the middle ring no longer cross-fades between a currency ring and a pair ring:
+ * CSM/currency strength moved off the wheel entirely (its own permanent `CsmBarStrip` in
+ * `WheelScreen.kt`), so the ring is always the same 12 pair-wedges — only which *value* fills
+ * them changes, per [mode] (see [modeFillFrac]/[modeHue]). [Timeframe] no longer reaches this
+ * composable at all: none of the 4 modes' values respond to a D1/H4/H1 toggle at the wheel level
+ * — Potential/ADX/Reset never did, and Momentum deliberately reads only the D1 timeframe
+ * (Pieter's own pick over the D1/H4/H1-blended CMP) rather than toggling between them.
  */
 @Composable
 fun WheelCanvas(
@@ -94,7 +116,6 @@ fun WheelCanvas(
     colors: AtomColors,
     isDark: Boolean,
     mode: WheelMode,
-    timeframe: Timeframe,
     modifier: Modifier = Modifier,
     onTap: (WheelTapTarget) -> Unit = {},
     onLongPress: (String) -> Unit = {},
@@ -106,13 +127,6 @@ fun WheelCanvas(
     // dial, wings included.
     val tapFlash = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
     val tapScope = rememberCoroutineScope()
-    val activeCurrencies = state.currenciesFor(timeframe)
-
-    // Cross-fade the middle ring on mode change (1 = pairs, 0 = currencies).
-    val modeProgress by animateFloatAsState(
-        targetValue = if (mode == WheelMode.PAIRS) 1f else 0f,
-        animationSpec = tween(450), label = "modeProgress",
-    )
 
     // Pulsating regime dot.
     val dotAlpha by rememberInfiniteTransition(label = "hubDot").animateFloat(
@@ -121,24 +135,22 @@ fun WheelCanvas(
         label = "dotAlpha",
     )
 
-    // "Living dial": animate each pair's level and each currency's strength toward new values.
-    val levelAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
-    state.nodes.forEach { levelAnims.getOrPut(it.pair) { Animatable(it.level.toFloat()) } }
-    val strengthAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
-    activeCurrencies.forEach { strengthAnims.getOrPut(it.code) { Animatable(it.strength.toFloat()) } }
+    // "Living dial": animate each pair wedge's fill fraction toward whatever the current mode's
+    // value is. Keyed only by pair (not by mode), so switching modes animates the ring smoothly
+    // from its old shape to the new one — the same mechanic a pure data refresh already used,
+    // now also driving mode switches "for free."
+    val fillAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
+    state.nodes.forEach { fillAnims.getOrPut(it.pair) { Animatable(modeFillFrac(it, mode)) } }
 
-    LaunchedEffect(state.nodes) {
-        state.nodes.forEach { n -> levelAnims[n.pair]?.animateTo(n.level.toFloat(), tween(125)) }
-    }
-    LaunchedEffect(activeCurrencies) {
-        activeCurrencies.forEach { c -> strengthAnims[c.code]?.animateTo(c.strength.toFloat(), tween(125)) }
+    LaunchedEffect(state.nodes, mode) {
+        state.nodes.forEach { n -> fillAnims[n.pair]?.animateTo(modeFillFrac(n, mode), tween(125)) }
     }
 
     Canvas(
         modifier = modifier.pointerInput(state, mode) {
             detectTapGestures(
                 onTap = { offset ->
-                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat(), mode)
+                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat())
                     if (target != null) {
                         val key = keyOf(target)
                         // Launched on a scope outside detectTapGestures' own coroutine, so the
@@ -152,39 +164,39 @@ fun WheelCanvas(
                     }
                 },
                 onLongPress = { offset ->
-                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat(), mode)
+                    val target = hitTest(offset, size.width.toFloat(), size.height.toFloat())
                     if (target is WheelTapTarget.Node) onLongPress(target.pair)
                 },
             )
         },
     ) {
         drawDial(
-            state, colors, isDark, textMeasurer, mode, timeframe, activeCurrencies,
-            modeProgress = modeProgress,
+            state, colors, isDark, textMeasurer, mode,
             dotAlpha = dotAlpha,
-            levelAnims = levelAnims,
-            strengthAnims = strengthAnims,
+            fillAnims = fillAnims,
             tapFlash = tapFlash,
         )
     }
 }
 
-// Fixed, mode/timeframe-VALUE-independent keys for the two wing kinds — a ModeToggle target
-// carries the mode it would switch TO (not which physical button was pressed, and there's only
-// one mode button anyway), so a fixed key sidesteps that entirely; a TimeframeToggle target's
-// own timeframe already unambiguously identifies which of the three buttons was tapped.
+// A ModeToggle target carries the mode it would switch TO, so its own key already
+// unambiguously identifies which of the 4 wings was tapped — no separate per-physical-button key
+// needed.
 private fun keyOf(t: WheelTapTarget): String = when (t) {
     is WheelTapTarget.Nucleus -> "hub"
     is WheelTapTarget.Node -> "pair:${t.pair}"
     is WheelTapTarget.Currency -> "ccy:${t.code}"
     is WheelTapTarget.CrossAsset -> "xa:${t.id}"
     is WheelTapTarget.Ring -> "ring"
-    is WheelTapTarget.ModeToggle -> "wing:mode"
-    is WheelTapTarget.TimeframeToggle -> "wing:${t.timeframe.name.lowercase()}"
+    is WheelTapTarget.ModeToggle -> "wing:${t.mode.name.lowercase()}"
 }
 
 // ── Hit testing ──────────────────────────────────────────────────────────────────────────────
-private fun hitTest(offset: Offset, w: Float, h: Float, mode: WheelMode): WheelTapTarget? {
+// 2026-09-04 — no longer takes `mode`: the middle ring is always the pair ring regardless of
+// which value it's currently filled with, and all 4 corner wings are always live direct
+// selectors (no more "inert in this mode" branch — that only existed for the old D1/H4/H1
+// timeframe corners, which are gone).
+private fun hitTest(offset: Offset, w: Float, h: Float): WheelTapTarget? {
     val cx = w / 2f
     val cy = h / 2f
     val half = min(w, h) / 2f
@@ -197,32 +209,20 @@ private fun hitTest(offset: Offset, w: Float, h: Float, mode: WheelMode): WheelT
 
     val deg = g.compassDeg(cx, cy, offset)
     if (dist in (g.RING_R0_FRAC * half)..(g.RING_R1_FRAC * half)) {
-        return if (mode == WheelMode.PAIRS) {
-            WheelTapTarget.Node(g.PAIR_ORDER[g.segIndexAt(g.PAIR_ORDER.size, deg)])
-        } else {
-            WheelTapTarget.Currency(g.CCY_ORDER[g.segIndexAt(g.CCY_ORDER.size, deg)])
-        }
+        return WheelTapTarget.Node(g.PAIR_ORDER[g.segIndexAt(g.PAIR_ORDER.size, deg)])
     }
     if (dist in (g.XA_R0_FRAC * half)..(g.XA_R1_FRAC * half)) {
         return WheelTapTarget.CrossAsset(g.XASSET_ORDER[g.segIndexAt(g.XASSET_ORDER.size, deg)].first)
     }
     if (dist in (g.TOGGLE_R0_FRAC * half)..(g.TOGGLE_R1_FRAC * half)) {
-        val (mode0, mode1) = g.cornerHitRange(g.TOGGLE_MODE_CENTER_DEG)
-        val (h40, h41) = g.cornerHitRange(g.TOGGLE_H4_CENTER_DEG)
-        val (d10, d11) = g.cornerHitRange(g.TOGGLE_D1_CENTER_DEG)
-        val (h10, h11) = g.cornerHitRange(g.TOGGLE_H1_CENTER_DEG)
-        // Single Pairs/Currencies toggle (2026-09-03) — one trapezoid, tap flips to the other mode.
-        if (deg in mode0..mode1) {
-            return WheelTapTarget.ModeToggle(if (mode == WheelMode.PAIRS) WheelMode.CURRENCIES else WheelMode.PAIRS)
-        }
-        // The D1/H4/H1 buttons are truly inert in Pairs mode — pair `potential` has no timeframe
-        // axis, so there's nothing for a tap to do there. Not just dimmed: the tap is dropped
-        // entirely, same as tapping empty space.
-        if (mode == WheelMode.CURRENCIES) {
-            if (deg in h40..h41) return WheelTapTarget.TimeframeToggle(Timeframe.H4)
-            if (deg in d10..d11) return WheelTapTarget.TimeframeToggle(Timeframe.D1)
-            if (deg in h10..h11) return WheelTapTarget.TimeframeToggle(Timeframe.H1)
-        }
+        val (p0, p1) = g.cornerHitRange(g.TOGGLE_POTENTIAL_CENTER_DEG)
+        val (a0, a1) = g.cornerHitRange(g.TOGGLE_ADX_CENTER_DEG)
+        val (m0, m1) = g.cornerHitRange(g.TOGGLE_MOMENTUM_CENTER_DEG)
+        val (r0d, r1d) = g.cornerHitRange(g.TOGGLE_RESET_CENTER_DEG)
+        if (deg in p0..p1) return WheelTapTarget.ModeToggle(WheelMode.POTENTIAL)
+        if (deg in a0..a1) return WheelTapTarget.ModeToggle(WheelMode.ADX)
+        if (deg in m0..m1) return WheelTapTarget.ModeToggle(WheelMode.MOMENTUM)
+        if (deg in r0d..r1d) return WheelTapTarget.ModeToggle(WheelMode.RESET)
     }
     return null
 }
@@ -354,12 +354,8 @@ private fun DrawScope.drawDial(
     isDark: Boolean,
     textMeasurer: TextMeasurer,
     mode: WheelMode,
-    timeframe: Timeframe,
-    activeCurrencies: List<CurrencySeg>,
-    modeProgress: Float,
     dotAlpha: Float,
-    levelAnims: Map<String, Animatable<Float, *>>,
-    strengthAnims: Map<String, Animatable<Float, *>>,
+    fillAnims: Map<String, Animatable<Float, *>>,
     tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val cx = size.width / 2f
@@ -376,30 +372,14 @@ private fun DrawScope.drawDial(
     )
 
     drawCrossAssetRing(state, colors, isDark, cx, cy, half, tapFlash)
-    drawCornerButtons(mode, timeframe, colors, isDark, cx, cy, half, tapFlash)
-
-    // Middle ring cross-fade: draw whichever side has any alpha.
-    val ccyAlpha = 1f - modeProgress
-    val pairAlpha = modeProgress
-    if (ccyAlpha > 0.02f) {
-        scale(lerp01(0.9f, 1f, ccyAlpha), pivot = Offset(cx, cy)) {
-            drawCurrencyRing(activeCurrencies, colors, cx, cy, half, ccyAlpha, strengthAnims, tapFlash)
-        }
-    }
-    if (pairAlpha > 0.02f) {
-        scale(lerp01(0.9f, 1f, pairAlpha), pivot = Offset(cx, cy)) {
-            drawPairRing(state, colors, cx, cy, half, pairAlpha, levelAnims, tapFlash)
-        }
-    }
-
+    drawCornerButtons(mode, colors, isDark, cx, cy, half, tapFlash)
+    drawPairRing(state, mode, colors, cx, cy, half, fillAnims, tapFlash)
     drawHub(state, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
 }
 
 /** Reads the current tap-flash value (0f if never/no-longer flashing) for [key]. */
 private fun flashOf(tapFlash: Map<String, Animatable<Float, *>>, key: String): Float =
     tapFlash[key]?.value ?: 0f
-
-private fun lerp01(a: Float, b: Float, t: Float): Float = a + (b - a) * t.coerceIn(0f, 1f)
 
 /**
  * Pieter, 2026-09-03 — simplified to a two-state indicator: moving (any non-flat direction, up or
@@ -429,9 +409,9 @@ private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors
         // only which hue (or none) drives them.
         val hue = if (xa.flat) null else if (xa.up) colors.bull else colors.bear
         val path = roundedWedgePath(cx, cy, r0, r1, a0, a1, px(WHEEL_CELL_CORNER_RADIUS_DP))
-        // Plate first (matches drawPairRing/drawCurrencyRing's own base), then the hue wash on
-        // top — see XA_WASH_ALPHA above for why. Borderless, corners rounded — the pill treatment,
-        // not the old bordered/sharp-cornered cell.
+        // Plate first (matches drawPairRing's own base), then the hue wash on top — see
+        // XA_WASH_ALPHA above for why. Borderless, corners rounded — the pill treatment, not the
+        // old bordered/sharp-cornered cell.
         drawPath(path, color = colors.surfaceRaised)
         val bg = hue?.copy(alpha = XA_WASH_ALPHA) ?: colors.surface
         drawPath(path, color = bg)
@@ -498,19 +478,16 @@ private data class CornerButtonSpec(val label: String, val centerDeg: Float, val
 /**
  * The four corner buttons — a 4th ring shaped and placed to read as chrome rather than data:
  * tapered, curved-edge wedges (wide base, narrow rounded tip), thicker than any data ring.
- * Bottom-left is the single Pairs/Currencies mode toggle (thumb zone); top-left/top-right/
- * bottom-right are the Currencies-mode D1/H4/H1 timeframe toggle (Pieter, 2026-09-03 — H1 added,
- * taking the corner the old separate Currencies button used before it merged into one toggle).
  *
- * Fill is always [colors.controlSurface] and the border is always [colors.controlBorder] — no
- * separate selected-state border (Pieter, 2026-09-03 follow-up: the white border read as heavy;
- * "pressed and active" is carried by the label colour alone, [colors.textPrimary] when selected,
- * same signal the rest of the wheel already uses text/fill colour for rather than a border). An
- * inert timeframe button gets no separate treatment either; it reads identically to any other
- * unselected button, exactly like its tap being dropped reads identically to tapping empty space.
+ * 2026-09-04 — each wing is now a direct selector for one [WheelMode] (Potential/ADX/Momentum/
+ * Reset), not a toggle — see the doc comment on [WheelGeometry]'s
+ * `TOGGLE_*_CENTER_DEG` constants for the corner assignment. Exactly one is always selected (the
+ * wheel is always in one of its 4 modes, never none), carrying the same "label colour only, no
+ * border change" selected look the old single mode-toggle already established (Pieter,
+ * 2026-09-03: a separate selected-state border read as heavy).
  */
 private fun DrawScope.drawCornerButtons(
-    mode: WheelMode, timeframe: Timeframe, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float,
+    mode: WheelMode, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float,
     tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
@@ -523,25 +500,12 @@ private fun DrawScope.drawCornerButtons(
     // fill specifically, so these get their own slightly-darker border rather than changing the
     // shared token everywhere else it's used. Dark theme is untouched.
     val borderColor = if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
-    // The mode toggle is always "on" — the wheel is always in one of its two modes, never
-    // neither — so it always carries the selected look; only its label swaps.
-    // Pieter, 2026-09-03 — labelled by the METRIC (what the radius/fill means), not the entity
-    // type (which set of wedges you're looking at) — the ring itself already makes the entity
-    // type obvious (currency codes vs. pair codes), but not what the fill actually represents.
-    // Still never "Strength" for pairs (Glossary/WHEEL_V2_SPEC §0's rule): each mode keeps its
-    // own correct metric name, this just changes which of the two ideas the label leads with.
-    val modeLabel = if (mode == WheelMode.PAIRS) "POTENTIAL" else "STRENGTH"
-    // Pieter, 2026-09-03: the selection border itself disappears in Pairs mode, not just the tap
-    // response — the TF buttons must read as fully inert (no white anywhere among them) rather
-    // than "H4 is still nominally chosen, just unresponsive." It reappears on the currently-active
-    // TF the instant Currencies is toggled back on.
-    val inCurrencies = mode == WheelMode.CURRENCIES
 
     listOf(
-        CornerButtonSpec(modeLabel, g.TOGGLE_MODE_CENTER_DEG, true, "wing:mode"),
-        CornerButtonSpec("D1", g.TOGGLE_D1_CENTER_DEG, inCurrencies && timeframe == Timeframe.D1, "wing:d1"),
-        CornerButtonSpec("H4", g.TOGGLE_H4_CENTER_DEG, inCurrencies && timeframe == Timeframe.H4, "wing:h4"),
-        CornerButtonSpec("H1", g.TOGGLE_H1_CENTER_DEG, inCurrencies && timeframe == Timeframe.H1, "wing:h1"),
+        CornerButtonSpec("POTENTIAL", g.TOGGLE_POTENTIAL_CENTER_DEG, mode == WheelMode.POTENTIAL, "wing:potential"),
+        CornerButtonSpec("ADX", g.TOGGLE_ADX_CENTER_DEG, mode == WheelMode.ADX, "wing:adx"),
+        CornerButtonSpec("MOMENTUM", g.TOGGLE_MOMENTUM_CENTER_DEG, mode == WheelMode.MOMENTUM, "wing:momentum"),
+        CornerButtonSpec("RESET", g.TOGGLE_RESET_CENTER_DEG, mode == WheelMode.RESET, "wing:reset"),
     ).forEach { spec ->
         val angles = g.cornerButtonAngles(spec.centerDeg)
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
@@ -561,60 +525,57 @@ private fun DrawScope.drawCornerButtons(
         val labelT = 0.4f
         val la0 = angles.innerA0 + (angles.outerA0 - angles.innerA0) * labelT
         val la1 = angles.innerA1 + (angles.outerA1 - angles.innerA1) * labelT
-        // Pieter, 2026-09-03 — inert (Pairs mode) D1/H4/H1 labels now match their own border
-        // colour (borderColor, was hairline before the control treatment) instead of textMuted,
-        // so an inert wing reads as one dim unit exactly like the cross-asset ring's inert cells
-        // do. Currencies-mode behaviour is unchanged.
-        val labelColor = if (spec.selected) colors.textPrimary else if (inCurrencies) colors.textMuted else borderColor
+        val labelColor = if (spec.selected) colors.textPrimary else colors.textMuted
         curvedLabel(cx, cy, labelR, spec.centerDeg, la0, la1, spec.label, labelColor, sp(11f), bold = false)
     }
 }
 
-private fun DrawScope.drawCurrencyRing(
-    currencies: List<CurrencySeg>, colors: AtomColors, cx: Float, cy: Float, half: Float,
-    alpha: Float, strengthAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
-) {
-    val g = WheelGeometry
-    val r0 = g.RING_R0_FRAC * half
-    val r1 = g.RING_R1_FRAC * half
-    val span = r1 - r0
-    val plateR0 = r1 - span * PLATE_FRAC
-    val plateR1 = r1 - span * 0.02f
-    val labelR = (plateR0 + plateR1) / 2f
-    val graphMax = plateR0 - span * 0.03f
-    val count = currencies.size.coerceAtLeast(1)
+/**
+ * How full a pair's wedge fill is under the current [mode], 0..1 — always MAGNITUDE OF SIGNAL,
+ * never raw value, so "bigger wedge" means the same thing (a strong reading) on every wing;
+ * colour (see [modeHue]) is the only channel that carries direction. Potential's own 0..6 level
+ * is a plain count, unchanged. ADX has no neutral midpoint (0 = no trend, 100 = max trend
+ * strength) — already a pure magnitude, scales directly. Reset Score is INVERTED — low
+ * `resetScore` is the good reading (see [PairNode.resetScore]) and it's already direction-
+ * adjusted at the source, so `100 - resetScore` turns it into a magnitude too. Momentum is
+ * DIFFERENT from the other three: it's a bipolar oscillator (50 = neutral, 0 and 100 are the two
+ * opposite extremes), so the raw value is NOT a magnitude — a strongly bearish 5 would otherwise
+ * draw a nearly-empty wedge, reading as "no signal" when it's actually a strong one. Folded
+ * around the neutral point (`abs(momentum - 50) / 50`) instead: 5 and 95 both fill to 90%, 50
+ * fills to 0% — magnitude of momentum, regardless of which way it's pointing.
+ *
+ * Pieter, 2026-09-04 — the fold alone still read poorly on a genuinely calm day: a bipolar
+ * oscillator spends a lot of its time near its own midpoint (mixed/calm regimes are common, not
+ * rare), so most of the ring sat under ~10% fill and the whole wing looked empty rather than
+ * "modest." A `sqrt` on top of the fold (Momentum only — ADX and Reset already spread across
+ * their full range on real data, checked before adding this) stretches the low end open while
+ * still preserving order and both anchors (exactly neutral stays at 0%, max-extreme stays at
+ * 100%) — a real 8% reading shows as a legible ~28%, not a barely-there sliver.
+ */
+private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
+    WheelMode.POTENTIAL -> node.level.coerceIn(0, 6) / 6f
+    WheelMode.MOMENTUM -> kotlin.math.sqrt(kotlin.math.abs(node.momentum.coerceIn(0, 100) - 50) / 50f)
+    WheelMode.ADX -> node.adx.coerceIn(0, 100) / 100f
+    WheelMode.RESET -> (100 - node.resetScore.coerceIn(0, 100)) / 100f
+}
 
-    currencies.forEach { c ->
-        val (a0, a1) = g.segAngles(count, c.index, GAP_DEG)
-        val mid = g.midDeg(count, c.index)
-        val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
-        drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
-        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f * alpha), style = Stroke(px(0.9f)))
-
-        val v = (strengthAnims[c.code]?.value ?: c.strength.toFloat())
-        val fillEnd = r0 + (graphMax - r0) * (v / 100f)
-        // "Soft corners" experiment, 2026-09-03 — borderless, rounded, the same pill-matching
-        // wash as the cross-asset cells (XA_WASH_ALPHA). The cell itself (bgPath, above) is
-        // untouched — sharp-cornered plate + quiet hairline, same as before; only the graph fill
-        // gets the new treatment.
-        val hue = if (v >= 50f) colors.bull else colors.bear
-        if (fillEnd > r0 + 2f) {
-            val fillPath = roundedWedgePath(cx, cy, r0 + 2f, fillEnd, a0 + 1.2f, a1 - 1.2f, px(WHEEL_CELL_CORNER_RADIUS_DP))
-            drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
-        }
-
-        val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.8f, a1 - 0.8f)
-        drawPath(platePath, color = colors.surface.copy(alpha = alpha))
-
-        curvedLabel(cx, cy, labelR, mid, a0, a1, c.code, colors.textPrimary.copy(alpha = alpha), sp(15f), bold = false)
-        val flash = flashOf(tapFlash, "ccy:${c.code}")
-        if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash * alpha))
-    }
+/**
+ * Which hue fills a pair's wedge under the current [mode]. Momentum (D1) is the same 0..100/
+ * 50-neutral shape CSM strength already used on the old currency ring, so it gets the same >=50
+ * rule. Potential, ADX and Reset are all direction-agnostic reads on their own (trend strength
+ * and entry-quality don't carry a sign) — each takes its colour from the pair's own `direction`
+ * instead, same as Potential's own tint always has.
+ */
+private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
+    WheelMode.POTENTIAL -> tintForDir(node.direction, colors)
+    WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.bull else colors.bear
+    WheelMode.ADX -> tintForDir(node.direction, colors)
+    WheelMode.RESET -> tintForDir(node.direction, colors)
 }
 
 private fun DrawScope.drawPairRing(
-    state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
-    alpha: Float, levelAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
+    state: WheelUiState, mode: WheelMode, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    fillAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
     val r0 = g.RING_R0_FRAC * half
@@ -629,31 +590,32 @@ private fun DrawScope.drawPairRing(
     state.nodes.forEach { node ->
         val (a0, a1) = g.segAngles(count, node.index, GAP_DEG)
         val mid = g.midDeg(count, node.index)
-        val hue = tintForDir(node.direction, colors)
+        val hue = modeHue(node, mode, colors)
 
         val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
-        drawPath(bgPath, color = colors.surfaceRaised.copy(alpha = alpha))
-        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f * alpha), style = Stroke(px(0.9f)))
+        drawPath(bgPath, color = colors.surfaceRaised)
+        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f), style = Stroke(px(0.9f)))
 
-        // "Soft corners" experiment, 2026-09-03 — borderless, rounded, the same pill-matching
-        // wash as the cross-asset cells (XA_WASH_ALPHA). The cell itself (bgPath, above) is
-        // untouched — sharp-cornered plate + quiet hairline, same as before; only the graph fill
-        // gets the new treatment.
-        val levelValue = (levelAnims[node.pair]?.value ?: node.level.toFloat()).coerceIn(0f, 6f)
-        val fillFrac = levelValue / 6f
+        // Pieter, 2026-09-04 — tried solid first (matching the CSM bar strip's then-solid bars),
+        // read as too loud on-device; settled on a wash instead, same technique the cross-asset
+        // ring uses but at its own, slightly brighter alpha (PAIR_WASH_ALPHA) and its own,
+        // smaller corner radius (PAIR_WEDGE_FILL_CORNER_RADIUS_DP, matching the CSM bars'
+        // CSM_BAR_CORNER) — CSM bars now match both of these too (`CsmBarStrip` in
+        // `WheelScreen.kt`), so wedges and CSM read as one language, distinct from cross-asset.
+        val fillFrac = (fillAnims[node.pair]?.value ?: modeFillFrac(node, mode)).coerceIn(0f, 1f)
         if (fillFrac > 0f) {
             val rOut = r0 + (graphMax - r0) * fillFrac
-            val fillPath = roundedWedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f, px(WHEEL_CELL_CORNER_RADIUS_DP))
-            drawPath(fillPath, color = hue.copy(alpha = XA_WASH_ALPHA), alpha = alpha)
+            val fillPath = roundedWedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f, px(PAIR_WEDGE_FILL_CORNER_RADIUS_DP))
+            drawPath(fillPath, color = hue.copy(alpha = PAIR_WASH_ALPHA))
         }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
-        drawPath(platePath, color = colors.surface.copy(alpha = alpha))
-        curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary.copy(alpha = alpha), sp(12f), bold = false)
+        drawPath(platePath, color = colors.surface)
+        curvedLabel(cx, cy, labelR, mid, a0, a1, node.pair, colors.textPrimary, sp(12f), bold = false)
 
         // A level-6 pair is indicated by its fill/border alone — no separate rim glow treatment.
         val flash = flashOf(tapFlash, "pair:${node.pair}")
-        if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash * alpha))
+        if (flash > 0f) drawPath(bgPath, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
     }
 }
 
