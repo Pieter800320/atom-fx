@@ -41,6 +41,13 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         val type = message.data["type"]
         if (type == "gold_signal" && !notif.goldSignal) return
         if (type == "level_alert" && !notif.levelAlerts) return
+        // Signals Roadmap §2 (Phase 1) — Structure covers structure_event (BOS + CHoCH, one
+        // toggle); Regime covers both regime_flip and archetype_change (one toggle).
+        if (type == "potential_state" && !notif.setupAlerts) return
+        if (type == "structure_event" && !notif.structureAlerts) return
+        if ((type == "regime_flip" || type == "archetype_change") && !notif.regimeAlerts) return
+        if (type == "volatility_spike" && !notif.volatilityAlerts) return
+        if (type == "tf_alignment" && !notif.alignmentAlerts) return
 
         val title = message.notification?.title ?: type ?: "ATOM FX"
         val body = message.notification?.body ?: return

@@ -380,11 +380,12 @@ Authorization: Bearer <OAuth2 access token minted from the service account>
 { "message": {
     "topic": "atomfx-signals",
     "notification": { "title": <title>, "body": <body> },
-    "data": { "type":"gold_signal|level_alert", "pair":"…", "direction":"…", "deeplink":"atomfx://pair/EURUSD" },
+    "data": { "type":"gold_signal|level_alert|potential_state|structure_event|regime_flip|archetype_change|volatility_spike|tf_alignment", "pair":"…", "direction":"…", "deeplink":"atomfx://pair/EURUSD" },
     "android": { "priority":"high", "notification": { "channel_id":"atomfx_signals" } } } }
 ```
 
 - `send_push` is a **drop-in for `send_telegram`** at the frozen call-sites in `scan_h1.py` (§5.2). Same message text; the gold-signal and level-alert conditions are unchanged.
+- **State-transition alerts (Signals Roadmap §2, EXTEND-tier).** `scanner/extend/state_alerts.py` adds six edge-triggered types on top of the two frozen ones above — `potential_state`, `structure_event`, `regime_flip`, `archetype_change`, `volatility_spike`, `tf_alignment` — each firing only on a transition against the previous scan's `signals.json`, never on a level that's merely still true. They ride the same hourly scan and the same `send_push_alert` call, so no new transport or schema shape — just six new `type` values. Five matching Settings toggles exist client-side (`NotificationPrefs` — Setup, Structure, Regime, Volatility, Alignment) covering the six types; Structure covers both BOS and CHoCH, Regime covers both the H4 flip and an Archetype change.
 - Telegram may remain wired as an **optional fallback** (guarded by whether its secrets exist) but push is the primary and only required transport. If Pieter later wants both, it's a one-line `or`.
 - OAuth token minting: use Google's token endpoint with the service account (a ~30-line pure-`urllib` helper, no heavyweight SDK, consistent with the reference's dependency-light style).
 

@@ -439,6 +439,7 @@ def main():
     # calculation or a firing condition. If it errors, the frozen data above is
     # already assembled and still saved.
     print("\n[Extend] Computing additive analytics…")
+    state_alerts_list: list = []
     try:
         from scanner.extend import csm_delta       as _csm_delta
         from scanner.extend import breadth         as _breadth
@@ -448,6 +449,7 @@ def main():
         from scanner.extend import macro_regime    as _macro_regime
         from scanner.extend import recommendation  as _recommendation
         from scanner.extend import potential_config as _xcfg
+        from scanner.extend import state_alerts    as _state_alerts
 
         out["csm_delta"]     = _csm_delta.compute_csm_delta(ohlcv, csm)
         out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
@@ -474,12 +476,23 @@ def main():
         out["schema_version"] = _xcfg.SCHEMA_VERSION
         print(f"  Extend OK — schema_version={_xcfg.SCHEMA_VERSION}, "
               f"potential pairs={len(out.get('potential', {}))}")
+
+        # State-transition alerts (Signals Roadmap §2) — last, since it reads the
+        # potential/structure/macro_regime keys this same block just computed.
+        state_alerts_list = _state_alerts.compute_state_alerts(out, prev)
     except Exception as e:
         import traceback
         print(f"  [extend] error (frozen data still saved): {e}")
         traceback.print_exc()
 
     save_signals(out)
+
+    # ── State-transition alerts push (Signals Roadmap §2) ─────────────────────
+    if state_alerts_list:
+        print(f"\n[State alerts] {len(state_alerts_list)} transition(s) this scan…")
+    for alert in state_alerts_list:
+        print(f"  🔔 {alert['type']} — {alert.get('pair', '')}")
+        send_push_alert(alert["msg"], alert["type"], alert["deeplink"], direction=alert.get("direction"))
 
     # ── Push: Gold + H4 (Medium/High) + H1 confirmed (Telegram fallback) ─────
     _pair_closes = {k: v["close"] for k, v in _pair_prices.items()}

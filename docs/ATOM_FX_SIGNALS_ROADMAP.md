@@ -44,6 +44,13 @@ updated as each phase actually ships.
 
 ## 2. Phase 1 — State-transition alerts (cheapest, do first)
 
+> **Shipped 2026-09-04.** All six alerts + the 3-TF strip landed together: backend in
+> `scanner/extend/state_alerts.py` (wired into `scan_h1.py`), five Settings toggles in
+> `NotificationPrefs`/`SettingsScreen.kt`/`AtomFxMessagingService.kt` (Structure covers BOS+CHoCH;
+> Regime covers the H4 flip + Archetype change — both merged per Pieter's call), and the strip as
+> `TfAlignmentStrip.kt` in the Pair sheet. Tests in `tests/test_extend.py`. Docs updated:
+> `ATOM_FX_ARCHITECTURE.md` §7, `ATOM_FX_DESIGN.md` §14.7, `LibraryContent.kt`.
+
 Every item in this phase reads data already computed every hour. No new fetch, no new
 indicator, no frozen file touched. The work is entirely: detect the transition, format the
 push, wire the toggle. All **EXTEND**.

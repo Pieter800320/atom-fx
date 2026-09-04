@@ -313,6 +313,24 @@ private fun NotificationsGroup(prefsState: UserPrefsState, colors: AtomColors, p
     SettingsRow("Level alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.levelAlerts, colors, enabled = notif.enabled) { preferences.setLevelAlertsEnabled(it) }
     })
+    // Signals Roadmap §2 (Phase 1) — five new state-transition alert toggles. Structure
+    // covers both new BOS and CHoCH events; Regime covers both an H4 regime flip and a
+    // Macro Archetype change (Pieter's call on both mergers, 2026-09-04).
+    SettingsRow("Setup alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.setupAlerts, colors, enabled = notif.enabled) { preferences.setSetupAlertsEnabled(it) }
+    })
+    SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
+    })
+    SettingsRow("Regime alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.regimeAlerts, colors, enabled = notif.enabled) { preferences.setRegimeAlertsEnabled(it) }
+    })
+    SettingsRow("Volatility alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.volatilityAlerts, colors, enabled = notif.enabled) { preferences.setVolatilityAlertsEnabled(it) }
+    })
+    SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
+    })
     Text(
         text = "Send test",
         style = AtomType.Caption.copy(color = if (notif.enabled) colors.textSecondary else colors.textMuted),

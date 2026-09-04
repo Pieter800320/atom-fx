@@ -16,6 +16,7 @@ Run:  python -m tests.test_extend      (or: pytest tests/test_extend.py)
 from scanner.extend import potential as pot
 from scanner.extend import potential_config as cfg
 from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendation
+from scanner.extend import state_alerts
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
@@ -256,6 +257,67 @@ def test_recommendation_stand_aside_when_no_setups():
     assert seed["bias"] == "mixed"
     # no ranked top and highest-level potential pair chosen
     assert seed["primary_pair"] == "EURUSD"
+
+
+# ── 3. State-transition alerts (Signals Roadmap §2) ───────────────────────────────
+def test_state_alerts_no_prev_never_fires():
+    out = {"potential": {"EURUSD": {"state": "tradeable", "direction": "bull", "setup_rank": 8.0}}}
+    assert state_alerts.compute_state_alerts(out, {}) == []
+    assert state_alerts.compute_state_alerts(out, None) == []
+
+
+def test_state_alerts_potential_state_fires_on_transition():
+    prev = {"potential": {"EURUSD": {"state": "watch"}}}
+    out = {"potential": {"EURUSD": {"state": "tradeable", "direction": "bull", "setup_rank": 7.5}}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "potential_state"
+    assert alerts[0]["direction"] == "bull"
+    # no-op rerun (same state both sides) fires nothing
+    assert state_alerts.compute_state_alerts(out, out) == []
+
+
+def test_state_alerts_structure_event_fires_on_new_event():
+    prev = {"pairs": {"EURUSD": {"structure": {"h4": {"event": "none"}}}}}
+    out = {"pairs": {"EURUSD": {"structure": {"h4": {"event": "BOS", "direction": "bull", "strength": 0.8}}}}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "structure_event"
+    assert state_alerts.compute_state_alerts(out, out) == []
+
+
+def test_state_alerts_regime_flip_fires():
+    prev = {"regime_h4": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
+    out = {"regime_h4": {"regime": "Risk-On", "confidence": "Medium", "stable": False}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "regime_flip"
+    # a stable regime (no flip) fires nothing
+    stable_out = {"regime_h4": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
+    assert state_alerts.compute_state_alerts(stable_out, prev) == []
+
+
+def test_state_alerts_archetype_change_fires():
+    prev = {"macro_regime": {"primary": {"code": "A", "name": "Growth risk-on"}}}
+    out = {"macro_regime": {"primary": {"code": "C", "name": "Disinflationary easing"}, "narrative": "x"}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "archetype_change"
+    assert state_alerts.compute_state_alerts(out, out) == []
+
+
+def test_state_alerts_volatility_spike_fires():
+    prev = {"pairs": {"EURUSD": {"atr_pct": 70}}}
+    out = {"pairs": {"EURUSD": {"atr_pct": 92}}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "volatility_spike"
+    # already spiked last scan too -> no repeat fire
+    assert state_alerts.compute_state_alerts(out, out) == []
+
+
+def test_state_alerts_tf_alignment_fires():
+    prev = {"pairs": {"EURUSD": {"pills": {"d1": "bull_strong", "h4": "bull", "h1": "bull"}}}}
+    out = {"pairs": {"EURUSD": {"pills": {"d1": "bull_strong", "h4": "bull_strong", "h1": "bull_strong"}}}}
+    alerts = state_alerts.compute_state_alerts(out, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "tf_alignment"
+    assert alerts[0]["direction"] == "bull"
+    assert state_alerts.compute_state_alerts(out, out) == []
 
 
 # ── script runner ─────────────────────────────────────────────────────────────────

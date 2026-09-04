@@ -123,7 +123,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Momentum & Price Action",
         summary = "Market-structure events built from genuine swing highs/lows, not an indicator.",
         howItWorks = "Finds swing pivots (a bar strictly higher/lower than several bars on both sides), reads the trend from the last two swings (higher highs + higher lows = bull, the reverse = bear), then classifies the latest close: breaking beyond the last swing in the trend's own direction is a BOS (continuation); breaking the opposite way is a CHoCH (a potential reversal warning). A strength score, 0–1, from how far price broke past that swing relative to ATR, then scales the pair's technical score up to +30% on a BOS or down to −60% on a CHoCH.",
-        whyItMatters = "This is the one purely price-action-based signal in the whole engine — no oscillator, just where price actually broke.",
+        whyItMatters = "This is the one purely price-action-based signal in the whole engine — no oscillator, just where price actually broke. A fresh BOS or CHoCH also fires a Structure alert (see State-Transition Alerts) the moment it happens.",
     ),
     LibraryEntry(
         id = "five-state-score",
@@ -131,7 +131,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Momentum & Price Action",
         summary = "The underlying Strong Buy / Buy / Neutral / Sell / Strong Sell read behind every pill colour.",
         howItWorks = "Blends an EMA200 trend read, a 3-vote momentum group (EMA50 vs price, DMI, and MACD histogram direction), and a graduated RSI score, then scales the total by ADX strength — below ADX 15 it's zeroed out entirely, since there's no real trend to read. A structure multiplier (see BOS/CHoCH) and a same-direction-conflict penalty adjust it further before the five-state label is assigned by regime-specific thresholds.",
-        whyItMatters = "Every pill you see — D1/H4/H1, bull, bull_strong, neutral, bear, bear_strong — comes from this one engine. It's the single source of truth for \"what does this timeframe think.\"",
+        whyItMatters = "Every pill you see — D1/H4/H1, bull, bull_strong, neutral, bear, bear_strong — comes from this one engine. It's the single source of truth for \"what does this timeframe think.\" The Pair sheet's 3-TF alignment strip (SB/B/N/S/SS, one square per timeframe) is this same read, compacted; three Strong Buys or three Strong Sells in a row also fires an Alignment alert.",
     ),
     LibraryEntry(
         id = "csm",
@@ -259,7 +259,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Alerts & Recommendation",
         summary = "An alert that fires when gold's move and the market regime line up in a specific way.",
         howItWorks = "Fires bearish when gold is falling and the H4 regime is Risk-Off; bullish when gold is rising and the H4 regime is Risk-On. It also checks whether the H1 regime independently agrees, as a secondary confirmation flag.",
-        whyItMatters = "One of two push-notification types the app can send, alongside price-level alerts — a live, regime-aware gold read rather than a bare price alert.",
+        whyItMatters = "The original push-notification type the app sends, alongside price-level alerts and the newer state-transition alerts — a live, regime-aware gold read rather than a bare price alert.",
     ),
     LibraryEntry(
         id = "recommendation-engine",
@@ -276,5 +276,13 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         summary = "Two always-on price-based alert types, separate from the Gold Signal.",
         howItWorks = "Level alerts fire on user-configured price levels. EMA touch alerts run on all 12 pairs automatically with no configuration, firing when price touches its own EMA200.",
         whyItMatters = "The most direct, no-analysis alert type in the app — a plain price event, not a computed signal.",
+    ),
+    LibraryEntry(
+        id = "state-transition-alerts",
+        term = "State-Transition Alerts",
+        category = "Alerts & Recommendation",
+        summary = "Six push alerts (added 2026-09-04) that fire the moment something changes, never for a condition that's merely still true.",
+        howItWorks = "Each of the six compares this scan's value against last scan's, only on the app's own hourly cadence: Setup (a pair newly reaches Tradeable or A+ Potential), Structure (a pair's H4 structure newly reads a fresh BOS or CHoCH), Regime (the H4 regime flips, or the Macro Archetype changes), Volatility (a pair's ATR percentile newly crosses 90), and Alignment (a pair's D1/H4/H1 pills newly all agree at Strong Buy or Strong Sell). The very first scan after the feature shipped can't fire anything — there's nothing yet to compare against.",
+        whyItMatters = "Edge-triggered, not level-triggered, on purpose: an alert that re-fires every hour for a condition that hasn't moved just trains you to ignore the channel. Each has its own Settings toggle (Structure covers both BOS and CHoCH; Regime covers both the H4 flip and an Archetype change).",
     ),
 )

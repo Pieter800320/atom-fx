@@ -81,6 +81,7 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
 
     Column(modifier = Modifier.fillMaxWidth()) {
         PairHeader(node, allNodes, colors)
+        TfAlignmentStrip(pairBlock?.pills, colors)
         Spark3Row(node.pair, signals, colors)
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {

@@ -463,6 +463,14 @@ EURUSD   EUR / USD
 HIGH POTENTIAL · LONG
 Potential 86 · Rank #1 / 12
 ```
+**3-TF alignment strip (Signals Roadmap §2.7, added 2026-09-04):** immediately below the header,
+above the D1/H4/H1 sparkline row — three small squares, one per timeframe, each an abbreviated
+read of `pills.{d1,h4,h1}` (SB/B/N/S/SS for Strong Buy…Strong Sell) on a squircle tinted by the
+same 5-step ramp the pill colours already use (`bull` → `bullSoft` → `neutral` → `bearSoft` →
+`bear`). Same "label above, tinted square, centred value" recipe as the Momentum tab's bars —
+reused, not reinvented. Absent entirely (no placeholder row) when the pair has no pills data.
+Pairs with all three at Strong Buy/Strong Sell also fire the `tf_alignment` push alert (§2.6).
+
 Then, immediately (Overview default — never hide the "why" behind tabs, spec §26):
 ```
 WHY?

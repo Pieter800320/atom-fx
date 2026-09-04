@@ -16,6 +16,14 @@ data class NotificationPrefs(
     val enabled: Boolean = true,
     val goldSignal: Boolean = true,
     val levelAlerts: Boolean = true,
+    // Signals Roadmap §2 (Phase 1) — Structure covers both new BOS and CHoCH events (one
+    // toggle, per Pieter's call); Regime covers both an H4 regime flip and a Macro Archetype
+    // change (again one toggle — same "the backdrop changed" register).
+    val setupAlerts: Boolean = true,
+    val structureAlerts: Boolean = true,
+    val regimeAlerts: Boolean = true,
+    val volatilityAlerts: Boolean = true,
+    val alignmentAlerts: Boolean = true,
 )
 
 data class UserPrefsState(
@@ -44,6 +52,11 @@ class UserPreferences(context: Context) {
             enabled = prefs.getBoolean(KEY_NOTIF_ENABLED, true),
             goldSignal = prefs.getBoolean(KEY_NOTIF_GOLD, true),
             levelAlerts = prefs.getBoolean(KEY_NOTIF_LEVEL, true),
+            setupAlerts = prefs.getBoolean(KEY_NOTIF_SETUP, true),
+            structureAlerts = prefs.getBoolean(KEY_NOTIF_STRUCTURE, true),
+            regimeAlerts = prefs.getBoolean(KEY_NOTIF_REGIME, true),
+            volatilityAlerts = prefs.getBoolean(KEY_NOTIF_VOLATILITY, true),
+            alignmentAlerts = prefs.getBoolean(KEY_NOTIF_ALIGNMENT, true),
         ),
         signalsUrl = prefs.getString(KEY_URL, null) ?: DEFAULT_SIGNALS_URL,
         refreshMinutes = prefs.getInt(KEY_REFRESH_MIN, DEFAULT_REFRESH_MINUTES),
@@ -69,6 +82,31 @@ class UserPreferences(context: Context) {
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(levelAlerts = enabled))
     }
 
+    fun setSetupAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_SETUP, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(setupAlerts = enabled))
+    }
+
+    fun setStructureAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_STRUCTURE, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(structureAlerts = enabled))
+    }
+
+    fun setRegimeAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_REGIME, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(regimeAlerts = enabled))
+    }
+
+    fun setVolatilityAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_VOLATILITY, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(volatilityAlerts = enabled))
+    }
+
+    fun setAlignmentAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_ALIGNMENT, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(alignmentAlerts = enabled))
+    }
+
     fun setSignalsUrl(url: String) {
         val resolved = url.ifBlank { DEFAULT_SIGNALS_URL }
         prefs.edit().putString(KEY_URL, resolved).apply()
@@ -86,6 +124,11 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_ENABLED = "notif_enabled"
         const val KEY_NOTIF_GOLD = "notif_gold_signal"
         const val KEY_NOTIF_LEVEL = "notif_level_alerts"
+        const val KEY_NOTIF_SETUP = "notif_setup_alerts"
+        const val KEY_NOTIF_STRUCTURE = "notif_structure_alerts"
+        const val KEY_NOTIF_REGIME = "notif_regime_alerts"
+        const val KEY_NOTIF_VOLATILITY = "notif_volatility_alerts"
+        const val KEY_NOTIF_ALIGNMENT = "notif_alignment_alerts"
         const val KEY_URL = "signals_url"
         const val KEY_REFRESH_MIN = "refresh_minutes"
     }
