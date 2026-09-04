@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-04T02:21:21.770433+00:00",
+  "updated": "2026-09-04T08:22:34.502636+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -740,16 +740,16 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -3,
-    "total": 5,
-    "confidence": "High",
+    "signals": -2,
+    "total": 4,
+    "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 14.32,
-      "delta_pct": -5.8,
-      "direction": "down",
+      "value": 14.17,
+      "delta_pct": -1.0,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
@@ -759,20 +759,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4525.5,
-      "delta_pct": 3.6,
+      "value": 4528.8,
+      "delta_pct": 0.8,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.967,
-      "delta_pct": -0.6,
-      "direction": "down",
+      "value": 99.084,
+      "delta_pct": 0.1,
+      "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.689,
-      "delta_pct": 2.9,
+      "value": 6.679,
+      "delta_pct": 1.6,
       "direction": "up",
       "label": "Copper"
     },
@@ -789,15 +789,15 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.86,
-      "delta_pct": 0.9,
+      "value": 90.68,
+      "delta_pct": -0.7,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80716.0,
-      "delta_pct": 4.4,
-      "direction": "up",
+      "value": 80853.0,
+      "delta_pct": -0.5,
+      "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "CADJPY SHORT at risk. Waller dovish comments reduce Fed hike bets, weakening USD strength needed for carry trade.",
-    "updated": "2026-09-04T02:21:21.770433+00:00"
+    "text": "NZDJPY SHORT, GBPJPY SHORT, CADJPY SHORT at risk. Waller hawkish comments tamp down rate hike bets, weakening JPY carry appeal and reducing upside.",
+    "updated": "2026-09-04T08:22:34.502636+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold surge confirms JPY strength, challenges risk-on equity bid.\n\nGBPJPY SHORT: Gold rising validates JPY safe haven, contradicts risk-on sentiment.\n\nCADJPY SHORT: Gold bid supports JPY, but copper strength suggests risk appetite.",
+    "text": "NZDJPY SHORT: Gold bid confirms JPY strength thesis, macro supports.\n\nGBPJPY SHORT: Risk-on conflicts with JPY bid, mixed regime challenges.\n\nCADJPY SHORT: Copper strength contradicts CAD weakness, macro setup challenged.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.12
       }
     ],
-    "updated": "2026-09-04T02:21:21.770433+00:00"
+    "updated": "2026-09-04T08:22:34.502636+00:00"
   },
   "calendar": {
     "events": [
@@ -885,24 +885,24 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-04T02:21:21.770433+00:00"
+    "updated": "2026-09-04T08:22:34.502636+00:00"
   },
   "deep_analysis": {
-    "text": "Markets lean risk-on today: gold, equities, copper and bitcoin all higher while the VIX retreats and the dollar index softens, a fairly clean cross-asset alignment favoring risk-sensitive currencies over the greenback. Falling US yields reinforce the softer-dollar tone even as headlines flag lingering hawkish Fed hike bets and a choppy dollar picture heading into jobs data. Commodity-linked currencies get some support from firmer oil and copper. The next catalyst is the US ISM Services PMI at 14:00 UTC, a modest but relevant test of the services-sector",
-    "generated_at": "2026-09-03T19:01:43.827252+00:00"
+    "text": "Cross-asset signals are pulling in different directions today. Gold and equities are firmer, VIX and yields are lower, yet the dollar index holds a slight bid and Bitcoin has slipped, muddying the classic risk-on read. Copper's strength hints at underlying growth optimism, but the mixed H4/H1 regime and neutral gold signal suggest no clean directional conviction yet. Headlines center on the dollar's jobs-week test, with hawkish Fed repricing offsetting soft ADP data. Traders should watch the 14:00 UTC ISM Services PMI, a key input ahead",
+    "generated_at": "2026-09-04T08:23:27.011784+00:00"
   },
   "breaking": {
     "headlines": [
-      "Weak ADP hits DXY; NFP becomes next critical test for dollar",
-      "ISM non-manufacturing PMI beats 54.2 estimate at 55.4 in August",
-      "Waller tamps down rate hike bets; Fed hawkish narrative weakens"
+      "US Dollar Price Forecast: DXY Eyes 99.58 as Jobs Week Tests Hawkish Fed",
+      "Weak ADP Hits DXY as NFP Becomes the Next Test Today",
+      "Fed Official Waller Tamps Down Rate Hike Bets; Dollar Weakens"
     ],
     "themes": [
-      "usd",
-      "risk",
+      "rates",
+      "rates",
       "rates"
     ],
-    "updated": "2026-09-04T02:21:21.770433+00:00"
+    "updated": "2026-09-04T08:22:34.502636+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
