@@ -69,12 +69,19 @@ def _extract_pair(msg: str) -> str | None:
     return None
 
 
-def send_push_alert(msg: str, msg_type: str, deeplink: str, direction: str | None = None) -> None:
-    """§7 drop-in for send_telegram: push first (primary transport), Telegram as fallback."""
+def send_push_alert(msg: str, msg_type: str, deeplink: str, direction: str | None = None, extra: dict | None = None) -> None:
+    """§7 drop-in for send_telegram: push first (primary transport), Telegram as fallback.
+
+    `extra` (added 2026-09-04) merges additional per-type fields into the push `data`
+    payload — e.g. `regime_code` for `archetype_change`, so the client can assemble a
+    contextual explanation without re-deriving the value from `signals.json` itself.
+    """
     title, body = _msg_to_title_body(msg)
     data = {"type": msg_type, "deeplink": deeplink}
     if direction:
         data["direction"] = direction
+    if extra:
+        data.update(extra)
     if not send_push(title, body, data):
         send_telegram(msg)
 

@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -16,7 +20,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.NotificationRecord
 import com.pieter.atomfx.push.ALERT_GUIDANCE
+import com.pieter.atomfx.push.buildRegimeExplanation
 import com.pieter.atomfx.push.parseDeepLink
+import com.pieter.atomfx.ui.macro.RegimePlaybookDetail
 import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -142,6 +148,33 @@ private fun NotificationCard(
                     onOpenLibraryEntry(guidance.libraryEntryId)
                 },
             )
+        }
+
+        // Regime Playbook proof-of-concept, 2026-09-04 — no live evidence/conflicts snapshot
+        // for a past moment (only `regimeCode` is persisted), so this shows the entry-level
+        // content only; the fully "sorted for this exact moment" version lives on MacroScreen,
+        // reading the LIVE macro_regime. Still real, still specific to the regime that fired.
+        if (record.type == "archetype_change" && record.regimeCode != null) {
+            val explanation = buildRegimeExplanation(record.regimeCode, emptyList(), emptyList())
+            if (explanation != null) {
+                var playbookExpanded by remember(record.id) { mutableStateOf(false) }
+                SheetDivider(colors, modifier = Modifier.padding(vertical = 10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().pressWash {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        playbookExpanded = !playbookExpanded
+                    },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(text = "REGIME PLAYBOOK", style = AtomType.Caption.copy(color = colors.textSecondary))
+                    Text(text = if (playbookExpanded) "−" else "+", style = AtomType.Caption.copy(color = colors.textMuted))
+                }
+                if (playbookExpanded) {
+                    Column(modifier = Modifier.padding(top = 10.dp)) {
+                        RegimePlaybookDetail(explanation, colors)
+                    }
+                }
+            }
         }
     }
 }

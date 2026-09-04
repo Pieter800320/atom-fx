@@ -22,6 +22,10 @@ data class NotificationRecord(
     val body: String,
     val deeplink: String? = null,
     val direction: String? = null,
+    // Regime Playbook proof-of-concept, 2026-09-04 — archetype_change alerts carry this so a
+    // history card can assemble its contextual explanation (RegimePlaybookContent.kt) without
+    // re-deriving it. Null for every other alert type.
+    val regimeCode: String? = null,
     val timestamp: Long,
     val read: Boolean = false,
 )
@@ -69,7 +73,7 @@ class NotificationHistoryStore(context: Context) {
         _state.value = records
     }
 
-    fun record(type: String, title: String, body: String, deeplink: String?, direction: String?) {
+    fun record(type: String, title: String, body: String, deeplink: String?, direction: String?, regimeCode: String? = null) {
         val cutoff = System.currentTimeMillis() - RETENTION_MILLIS
         val entry = NotificationRecord(
             id = UUID.randomUUID().toString(),
@@ -78,6 +82,7 @@ class NotificationHistoryStore(context: Context) {
             body = body,
             deeplink = deeplink,
             direction = direction,
+            regimeCode = regimeCode,
             timestamp = System.currentTimeMillis(),
         )
         val next = (listOf(entry) + _state.value)

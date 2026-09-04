@@ -301,6 +301,9 @@ def test_state_alerts_archetype_change_fires():
     out = {"macro_regime": {"primary": {"code": "C", "name": "Disinflationary easing"}, "narrative": "x"}}
     alerts = state_alerts.compute_state_alerts(out, prev)
     assert len(alerts) == 1 and alerts[0]["type"] == "archetype_change"
+    # Regime Playbook proof-of-concept, 2026-09-04 — the client keys its contextual
+    # explanation off this field, so a regression here would silently break that lookup.
+    assert alerts[0]["regime_code"] == "C"
     assert state_alerts.compute_state_alerts(out, out) == []
 
 

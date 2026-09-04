@@ -60,9 +60,10 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         val body = message.data["body"] ?: return
         val deeplink = message.data["deeplink"]
         val direction = message.data["direction"]
+        val regimeCode = message.data["regime_code"]
 
         if (type != null) {
-            NotificationHistoryStore(applicationContext).record(type, title, body, deeplink, direction)
+            NotificationHistoryStore(applicationContext).record(type, title, body, deeplink, direction, regimeCode)
         }
 
         val intent = Intent(this, MainActivity::class.java).apply {

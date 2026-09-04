@@ -24,21 +24,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.CurrencyBias
 import com.pieter.atomfx.data.model.MacroAssetEntry
 import com.pieter.atomfx.data.model.MacroEvidence
+import com.pieter.atomfx.data.model.MacroRegimeBlock
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.push.buildRegimeExplanation
 import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 
@@ -100,7 +108,7 @@ private fun MacroContent(signals: Signals, colors: AtomColors) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         if (regime?.primary != null) {
-            MacroBannerCard(regime.primary.code, regime.primary.name, regime.primary.confidence, regime.primary.distinctAxes, regime.usdRegime, regime.goldOverlay, regime.narrative, regime.currencyBias, colors)
+            MacroBannerCard(regime, colors)
             EvidenceAxes(regime.evidence, colors)
         } else {
             // No archetype read yet — same card position/shape as the real banner, so the layout
@@ -129,33 +137,66 @@ private fun MacroContent(signals: Signals, colors: AtomColors) {
 }
 
 /** The archetype banner — mockup's `.mbanner`: code, name, chips (confidence/USD/gold), the
- *  narrative, and the strong/weak bias baskets, all on one standard card. */
+ *  narrative, and the strong/weak bias baskets, all on one standard card.
+ *
+ *  2026-09-04 (Pieter's "living handbook" vision) — gained a "REGIME PLAYBOOK" expand row:
+ *  the handbook's own theory for this exact live regime, assembled from which evidence axes
+ *  are actually confirming it right now (`buildRegimeExplanation`), not a static reference.
+ *  Same tap-to-expand recipe `LibraryScreen`'s `LibraryCard` already established. */
 @Composable
-private fun MacroBannerCard(
-    code: String?, name: String?, confidence: String?, distinctAxes: Int?,
-    usdRegime: String?, goldOverlay: String?, narrative: String?, bias: CurrencyBias?, colors: AtomColors,
-) {
+private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors) {
+    val haptics = LocalHapticFeedback.current
+    var playbookExpanded by remember { mutableStateOf(false) }
+    val primary = regime.primary
+    val bias = regime.currencyBias
+
     Column(modifier = Modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
-        Text(text = "REGIME ${code ?: "—"}", style = AtomType.Caption.copy(color = colors.textMuted))
+        Text(text = "REGIME ${primary?.code ?: "—"}", style = AtomType.Caption.copy(color = colors.textMuted))
         Text(
-            text = name ?: "—",
+            text = primary?.name ?: "—",
             style = AtomType.Title.copy(color = colors.textPrimary),
             modifier = Modifier.padding(top = 3.dp, bottom = 8.dp),
         )
         ScrollingPills(
             pills = listOfNotNull(
-                confidence?.let { Pill("Confidence $it · ${distinctAxes ?: 0} axes", colors.bull, electric = true) },
-                usdRegime?.let { Pill("USD: ${it.replace('_', ' ')}", colors.neutral, electric = true) },
-                goldOverlay?.let { Pill("Gold: ${it.replace('_', ' ')}", colors.watch, electric = true) },
+                primary?.confidence?.let { Pill("Confidence $it · ${primary.distinctAxes ?: 0} axes", colors.bull, electric = true) },
+                regime.usdRegime?.let { Pill("USD: ${it.replace('_', ' ')}", colors.neutral, electric = true) },
+                regime.goldOverlay?.let { Pill("Gold: ${it.replace('_', ' ')}", colors.watch, electric = true) },
             ),
             colors = colors,
             modifier = Modifier.padding(bottom = 10.dp),
         )
-        if (!narrative.isNullOrBlank()) {
-            Text(text = narrative, style = AtomType.Body.copy(color = colors.textSecondary))
+        if (!regime.narrative.isNullOrBlank()) {
+            Text(text = regime.narrative, style = AtomType.Body.copy(color = colors.textSecondary))
         }
         if (bias != null && (bias.strong.isNotEmpty() || bias.weak.isNotEmpty())) {
             BiasBaskets(bias, colors, modifier = Modifier.padding(top = 10.dp))
+        }
+
+        val explanation = buildRegimeExplanation(
+            primary?.code,
+            regime.evidence.filter { it.supports }.mapNotNull { it.axis },
+            regime.conflicts,
+        )
+        if (explanation != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .pressWash {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        playbookExpanded = !playbookExpanded
+                    },
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(text = "REGIME PLAYBOOK", style = AtomType.Caption.copy(color = colors.textSecondary))
+                Text(text = if (playbookExpanded) "−" else "+", style = AtomType.Caption.copy(color = colors.textMuted))
+            }
+            if (playbookExpanded) {
+                Column(modifier = Modifier.padding(top = 10.dp)) {
+                    RegimePlaybookDetail(explanation, colors)
+                }
+            }
         }
     }
 }

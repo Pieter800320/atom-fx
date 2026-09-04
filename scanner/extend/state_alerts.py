@@ -103,6 +103,11 @@ def _archetype_change_alert(out: dict, prev: dict) -> list:
         "msg": f"<b>Macro: {old_name} → {new_name}</b>\n{narrative}".rstrip(),
         "deeplink": "atomfx://regime",
         "direction": None,
+        # Signals Roadmap "living handbook" pass, 2026-09-04 — the app's own Regime
+        # Playbook (RegimePlaybookContent.kt) is keyed by this exact code, so the
+        # notification/history card can assemble the contextual explanation directly
+        # instead of re-deriving it from `signals.macro_regime` client-side.
+        "regime_code": new_code,
     }]
 
 

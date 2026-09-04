@@ -427,7 +427,10 @@ def main():
         print(f"\n[State alerts] {len(state_alerts_list)} transition(s) this scan…")
     for alert in state_alerts_list:
         print(f"  🔔 {alert['type']} — {alert.get('pair', '')}")
-        send_push_alert(alert["msg"], alert["type"], alert["deeplink"], direction=alert.get("direction"))
+        # Any field beyond the ones send_push_alert already names (e.g. archetype_change's
+        # regime_code) rides through automatically via `extra` — no per-type wiring needed here.
+        extra = {k: v for k, v in alert.items() if k not in ("type", "msg", "deeplink", "direction", "pair")}
+        send_push_alert(alert["msg"], alert["type"], alert["deeplink"], direction=alert.get("direction"), extra=extra or None)
 
     # ── Push: Gold + H4 (Medium/High) + H1 confirmed (Telegram fallback) ─────
     _pair_closes = {k: v["close"] for k, v in _pair_prices.items()}
