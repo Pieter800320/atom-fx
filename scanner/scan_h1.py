@@ -55,6 +55,20 @@ CSM_EXTRA = ["EUR/GBP", "EUR/CHF", "GBP/CHF", "AUD/NZD", "AUD/CAD", "GBP/AUD"]
 
 SCAN_TF = "h1"  # primary fetch timeframe
 
+# Keys written by a job other than scan_h1.py (scan_news.py's own cadence, scan_cot.py's
+# weekly cadence, …) that must survive an hourly rebuild of `out` — scan_h1.py assembles
+# `out` from scratch every run, so anything not listed here is silently dropped the next
+# hour after that other job writes it. Bug precedent (2026-09-04): "conviction" was missing
+# from this list for one hour after scan_cot.py first shipped, wiping the weekly COT data
+# on the very next hourly scan. A new cross-cadence key needs adding here the same session
+# it starts being written, not after.
+PRESERVED_KEYS = (
+    "regime_w1", "macro", "macro_assets",
+    "catalyst", "ranked", "calendar", "week_ahead",
+    "deep_analysis", "breaking", "last_alert", "gold_signal",
+    "recommendation", "conviction",
+)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -273,14 +287,7 @@ def main():
 
     # ── Assemble signals.json ─────────────────────────────────────────────────
     # Preserve keys written by scan_news.py — not touched by hourly scan
-    preserved = {
-        k: prev.get(k)
-        for k in ("regime_w1", "macro", "macro_assets",
-                  "catalyst", "ranked", "calendar", "week_ahead",
-                  "deep_analysis", "breaking", "last_alert", "gold_signal",
-                  "recommendation")
-        if prev.get(k)
-    }
+    preserved = {k: prev.get(k) for k in PRESERVED_KEYS if prev.get(k)}
 
     out = {
         "updated":      now.isoformat(),

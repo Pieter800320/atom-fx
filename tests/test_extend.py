@@ -18,6 +18,7 @@ from scanner.extend import potential_config as cfg
 from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendation
 from scanner.extend import state_alerts
 from scanner.extend import conviction
+from scanner import scan_h1
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
@@ -386,6 +387,16 @@ def test_conviction_alerts_edge_trigger():
     # first-ever run (no prev) never fires
     assert conviction.compute_conviction_alerts(new, None) == []
     assert conviction.compute_conviction_alerts(new, {}) == []
+
+
+# ── 5. Cross-cadence key preservation regression (2026-09-04 bug) ────────────────
+def test_conviction_survives_hourly_rebuild():
+    # Bug precedent: "conviction" (scan_cot.py's weekly key) was missing from
+    # scan_h1.py's PRESERVED_KEYS for one hour after scan_cot.py first shipped,
+    # silently wiping the weekly COT data on the very next hourly scan. Every
+    # non-scan_h1-owned key currently in signals.json must stay listed here.
+    assert "conviction" in scan_h1.PRESERVED_KEYS
+    assert "gold_signal" in scan_h1.PRESERVED_KEYS  # sanity: existing key still there too
 
 
 # ── script runner ─────────────────────────────────────────────────────────────────
