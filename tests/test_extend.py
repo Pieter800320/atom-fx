@@ -17,6 +17,7 @@ from scanner.extend import potential as pot
 from scanner.extend import potential_config as cfg
 from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendation
 from scanner.extend import state_alerts
+from scanner.extend import conviction
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
@@ -318,6 +319,73 @@ def test_state_alerts_tf_alignment_fires():
     assert len(alerts) == 1 and alerts[0]["type"] == "tf_alignment"
     assert alerts[0]["direction"] == "bull"
     assert state_alerts.compute_state_alerts(out, out) == []
+
+
+# ── 4. Conviction score (Signals Roadmap §4) ──────────────────────────────────────
+def test_conviction_cot_position_hysteresis():
+    assert conviction._score_cot_position(90) == -2          # deeply crowded long
+    assert conviction._score_cot_position(80, prev_score=0) == -1   # hysteresis zone, no prior lean
+    assert conviction._score_cot_position(80, prev_score=-2) == -2  # hysteresis zone, prior lean sticks
+    assert conviction._score_cot_position(50) == 0            # neutral zone
+    assert conviction._score_cot_position(10) == +2           # deeply crowded short
+    assert conviction._score_cot_position(None) == 0
+
+
+def test_conviction_cot_disagg():
+    assert conviction._score_cot_disagg(60, 60) == +2   # both long, full alignment
+    assert conviction._score_cot_disagg(30, 30) == -2   # both short, full alignment
+    assert conviction._score_cot_disagg(60, 30) == 0    # structural bull, tactical fade
+    assert conviction._score_cot_disagg(30, 60) == -1   # tactical chases against structure
+
+
+def test_conviction_extension_uses_reset_score_not_is_extended():
+    # EUR/USD reset_score above RESET_MAX (55), D1 pill bull_strong -> counted extended.
+    extended_pairs = {"EURUSD": {"reset_score": 70, "pills": {"d1": "bull_strong"}}}
+    assert conviction._score_extension(extended_pairs, "EUR", 1) == -2  # 1/1 extended -> broadly extended
+    # Below the threshold -> clean runway.
+    clean_pairs = {"EURUSD": {"reset_score": 30, "pills": {"d1": "bull_strong"}}}
+    assert conviction._score_extension(clean_pairs, "EUR", 1) == +1
+
+
+def test_conviction_breadth_uses_existing_breadth_key():
+    breadth_h4 = {"EUR": {"dir": "strong", "pct": 0.8, "total": 3}}
+    # breadth's own direction (strong -> +1) agrees with d1_direction (+1) -> use pct band.
+    assert conviction._score_breadth(breadth_h4, "EUR", 1) == +2
+    # Disagreement between breadth's direction and the pill-derived d1 direction -> worst bucket.
+    assert conviction._score_breadth(breadth_h4, "EUR", -1) == -1
+
+
+def test_compute_conviction_shape_and_stability():
+    cot_data = {
+        "cot_date": "2026-08-25", "cot_stale": False,
+        "currencies": {"EUR": {"available": True, "noncomm_pct": 90, "am_pct": 60, "lf_pct": 60,
+                                "oi_current": 100, "oi_4w_ago": 100}},
+    }
+    pairs_block = {"EURUSD": {"pills": {"d1": "bull_strong"}, "reset_score": 30}}
+    csm_d1 = {"EUR": 50, "USD": 50}
+    breadth = {"h4": {}}
+
+    result = conviction.compute_conviction(cot_data, pairs_block, csm_d1, breadth, prev_conviction=None)
+    assert set(result["currencies"].keys()) == set(conviction.CURRENCIES)
+    assert set(result["pairs"].keys()) == {p.replace("/", "") for p in conviction.PAIRS}
+    assert result["cot_date"] == "2026-08-25" and result["cot_stale"] is False
+
+    # EWMA stability: feeding the same result back as prev_conviction reproduces the same score.
+    again = conviction.compute_conviction(cot_data, pairs_block, csm_d1, breadth, prev_conviction=result)
+    assert again["currencies"]["EUR"]["conviction"] == result["currencies"]["EUR"]["conviction"]
+
+
+def test_conviction_alerts_edge_trigger():
+    prev = {"currencies": {"EUR": {"conviction": 50}}}
+    new = {"currencies": {"EUR": {"conviction": 85}}}
+    alerts = conviction.compute_conviction_alerts(new, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "conviction_extreme"
+    assert alerts[0]["direction"] == "bull"
+    # already extreme last week -> no repeat fire
+    assert conviction.compute_conviction_alerts(new, new) == []
+    # first-ever run (no prev) never fires
+    assert conviction.compute_conviction_alerts(new, None) == []
+    assert conviction.compute_conviction_alerts(new, {}) == []
 
 
 # ── script runner ─────────────────────────────────────────────────────────────────

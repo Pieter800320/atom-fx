@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.data.model.ConvictionEntry
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
@@ -82,6 +83,12 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
             )
         } else {
             NotAvailableRow("Breadth (H4)", colors)
+        }
+
+        val convictionEntry = signals.conviction?.currencies?.get(currency)
+        if (convictionEntry?.conviction != null) {
+            SheetDivider(colors)
+            ConvictionSection(convictionEntry, signals.conviction?.cotStale == true, colors)
         }
 
         SheetDivider(colors)
@@ -181,4 +188,42 @@ private fun directionHue(delta: Double?, colors: AtomColors): Color = when {
 private fun deltaText(delta: Double): String {
     val sign = if (delta > 0) "+" else ""
     return "$sign${delta.toInt()}"
+}
+
+/** Signals Roadmap §4 — the COT-based Conviction/crowding overlay, added 2026-09-04. Same
+ *  SheetRow + BarMeter language the Breadth row above already uses: signed score as the row
+ *  value (bull/bear tinted), magnitude as the bar length. A |score| >= 80 reading gets the
+ *  same "unmistakable warning" register as the Structure tab's CHoCH callout — this is a
+ *  crowded/contrarian-risk read, not a routine number. Absent entirely (caller already guards
+ *  on `conviction != null`) rather than a placeholder — this is a weekly overlay, not always
+ *  fresh the moment a currency's own data exists. */
+@Composable
+private fun ConvictionSection(entry: ConvictionEntry?, cotStale: Boolean, colors: AtomColors) {
+    val score = entry?.conviction ?: return
+    val tint = when {
+        score > 0 -> colors.bull
+        score < 0 -> colors.bear
+        else -> colors.textMuted
+    }
+    SheetRow("Conviction", "%+d".format(java.util.Locale.US, score), colors, tint)
+    BarMeter(
+        fraction = (kotlin.math.abs(score) / 100f).coerceIn(0f, 1f),
+        color = tint,
+        colors = colors,
+        modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
+    )
+    if (kotlin.math.abs(score) >= 80) {
+        Text(
+            text = "Crowded — contrarian risk",
+            style = AtomType.Caption.copy(color = colors.bear),
+            modifier = Modifier.padding(top = 2.dp),
+        )
+    }
+    if (cotStale) {
+        Text(
+            text = "COT data stale",
+            style = AtomType.Caption.copy(color = colors.textMuted),
+            modifier = Modifier.padding(top = 2.dp),
+        )
+    }
 }

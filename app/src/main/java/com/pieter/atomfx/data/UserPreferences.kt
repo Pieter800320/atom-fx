@@ -24,6 +24,8 @@ data class NotificationPrefs(
     val regimeAlerts: Boolean = true,
     val volatilityAlerts: Boolean = true,
     val alignmentAlerts: Boolean = true,
+    // Signals Roadmap §4 (Phase 3) — the conviction_extreme alert.
+    val positioningAlerts: Boolean = true,
 )
 
 data class UserPrefsState(
@@ -57,6 +59,7 @@ class UserPreferences(context: Context) {
             regimeAlerts = prefs.getBoolean(KEY_NOTIF_REGIME, true),
             volatilityAlerts = prefs.getBoolean(KEY_NOTIF_VOLATILITY, true),
             alignmentAlerts = prefs.getBoolean(KEY_NOTIF_ALIGNMENT, true),
+            positioningAlerts = prefs.getBoolean(KEY_NOTIF_POSITIONING, true),
         ),
         signalsUrl = prefs.getString(KEY_URL, null) ?: DEFAULT_SIGNALS_URL,
         refreshMinutes = prefs.getInt(KEY_REFRESH_MIN, DEFAULT_REFRESH_MINUTES),
@@ -107,6 +110,11 @@ class UserPreferences(context: Context) {
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(alignmentAlerts = enabled))
     }
 
+    fun setPositioningAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_POSITIONING, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(positioningAlerts = enabled))
+    }
+
     fun setSignalsUrl(url: String) {
         val resolved = url.ifBlank { DEFAULT_SIGNALS_URL }
         prefs.edit().putString(KEY_URL, resolved).apply()
@@ -129,6 +137,7 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_REGIME = "notif_regime_alerts"
         const val KEY_NOTIF_VOLATILITY = "notif_volatility_alerts"
         const val KEY_NOTIF_ALIGNMENT = "notif_alignment_alerts"
+        const val KEY_NOTIF_POSITIONING = "notif_positioning_alerts"
         const val KEY_URL = "signals_url"
         const val KEY_REFRESH_MIN = "refresh_minutes"
     }

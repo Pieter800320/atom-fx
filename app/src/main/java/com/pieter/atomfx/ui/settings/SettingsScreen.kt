@@ -331,6 +331,10 @@ private fun NotificationsGroup(prefsState: UserPrefsState, colors: AtomColors, p
     SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
     })
+    // Signals Roadmap §4 (Phase 3) — the conviction_extreme alert.
+    SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
+    })
     Text(
         text = "Send test",
         style = AtomType.Caption.copy(color = if (notif.enabled) colors.textSecondary else colors.textMuted),

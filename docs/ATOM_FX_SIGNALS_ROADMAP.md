@@ -172,6 +172,19 @@ built once):
 
 ## 4. Phase 3 — COT-based Conviction / crowding overlay
 
+> **Shipped 2026-09-04.** New weekly job (`scanner/scan_cot.py` + `.github/workflows/
+> scan_cot.yml`, its own cadence, never rides `scan_h1.py`), fetching CFTC's public TFF
+> report (`scanner/extend/cot.py`, ported near-verbatim) and scoring it via
+> `scanner/extend/conviction.py` (the original's 6-input design, with Inputs 5/6 adapted
+> to ATOM's actual data — `reset_score`/`RESET_MAX` in place of `is_extended()`,
+> `breadth.pct` in place of an RSI vote — agreed with Pieter before writing code, see the
+> module's own docstring for the full rationale). New `conviction` signals.json key, a
+> new Currency Detail sheet section, the optional `conviction_extreme` alert shipped too
+> (own "Positioning alerts" toggle), and a new `atomfx://currency/<CCY>` deeplink.
+> `push/alert_helpers.py` split out of `scan_h1.py` (verbatim move, confirmed inert to
+> Rule #1) so both orchestrators can send pushes. Docs updated: `ATOM_FX_ARCHITECTURE.md`
+> §4.2/§7, `ATOM_FX_FUNCTIONAL_SPEC.md` §12, `LibraryContent.kt`.
+
 The single highest-leverage gap from the audit (§8.3): free data, already built once, currently
 unused, and explicitly named as the top opportunity in `ATOM_FX_FUNCTIONAL_SPEC.md`'s own "not
 yet" list — which turns out to be wrong about *why* it wasn't done (data availability), not

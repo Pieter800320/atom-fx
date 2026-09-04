@@ -1,12 +1,12 @@
-name: "Hourly Scan"
+name: "Weekly COT Scan"
 on:
   schedule:
-    - cron: '5 5,7,9,11,13,15,17,19 * * 1-5'
+    - cron: '0 12 * * 6'
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
-  scan:
+  scan_cot:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,19 +15,18 @@ jobs:
           python-version: '3.14'
       - run: pip install -r requirements.txt
       - run: pip install -r push/requirements-push.txt
-      - name: Run hourly scan
+      - name: Run weekly COT/Conviction scan
         env:
-          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}
           FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
-        run: python -m scanner.scan_h1
+        run: python -m scanner.scan_cot
       - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/signals.json
           git stash || true
           git pull --rebase origin main
           git stash pop || true
-          git add data/
-          git diff --cached --quiet || git commit -m "chore: h1 scan"
+          git add data/signals.json
+          git diff --cached --quiet || git commit -m "chore: weekly COT scan"
           git push

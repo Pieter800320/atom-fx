@@ -278,6 +278,14 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         whyItMatters = "The most direct, no-analysis alert type in the app — a plain price event, not a computed signal.",
     ),
     LibraryEntry(
+        id = "conviction",
+        term = "Conviction (Positioning)",
+        category = "Regime & Macro",
+        summary = "A −100..+100 per-currency crowding read from free CFTC positioning data, updated weekly, not hourly.",
+        howItWorks = "Six inputs blend into one score: CFTC leveraged-fund positioning (a 52-week percentile, contrarian at extremes — deeply crowded long is bearish, deeply crowded short is bullish), open-interest momentum (is new money entering with the trend), asset-manager-vs-leveraged-fund alignment (structural vs tactical agreement), a CSM extreme read (contrarian — broadly bought/sold), an extension read (how many of the currency's pairs are overextended on reset_score, in the currency's own direction), and a breadth read (how broadly the currency's own move is confirmed — the same breadth used elsewhere in the app). The last two are adapted from the original design to use data ATOM FX already computes hourly, not a literal port. EWMA-smoothed week to week so it doesn't flicker. CFTC publishes Fridays covering the prior Tuesday, so this is always a few days old by nature — a positioning overlay, not a live signal.",
+        whyItMatters = "Positioning tells you who's already in a trade, which price action alone can't — a currency can look technically strong while positioning is dangerously crowded, or wobbly while positioning is actually clean. A reading of 80 or beyond either way gets a \"crowded — contrarian risk\" flag on the Currency Detail sheet, and crossing that line fires a Positioning alert.",
+    ),
+    LibraryEntry(
         id = "state-transition-alerts",
         term = "State-Transition Alerts",
         category = "Alerts & Recommendation",

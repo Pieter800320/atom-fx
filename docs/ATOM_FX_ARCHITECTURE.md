@@ -206,6 +206,15 @@ macro_regime       {primary, secondary, gold_overlay, usd_regime, currency_bias,
                     evidence[], conflicts[], narrative, updated}  (Functional Spec §6 — the archetype engine)
 spark              {PAIR: {d1:[…closes], h4:[…], h1:[…]}}  — compact recent closes for the native line chart (Functional Spec §8)
 news_themes        {headlines:[{text, axis, sentiment}], updated}  — optional theme-tagging (Functional Spec §7)
+conviction         {currencies:{CCY:{conviction,direction,components{6},raw,cot_available}},
+                    pairs:{PAIR:score}, cot_date, cot_stale, updated}  — the COT-based
+                    Conviction/crowding overlay (Signals Roadmap §4). Written by
+                    `scanner/scan_cot.py` on its own weekly cadence, never by `scan_h1.py` —
+                    can lag `signals.updated` by several days, by design (CFTC publishes
+                    weekly). `-100..+100` per currency; positive = bullish positioning/
+                    structural support, negative = bearish. `cot_available` false means the
+                    COT-derived components (`cot_position`,`cot_oi`,`cot_disagg`) are zeroed
+                    but the CSM/extension/breadth components still contributed.
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 
@@ -386,6 +395,7 @@ Authorization: Bearer <OAuth2 access token minted from the service account>
 
 - `send_push` is a **drop-in for `send_telegram`** at the frozen call-sites in `scan_h1.py` (§5.2). Same message text; the gold-signal and level-alert conditions are unchanged.
 - **State-transition alerts (Signals Roadmap §2, EXTEND-tier).** `scanner/extend/state_alerts.py` adds six edge-triggered types on top of the two frozen ones above — `potential_state`, `structure_event`, `regime_flip`, `archetype_change`, `volatility_spike`, `tf_alignment` — each firing only on a transition against the previous scan's `signals.json`, never on a level that's merely still true. They ride the same hourly scan and the same `send_push_alert` call, so no new transport or schema shape — just six new `type` values. Five matching Settings toggles exist client-side (`NotificationPrefs` — Setup, Structure, Regime, Volatility, Alignment) covering the six types; Structure covers both BOS and CHoCH, Regime covers both the H4 flip and an Archetype change.
+- **`conviction_extreme` (Signals Roadmap §4, Phase 3, EXTEND-tier).** Fires from `scanner/scan_cot.py` — the new *weekly* orchestrator, not `scan_h1.py` — when a currency's Conviction score newly crosses into a crowded band (`|score| >= 80`), edge-triggered exactly like the six Phase 1 alerts. Deeplinks to `atomfx://currency/<CCY>` (new host, added alongside `pair`/`regime` in `DeepLink.kt`), opening the Currency Detail sheet where the score lives. Its own "Positioning alerts" Settings toggle. `send_push_alert` itself moved from `scan_h1.py` into a shared `push/alert_helpers.py` so both weekly and hourly orchestrators can call it without importing one entry-point script from another — same function bodies, no behaviour change.
 - Telegram may remain wired as an **optional fallback** (guarded by whether its secrets exist) but push is the primary and only required transport. If Pieter later wants both, it's a one-line `or`.
 - OAuth token minting: use Google's token endpoint with the service account (a ~30-line pure-`urllib` helper, no heavyweight SDK, consistent with the reference's dependency-light style).
 

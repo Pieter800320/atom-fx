@@ -48,6 +48,8 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         if ((type == "regime_flip" || type == "archetype_change") && !notif.regimeAlerts) return
         if (type == "volatility_spike" && !notif.volatilityAlerts) return
         if (type == "tf_alignment" && !notif.alignmentAlerts) return
+        // Signals Roadmap §4 (Phase 3).
+        if (type == "conviction_extreme" && !notif.positioningAlerts) return
 
         val title = message.notification?.title ?: type ?: "ATOM FX"
         val body = message.notification?.body ?: return

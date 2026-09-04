@@ -34,6 +34,7 @@ data class Signals(
     @SerialName("regime_w1") val regimeW1: RegimeBlock? = null,
     @SerialName("macro_regime") val macroRegime: MacroRegimeBlock? = null,
     val spark: Map<String, SparkEntry> = emptyMap(),
+    val conviction: ConvictionBlock? = null,
     @SerialName("schema_version") val schemaVersion: Int? = null,
 )
 
@@ -260,6 +261,25 @@ data class MacroEvidence(
     val axis: String? = null,
     val read: String? = null,
     val supports: Boolean = false,
+)
+
+/** Signals Roadmap §4 — the COT-based Conviction/crowding overlay. Weekly cadence (its own
+ *  `scan_cot.py` job, not the hourly scan), so `updated`/`cotDate` can lag `signals.updated`
+ *  by up to several days — presented as a positioning overlay, not a live signal. */
+@Serializable
+data class ConvictionBlock(
+    val currencies: Map<String, ConvictionEntry> = emptyMap(),
+    val pairs: Map<String, Int> = emptyMap(),
+    @SerialName("cot_date") val cotDate: String? = null,
+    @SerialName("cot_stale") val cotStale: Boolean? = null,
+    val updated: String? = null,
+)
+
+@Serializable
+data class ConvictionEntry(
+    val conviction: Int? = null,
+    val direction: Int? = null,
+    @SerialName("cot_available") val cotAvailable: Boolean? = null,
 )
 
 @Serializable
