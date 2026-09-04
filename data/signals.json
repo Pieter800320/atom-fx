@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-04T14:54:20.083728+00:00",
+  "updated": "2026-09-04T17:19:03.869273+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -753,84 +753,84 @@
       "label": "VIX"
     },
     "spx": {
-      "value": 7739.85,
-      "delta_pct": -0.1,
+      "value": 7719.96,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4470.9,
-      "delta_pct": -0.5,
+      "value": 4479.9,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.114,
+      "value": 99.13,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6775,
+      "value": 6.6725,
       "delta_pct": 1.5,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.77,
-      "delta_bp": 0.8,
+      "value": 4.772,
+      "delta_bp": 1.0,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.765,
-      "delta_bp": 2.5,
+      "value": 3.763,
+      "delta_bp": 2.3,
       "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 89.21,
-      "delta_pct": -2.3,
-      "direction": "down",
+      "value": 90.88,
+      "delta_pct": -0.5,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79315.0,
-      "delta_pct": -2.4,
+      "value": 79612.0,
+      "delta_pct": -2.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 100.5,
-      "delta_bp": -1.7,
+      "value": 100.9,
+      "delta_bp": -1.3,
       "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "CADJPY SHORT: Strong US NFP +162K vs +56K expected accelerates USD strength, boosts JPY shorts via carry unwind pressure.",
-    "updated": "2026-09-04T13:54:56.031449+00:00"
+    "text": "NZDJPY SHORT: Strong NFP data (+162K) supports USD strength, accelerates yen carry unwind against NZD.",
+    "updated": "2026-09-04T17:19:03.869273+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Risk-off regime confirms setup, NZD commodity sensitivity driver.\n\nCADJPY SHORT: WTI oil falling strongly confirms CAD weakness setup.\n\nGBPJPY SHORT: Risk-off regime confirms setup, GBP carry unwind driver.",
+    "text": "CADJPY SHORT: Risk-on medium supports commodity-linked CAD weakness confirmation.\n\nGBPJPY SHORT: Mixed regime challenges GBP carry unwind conviction today.\n\nNZDJPY SHORT: Copper strength contradicts NZD weakness setup fundamentally.",
     "top": [
-      {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 7.88
-      },
       {
         "pair": "CADJPY",
         "direction": "bear",
-        "score": 7.28
+        "score": 7.08
       },
       {
         "pair": "GBPJPY",
         "direction": "bear",
-        "score": 7.17
+        "score": 6.5
+      },
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 6.05
       }
     ],
-    "updated": "2026-09-04T13:54:56.031449+00:00"
+    "updated": "2026-09-04T17:19:03.869273+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-04T13:54:56.031449+00:00"
+    "updated": "2026-09-04T17:19:03.869273+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today. Gold and equities are firmer, VIX and yields are lower, yet the dollar index holds a slight bid and Bitcoin has slipped, muddying the classic risk-on read. Copper's strength hints at underlying growth optimism, but the mixed H4/H1 regime and neutral gold signal suggest no clean directional conviction yet. Headlines center on the dollar's jobs-week test, with hawkish Fed repricing offsetting soft ADP data. Traders should watch the 14:00 UTC ISM Services PMI, a key input ahead",
@@ -894,15 +894,15 @@
   "breaking": {
     "headlines": [
       "US August non-farm payrolls +162K vs +56K expected",
-      "DXY eyes 99.58 as jobs week tests hawkish Fed",
-      "Trump tells Fed lower rates or stop trading deficit countries"
+      "DXY Eyes 99.58 as Jobs Week Tests Hawkish Fed",
+      "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-04T13:54:56.031449+00:00"
+    "updated": "2026-09-04T17:19:03.869273+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
