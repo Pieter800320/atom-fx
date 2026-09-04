@@ -3481,5 +3481,138 @@
     "narrative": "Growth-positive risk-on: favour AUD \u00b7 NZD \u00b7 CAD over JPY \u00b7 CHF.",
     "updated": "2026-09-04T09:30:12.075732+00:00"
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "conviction": {
+    "currencies": {
+      "GBP": {
+        "conviction": 0,
+        "direction": -1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 0,
+          "extension": 1,
+          "breadth": -1
+        },
+        "raw": 0,
+        "cot_available": false
+      },
+      "EUR": {
+        "conviction": 10,
+        "direction": -1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": -1,
+          "extension": 1,
+          "breadth": 1
+        },
+        "raw": 1,
+        "cot_available": false
+      },
+      "AUD": {
+        "conviction": -40,
+        "direction": 1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": -2,
+          "extension": -1,
+          "breadth": -1
+        },
+        "raw": -4,
+        "cot_available": false
+      },
+      "NZD": {
+        "conviction": 40,
+        "direction": -1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 2,
+          "extension": 1,
+          "breadth": 1
+        },
+        "raw": 4,
+        "cot_available": false
+      },
+      "CAD": {
+        "conviction": 20,
+        "direction": -1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 0,
+          "extension": 1,
+          "breadth": 1
+        },
+        "raw": 2,
+        "cot_available": false
+      },
+      "JPY": {
+        "conviction": 0,
+        "direction": 1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 0,
+          "extension": 1,
+          "breadth": -1
+        },
+        "raw": 0,
+        "cot_available": false
+      },
+      "CHF": {
+        "conviction": 0,
+        "direction": 0,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 0,
+          "extension": 0,
+          "breadth": 0
+        },
+        "raw": 0,
+        "cot_available": false
+      },
+      "USD": {
+        "conviction": -20,
+        "direction": -1,
+        "components": {
+          "cot_position": 0,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": -1,
+          "extension": 0,
+          "breadth": -1
+        },
+        "raw": -2,
+        "cot_available": false
+      }
+    },
+    "pairs": {
+      "EURUSD": 15,
+      "GBPUSD": 10,
+      "USDJPY": -10,
+      "USDCHF": -10,
+      "AUDUSD": -10,
+      "USDCAD": -20,
+      "NZDUSD": 30,
+      "EURJPY": 5,
+      "GBPJPY": 0,
+      "AUDJPY": -20,
+      "NZDJPY": 20,
+      "CADJPY": 10
+    },
+    "cot_date": "2026-08-25",
+    "cot_stale": true,
+    "updated": "2026-09-04T09:51:04.427501+00:00"
+  }
 }
