@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,12 +41,16 @@ private val LIB_SEARCH_SHAPE = RoundedCornerShape(10.dp)
  * Same slide-in panel [SettingsScreen] already uses — this composable is swapped in for the
  * settings groups rather than opening a new surface, so there's one consistent "gear → panel"
  * mental model instead of a second navigation pattern for one sub-feature.
+ *
+ * [initialExpandedId] (added 2026-09-04 for Notification History's "Learn more" links) opens
+ * straight to one entry instead of the unfiltered list — mirrors `PairSheet`'s existing
+ * `initialTab` precedent for "jump straight to the relevant part of an otherwise general sheet."
  */
 @Composable
-fun LibraryScreen(colors: AtomColors, onBack: () -> Unit) {
+fun LibraryScreen(colors: AtomColors, initialExpandedId: String? = null, onBack: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     var query by remember { mutableStateOf("") }
-    var expandedId by remember { mutableStateOf<String?>(null) }
+    var expandedId by remember { mutableStateOf(initialExpandedId) }
 
     val filtered = remember(query) {
         val q = query.trim().lowercase()
@@ -97,7 +104,12 @@ fun LibraryScreen(colors: AtomColors, onBack: () -> Unit) {
                 modifier = Modifier.padding(top = 20.dp, bottom = 8.dp),
             )
             entries.forEach { entry ->
-                LibraryCard(entry, expanded = expandedId == entry.id, colors = colors) {
+                LibraryCard(
+                    entry,
+                    expanded = expandedId == entry.id,
+                    scrollToOnEnter = entry.id == initialExpandedId,
+                    colors = colors,
+                ) {
                     expandedId = if (expandedId == entry.id) null else entry.id
                 }
             }
@@ -130,12 +142,23 @@ private fun LibrarySearchField(value: String, colors: AtomColors, onValueChange:
 }
 
 @Composable
-private fun LibraryCard(entry: LibraryEntry, expanded: Boolean, colors: AtomColors, onToggle: () -> Unit) {
+private fun LibraryCard(
+    entry: LibraryEntry,
+    expanded: Boolean,
+    scrollToOnEnter: Boolean,
+    colors: AtomColors,
+    onToggle: () -> Unit,
+) {
     val haptics = LocalHapticFeedback.current
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    if (scrollToOnEnter) {
+        LaunchedEffect(entry.id) { bringIntoViewRequester.bringIntoView() }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
+            .bringIntoViewRequester(bringIntoViewRequester)
             .background(colors.surfaceRaised, LIB_CARD_SHAPE)
             .pressWash(LIB_CARD_SHAPE) {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)

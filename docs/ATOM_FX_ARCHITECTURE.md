@@ -388,10 +388,19 @@ POST https://fcm.googleapis.com/v1/projects/<PROJECT_ID>/messages:send
 Authorization: Bearer <OAuth2 access token minted from the service account>
 { "message": {
     "topic": "atomfx-signals",
-    "notification": { "title": <title>, "body": <body> },
-    "data": { "type":"gold_signal|level_alert|potential_state|structure_event|regime_flip|archetype_change|volatility_spike|tf_alignment", "pair":"…", "direction":"…", "deeplink":"atomfx://pair/EURUSD" },
-    "android": { "priority":"high", "notification": { "channel_id":"atomfx_signals" } } } }
+    "data": { "type":"gold_signal|level_alert|potential_state|structure_event|regime_flip|archetype_change|volatility_spike|tf_alignment|conviction_extreme",
+               "title": <title>, "body": <body>, "pair":"…", "direction":"…", "deeplink":"atomfx://pair/EURUSD" },
+    "android": { "priority":"high" } } }
 ```
+
+**Data-only message (2026-09-04, Notification History feature).** `title`/`body` live in
+`data`, not a separate `notification:` block. A combined notification+data message is
+auto-displayed by Android's own system tray whenever the app is backgrounded or killed,
+bypassing `AtomFxMessagingService.onMessageReceived` entirely — which meant the app's own
+code, and any record it wanted to keep, only ever ran for the foreground case. Data-only
+messages always reach `onMessageReceived` (short of a fully force-stopped app — an OS
+limit, not an FCM one), so the app both records **and** builds every notification itself,
+in every state.
 
 - `send_push` is a **drop-in for `send_telegram`** at the frozen call-sites in `scan_h1.py` (§5.2). Same message text; the gold-signal and level-alert conditions are unchanged.
 - **State-transition alerts (Signals Roadmap §2, EXTEND-tier).** `scanner/extend/state_alerts.py` adds six edge-triggered types on top of the two frozen ones above — `potential_state`, `structure_event`, `regime_flip`, `archetype_change`, `volatility_spike`, `tf_alignment` — each firing only on a transition against the previous scan's `signals.json`, never on a level that's merely still true. They ride the same hourly scan and the same `send_push_alert` call, so no new transport or schema shape — just six new `type` values. Five matching Settings toggles exist client-side (`NotificationPrefs` — Setup, Structure, Regime, Volatility, Alignment) covering the six types; Structure covers both BOS and CHoCH, Regime covers both the H4 flip and an Archetype change.
@@ -399,7 +408,9 @@ Authorization: Bearer <OAuth2 access token minted from the service account>
 - Telegram may remain wired as an **optional fallback** (guarded by whether its secrets exist) but push is the primary and only required transport. If Pieter later wants both, it's a one-line `or`.
 - OAuth token minting: use Google's token endpoint with the service account (a ~30-line pure-`urllib` helper, no heavyweight SDK, consistent with the reference's dependency-light style).
 
-**Client side (Android).** Firebase Messaging SDK; `google-services.json` in `app/`; a `FirebaseMessagingService` that subscribes to `atomfx-signals` on first launch; a high-importance notification channel `atomfx_signals`; deep links (`atomfx://pair/<PAIR>`, `atomfx://regime`) that open the relevant bottom sheet. Notification content mirrors the existing alert wording so a returning user sees the same information they get today.
+**Client side (Android).** Firebase Messaging SDK; `google-services.json` in `app/`; a `FirebaseMessagingService` that subscribes to `atomfx-signals` on first launch; a high-importance notification channel `atomfx_signals`; deep links (`atomfx://pair/<PAIR>`, `atomfx://regime`, `atomfx://currency/<CCY>`) that open the relevant bottom sheet. Notification content mirrors the existing alert wording so a returning user sees the same information they get today.
+
+**Notification History (2026-09-04).** Every notification `AtomFxMessagingService` builds is also recorded on-device via `NotificationHistoryStore` — same `SharedPreferences` + hot `StateFlow` shape as `UserPreferences`, no new dependency, 30-day auto-pruned. A toggled-off alert type is neither shown nor recorded. `push/AlertGuidance.kt` pairs each `type` with a short static "what to consider" line (a different register from the in-app Library's descriptive prose — this answers "what do I do", Library answers "what is this") plus a `libraryEntryId` its "Learn more" link opens (`LibraryScreen`'s new `initialExpandedId` param). Reached from Settings → Notifications → "Notification history"; an unread dot on the header gear mirrors the existing freshness-dot recipe. `NotificationHistoryStore` registers a `SharedPreferences` change listener so a service-written record (a separate instance from any UI-held one) is reflected live without a restart.
 
 **Secrets summary (GitHub → Settings → Secrets → Actions):**
 `TWELVEDATA_KEY`, `ANTHROPIC_API_KEY`, `FCM_SERVICE_ACCOUNT` (JSON), `FCM_PROJECT_ID`. (`TELEGRAM_*` optional/legacy.)

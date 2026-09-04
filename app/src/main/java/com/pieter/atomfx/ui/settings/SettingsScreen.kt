@@ -54,13 +54,16 @@ import androidx.core.content.getSystemService
 import com.google.firebase.messaging.FirebaseMessaging
 import com.pieter.atomfx.R
 import com.pieter.atomfx.SIGNALS_TOPIC
+import androidx.compose.runtime.collectAsState
 import com.pieter.atomfx.data.DEFAULT_REFRESH_MINUTES
 import com.pieter.atomfx.data.DEFAULT_SIGNALS_URL
+import com.pieter.atomfx.data.NotificationHistoryStore
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPrefsState
 import com.pieter.atomfx.data.UserPreferences
 import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.SheetTabs
+import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -93,11 +96,20 @@ fun SettingsScreen(
     prefsState: UserPrefsState,
     loaded: WheelScreenState.Loaded?,
     colors: AtomColors,
+    notificationHistory: NotificationHistoryStore,
     onRefreshNow: () -> Unit,
     onClose: () -> Unit,
+    onNavigate: (SheetTarget) -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
     var showLibrary by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    // "Learn more" from a history card jumps into the Library at one entry, and Back should
+    // return to History, not the main Settings list — a two-level back chain without a full
+    // nav stack, since nothing else in Settings needs to go deeper than one swap-in screen.
+    var libraryInitialId by remember { mutableStateOf<String?>(null) }
+    var libraryReturnsToHistory by remember { mutableStateOf(false) }
+    val historyRecords by notificationHistory.state.collectAsState()
     // Entrance only (slide + scrim fade in) — closing removes the composable immediately, same
     // as the full-screen version did before; a matching slide-out would need the visibility gate
     // to live one level up in MainActivity (AnimatedVisibility), out of this composable's reach.
@@ -141,8 +153,35 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
             ) {
+                if (showHistory) {
+                    LaunchedEffect(Unit) { notificationHistory.markAllRead() }
+                    NotificationHistoryScreen(
+                        records = historyRecords,
+                        colors = colors,
+                        onNavigate = { target ->
+                            showHistory = false
+                            onClose()
+                            onNavigate(target)
+                        },
+                        onOpenLibraryEntry = { id ->
+                            libraryInitialId = id
+                            libraryReturnsToHistory = true
+                            showHistory = false
+                            showLibrary = true
+                        },
+                        onBack = { showHistory = false },
+                    )
+                    return@Column
+                }
+
                 if (showLibrary) {
-                    LibraryScreen(colors) { showLibrary = false }
+                    LibraryScreen(colors, initialExpandedId = libraryInitialId) {
+                        showLibrary = false
+                        if (libraryReturnsToHistory) {
+                            libraryReturnsToHistory = false
+                            showHistory = true
+                        }
+                    }
                     return@Column
                 }
 
@@ -154,7 +193,7 @@ fun SettingsScreen(
                 SheetDivider(colors)
 
                 SettingsSection("NOTIFICATIONS", colors) {
-                    NotificationsGroup(prefsState, colors, preferences)
+                    NotificationsGroup(prefsState, colors, preferences) { showHistory = true }
                 }
                 SheetDivider(colors)
 
@@ -174,7 +213,11 @@ fun SettingsScreen(
                 SheetDivider(colors)
 
                 SettingsSection("ABOUT", colors) {
-                    AboutGroup(colors) { showLibrary = true }
+                    AboutGroup(colors) {
+                        libraryInitialId = null
+                        libraryReturnsToHistory = false
+                        showLibrary = true
+                    }
                 }
             }
         }
@@ -292,7 +335,12 @@ private fun ThemeControl(mode: ThemeMode, colors: AtomColors, onSelect: (ThemeMo
 }
 
 @Composable
-private fun NotificationsGroup(prefsState: UserPrefsState, colors: AtomColors, preferences: UserPreferences) {
+private fun NotificationsGroup(
+    prefsState: UserPrefsState,
+    colors: AtomColors,
+    preferences: UserPreferences,
+    onOpenHistory: () -> Unit,
+) {
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     val notif = prefsState.notifications
@@ -343,6 +391,16 @@ private fun NotificationsGroup(prefsState: UserPrefsState, colors: AtomColors, p
             .pressWash(enabled = notif.enabled) {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 sendTestNotification(context)
+            },
+    )
+    Text(
+        text = "Notification history",
+        style = AtomType.Caption.copy(color = colors.textSecondary),
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onOpenHistory()
             },
     )
 }

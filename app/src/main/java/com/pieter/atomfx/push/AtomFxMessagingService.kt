@@ -12,6 +12,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.pieter.atomfx.MainActivity
 import com.pieter.atomfx.R
+import com.pieter.atomfx.data.NotificationHistoryStore
 import com.pieter.atomfx.data.UserPreferences
 
 private const val CHANNEL_ID = "atomfx_signals"
@@ -19,11 +20,15 @@ private const val DEEPLINK_EXTRA = "deeplink"
 
 /**
  * Architecture §7: topic messaging on `atomfx-signals`, no per-device token registry — so
- * `onNewToken` has nothing to do. `onMessageReceived` only fires while the app process is
- * alive (foreground, or backgrounded but not killed); FCM's own system tray already handles
- * display when the process isn't running, forwarding the `data` payload as intent extras onto
- * the notification tap. Building the notification ourselves here just makes the foreground case
- * (which FCM does NOT auto-display) look and behave the same as that background path.
+ * `onNewToken` has nothing to do.
+ *
+ * 2026-09-04 (Notification History feature) — the backend now sends a **data-only** FCM
+ * message (`push/send_push.py`), specifically so `onMessageReceived` fires every time, in
+ * every app state (foreground, background, or killed — short of a fully force-stopped app,
+ * an OS limit, not an FCM one). A combined notification+data message would have Android's own
+ * system tray auto-display it whenever the app isn't foregrounded, bypassing this method
+ * entirely — which would make the history record below miss most real deliveries. `title`/
+ * `body` now live in `message.data`, not `message.notification`.
  */
 class AtomFxMessagingService : FirebaseMessagingService() {
 
@@ -51,9 +56,14 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         // Signals Roadmap §4 (Phase 3).
         if (type == "conviction_extreme" && !notif.positioningAlerts) return
 
-        val title = message.notification?.title ?: type ?: "ATOM FX"
-        val body = message.notification?.body ?: return
+        val title = message.data["title"] ?: type ?: "ATOM FX"
+        val body = message.data["body"] ?: return
         val deeplink = message.data["deeplink"]
+        val direction = message.data["direction"]
+
+        if (type != null) {
+            NotificationHistoryStore(applicationContext).record(type, title, body, deeplink, direction)
+        }
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

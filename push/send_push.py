@@ -9,6 +9,14 @@ It is a drop-in for the scanner's Telegram send - same message, native transport
 
 Requires the FCM_SERVICE_ACCOUNT env var (the service-account JSON). If it is not
 set, send_push skips quietly (returns False) so local/dev runs never break.
+
+Data-only message (2026-09-04, Notification History feature): title/body live in the
+`data` dict, not a separate `notification:` block. A combined notification+data message
+is auto-displayed by Android's system tray whenever the app is backgrounded or killed,
+which skips the app's own onMessageReceived entirely — so a history/record feature built
+on that hook would miss most real-world deliveries. Data-only messages always reach
+onMessageReceived (short of a fully force-stopped app, an OS limit, not an FCM one), so
+the app can record and build every notification itself in every state.
 """
 import os
 import json
@@ -48,9 +56,11 @@ def send_push(title, body, data=None):
         return False
     try:
         from firebase_admin import messaging
+        payload = {k: str(v) for k, v in (data or {}).items()}
+        payload["title"] = title
+        payload["body"] = body
         msg = messaging.Message(
-            notification=messaging.Notification(title=title, body=body),
-            data={k: str(v) for k, v in (data or {}).items()},
+            data=payload,
             topic=TOPIC,
             android=messaging.AndroidConfig(priority="high"),
         )

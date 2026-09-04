@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pieter.atomfx.data.NotificationHistoryStore
 import com.pieter.atomfx.data.SignalsRepository
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPreferences
@@ -123,6 +124,13 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
     val context = LocalContext.current
     val userPreferences = remember { UserPreferences(context.applicationContext) }
     val prefsState by userPreferences.state.collectAsState()
+    // Single shared instance (same pattern as userPreferences above) — AtomFxMessagingService
+    // constructs its own separate instance per message since a background service can't reach
+    // into this Composable's remember scope, but both stay in sync via the SharedPreferences
+    // change listener NotificationHistoryStore registers internally.
+    val notificationHistory = remember { NotificationHistoryStore(context.applicationContext) }
+    val notificationRecords by notificationHistory.state.collectAsState()
+    val hasUnreadNotifications = notificationRecords.any { !it.read }
 
     // Design §2.1: system by default, overridable by the stored preference — resolved once, here,
     // so every consumer (this theme, WheelCanvas's own isDark param) agrees on one value.
@@ -174,6 +182,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     },
                     updated = loaded?.signals?.updated,
                     isFresh = loaded?.freshness == Freshness.FRESH,
+                    hasUnreadNotifications = hasUnreadNotifications,
                     onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
                     onSettingsClick = { settingsOpen = true },
                 )
@@ -198,8 +207,10 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     prefsState = prefsState,
                     loaded = loaded,
                     colors = colors,
+                    notificationHistory = notificationHistory,
                     onRefreshNow = { viewModel.refresh() },
                     onClose = { settingsOpen = false },
+                    onNavigate = { activeAppSheet = it },
                 )
             }
 
@@ -234,6 +245,7 @@ private fun AtomGearBar(
     wordmark: String,
     updated: String?,
     isFresh: Boolean,
+    hasUnreadNotifications: Boolean,
     onCalendarClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -268,11 +280,23 @@ private fun AtomGearBar(
                 style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
                 modifier = Modifier.padding(start = 16.dp).pressWash { tap(onCalendarClick) },
             )
-            Text(
-                text = "⚙",
-                style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
-                modifier = Modifier.padding(start = 14.dp).pressWash { tap(onSettingsClick) },
-            )
+            Box(modifier = Modifier.padding(start = 14.dp)) {
+                Text(
+                    text = "⚙",
+                    style = AtomType.Body.copy(color = colors.textSecondary, fontSize = ICON_GLYPH_SIZE),
+                    modifier = Modifier.pressWash { tap(onSettingsClick) },
+                )
+                if (hasUnreadNotifications) {
+                    // Same 7dp CircleShape recipe as the freshness dot above — no new visual
+                    // language for "something needs your attention."
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(7.dp)
+                            .background(colors.bull, CircleShape),
+                    )
+                }
+            }
         }
     }
 }
