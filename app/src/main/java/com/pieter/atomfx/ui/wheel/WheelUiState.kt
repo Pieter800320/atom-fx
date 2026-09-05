@@ -16,20 +16,18 @@ enum class Direction { BULL, BEAR, NEUTRAL }
 enum class PotentialState { LOW, WATCH, TRADEABLE, APLUS }
 
 /**
- * Which value the middle ring's 12 pair-wedges show (2026-09-04 — third and settled pass, per
- * Pieter's own real workflow: by the time he reaches the wheel, CSM + correlation have already
- * settled *direction* — what the wheel needs to answer is "of several directionally-agreed
- * candidates, which is the best entry right now," a triage question, not a second direction
- * check. Continuation and Conviction (both tried first) mostly re-confirmed direction/gate-passing
- * already visible via Potential or already checked via CSM upstream. ADX (trend strength) and
- * Reset Score (entry-timing/overextension) don't — neither has any other home on the wheel or in
- * the upstream CSM check, and both directly differentiate "which candidate is actually moving,
- * and is it too late to chase it." The ring is exclusively pair-shaped, always — CSM/currency
- * strength has its own permanent strip below (`CsmBarStrip` in `WheelScreen.kt`). Each mode reads
- * a different score already sitting on [PairNode] — see [PairNode.level]/[PairNode.momentum]/
- * [PairNode.adx]/[PairNode.resetScore].
+ * Which value the middle ring's 12 pair-wedges show (2026-09-05 simplification pass — Pieter's
+ * own call: the wheel had grown into a 4-mode toggle whose modes [Potential/Momentum/ADX/Reset]
+ * didn't map to a mental model he could hold onto. Replaced with the same 4 physical corner
+ * buttons reading four legible concepts instead — Overall / Trend / Momentum / Volatility — with
+ * Structure deliberately left off the wheel (Pieter's own call: it's event-based, not a magnitude,
+ * and belongs to its own notification + the pair sheet's Structure tab, not a wedge fill).
+ * Every value here is still a frozen/already-computed field, never re-derived — see
+ * [PairNode.cont] (Overall), [PairNode.adx] (Trend), [PairNode.momentum] (Momentum),
+ * [PairNode.volatility] (Volatility). The ring is exclusively pair-shaped, always — CSM/currency
+ * strength has its own permanent strip below (`CsmBarStrip` in `WheelScreen.kt`).
  */
-enum class WheelMode { POTENTIAL, MOMENTUM, ADX, RESET }
+enum class WheelMode { OVERALL, TREND, MOMENTUM, VOLATILITY }
 
 /**
  * Currencies-mode timeframe (2026-09-02, Pieter's toggle; H1 added 2026-09-03). `csm`/`csm_delta`
@@ -57,29 +55,37 @@ data class PairNode(
     val pair: String,
     val index: Int, // 0..11, fixed position in WheelGeometry.PAIR_ORDER (angle = identity)
     val direction: Direction,
-    val level: Int, // 0..6 — WheelMode.POTENTIAL's own value
+    // 2026-09-05 — level/state/potential/factorsPassed/blockedAt are the old six-factor gate's
+    // output (`potential.py`, still frozen-adjacent EXTEND, not yet retired backend-side). No
+    // longer read by the wheel itself (see WheelMode below) — kept only for the pair sheet's
+    // current WHY checklist and the Summary cascade's `topPair()`, both slated for their own
+    // reframe next. Don't wire new wheel behaviour to these; use `cont` instead.
+    val level: Int, // 0..6
     val state: PotentialState,
     val potential: Int, // 0..100
     val factorsPassed: Set<Factor>,
     val blockedAt: Factor?,
-    // 2026-09-04 — the other 3 wheel-wing values, all already computed backend-side (Rule #1: the
-    // app never re-derives these, only reads them), all direction-agnostic technical reads (none
-    // is itself bull/bear-signed), so all three take their wedge colour from `direction`, same as
-    // Potential does.
+    // 2026-09-05 — the wheel's 4 modes, each a straight read of an already-frozen-computed value
+    // (Rule #1: never re-derived here). Momentum/Trend(ADX)/Volatility are direction-agnostic
+    // technical reads (none is itself bull/bear-signed) so they take their wedge colour from
+    // `direction` (Trend) or their own value (Momentum), except Volatility, which isn't
+    // inherently bullish or bearish at all — see WheelCanvas.modeHue.
     // Unsigned 0..100, 50 = neutral — pairs[pair].mom.d1, the frozen D1-only momentum oscillator
     // (not the D1/H4/H1-blended CMP — Pieter's own pick: a fast-moving, single-timeframe read).
     val momentum: Int = 0,
     // 0..100ish (ADX is mathematically bounded 0-100 but rarely exceeds ~60-70 in practice) —
-    // pairs[pair].adx, frozen trend-strength indicator. Answers "is this pair actually trending,
-    // or just directionally biased and choppy" — a question neither Potential nor Momentum
-    // answers (ADX only enters the frozen pipeline as a *gate* elsewhere, capping Continuation's
-    // score below 45 when ADX < 20, never as a primary reading of its own until now).
+    // pairs[pair].adx, frozen trend-strength indicator. This *is* Trend — ADX literally measures
+    // how strongly a pair is trending, it just needed relabelling, not recomputing.
     val adx: Int = 0,
-    // 0..100 — pairs[pair].reset_score, frozen mean-reversion entry-quality oscillator. LOW is
-    // GOOD here (price has reset toward equilibrium; high = overextended/chasing) — the wheel
-    // inverts this for display (WheelCanvas.modeFillFrac) so a bigger wedge still reads as "better"
-    // everywhere on the dial, not just here.
-    val resetScore: Int = 0,
+    // 0..100 — pairs[pair].atr_pct, frozen ATR percentile (the same field volatility_spike
+    // alerts already fire from). Not direction-signed; see WheelCanvas.modeHue for its own
+    // calm/sane/hot colour ramp instead of a bull/bear one.
+    val volatility: Int = 0,
+    // 0..100 — pairs[pair].cont, the frozen Continuation Score (`scanner/cont_score.py`, a
+    // verbatim port of Forex1212's QAI). A continuous, ungated "how good is this setup right now"
+    // read across TF alignment/entry position/CSM divergence/regime fit/session fit — this is the
+    // wheel's new Overall/flagship mode, replacing the old six-factor Level/Potential score.
+    val cont: Int = 0,
 )
 
 /** One currency wedge in CURRENCIES mode. */

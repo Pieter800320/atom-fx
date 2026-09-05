@@ -33,7 +33,6 @@ import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
-import com.pieter.atomfx.ui.wheel.PotentialState
 
 private val TABS = listOf("Overview", "Breakdown", "Correlation")
 
@@ -46,18 +45,24 @@ private val TABS = listOf("Overview", "Breakdown", "Correlation")
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
 
 /**
- * Design §14.7 — the most important surface. Overview (default, never hidden behind a tab)
- * is the six-factor WHY checklist; the blocked factor is the one visually distinct row.
- * Momentum/Structure/Entry are the same per-pair content Design §14.4-§14.6 describe — reused
- * here as tabs rather than duplicated as separate ring-tap sheets (Architecture never asks for
- * two surfaces to show the same numbers twice).
+ * Design §14.7 — the most important surface. Overview (default, never hidden behind a tab) is
+ * five informational reads — Regime / Trend / Momentum / Volatility / Structure — the same five
+ * concepts the wheel itself now uses (Simplification Rework, 2026-09-05, Pieter's own call).
+ * Momentum/Structure are the same per-pair content Design §14.4-§14.5 describe — reused here as
+ * tabs rather than duplicated as separate ring-tap sheets (Architecture never asks for two
+ * surfaces to show the same numbers twice).
  *
- * Rebuilt 2026-09-03 against the mockup's `shPair()`: the D1/H4/H1 sparkline row (§19.1's
- * LineChart, already built for ChartSheet) now sits permanently under the header — pair-level
- * context that doesn't change with the tab — and the WHY checklist takes the same card/dot/wash
- * treatment as Macro's EVIDENCE axes, extended with a third state Macro doesn't need: the single
- * blocked factor (§25's "unmistakable" requirement) gets a bear-tinted card of its own, not just
- * red text, so it's not just "not green" but visibly *the* problem.
+ * 2026-09-05 — Overview was previously a six-factor pass/fail WHY checklist (Regime/Flow/
+ * Breadth/Momentum/Structure/Entry, one card per factor, a "blocked" factor in bear-tinted red):
+ * that sequential gate is retired app-wide (Pieter's own call — "drop the gate, use a composite
+ * score"; see `PairNode.cont`). Overview is now five plain reads, no pass/fail glyphs — colour
+ * still carries real signal (e.g. Structure's CHoCH still reads bear-red, a live reversal
+ * warning) but nothing is "blocking" anything any more. Flow and Breadth dropped out of this
+ * checklist entirely — both remain fully intact as their own currency-level bottom sheets
+ * (`CurrencyDetailSheet.kt`), just no longer framed as gate factors on a *pair's* sheet. Entry's
+ * useful parts folded into Trend (ADX) and Volatility (ATR percentile); Reset Score and Setup
+ * Rank dropped from the visible UI entirely (still computed quietly backend-side for
+ * `conviction.py`'s extension input — nothing to change there).
  *
  * Follow-up, same day (Pieter's direct ask) — Momentum/Structure/Entry/Macro/Correlation
  * collapsed from five separate tabs into one "Breakdown" tab: each was 2-5 rows on its own (Entry
@@ -71,8 +76,8 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * way, out of Breakdown into its own tab: unlike Macro it *is* pair-relative (this pair's row of
  * the matrix), so it has nowhere else to live, and now renders as a lollipop chart of all 11
  * other pairs (not a `.take(5)` text list) — substantial enough on its own to earn the tab
- * Breakdown's other two sections (Momentum/Structure/Entry) still don't individually justify.
- * Three tabs now: "Overview" (WHY verdict), "Breakdown" (Momentum/Structure/Entry), "Correlation".
+ * Breakdown's other section (Momentum) still doesn't individually justify.
+ * Three tabs now: "Overview" (the five reads), "Breakdown" (Momentum/Structure), "Correlation".
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -85,21 +90,19 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
         Spark3Row(node.pair, signals, colors)
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {
-            0 -> WhyChecklist(node, signals, pairBlock, colors)
-            1 -> BreakdownContent(node, signals, pairBlock, colors)
+            0 -> OverviewChecklist(node, signals, pairBlock, colors)
+            1 -> BreakdownContent(pairBlock, colors)
             else -> CorrelationTabContent(node.pair, signals, colors)
         }
     }
 }
 
 @Composable
-private fun BreakdownContent(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
+private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth()) {
         BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }
         SheetDivider(colors)
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
-        SheetDivider(colors)
-        BreakdownSection("ENTRY", colors) { EntryTabContent(signals.potential[node.pair]?.setupRank, pairBlock, colors) }
     }
 }
 
@@ -153,7 +156,9 @@ private fun SparkCell(label: String, closes: List<Double>, colors: AtomColors, m
 
 @Composable
 private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomColors) {
-    val rank = allNodes.sortedByDescending { it.potential }.indexOfFirst { it.pair == node.pair } + 1
+    // 2026-09-05 — ranked and worded off `cont` (the frozen Continuation Score), not the retired
+    // Level/Potential gate — see the file's own top-of-file doc comment.
+    val rank = allNodes.sortedByDescending { it.cont }.indexOfFirst { it.pair == node.pair } + 1
     // Pieter, 2026-09-03 — dropped the small "EUR / JPY" line; the big pair-code heading already
     // says it, just without the slash.
     Text(
@@ -162,42 +167,52 @@ private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomCol
         modifier = Modifier.padding(bottom = 4.dp),
     )
     Text(
-        text = "${stateWord(node.state)} · ${directionWord(node.direction)}",
+        text = "${setupWord(node.cont)} · ${directionWord(node.direction)}",
         style = AtomType.Caption.copy(color = directionColorFor(node.direction, colors)),
     )
     Text(
-        text = "Potential ${node.potential} · Rank #$rank / ${allNodes.size}",
+        text = "Setup ${node.cont} · Rank #$rank / ${allNodes.size}",
         style = AtomType.Caption.copy(color = colors.textSecondary),
         modifier = Modifier.padding(bottom = 12.dp),
     )
 }
 
+/** Continuation-Score bands, replacing the old Level/Potential state words (2026-09-05). Bands
+ *  match `rank.py`'s own `cont >= 45` qualifying threshold, not an arbitrary new split. */
+private fun setupWord(cont: Int): String = when {
+    cont >= 85 -> "A+ SETUP"
+    cont >= 65 -> "STRONG SETUP"
+    cont >= 45 -> "DEVELOPING"
+    else -> "LOW SETUP"
+}
+
 // Same restraint as Macro's EVIDENCE_LIT_AMOUNT (design doc §2.4/§7.4's own glow alphas).
-private const val WHY_LIT_AMOUNT = 0.08f
+private const val OVERVIEW_LIT_AMOUNT = 0.08f
 // EvidenceDot's own width (7dp) + the row's 10dp spacing after it — see CrossAssetSheet's
 // matching XA_DOT_INDENT.
-private val WHY_DOT_INDENT = 17.dp
+private val OVERVIEW_DOT_INDENT = 17.dp
+
+/**
+ * The five headline reads, 2026-09-05 (see this file's top-of-file doc comment for why the old
+ * six-factor gate is gone). Each row still colours by real signal — just never as "blocking"
+ * anything: [OverviewTint.BULL]/[BEAR] are genuine reads (Structure's CHoCH still reads bear-red,
+ * a live warning), [WATCH] flags "outside the sane band" (Volatility only), [NEUTRAL] is a plain
+ * informational read with nothing notable either way.
+ */
+private enum class OverviewTint { BULL, BEAR, WATCH, NEUTRAL }
 
 @Composable
-private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
-    // Pieter, 2026-09-03 — dropped the "WHY?" caption above the checklist; the six cards read as
-    // a checklist on their own, right under the Overview tab, without needing a label to say so.
+private fun OverviewChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        whyRows(node, signals, pairBlock).forEach { row ->
-            val isBlocker = node.blockedAt == row.factor
-            // Macro's EVIDENCE treatment (card + dot + subtle wash), extended with a third state
-            // Macro's own axes never needed: the blocked factor gets its own bear-tinted card —
-            // §25's "unmistakable," not just red text on an otherwise plain row.
-            val fill = when {
-                row.passed -> lerp(colors.surfaceRaised, colors.bull, WHY_LIT_AMOUNT)
-                isBlocker -> lerp(colors.surfaceRaised, colors.bear, WHY_LIT_AMOUNT)
-                else -> colors.surfaceRaised
+        overviewRows(node, signals, pairBlock).forEach { row ->
+            val hue = when (row.tint) {
+                OverviewTint.BULL -> colors.bull
+                OverviewTint.BEAR -> colors.bear
+                OverviewTint.WATCH -> colors.watch
+                OverviewTint.NEUTRAL -> null
             }
-            val dotColor = when {
-                row.passed -> colors.bull
-                isBlocker -> colors.bear
-                else -> colors.textMuted
-            }
+            val fill = hue?.let { lerp(colors.surfaceRaised, it, OVERVIEW_LIT_AMOUNT) } ?: colors.surfaceRaised
+            val dotColor = hue ?: colors.textMuted
             Column(
                 modifier = Modifier.fillMaxWidth().background(fill, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 12.dp),
             ) {
@@ -206,103 +221,99 @@ private fun WhyChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     EvidenceDot(color = dotColor, modifier = Modifier.padding(end = 10.dp))
                     Text(
-                        text = row.factor.shortLabel.uppercase(),
-                        style = AtomType.Caption.copy(color = if (isBlocker) colors.bear else colors.textPrimary),
+                        text = row.label,
+                        style = AtomType.Caption.copy(color = colors.textPrimary),
                     )
                 }
                 Text(
                     text = row.explanation,
                     style = AtomType.Body.copy(color = colors.textSecondary),
-                    modifier = Modifier.padding(start = WHY_DOT_INDENT, top = 3.dp),
+                    modifier = Modifier.padding(start = OVERVIEW_DOT_INDENT, top = 3.dp),
                 )
                 Text(
                     text = row.value,
                     style = AtomType.Caption.copy(color = colors.textMuted),
-                    modifier = Modifier.padding(start = WHY_DOT_INDENT, top = 3.dp),
+                    modifier = Modifier.padding(start = OVERVIEW_DOT_INDENT, top = 3.dp),
                 )
             }
         }
     }
 }
 
-private data class WhyRow(val factor: Factor, val passed: Boolean, val explanation: String, val value: String)
+private data class OverviewRow(val label: String, val tint: OverviewTint, val explanation: String, val value: String)
 
-private fun whyRows(node: PairNode, signals: Signals, pairBlock: PairBlock?): List<WhyRow> {
+private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?): List<OverviewRow> {
     val regime = signals.regimeH4
-    val flow = signals.currencyFlow
-    val base = node.pair.take(3)
-    val quote = node.pair.takeLast(3)
-    val baseBreadth = signals.breadth.h4[base]
-    val quoteBreadth = signals.breadth.h4[quote]
     val h4Structure = pairBlock?.structure?.h4
+    val dd1 = pairBlock?.mom?.dd1
+    val dir = node.direction
 
-    return Factor.entries.map { factor ->
-        val passed = factor in node.factorsPassed
-        when (factor) {
-            Factor.REGIME -> WhyRow(
-                factor,
-                passed,
-                if (passed) "${regime?.regime ?: "The regime"} supports this direction." else "${regime?.regime ?: "The regime"} does not support this direction.",
-                "${regime?.regime ?: "—"} · ${regime?.confidence ?: "—"}",
-            )
+    val regimeAligned = Factor.REGIME in node.factorsPassed
+    val regimeRow = OverviewRow(
+        label = "REGIME",
+        tint = if (regimeAligned) OverviewTint.BULL else OverviewTint.NEUTRAL,
+        explanation = if (regimeAligned) {
+            "H4 regime supports this pair's ${directionWord(dir).lowercase()} bias."
+        } else {
+            "H4 regime is neutral or against this pair's ${directionWord(dir).lowercase()} bias."
+        },
+        value = "${regime?.regime ?: "—"} · ${regime?.confidence ?: "—"}",
+    )
 
-            Factor.FLOW -> WhyRow(
-                factor,
-                passed,
-                if (flow?.leader != null) "Flow leader ${flow.leader}, laggard ${flow.laggard}." else "Flow data not available yet.",
-                if (flow?.leaderDelta != null) {
-                    "${flow.leader} ${signedInt(flow.leaderDelta)} / ${flow.laggard} ${signedInt(flow.laggardDelta)}"
-                } else {
-                    "—"
-                },
-            )
+    val trendRow = OverviewRow(
+        label = "TREND",
+        tint = when (dir) {
+            Direction.BULL -> OverviewTint.BULL
+            Direction.BEAR -> OverviewTint.BEAR
+            Direction.NEUTRAL -> OverviewTint.NEUTRAL
+        },
+        explanation = when {
+            node.adx >= 25 -> "Strong trend on H4."
+            node.adx >= 15 -> "Building trend strength on H4."
+            else -> "No real trend on H4 — choppy or directionless."
+        },
+        value = "ADX ${node.adx}",
+    )
 
-            Factor.BREADTH -> WhyRow(
-                factor,
-                passed,
-                if (baseBreadth != null) "Move is broadly supported, not just one pair." else "Breadth data not available yet.",
-                if (baseBreadth != null && quoteBreadth != null) {
-                    "$base ${baseBreadth.support}/${baseBreadth.total} · $quote ${quoteBreadth.support}/${quoteBreadth.total}"
-                } else {
-                    "—"
-                },
-            )
+    val momentumRow = OverviewRow(
+        label = "MOMENTUM",
+        tint = if (node.momentum >= 50) OverviewTint.BULL else OverviewTint.BEAR,
+        explanation = when {
+            node.momentum >= 50 && (dd1 ?: 0) > 0 -> "Bullish momentum, strengthening."
+            node.momentum >= 50 -> "Bullish momentum."
+            (dd1 ?: 0) < 0 -> "Bearish momentum, strengthening."
+            else -> "Bearish momentum."
+        },
+        value = "MOM ${node.momentum}",
+    )
 
-            Factor.MOMENTUM -> WhyRow(
-                factor,
-                passed,
-                if (passed) "Composite momentum supports this direction." else "Composite momentum is against this direction, or neutral.",
-                pairBlock?.mom?.cmp?.let { "CMP $it" } ?: "—",
-            )
+    val volatilityRow = OverviewRow(
+        label = "VOLATILITY",
+        tint = if (node.volatility in 20..70) OverviewTint.BULL else OverviewTint.WATCH,
+        explanation = when {
+            node.volatility < 20 -> "Compressed — too quiet to trust a breakout yet."
+            node.volatility > 70 -> "Expanding fast — widen stops, or wait for it to settle."
+            else -> "Normal range — sane conditions to consider an entry."
+        },
+        value = "ATR percentile ${node.volatility}",
+    )
 
-            Factor.STRUCTURE -> WhyRow(
-                factor,
-                passed,
-                if (h4Structure != null) "H4 structure: ${h4Structure.event ?: "—"}." else "Structure data not available yet.",
-                h4Structure?.event?.uppercase() ?: "—",
-            )
+    val structureRow = OverviewRow(
+        label = "STRUCTURE",
+        tint = when (h4Structure?.event) {
+            "BOS" -> OverviewTint.BULL
+            "CHoCH" -> OverviewTint.BEAR
+            else -> OverviewTint.NEUTRAL
+        },
+        explanation = when (h4Structure?.event) {
+            "BOS" -> "Fresh break of structure on H4 — confirms the existing trend."
+            "CHoCH" -> "Fresh change of character on H4 — a live reversal warning."
+            else -> "No recent structural event on H4."
+        },
+        value = h4Structure?.event?.uppercase() ?: "—",
+    )
 
-            Factor.ENTRY -> WhyRow(
-                factor,
-                passed,
-                if (passed) "Continuation and entry location both check out." else "Continuation isn't high enough yet, or entry is extended.",
-                pairBlock?.cont?.let { "Continuation $it%" } ?: "—",
-            )
-        }
-    }
-}
-
-private fun signedInt(value: Double?): String {
-    if (value == null) return "—"
-    val sign = if (value > 0) "+" else ""
-    return "$sign${value.toInt()}"
-}
-
-private fun stateWord(state: PotentialState): String = when (state) {
-    PotentialState.LOW -> "LOW POTENTIAL"
-    PotentialState.WATCH -> "DEVELOPING"
-    PotentialState.TRADEABLE -> "HIGH POTENTIAL"
-    PotentialState.APLUS -> "A+ SETUP"
+    return listOf(regimeRow, trendRow, momentumRow, volatilityRow, structureRow)
 }
 
 private fun directionWord(direction: Direction): String = when (direction) {

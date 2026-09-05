@@ -84,10 +84,48 @@ fun NotificationHistoryScreen(
             return
         }
 
-        records.forEach { record ->
-            NotificationCard(record, colors, onNavigate, onOpenLibraryEntry, onOpenReading)
+        // 2026-09-05 (Simplification Rework) — grouped under the same five headline concepts the
+        // wheel and pair sheet now use, instead of one flat feed. Not every alert type maps onto
+        // the five (Momentum has none today; gold/level/positioning don't fit any of them) — those
+        // get one small "OTHER" bucket rather than forcing an awkward fit. Each bucket keeps the
+        // records' own relative order (most-recent-first, from `NotificationHistoryStore`).
+        val grouped = records.groupBy { notificationCategory(it.type) }
+        NOTIFICATION_CATEGORY_ORDER.forEach { category ->
+            val inCategory = grouped[category] ?: return@forEach
+            Text(
+                text = category,
+                style = AtomType.Caption.copy(color = colors.textMuted),
+                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+            )
+            inCategory.forEach { record ->
+                NotificationCard(record, colors, onNavigate, onOpenLibraryEntry, onOpenReading)
+            }
         }
     }
+}
+
+private const val CATEGORY_REGIME = "REGIME"
+private const val CATEGORY_TREND = "TREND"
+private const val CATEGORY_VOLATILITY = "VOLATILITY"
+private const val CATEGORY_STRUCTURE = "STRUCTURE"
+private const val CATEGORY_OTHER = "OTHER"
+
+private val NOTIFICATION_CATEGORY_ORDER =
+    listOf(CATEGORY_REGIME, CATEGORY_TREND, CATEGORY_VOLATILITY, CATEGORY_STRUCTURE, CATEGORY_OTHER)
+
+/**
+ * Which of the five headline concepts (minus Momentum — no alert type maps there today) an alert
+ * type belongs under. `tf_alignment` goes to Trend (three timeframes agreeing is fundamentally a
+ * trend-agreement read) rather than Momentum. Everything that doesn't cleanly fit one of the four
+ * — gold/level/positioning, plus `potential_state`, which is a ranking-threshold crossing, not one
+ * of the five concepts — lands in OTHER rather than forcing an awkward fit.
+ */
+private fun notificationCategory(type: String): String = when (type) {
+    "regime_flip", "archetype_change" -> CATEGORY_REGIME
+    "tf_alignment" -> CATEGORY_TREND
+    "volatility_spike" -> CATEGORY_VOLATILITY
+    "structure_event" -> CATEGORY_STRUCTURE
+    else -> CATEGORY_OTHER
 }
 
 @Composable

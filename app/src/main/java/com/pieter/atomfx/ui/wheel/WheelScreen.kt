@@ -70,9 +70,12 @@ private val CARD_TOP_SPACING = 16.dp
  * StatusStrip's Summary button (same `CARD_SHAPE`, same padding recipe, so "same height" falls
  * out of reusing the recipe rather than a copied dp constant).
  *
- * The wheel's 4 corner wings are direct mode-selectors — Potential/Momentum(D1)/ADX/Reset Score,
- * all reading the same 12-pair ring (`WheelCanvas.kt`/`WheelGeometry.kt`) — CSM/
- * currency strength has no wheel mode of its own any more, only the always-visible strip below.
+ * The wheel's 4 corner wings are direct mode-selectors — Overall/Trend(ADX)/Momentum(D1)/
+ * Volatility (renamed 2026-09-05 from Potential/ADX/Momentum/Reset — Pieter's own call: those
+ * four didn't map to a mental model he could hold onto; Structure was deliberately left off the
+ * wheel entirely, see WheelMode's own doc comment), all reading the same 12-pair ring
+ * (`WheelCanvas.kt`/`WheelGeometry.kt`) — CSM/currency strength has no wheel mode of its own any
+ * more, only the always-visible strip below.
  * One thing still deliberately unfinished: the CSM bar strip is plain bars, not yet the
  * "stunning, echoes the wheel" visual pass — the layout/space-budget step (§17) is done and
  * verified on-device; only the visual polish pass on that one component remains.
@@ -93,9 +96,9 @@ fun WheelScreen(
     val screenState by viewModel.screenState.collectAsState()
     val colors = AtomTheme.colors
     var activeSheet by remember { mutableStateOf(initialDeepLink) }
-    // 2026-09-04 — POTENTIAL by default, the wheel's flagship mode (matches the thumb-zone
-    // bottom-left wing). The other 3 modes (Momentum/ADX/Reset) are a tap away.
-    var mode by remember { mutableStateOf(WheelMode.POTENTIAL) }
+    // 2026-09-05 — OVERALL by default, the wheel's flagship mode (matches the thumb-zone
+    // bottom-left wing). The other 3 modes (Trend/Momentum/Volatility) are a tap away.
+    var mode by remember { mutableStateOf(WheelMode.OVERALL) }
     var timeframe by remember { mutableStateOf(Timeframe.H4) }
     val haptics = LocalHapticFeedback.current
     val hapticScope = rememberCoroutineScope()

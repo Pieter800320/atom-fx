@@ -193,10 +193,12 @@ private fun deltaText(delta: Double): String {
 /** Signals Roadmap §4 — the COT-based Conviction/crowding overlay, added 2026-09-04. Same
  *  SheetRow + BarMeter language the Breadth row above already uses: signed score as the row
  *  value (bull/bear tinted), magnitude as the bar length. A |score| >= 80 reading gets the
- *  same "unmistakable warning" register as the Structure tab's CHoCH callout — this is a
- *  crowded/contrarian-risk read, not a routine number. Absent entirely (caller already guards
- *  on `conviction != null`) rather than a placeholder — this is a weekly overlay, not always
- *  fresh the moment a currency's own data exists. */
+ *  same "unmistakable warning" register as the Structure tab's CHoCH callout, tinted with the
+ *  score's own direction — an extreme reading means broad alignment across most of the six
+ *  inputs, not necessarily crowding (two of the six are already contrarian-weighted, so
+ *  "crowded" as a blanket label is often the wrong story; see the Conviction Playbook). Absent
+ *  entirely (caller already guards on `conviction != null`) rather than a placeholder — this is
+ *  a weekly overlay, not always fresh the moment a currency's own data exists. */
 @Composable
 private fun ConvictionSection(entry: ConvictionEntry?, cotStale: Boolean, colors: AtomColors) {
     val score = entry?.conviction ?: return
@@ -214,8 +216,8 @@ private fun ConvictionSection(entry: ConvictionEntry?, cotStale: Boolean, colors
     )
     if (kotlin.math.abs(score) >= 80) {
         Text(
-            text = "Crowded — contrarian risk",
-            style = AtomType.Caption.copy(color = colors.bear),
+            text = "Conviction Extreme",
+            style = AtomType.Caption.copy(color = tint),
             modifier = Modifier.padding(top = 2.dp),
         )
     }

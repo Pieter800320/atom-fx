@@ -22,26 +22,37 @@ _ATR_SPIKE_THRESHOLD = 90
 _ALIGNED_PILLS = ("bull_strong", "bear_strong")
 
 
-def _pair_potential_alerts(out: dict, prev: dict) -> list:
+_CONT_QUALIFY_THRESHOLD = 45  # matches rank.py's own qualifying gate — not a new number
+
+
+def _pair_setup_alerts(out: dict, prev: dict) -> list:
+    """
+    Fires when a pair's Continuation Score (`cont`, frozen) newly crosses into the
+    qualifying band (>= 45, matching `rank.py`'s own threshold) — "this pair just became
+    worth a look." Replaces the old Level 6/A+ trigger (`potential.state in
+    tradeable/aplus`) now that the six-factor gate is retired app-wide (Simplification
+    Rework, 2026-09-05) — same alert `type` ("potential_state") and delivery mechanism,
+    only the trigger condition changed, so existing Settings toggles/ALERT_GUIDANCE/
+    NotificationHistoryStore entries on the Kotlin side need no changes.
+    """
     alerts = []
-    for pair, entry in out.get("potential", {}).items():
-        state = entry.get("state")
-        if state not in ("tradeable", "aplus"):
+    for pair, block in out.get("pairs", {}).items():
+        cont = block.get("cont")
+        if cont is None or cont < _CONT_QUALIFY_THRESHOLD:
             continue
-        prev_state = prev.get("potential", {}).get(pair, {}).get("state")
-        if state == prev_state:
+        prev_cont = prev.get("pairs", {}).get(pair, {}).get("cont")
+        if prev_cont is not None and prev_cont >= _CONT_QUALIFY_THRESHOLD:
             continue
-        direction = entry.get("direction")
-        setup_rank = entry.get("setup_rank")
-        rank_str = f"{setup_rank:.1f}/10" if setup_rank is not None else "—"
+        pills = block.get("pills") or {}
+        d1_pill = pills.get("d1")
+        direction = "bull" if d1_pill in ("bull", "bull_strong") else "bear" if d1_pill in ("bear", "bear_strong") else None
         dir_word = "LONG" if direction == "bull" else "SHORT" if direction == "bear" else "—"
-        state_label = "A+ Setup" if state == "aplus" else "Tradeable"
         alerts.append({
             "type": "potential_state",
             "pair": pair,
-            "msg": f"<b>{pair} reached {state_label}</b>\n{dir_word} · Setup {rank_str}",
+            "msg": f"<b>{pair} entered Tradeable Now</b>\n{dir_word} · Setup {cont}",
             "deeplink": f"atomfx://pair/{pair}",
-            "direction": direction if direction in ("bull", "bear") else None,
+            "direction": direction,
         })
     return alerts
 
@@ -176,7 +187,7 @@ def compute_state_alerts(out: dict, prev: dict) -> list:
     if not prev:
         return []
     alerts = []
-    alerts += _pair_potential_alerts(out, prev)
+    alerts += _pair_setup_alerts(out, prev)
     alerts += _structure_event_alerts(out, prev)
     alerts += _regime_flip_alert(out, prev)
     alerts += _archetype_change_alert(out, prev)

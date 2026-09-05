@@ -335,7 +335,7 @@ def compute_conviction_alerts(conviction: dict, prev_conviction: dict | None) ->
         dir_word = "bullish" if direction == "bull" else "bearish"
         alerts.append({
             "type": "conviction_extreme",
-            "msg": f"<b>{ccy} — crowded positioning</b>\nConviction {score:+d} · {dir_word} · contrarian risk",
+            "msg": f"<b>{ccy} — Conviction Extreme</b>\nConviction {score:+d} · {dir_word}",
             "deeplink": f"atomfx://currency/{ccy}",
             "direction": direction,
         })

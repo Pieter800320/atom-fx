@@ -215,14 +215,14 @@ private fun hitTest(offset: Offset, w: Float, h: Float): WheelTapTarget? {
         return WheelTapTarget.CrossAsset(g.XASSET_ORDER[g.segIndexAt(g.XASSET_ORDER.size, deg)].first)
     }
     if (dist in (g.TOGGLE_R0_FRAC * half)..(g.TOGGLE_R1_FRAC * half)) {
-        val (p0, p1) = g.cornerHitRange(g.TOGGLE_POTENTIAL_CENTER_DEG)
-        val (a0, a1) = g.cornerHitRange(g.TOGGLE_ADX_CENTER_DEG)
+        val (o0, o1) = g.cornerHitRange(g.TOGGLE_OVERALL_CENTER_DEG)
+        val (t0, t1) = g.cornerHitRange(g.TOGGLE_TREND_CENTER_DEG)
         val (m0, m1) = g.cornerHitRange(g.TOGGLE_MOMENTUM_CENTER_DEG)
-        val (r0d, r1d) = g.cornerHitRange(g.TOGGLE_RESET_CENTER_DEG)
-        if (deg in p0..p1) return WheelTapTarget.ModeToggle(WheelMode.POTENTIAL)
-        if (deg in a0..a1) return WheelTapTarget.ModeToggle(WheelMode.ADX)
+        val (v0, v1) = g.cornerHitRange(g.TOGGLE_VOLATILITY_CENTER_DEG)
+        if (deg in o0..o1) return WheelTapTarget.ModeToggle(WheelMode.OVERALL)
+        if (deg in t0..t1) return WheelTapTarget.ModeToggle(WheelMode.TREND)
         if (deg in m0..m1) return WheelTapTarget.ModeToggle(WheelMode.MOMENTUM)
-        if (deg in r0d..r1d) return WheelTapTarget.ModeToggle(WheelMode.RESET)
+        if (deg in v0..v1) return WheelTapTarget.ModeToggle(WheelMode.VOLATILITY)
     }
     return null
 }
@@ -479,8 +479,9 @@ private data class CornerButtonSpec(val label: String, val centerDeg: Float, val
  * The four corner buttons — a 4th ring shaped and placed to read as chrome rather than data:
  * tapered, curved-edge wedges (wide base, narrow rounded tip), thicker than any data ring.
  *
- * 2026-09-04 — each wing is now a direct selector for one [WheelMode] (Potential/ADX/Momentum/
- * Reset), not a toggle — see the doc comment on [WheelGeometry]'s
+ * 2026-09-05 — each wing is a direct selector for one [WheelMode] (Overall/Trend/Momentum/
+ * Volatility, renamed from Potential/ADX/Momentum/Reset — see the doc comment on [WheelMode]
+ * for why), not a toggle — see the doc comment on [WheelGeometry]'s
  * `TOGGLE_*_CENTER_DEG` constants for the corner assignment. Exactly one is always selected (the
  * wheel is always in one of its 4 modes, never none), carrying the same "label colour only, no
  * border change" selected look the old single mode-toggle already established (Pieter,
@@ -502,10 +503,10 @@ private fun DrawScope.drawCornerButtons(
     val borderColor = if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
 
     listOf(
-        CornerButtonSpec("POTENTIAL", g.TOGGLE_POTENTIAL_CENTER_DEG, mode == WheelMode.POTENTIAL, "wing:potential"),
-        CornerButtonSpec("ADX", g.TOGGLE_ADX_CENTER_DEG, mode == WheelMode.ADX, "wing:adx"),
+        CornerButtonSpec("OVERALL", g.TOGGLE_OVERALL_CENTER_DEG, mode == WheelMode.OVERALL, "wing:overall"),
+        CornerButtonSpec("TREND", g.TOGGLE_TREND_CENTER_DEG, mode == WheelMode.TREND, "wing:trend"),
         CornerButtonSpec("MOMENTUM", g.TOGGLE_MOMENTUM_CENTER_DEG, mode == WheelMode.MOMENTUM, "wing:momentum"),
-        CornerButtonSpec("RESET", g.TOGGLE_RESET_CENTER_DEG, mode == WheelMode.RESET, "wing:reset"),
+        CornerButtonSpec("VOLATILITY", g.TOGGLE_VOLATILITY_CENTER_DEG, mode == WheelMode.VOLATILITY, "wing:volatility"),
     ).forEach { spec ->
         val angles = g.cornerButtonAngles(spec.centerDeg)
         val path = taperedCornerPath(cx, cy, r0, r1, angles.innerA0, angles.innerA1, angles.outerA0, angles.outerA1, cornerRadiusPx)
@@ -533,44 +534,46 @@ private fun DrawScope.drawCornerButtons(
 /**
  * How full a pair's wedge fill is under the current [mode], 0..1 — always MAGNITUDE OF SIGNAL,
  * never raw value, so "bigger wedge" means the same thing (a strong reading) on every wing;
- * colour (see [modeHue]) is the only channel that carries direction. Potential's own 0..6 level
- * is a plain count, unchanged. ADX has no neutral midpoint (0 = no trend, 100 = max trend
- * strength) — already a pure magnitude, scales directly. Reset Score is INVERTED — low
- * `resetScore` is the good reading (see [PairNode.resetScore]) and it's already direction-
- * adjusted at the source, so `100 - resetScore` turns it into a magnitude too. Momentum is
- * DIFFERENT from the other three: it's a bipolar oscillator (50 = neutral, 0 and 100 are the two
- * opposite extremes), so the raw value is NOT a magnitude — a strongly bearish 5 would otherwise
- * draw a nearly-empty wedge, reading as "no signal" when it's actually a strong one. Folded
- * around the neutral point (`abs(momentum - 50) / 50`) instead: 5 and 95 both fill to 90%, 50
- * fills to 0% — magnitude of momentum, regardless of which way it's pointing.
+ * colour (see [modeHue]) is the only channel that carries direction. Overall (`cont`, the frozen
+ * Continuation Score) and Trend (ADX) both have no neutral midpoint — 0 = weakest, 100 =
+ * strongest — already pure magnitudes, scale directly. Volatility (ATR percentile) is the same
+ * shape: 0 = most compressed, 100 = most extended, a magnitude either way. Momentum is DIFFERENT
+ * from the other three: it's a bipolar oscillator (50 = neutral, 0 and 100 are the two opposite
+ * extremes), so the raw value is NOT a magnitude — a strongly bearish 5 would otherwise draw a
+ * nearly-empty wedge, reading as "no signal" when it's actually a strong one. Folded around the
+ * neutral point (`abs(momentum - 50) / 50`) instead: 5 and 95 both fill to 90%, 50 fills to 0% —
+ * magnitude of momentum, regardless of which way it's pointing.
  *
  * Pieter, 2026-09-04 — the fold alone still read poorly on a genuinely calm day: a bipolar
  * oscillator spends a lot of its time near its own midpoint (mixed/calm regimes are common, not
  * rare), so most of the ring sat under ~10% fill and the whole wing looked empty rather than
- * "modest." A `sqrt` on top of the fold (Momentum only — ADX and Reset already spread across
+ * "modest." A `sqrt` on top of the fold (Momentum only — the other three already spread across
  * their full range on real data, checked before adding this) stretches the low end open while
  * still preserving order and both anchors (exactly neutral stays at 0%, max-extreme stays at
  * 100%) — a real 8% reading shows as a legible ~28%, not a barely-there sliver.
  */
 private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
-    WheelMode.POTENTIAL -> node.level.coerceIn(0, 6) / 6f
+    WheelMode.OVERALL -> node.cont.coerceIn(0, 100) / 100f
     WheelMode.MOMENTUM -> kotlin.math.sqrt(kotlin.math.abs(node.momentum.coerceIn(0, 100) - 50) / 50f)
-    WheelMode.ADX -> node.adx.coerceIn(0, 100) / 100f
-    WheelMode.RESET -> (100 - node.resetScore.coerceIn(0, 100)) / 100f
+    WheelMode.TREND -> node.adx.coerceIn(0, 100) / 100f
+    WheelMode.VOLATILITY -> node.volatility.coerceIn(0, 100) / 100f
 }
 
 /**
  * Which hue fills a pair's wedge under the current [mode]. Momentum (D1) is the same 0..100/
  * 50-neutral shape CSM strength already used on the old currency ring, so it gets the same >=50
- * rule. Potential, ADX and Reset are all direction-agnostic reads on their own (trend strength
- * and entry-quality don't carry a sign) — each takes its colour from the pair's own `direction`
- * instead, same as Potential's own tint always has.
+ * rule. Overall and Trend are direction-agnostic reads on their own (setup quality and trend
+ * strength don't carry a sign) — each takes its colour from the pair's own `direction` instead.
+ * Volatility is different again: it isn't bullish or bearish at all, so direction-tinting it would
+ * be meaningless — instead it uses the same 20-70 "sane band" language already established in the
+ * Library (`atr-percentile` entry): inside the band reads as calm/tradeable (bull-tinted), outside
+ * it (too quiet OR too extended, both flagged the same way) reads as a caution (watch-tinted).
  */
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
-    WheelMode.POTENTIAL -> tintForDir(node.direction, colors)
+    WheelMode.OVERALL -> tintForDir(node.direction, colors)
     WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.bull else colors.bear
-    WheelMode.ADX -> tintForDir(node.direction, colors)
-    WheelMode.RESET -> tintForDir(node.direction, colors)
+    WheelMode.TREND -> tintForDir(node.direction, colors)
+    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.bull else colors.watch
 }
 
 private fun DrawScope.drawPairRing(

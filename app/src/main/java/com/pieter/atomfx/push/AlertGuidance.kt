@@ -23,7 +23,7 @@ val ALERT_GUIDANCE: Map<String, AlertGuidance> = mapOf(
         "level-ema-alerts",
     ),
     "potential_state" to AlertGuidance(
-        "This pair cleared every factor in the Six-Factor gate. Open the Pair sheet's WHY checklist to see what's supporting it.",
+        "This pair's Continuation Score just crossed into qualifying range. Open the Pair sheet's Overview tab to see what's actually supporting it.",
         "potential",
     ),
     "structure_event" to AlertGuidance(
@@ -47,7 +47,7 @@ val ALERT_GUIDANCE: Map<String, AlertGuidance> = mapOf(
         "five-state-score",
     ),
     "conviction_extreme" to AlertGuidance(
-        "Positioning looks crowded — a contrarian caution flag, not a standalone entry signal.",
+        "Conviction just crossed an extreme — that's usually broad alignment across most of its six inputs, not simple crowding (two are already contrarian-weighted). Check the Playbook before assuming reversal risk.",
         "conviction",
     ),
 )

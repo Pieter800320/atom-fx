@@ -263,18 +263,21 @@ def test_recommendation_stand_aside_when_no_setups():
 
 # ── 3. State-transition alerts (Signals Roadmap §2) ───────────────────────────────
 def test_state_alerts_no_prev_never_fires():
-    out = {"potential": {"EURUSD": {"state": "tradeable", "direction": "bull", "setup_rank": 8.0}}}
+    out = {"pairs": {"EURUSD": {"cont": 62, "pills": {"d1": "bull"}}}}
     assert state_alerts.compute_state_alerts(out, {}) == []
     assert state_alerts.compute_state_alerts(out, None) == []
 
 
 def test_state_alerts_potential_state_fires_on_transition():
-    prev = {"potential": {"EURUSD": {"state": "watch"}}}
-    out = {"potential": {"EURUSD": {"state": "tradeable", "direction": "bull", "setup_rank": 7.5}}}
+    # 2026-09-05 — trigger moved from Level 6/A+ (`potential.state`) to crossing `cont >= 45`
+    # (rank.py's own qualifying threshold), matching the Simplification Rework's retirement of
+    # the six-factor gate. Same alert `type` ("potential_state"), new underlying condition.
+    prev = {"pairs": {"EURUSD": {"cont": 30, "pills": {"d1": "bull"}}}}
+    out = {"pairs": {"EURUSD": {"cont": 62, "pills": {"d1": "bull"}}}}
     alerts = state_alerts.compute_state_alerts(out, prev)
     assert len(alerts) == 1 and alerts[0]["type"] == "potential_state"
     assert alerts[0]["direction"] == "bull"
-    # no-op rerun (same state both sides) fires nothing
+    # no-op rerun (already qualifying both sides) fires nothing
     assert state_alerts.compute_state_alerts(out, out) == []
 
 

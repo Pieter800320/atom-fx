@@ -40,22 +40,23 @@ object WheelMapper {
         )
     }
 
-    // ── Pairs (the wheel's 4 modes: Potential/Momentum(D1)/ADX/Reset Score) ───────────────
+    // ── Pairs (the wheel's 4 modes: Overall/Trend(ADX)/Momentum(D1)/Volatility) ───────────
     private fun mapNode(pair: String, index: Int, signals: Signals): PairNode {
-        // All three already computed backend-side (Rule #1, never re-derived here), all straight
-        // off the pair's own `pairs` block entry (mom.d1 the frozen D1-only momentum oscillator,
-        // adx the frozen trend-strength read, resetScore the frozen mean-reversion entry-quality
-        // oscillator).
+        // All already computed backend-side (Rule #1, never re-derived here), all straight off
+        // the pair's own `pairs` block entry (mom.d1 the frozen D1-only momentum oscillator, adx
+        // the frozen trend-strength read, atr_pct the frozen ATR percentile, cont the frozen
+        // Continuation Score — see PairNode's own doc comments for what each feeds).
         val pairBlock = signals.pairs[pair]
         val momentumScore = pairBlock?.mom?.d1 ?: 0
         val adxScore = pairBlock?.adx?.roundToInt() ?: 0
-        val resetScore = pairBlock?.resetScore ?: 0
+        val volatilityScore = pairBlock?.atrPct ?: 0
+        val contScore = pairBlock?.cont ?: 0
 
         val entry = signals.potential[pair]
         if (entry == null) {
             return PairNode(
                 pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null,
-                momentum = momentumScore, adx = adxScore, resetScore = resetScore,
+                momentum = momentumScore, adx = adxScore, volatility = volatilityScore, cont = contScore,
             )
         }
         return PairNode(
@@ -69,7 +70,8 @@ object WheelMapper {
             blockedAt = mapFactor(entry.blockedAt),
             momentum = momentumScore,
             adx = adxScore,
-            resetScore = resetScore,
+            volatility = volatilityScore,
+            cont = contScore,
         )
     }
 
