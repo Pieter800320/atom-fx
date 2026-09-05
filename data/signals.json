@@ -932,78 +932,106 @@
   "conviction": {
     "currencies": {
       "GBP": {
-        "conviction": 0,
+        "conviction": -6,
         "direction": -1,
         "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
-          "cot_disagg": 0,
-          "csm_extreme": 0,
+          "cot_position": -2,
+          "cot_oi": 1,
+          "cot_disagg": -1,
+          "csm_extreme": 1,
           "extension": 1,
           "breadth": -1
         },
-        "raw": 0,
-        "cot_available": false
+        "raw": -1,
+        "cot_available": true
       },
       "EUR": {
-        "conviction": 10,
+        "conviction": 28,
         "direction": -1,
         "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
+          "cot_position": 1,
+          "cot_oi": 1,
           "cot_disagg": 0,
-          "csm_extreme": -1,
+          "csm_extreme": 0,
           "extension": 1,
           "breadth": 1
         },
-        "raw": 1,
-        "cot_available": false
+        "raw": 4,
+        "cot_available": true
       },
       "AUD": {
-        "conviction": -20,
-        "direction": 1,
+        "conviction": -2,
+        "direction": 0,
         "components": {
-          "cot_position": 0,
+          "cot_position": 1,
           "cot_oi": 0,
-          "cot_disagg": 0,
+          "cot_disagg": 2,
           "csm_extreme": -2,
-          "extension": -1,
-          "breadth": 1
+          "extension": 0,
+          "breadth": 0
         },
-        "raw": -2,
-        "cot_available": false
+        "raw": 1,
+        "cot_available": true
       },
       "NZD": {
-        "conviction": 40,
+        "conviction": 52,
         "direction": -1,
         "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
+          "cot_position": 1,
+          "cot_oi": 1,
           "cot_disagg": 0,
           "csm_extreme": 2,
           "extension": 1,
           "breadth": 1
         },
-        "raw": 4,
-        "cot_available": false
+        "raw": 6,
+        "cot_available": true
       },
       "CAD": {
-        "conviction": 20,
+        "conviction": 14,
         "direction": -1,
         "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
+          "cot_position": -1,
+          "cot_oi": -1,
           "cot_disagg": 0,
-          "csm_extreme": 0,
+          "csm_extreme": 1,
           "extension": 1,
           "breadth": 1
         },
-        "raw": 2,
-        "cot_available": false
+        "raw": 1,
+        "cot_available": true
       },
       "JPY": {
         "conviction": 0,
         "direction": 1,
+        "components": {
+          "cot_position": 2,
+          "cot_oi": 0,
+          "cot_disagg": -2,
+          "csm_extreme": 0,
+          "extension": 1,
+          "breadth": -1
+        },
+        "raw": 0,
+        "cot_available": true
+      },
+      "CHF": {
+        "conviction": 30,
+        "direction": 0,
+        "components": {
+          "cot_position": 2,
+          "cot_oi": 0,
+          "cot_disagg": 0,
+          "csm_extreme": 1,
+          "extension": 0,
+          "breadth": 0
+        },
+        "raw": 3,
+        "cot_available": true
+      },
+      "USD": {
+        "conviction": -8,
+        "direction": -1,
         "components": {
           "cot_position": 0,
           "cot_oi": 0,
@@ -1014,53 +1042,25 @@
         },
         "raw": 0,
         "cot_available": false
-      },
-      "CHF": {
-        "conviction": 30,
-        "direction": -1,
-        "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
-          "cot_disagg": 0,
-          "csm_extreme": 0,
-          "extension": 1,
-          "breadth": 2
-        },
-        "raw": 3,
-        "cot_available": false
-      },
-      "USD": {
-        "conviction": -20,
-        "direction": -1,
-        "components": {
-          "cot_position": 0,
-          "cot_oi": 0,
-          "cot_disagg": 0,
-          "csm_extreme": -1,
-          "extension": 0,
-          "breadth": -1
-        },
-        "raw": -2,
-        "cot_available": false
       }
     },
     "pairs": {
-      "EURUSD": 15,
-      "GBPUSD": 10,
-      "USDJPY": -10,
-      "USDCHF": -25,
-      "AUDUSD": 0,
-      "USDCAD": -20,
+      "EURUSD": 20,
+      "GBPUSD": -5,
+      "USDJPY": 0,
+      "USDCHF": -15,
+      "AUDUSD": 5,
+      "USDCAD": -5,
       "NZDUSD": 30,
-      "EURJPY": 5,
-      "GBPJPY": 0,
-      "AUDJPY": -10,
-      "NZDJPY": 20,
-      "CADJPY": 10
+      "EURJPY": 20,
+      "GBPJPY": -5,
+      "AUDJPY": 5,
+      "NZDJPY": 30,
+      "CADJPY": 5
     },
-    "cot_date": "2026-08-25",
-    "cot_stale": true,
-    "updated": "2026-09-04T09:58:55.871074+00:00"
+    "cot_date": "2026-09-01",
+    "cot_stale": false,
+    "updated": "2026-09-05T14:25:06.945750+00:00"
   },
   "csm_delta": {
     "d1": {
