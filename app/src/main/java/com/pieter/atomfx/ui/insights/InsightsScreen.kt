@@ -51,9 +51,13 @@ import java.time.format.DateTimeFormatter
  * Rebuilt 2026-09-03 against `docs/mockups/atom-fx-screen-kit.html`'s `scrInsights()`, the same
  * pass MacroScreen got: the recommendation on a standard card, theme-tagged news/calendar rows as
  * a divided list (not cards — the mockup doesn't card them, only the recommendation), every tag
- * using the Electric Treatment colour formula. Deliberately NOT sharing composables with the
- * bottom sheets (`RecommendationContent`/`CalendarEventRow` in `ui/sheets`) — this is a distinct,
- * card-based presentation for this screen only; the sheets keep their own plain-row look.
+ * using the Electric Treatment colour formula. Deliberately NOT sharing composables with
+ * `CalendarEventRow` in `ui/sheets` — this is a distinct, card-based presentation for this screen
+ * only; the sheets keep their own plain-row look. (`RecommendationSheet`/`RecommendationContent`,
+ * the other composable this used to reference, was retired 2026-09-06 — it duplicated exactly
+ * this screen's own recommendation card field-for-field and lost its only entry point when the
+ * old "Summary" cascade was replaced by `StatusStrip`'s new deterministic Recommendation card;
+ * this screen's AI-narrated card remains the one place that content lives.)
  */
 @Composable
 fun InsightsScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modifier = Modifier) {

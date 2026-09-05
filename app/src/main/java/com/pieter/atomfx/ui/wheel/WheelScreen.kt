@@ -1,8 +1,15 @@
 package com.pieter.atomfx.ui.wheel
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -36,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -107,6 +115,7 @@ fun WheelScreen(
     // bottom-left wing). The other 3 modes (Trend/Momentum/Volatility) are a tap away.
     var mode by remember { mutableStateOf(WheelMode.OVERALL) }
     var timeframe by remember { mutableStateOf(Timeframe.H4) }
+    var csmMode by remember { mutableStateOf(CsmDisplayMode.STRENGTH) }
     val haptics = LocalHapticFeedback.current
     val hapticScope = rememberCoroutineScope()
 
@@ -201,6 +210,7 @@ fun WheelScreen(
                 if (loaded != null) {
                     CsmBarStrip(
                         currencies = loaded.state.currenciesFor(timeframe),
+                        mode = csmMode,
                         colors = colors,
                         onCurrencyClick = { code ->
                             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -215,20 +225,40 @@ fun WheelScreen(
                 // (still-present, for now) corner toggle does, exactly how the old bottom
                 // Strength/Potential buttons duplicated the wheel's old single mode-toggle corner
                 // button rather than requiring its removal first.
+                //
+                // 2026-09-06 (Pieter's ask) — shares this row with CsmModeToggle rather than
+                // getting a row of its own: TimeframeButtons already filled the row edge-to-edge
+                // (each pill `weight(1f)`), so there was no idle space to drop a second control
+                // into — the fix is splitting this row into two narrower clusters, not adding a
+                // new one. 60/40 split, mocked up and approved as an Artifact before shipping.
                 if (loaded != null) {
-                    TimeframeButtons(
-                        timeframe = timeframe,
-                        onChange = {
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            timeframe = it
-                            hapticScope.launch {
-                                delay(150)
-                                haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-                            }
-                        },
-                        colors = colors,
+                    Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    )
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        TimeframeButtons(
+                            timeframe = timeframe,
+                            onChange = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                timeframe = it
+                                hapticScope.launch {
+                                    delay(150)
+                                    haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                                }
+                            },
+                            colors = colors,
+                            modifier = Modifier.weight(1.4f),
+                        )
+                        CsmModeToggle(
+                            mode = csmMode,
+                            onChange = {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                csmMode = it
+                            },
+                            colors = colors,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
 
                 // Zero-height phantom child — gives EvenlySpacedColumn a trailing gap slot (TF
@@ -297,17 +327,35 @@ private fun WheelArea(
 private val CSM_BAR_AREA_HEIGHT = 52.dp
 private val CSM_LABEL_SPACING = 4.dp
 private val CSM_BAR_GAP = 4.dp
-private val CSM_BAR_CORNER = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+private val CSM_BAR_CORNER_TOP = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+private val CSM_BAR_CORNER_BOTTOM = RoundedCornerShape(bottomStart = 3.dp, bottomEnd = 3.dp)
+
+// 2026-09-06 (Pieter's ask) — tried overlaying Flow onto the Strength bar directly (a lighter cap
+// on top), didn't land ("not a huge fan"). Settled instead on two full, distinct views sharing the
+// same strip, switched via CsmModeToggle: STRENGTH (today's plain bars, unchanged) and FLOW (a new
+// diverging chart off a zero-line). A max |csm_delta| this large fills the chart's half-height —
+// delta isn't bounded 0-100 the way CSM level is, so this needs its own scale, picked from the
+// magnitudes conviction.py/rank.py already treat as "a large divergence" (~20-30) rather than an
+// arbitrary number. Tune here if real data reads too flat or too maxed-out.
+private const val CSM_FLOW_SCALE_MAX = 20f
+
+/** Which field the Currency Strength strip currently plots — see [CsmModeToggle]. */
+private enum class CsmDisplayMode { STRENGTH, FLOW }
 
 /**
  * The Currency Strength Meter, always visible below the wheel (2026-09-04 — see the doc comment
- * on [WheelScreen]). Plain bars for now — deliberately unstyled beyond basic legibility, since
- * this step is only proving the vertical space budget; the "stunning, echoes the wheel" visual
- * pass is the next, separate step once this fits on-device.
+ * on [WheelScreen]). 2026-09-06 (Pieter's ask, mocked up and approved as an Artifact first) — now
+ * two interchangeable views rather than one: STRENGTH is the original, unchanged (CSM level,
+ * bottom-anchored wash bars); FLOW replaces it entirely with a diverging chart (csm_delta, bars
+ * growing up/down from a centre zero-line, solid bull/bear) rather than drawing both on one bar —
+ * CSM is a level, Delta is a direction of travel (see the Library's own CSM Delta entry), and two
+ * genuinely different chart shapes make which one you're looking at obvious without reading a
+ * label, the same reasoning the wheel's own per-wing colour language already leans on.
  */
 @Composable
 private fun CsmBarStrip(
     currencies: List<CurrencySeg>,
+    mode: CsmDisplayMode,
     colors: AtomColors,
     onCurrencyClick: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -326,7 +374,6 @@ private fun CsmBarStrip(
             verticalAlignment = Alignment.Bottom,
         ) {
             ordered.forEach { c ->
-                val barColor = if (c.tint == Tint.BULL) colors.bull else colors.bear
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -339,19 +386,64 @@ private fun CsmBarStrip(
                         // directly on the page background either. Whole track is now the tap
                         // target too (was just the filled portion), matching how the visible slot
                         // reads once it has a background of its own.
-                        .background(colors.surfaceRaised, CSM_BAR_CORNER)
-                        .pressWash(CSM_BAR_CORNER) {
+                        .background(colors.surfaceRaised, CSM_BAR_CORNER_TOP)
+                        .pressWash(CSM_BAR_CORNER_TOP) {
                             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             onCurrencyClick(c.code)
                         },
-                    contentAlignment = Alignment.BottomCenter,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(fraction = (c.strength / 100f).coerceIn(0.05f, 1f))
-                            .background(barColor.copy(alpha = PAIR_WASH_ALPHA), CSM_BAR_CORNER),
-                    )
+                    when (mode) {
+                        CsmDisplayMode.STRENGTH -> {
+                            // 2026-09-06 (Pieter's ask) — solid now, not a 28%-alpha wash, so
+                            // Strength and Flow bars read at the same brightness when toggling
+                            // between them rather than Strength looking muted by comparison.
+                            val barColor = if (c.tint == Tint.BULL) colors.bull else colors.bear
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(fraction = (c.strength / 100f).coerceIn(0.05f, 1f))
+                                    .background(barColor, CSM_BAR_CORNER_TOP),
+                            )
+                        }
+                        CsmDisplayMode.FLOW -> {
+                            // Two equal halves, split at the zero-line: an "up" bar grows from the
+                            // top half's own bottom edge (= the zero-line) upward; a "down" bar
+                            // grows from the bottom half's own top edge (= the zero-line)
+                            // downward. Same fillMaxHeight(fraction) idiom STRENGTH mode already
+                            // uses, just anchored to a half-height container instead of the full
+                            // track.
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                                    if (c.delta > 0.0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(fraction = (c.delta.toFloat() / CSM_FLOW_SCALE_MAX).coerceIn(0f, 1f))
+                                                .background(colors.bull, CSM_BAR_CORNER_TOP),
+                                        )
+                                    }
+                                }
+                                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                                    if (c.delta < 0.0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(fraction = (kotlin.math.abs(c.delta).toFloat() / CSM_FLOW_SCALE_MAX).coerceIn(0f, 1f))
+                                                .background(colors.bear, CSM_BAR_CORNER_BOTTOM),
+                                        )
+                                    }
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(colors.hairlineStrong),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -406,6 +498,100 @@ private fun TimeframeButtons(
                         fontWeight = FontWeight.Normal,
                     ),
                 )
+            }
+        }
+    }
+}
+
+private val CSM_MODE_SHAPE = RoundedCornerShape(12.dp)
+private val CSM_MODE_CHIP_SHAPE = RoundedCornerShape(9.dp)
+
+private val CSM_MODE_INDICATOR_SPRING = spring<Dp>(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+// Matches TimeframeButtons' own effective height (12dp vertical padding + Caption line) closely
+// enough for the two clusters to look paired in the shared row — tune if they read mismatched.
+private val CSM_MODE_HEIGHT = 40.dp
+
+/**
+ * 2026-09-06 (Pieter's ask, mocked up first) — the Strength/Flow segmented control. `TimeframeButtons`
+ * already fills the row edge-to-edge (each pill is `weight(1f)`, no idle space to drop a second
+ * control into), so this doesn't add a new row — the call site gives the two controls a shared
+ * `Row`, `TimeframeButtons` narrower than before, this one taking the rest. A true segmented
+ * control (one padded track, an inset "chip" behind whichever side is active) rather than two
+ * separate pills — visually distinct from the D1/H4/H1 cluster on purpose, since it's a different
+ * kind of choice (which field, not which timeframe), not a fourth timeframe option.
+ *
+ * 2026-09-06 follow-up (Pieter's ask) — the active chip now slides between the two sides instead
+ * of popping in/out. One indicator `Box`, positioned with an animated `offset(x=)` computed from
+ * `BoxWithConstraints`' own measured width (there are exactly 2 equal segments, so this doesn't
+ * need a generic N-segment layout), sitting behind a plain overlay `Row` of the two clickable
+ * labels.
+ *
+ * Real crash, fixed same day — the first cut used `height(IntrinsicSize.Min)` on the
+ * `BoxWithConstraints` itself so the indicator's `fillMaxHeight()` could match the label row's
+ * natural height. `BoxWithConstraints` is built on `SubcomposeLayout`, and Compose explicitly
+ * does not support intrinsic measurement through a `SubcomposeLayout` — crashed at app launch the
+ * instant this sat inside `EvenlySpacedColumn` (which measures its children's intrinsic height to
+ * distribute leftover space). Fixed height instead (`CSM_MODE_HEIGHT`) — no intrinsics involved.
+ */
+@Composable
+private fun CsmModeToggle(
+    mode: CsmDisplayMode,
+    onChange: (CsmDisplayMode) -> Unit,
+    colors: AtomColors,
+    modifier: Modifier = Modifier,
+) {
+    val haptics = LocalHapticFeedback.current
+    val gap = 3.dp
+    BoxWithConstraints(
+        modifier = modifier
+            .height(CSM_MODE_HEIGHT)
+            .background(colors.controlSurface, CSM_MODE_SHAPE)
+            .border(1.dp, colors.controlBorder, CSM_MODE_SHAPE)
+            .padding(3.dp),
+    ) {
+        val segmentWidth = (maxWidth - gap) / 2
+        val indicatorOffset by animateDpAsState(
+            targetValue = if (mode == CsmDisplayMode.STRENGTH) 0.dp else segmentWidth + gap,
+            animationSpec = CSM_MODE_INDICATOR_SPRING,
+            label = "csmModeIndicator",
+        )
+        Box(
+            modifier = Modifier
+                .offset(x = indicatorOffset)
+                .width(segmentWidth)
+                .fillMaxHeight()
+                .background(colors.surface, CSM_MODE_CHIP_SHAPE),
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+            listOf(CsmDisplayMode.STRENGTH to "Strength", CsmDisplayMode.FLOW to "Flow").forEach { (m, label) ->
+                val active = m == mode
+                // 2026-09-06 (Pieter's ask) — no press wash here: a plain `clickable` with
+                // `indication = null` instead of this app's usual `pressWash`. The sliding
+                // indicator already gives this control its own feedback language; a ripple wash
+                // on top of that read as one animation fighting another.
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) {
+                            if (!active) {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onChange(m)
+                            }
+                        }
+                        .padding(vertical = 9.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = label,
+                        style = AtomType.Caption.copy(
+                            color = if (active) colors.textPrimary else colors.textMuted,
+                            fontWeight = FontWeight.Normal,
+                        ),
+                    )
+                }
             }
         }
     }

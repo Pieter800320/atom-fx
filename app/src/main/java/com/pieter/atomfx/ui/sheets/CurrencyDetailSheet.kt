@@ -25,8 +25,10 @@ import com.pieter.atomfx.ui.theme.AtomType
 
 /**
  * Design's `CurrencyDetailSheet`: CSM 3-TF + breadth + drivers + expressing pairs. Reached by
- * tapping a specific currency (StatusStrip's Leader/Laggard values, `CurrencyFlowSheet`'s
- * leader/laggard rows) — distinct from the market-wide `CurrencyFlowSheet` (Flow ring tap).
+ * tapping any bar on the Currency Strength strip (`WheelScreen.kt`'s `CsmBarStrip`), in either of
+ * its Strength/Flow modes. (Previously also reachable via StatusStrip's Leader/Laggard cascade
+ * rows and the market-wide `CurrencyFlowSheet`'s own leader/laggard rows — both retired
+ * 2026-09-06 along with the cascade itself; the CSM strip is this sheet's one entry point now.)
  *
  * 2026-09-03 — visual pass to match Regime/Flow/Breadth: D1/H4/H1 strength+driver collapsed from
  * six plain rows into three tinted squares (`MomentumSheet`'s own label-above/value+delta

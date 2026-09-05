@@ -107,7 +107,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Currency Strength",
         summary = "How much a currency's CSM has moved over a defined lookback — \"getting stronger\" vs \"strong.\"",
         howItWorks = "Recomputes CSM on a price history sliced back by a fixed offset — about a day for D1/H4, six hours for H1 — using the exact same CSM function, then subtracts: now minus then.",
-        whyItMatters = "CSM tells you a level; Delta tells you a direction of travel — together they separate a currency that's strong-and-fading from one that's strong-and-accelerating.",
+        whyItMatters = "CSM tells you a level; Delta tells you a direction of travel — together they separate a currency that's strong-and-fading from one that's strong-and-accelerating. 2026-09-06 — the Currency Strength strip now has a Strength/Flow toggle (sharing the D1/H4/H1 row) that switches which one it plots: Strength is the familiar bottom-anchored level bars; Flow replaces the chart entirely with a diverging view off a zero-line — bars grow up for strengthening, down for weakening, sized by Delta. Two different chart shapes on purpose, not the same bars recoloured, so which one you're looking at is obvious without reading a label.",
     ),
     LibraryEntry(
         id = "currency-flow",
@@ -115,7 +115,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Currency Strength",
         summary = "The fastest-moving currencies right now, by CSM Delta — not the strongest/weakest in absolute terms.",
         howItWorks = "Leader = the currency with the highest H4 CSM Delta; laggard = the lowest. Absolute leader/laggard is a separate, simpler read: whichever currency has the highest or lowest raw CSM level right now, regardless of how fast it's moving.",
-        whyItMatters = "A currency can be an absolute laggard (weak) while still being the flow leader (getting less weak, fastest) — the two numbers answer different questions, and the app deliberately keeps them apart rather than blending them.",
+        whyItMatters = "A currency can be an absolute laggard (weak) while still being the flow leader (getting less weak, fastest) — the two numbers answer different questions, and the app deliberately keeps them apart rather than blending them. 2026-09-06 — the dedicated Currency Flow sheet (a market-wide, sorted-by-strength list) was retired along with the old Summary cascade, its only entry point; the Currency Strength strip's own Flow view (tap Strength/Flow below the wheel) is where this now lives visually, per-currency rather than as a single named leader/laggard pair.",
     ),
     LibraryEntry(
         id = "breadth",
@@ -131,7 +131,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Setup Quality",
         summary = "0–10. A deterministic, frozen quality score for a pair's trade idea — independent of Potential.",
         howItWorks = "A weighted blend: Continuation 25%, CMP 20%, momentum delta 15%, D1 CSM divergence 20%, regime fit 10%, cross-asset tailwinds 10%. Pairs with a Continuation Score below 45 are excluded from ranking entirely.",
-        whyItMatters = "2026-09-05 — no longer shown on the pair sheet directly (the old Entry tab, its only visible home, was retired along with the six-factor gate it fed). Still computed every scan and still feeds `potential.py`'s own Level/State internally — the Home screen's Summary cascade TOP PAIR row still reads that path — but the number itself isn't surfaced as its own UI element any more; the pair sheet's headline number is now Overall (`cont`), a different score with a different job.",
+        whyItMatters = "2026-09-05 — no longer shown on the pair sheet directly (the old Entry tab, its only visible home, was retired along with the six-factor gate it fed). Still computed every scan and still feeds `potential.py`'s own Level/State internally, but the number itself isn't surfaced as its own UI element any more; the pair sheet's headline number is now Overall (`cont`), a different score with a different job. 2026-09-06 — the Home screen's own \"Summary\" cascade, which used to read `potential.py`'s Level/State path for its TOP PAIR row, is retired too (see \"Recommendation Engine\"'s own entry) — that path's last remaining UI reader is gone.",
     ),
     LibraryEntry(
         id = "continuation",
@@ -227,7 +227,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Alerts & Recommendation",
         summary = "One headline trade idea per scan — a deterministic pick, with AI only writing the explanation.",
         howItWorks = "A fully deterministic \"seed\" picks the bias, action, primary pair, direction, confidence, and next catalyst from data already in signals.json — no model is involved in that decision. An optional AI call then writes the human-readable headline, rationale, and invalidation text around that seed; if the model's wording ever contradicted the seed, the seed wins, not the model. If the AI call fails for any reason, no recommendation is published at all, rather than showing something half-written.",
-        whyItMatters = "Worth knowing which parts of a recommendation are computed and which are narrated — the pair, direction and confidence are a real signal; the prose around them is commentary on that signal, not a separate one.",
+        whyItMatters = "Worth knowing which parts of a recommendation are computed and which are narrated — the pair, direction and confidence are a real signal; the prose around them is commentary on that signal, not a separate one. 2026-09-06 — the app now shows both halves separately rather than only the merged, AI-narrated version. The Home screen's own \"RECOMMENDATION\" card (replacing the old 9-button \"Summary\" cascade) reads only the deterministic seed — pair, direction, confidence, plus that pair's own Regime/Trend/Momentum/Volatility consensus dots (the same four the pair sheet's Overview tab shows) — never the AI text, and refreshes every hourly scan since no model call is involved. Insights keeps the full AI-narrated version (headline, rationale, invalidation, next catalyst) on its own slower cadence. Two genuinely different vantage points on the same underlying pick, not the same sentence shown twice.",
     ),
     LibraryEntry(
         id = "level-ema-alerts",

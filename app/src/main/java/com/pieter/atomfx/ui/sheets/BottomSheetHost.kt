@@ -33,9 +33,6 @@ sealed interface SheetTarget {
     /** Design §12's right edge panel — summoned from the header, not a ring/node/nucleus tap. */
     data object Calendar : SheetTarget
 
-    /** Design §12's left edge panel — summoned from the header (Phase 7). */
-    data object Recommendation : SheetTarget
-
     /** Design §16 — long-press a node opens its 3-TF close-price chart (Phase 9). */
     data class Chart(val pair: String) : SheetTarget
 
@@ -89,9 +86,17 @@ fun BottomSheetHost(
         ) {
             when (target) {
                 SheetTarget.Nucleus -> RegimeSheet(signals, colors, onOpenReading)
+                // 2026-09-06 — `SheetTarget.Ring`/`WheelTapTarget.Ring` is unreachable from any
+                // real tap (the "factor pill row" this routed from was already removed from the
+                // wheel itself, and `WheelCanvas.hitTest` never emits `.Ring`) — confirmed while
+                // retiring `CurrencyFlowSheet` (Factor.FLOW's target), whose only real entry point
+                // was the just-removed Summary cascade. Left as an empty case rather than a
+                // guessed replacement; the whole `is SheetTarget.Ring` arm (and BreadthSheet,
+                // Factor.MOMENTUM/STRUCTURE/ENTRY's `topPair()` picks below) is dead code worth a
+                // dedicated cleanup pass, not bundled into this one.
                 is SheetTarget.Ring -> when (target.factor) {
                     Factor.REGIME -> RegimeSheet(signals, colors, onOpenReading)
-                    Factor.FLOW -> CurrencyFlowSheet(signals, colors, onCurrencyClick = { onNavigate(SheetTarget.Currency(it)) })
+                    Factor.FLOW -> {}
                     Factor.BREADTH -> BreadthSheet(signals, colors)
                     // PairSheet's tabs collapsed to [Overview, Breakdown] (2026-09-03) — Momentum/
                     // Structure/Entry all now live in the single Breakdown tab (index 1).
@@ -106,7 +111,6 @@ fun BottomSheetHost(
                 }
 
                 SheetTarget.Calendar -> CalendarSheet(signals, colors)
-                SheetTarget.Recommendation -> RecommendationSheet(signals, colors)
                 is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
                 is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors, onPairClick = { onNavigate(SheetTarget.Node(it)) })
                 is SheetTarget.CrossAsset -> CrossAssetSheet(target.id, signals, colors)

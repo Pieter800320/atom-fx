@@ -57,9 +57,12 @@ data class PairNode(
     val direction: Direction,
     // 2026-09-05 — level/state/potential/factorsPassed/blockedAt are the old six-factor gate's
     // output (`potential.py`, still frozen-adjacent EXTEND, not yet retired backend-side). No
-    // longer read by the wheel itself (see WheelMode below) — kept only for the pair sheet's
-    // current WHY checklist and the Summary cascade's `topPair()`, both slated for their own
-    // reframe next. Don't wire new wheel behaviour to these; use `cont` instead.
+    // longer read by the wheel itself (see WheelMode below). `factorsPassed` (Factor.REGIME only)
+    // is still read by the pair sheet's Overview row and by StatusStrip's own Recommendation card
+    // (both want the same "does the regime already agree" flag) — the rest of this group
+    // (level/state/potential/blockedAt) has no UI reader left as of 2026-09-06, when the Summary
+    // cascade's `topPair()` (its last one) was retired along with it. Don't wire new behaviour to
+    // any of these; use `cont` instead.
     val level: Int, // 0..6
     val state: PotentialState,
     val potential: Int, // 0..100
