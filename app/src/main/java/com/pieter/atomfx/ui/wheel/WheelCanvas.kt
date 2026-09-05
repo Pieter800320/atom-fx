@@ -374,7 +374,7 @@ private fun DrawScope.drawDial(
     drawCrossAssetRing(state, colors, isDark, cx, cy, half, tapFlash)
     drawCornerButtons(mode, colors, isDark, cx, cy, half, tapFlash)
     drawPairRing(state, mode, colors, cx, cy, half, fillAnims, tapFlash)
-    drawHub(state, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
+    drawHub(state.nucleus, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
 }
 
 /** Reads the current tap-flash value (0f if never/no-longer flashing) for [key]. */
@@ -551,6 +551,17 @@ private fun DrawScope.drawCornerButtons(
  * their full range on real data, checked before adding this) stretches the low end open while
  * still preserving order and both anchors (exactly neutral stays at 0%, max-extreme stays at
  * 100%) — a real 8% reading shows as a legible ~28%, not a barely-there sliver.
+ *
+ * 2026-09-06 (Pieter's own settled call, after trying and reverting a D1/H4/H1 toggle across the
+ * whole wheel) — every value here is a FIXED timeframe, deliberately: H4 Regime (hub) + H4 Trend
+ * + D1 Momentum + D1 Volatility, a consensus set, not a togglable one. Not arbitrary — Trend/ADX
+ * is only ever computed at H4 in this system (no D1/H1 variant exists at all), and Volatility/ATR
+ * percentile is computed from D1 candles by default (H4 only as a rare fallback for insufficient
+ * D1 history) — so Volatility already reads the exact same candles Momentum does, the strongest
+ * possible same-timeframe confirmation, while Trend directly shares its H4 timeframe with the H4
+ * CSM-divergence/regime-fit/ADX-gate inputs that dominate Overall's own formula. Confirming
+ * across H4 Regime → H4 Trend → D1 Momentum → D1 Volatility is a real top-down funnel (macro
+ * backdrop → is it persistent → which way → is now sane), not a mix-and-match toggle.
  */
 private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
     WheelMode.OVERALL -> node.cont.coerceIn(0, 100) / 100f
@@ -562,8 +573,14 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
 /**
  * Which hue fills a pair's wedge under the current [mode]. Momentum (D1) is the same 0..100/
  * 50-neutral shape CSM strength already used on the old currency ring, so it gets the same >=50
- * rule. Overall and Trend are direction-agnostic reads on their own (setup quality and trend
- * strength don't carry a sign) — each takes its colour from the pair's own `direction` instead.
+ * rule. Overall is a direction-agnostic read on its own (setup quality doesn't carry a sign) —
+ * it takes its colour from the pair's own overall `direction` instead. Trend colours from
+ * [PairNode.trendDirection] (the H4 pill), NOT `direction` — ADX is computed on H4, so its
+ * direction read has to match that timeframe; a pair can show real H4 trend strength while its
+ * overall D1-derived `direction` nets neutral, and tinting off the wrong one drew a grey wedge
+ * next to a strong ADX reading, an internal contradiction (Pieter's own catch, 2026-09-06). When
+ * ADX is genuinely trending (>=25) but H4 itself reads neutral, that mismatch is worth flagging
+ * on its own — watch-tinted, same register Volatility already uses for "outside the norm."
  * Volatility is different again: it isn't bullish or bearish at all, so direction-tinting it would
  * be meaningless — instead it uses the same 20-70 "sane band" language already established in the
  * Library (`atr-percentile` entry): inside the band reads as calm/tradeable (bull-tinted), outside
@@ -572,7 +589,11 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
     WheelMode.OVERALL -> tintForDir(node.direction, colors)
     WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.bull else colors.bear
-    WheelMode.TREND -> tintForDir(node.direction, colors)
+    WheelMode.TREND -> if (node.adx >= 25 && node.trendDirection == Direction.NEUTRAL) {
+        colors.watch
+    } else {
+        tintForDir(node.trendDirection, colors)
+    }
     WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.bull else colors.watch
 }
 
@@ -629,12 +650,12 @@ private fun tintForDir(direction: Direction, colors: AtomColors): Color = when (
 }
 
 private fun DrawScope.drawHub(
-    state: WheelUiState, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    nucleus: NucleusState, colors: AtomColors, cx: Float, cy: Float, half: Float,
     dotAlpha: Float, textMeasurer: TextMeasurer, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val r = WheelGeometry.HUB_FRAC * half
     val center = Offset(cx, cy)
-    val tint = tintColor(state.nucleus.tint, colors)
+    val tint = tintColor(nucleus.tint, colors)
 
     // Soft ambient shadow — lifts the hub off the dial, a touch of 3-D depth (Design §1's
     // "depth comes from light and blur" — dark shadow works in both themes, unlike a status glow).
@@ -654,7 +675,7 @@ private fun DrawScope.drawHub(
         // scale); now the actual Caption/Title tokens, which also gives the hub Inter once
         // AtomType picks it up, and drops a fifth ad-hoc font weight nothing else used.
         add("REGIME" to AtomType.Caption.copy(color = colors.textMuted))
-        add(state.nucleus.regimeLabel to AtomType.Title.copy(color = tint))
+        add(nucleus.regimeLabel to AtomType.Title.copy(color = tint))
     }
     val laid = lines.map { (t, s) -> textMeasurer.measure(t, s) }
     val totalH = laid.sumOf { it.size.height }

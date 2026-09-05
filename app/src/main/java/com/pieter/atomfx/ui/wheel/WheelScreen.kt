@@ -70,12 +70,19 @@ private val CARD_TOP_SPACING = 16.dp
  * StatusStrip's Summary button (same `CARD_SHAPE`, same padding recipe, so "same height" falls
  * out of reusing the recipe rather than a copied dp constant).
  *
- * The wheel's 4 corner wings are direct mode-selectors — Overall/Trend(ADX)/Momentum(D1)/
- * Volatility (renamed 2026-09-05 from Potential/ADX/Momentum/Reset — Pieter's own call: those
- * four didn't map to a mental model he could hold onto; Structure was deliberately left off the
- * wheel entirely, see WheelMode's own doc comment), all reading the same 12-pair ring
- * (`WheelCanvas.kt`/`WheelGeometry.kt`) — CSM/currency strength has no wheel mode of its own any
- * more, only the always-visible strip below.
+ * The wheel's 4 corner wings are direct mode-selectors — Overall/Trend(ADX, fixed H4)/Momentum
+ * (fixed D1)/Volatility (fixed D1) — renamed 2026-09-05 from Potential/ADX/Momentum/Reset
+ * (Pieter's own call: those four didn't map to a mental model he could hold onto; Structure was
+ * deliberately left off the wheel entirely, see WheelMode's own doc comment), all reading the
+ * same 12-pair ring (`WheelCanvas.kt`/`WheelGeometry.kt`) — CSM/currency strength has no wheel
+ * mode of its own any more, only the always-visible strip below.
+ *
+ * 2026-09-06 — `timeframe` (the D1/H4/H1 row below the CSM strip) drives ONLY the CSM strip
+ * (`currenciesFor`). A same-session attempt to also wire it to the hub and the Momentum wing was
+ * tried and reverted — Pieter's own second-thought call: the wheel is meant to be a fixed,
+ * "at a glance" consensus (H4 Regime, H4 Trend, D1 Momentum, D1 Volatility), not a togglable one.
+ * See `WheelCanvas.modeFillFrac`'s own doc comment for the mathematical reasoning behind which
+ * fixed timeframe each wing uses.
  * One thing still deliberately unfinished: the CSM bar strip is plain bars, not yet the
  * "stunning, echoes the wheel" visual pass — the layout/space-budget step (§17) is done and
  * verified on-device; only the visual polish pass on that one component remains.

@@ -242,6 +242,12 @@ private fun OverviewChecklist(node: PairNode, signals: Signals, pairBlock: PairB
 
 private data class OverviewRow(val label: String, val tint: OverviewTint, val explanation: String, val value: String)
 
+// 2026-09-06 — each row's timeframe is now named in its own label (H4/D1), not left implicit,
+// and each is FIXED — Pieter's own settled call after weighing a togglable wheel and rejecting
+// it: Regime/Trend/Momentum/Volatility form a deliberate consensus set (H4 Regime, H4 Trend, D1
+// Momentum, D1 Volatility), not four independent dials. See WheelCanvas.modeFillFrac's own doc
+// comment for the full mathematical reasoning (Trend has no D1/H1 variant at all; Volatility is
+// D1 by construction, the same candles Momentum reads).
 private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?): List<OverviewRow> {
     val regime = signals.regimeH4
     val h4Structure = pairBlock?.structure?.h4
@@ -250,7 +256,7 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
 
     val regimeAligned = Factor.REGIME in node.factorsPassed
     val regimeRow = OverviewRow(
-        label = "REGIME",
+        label = "REGIME (H4)",
         tint = if (regimeAligned) OverviewTint.BULL else OverviewTint.NEUTRAL,
         explanation = if (regimeAligned) {
             "H4 regime supports this pair's ${directionWord(dir).lowercase()} bias."
@@ -260,23 +266,39 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
         value = "${regime?.regime ?: "—"} · ${regime?.confidence ?: "—"}",
     )
 
+    // 2026-09-06 (Pieter's own catch) — was tinted off `node.direction`, the pair's overall
+    // D1-derived bias, while the text described H4's own ADX: a pair can show real, persistent
+    // H4 directional movement (ADX 25+) while the D1 composite nets neutral, and that read as a
+    // grey wedge next to text saying "strong trend" — an internal contradiction, not a subtle
+    // one. Tint and text now both come off `node.trendDirection` (the H4 pill), the same field
+    // the wheel's own Trend wing uses (WheelCanvas.modeHue) — one source, not two.
+    val h4Direction = node.trendDirection
+    val trendUnconfirmed = node.adx >= 25 && h4Direction == Direction.NEUTRAL
+    // Succinct on purpose (Pieter's ask) — "X is happening, good/bad/meh," one short line, not a
+    // paragraph. ADX 60+ still gets its own "risky" word rather than just "strong," since a
+    // reading that rare (see the Library's ADX entry) is genuinely a different situation from a
+    // garden-variety 25-40, not more of the same.
     val trendRow = OverviewRow(
-        label = "TREND",
-        tint = when (dir) {
-            Direction.BULL -> OverviewTint.BULL
-            Direction.BEAR -> OverviewTint.BEAR
-            Direction.NEUTRAL -> OverviewTint.NEUTRAL
+        label = "TREND (H4)",
+        tint = when {
+            trendUnconfirmed -> OverviewTint.WATCH
+            h4Direction == Direction.BULL -> OverviewTint.BULL
+            h4Direction == Direction.BEAR -> OverviewTint.BEAR
+            else -> OverviewTint.NEUTRAL
         },
         explanation = when {
-            node.adx >= 25 -> "Strong trend on H4."
-            node.adx >= 15 -> "Building trend strength on H4."
-            else -> "No real trend on H4 — choppy or directionless."
+            trendUnconfirmed -> "Trending on H4, but direction unconfirmed."
+            node.adx >= 60 -> "Extreme trend on H4 — exhaustion risk."
+            node.adx >= 40 -> "Very strong trend on H4."
+            node.adx >= 25 -> "Trending on H4."
+            node.adx >= 15 -> "Trend building on H4."
+            else -> "No trend on H4 — choppy."
         },
-        value = "ADX ${node.adx}",
+        value = "ADX ${node.adx} · ${pillAbbrevForTrend(pairBlock?.pills?.h4)}",
     )
 
     val momentumRow = OverviewRow(
-        label = "MOMENTUM",
+        label = "MOMENTUM (D1)",
         tint = if (node.momentum >= 50) OverviewTint.BULL else OverviewTint.BEAR,
         explanation = when {
             node.momentum >= 50 && (dd1 ?: 0) > 0 -> "Bullish momentum, strengthening."
@@ -288,7 +310,7 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     )
 
     val volatilityRow = OverviewRow(
-        label = "VOLATILITY",
+        label = "VOLATILITY (D1)",
         tint = if (node.volatility in 20..70) OverviewTint.BULL else OverviewTint.WATCH,
         explanation = when {
             node.volatility < 20 -> "Compressed — too quiet to trust a breakout yet."
@@ -299,7 +321,7 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     )
 
     val structureRow = OverviewRow(
-        label = "STRUCTURE",
+        label = "STRUCTURE (H4)",
         tint = when (h4Structure?.event) {
             "BOS" -> OverviewTint.BULL
             "CHoCH" -> OverviewTint.BEAR
@@ -314,6 +336,17 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     )
 
     return listOf(regimeRow, trendRow, momentumRow, volatilityRow, structureRow)
+}
+
+// Same SB/B/N/S/SS vocabulary TfAlignmentStrip's own pillAbbrev uses (that file's copy is
+// private to it, not shared) — kept identical so the same pill never reads two different ways
+// on the same sheet.
+private fun pillAbbrevForTrend(pill: String?): String = when (pill) {
+    "bull_strong" -> "SB"
+    "bull" -> "B"
+    "bear" -> "S"
+    "bear_strong" -> "SS"
+    else -> "N"
 }
 
 private fun directionWord(direction: Direction): String = when (direction) {

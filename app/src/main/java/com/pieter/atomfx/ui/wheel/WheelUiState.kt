@@ -72,6 +72,11 @@ data class PairNode(
     // inherently bullish or bearish at all — see WheelCanvas.modeHue.
     // Unsigned 0..100, 50 = neutral — pairs[pair].mom.d1, the frozen D1-only momentum oscillator
     // (not the D1/H4/H1-blended CMP — Pieter's own pick: a fast-moving, single-timeframe read).
+    // Fixed at D1 everywhere it's used (the wheel's Momentum wing and the pair sheet's Overview
+    // row alike) — 2026-09-06, Pieter's own settled call: the wheel is a deliberate, fixed-TF
+    // consensus (H4 Regime, H4 Trend, D1 Momentum, D1 Volatility), not a togglable one. A D1/H4/H1
+    // toggle was tried and reverted the same session — see WheelScreen's TimeframeButtons doc
+    // comment for why it stays scoped to the CSM strip only.
     val momentum: Int = 0,
     // 0..100ish (ADX is mathematically bounded 0-100 but rarely exceeds ~60-70 in practice) —
     // pairs[pair].adx, frozen trend-strength indicator. This *is* Trend — ADX literally measures
@@ -86,6 +91,13 @@ data class PairNode(
     // read across TF alignment/entry position/CSM divergence/regime fit/session fit — this is the
     // wheel's new Overall/flagship mode, replacing the old six-factor Level/Potential score.
     val cont: Int = 0,
+    // 2026-09-06 (Pieter's own catch) — pills[pair].h4's own direction, deliberately separate
+    // from `direction` above (which is the pair's overall D1-derived bias). `adx` is computed on
+    // H4, so the Trend wing/row needs H4's own directional read, not D1's — a pair can show real
+    // H4 trend strength (high ADX) while its D1 composite nets neutral; tinting Trend off
+    // `direction` in that case drew a grey wedge next to a "strong trend" reading, an internal
+    // contradiction. See WheelCanvas.modeHue's TREND case and PairSheet's trendRow.
+    val trendDirection: Direction = Direction.NEUTRAL,
 )
 
 /** One currency wedge in CURRENCIES mode. */
@@ -126,7 +138,7 @@ data class RingDescriptor(
 )
 
 data class WheelUiState(
-    val nucleus: NucleusState,
+    val nucleus: NucleusState,   // fixed H4 — regime_h4, part of the wheel's own consensus set
     val nodes: List<PairNode>,             // size 12, PAIR_ORDER order (PAIRS mode)
     val rings: List<RingDescriptor>,       // size 6, the six factor legend pills
     val currencies: List<CurrencySeg> = emptyList(),   // size 8, H4 (CURRENCIES mode default)

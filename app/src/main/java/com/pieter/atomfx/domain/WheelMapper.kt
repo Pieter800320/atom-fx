@@ -51,12 +51,14 @@ object WheelMapper {
         val adxScore = pairBlock?.adx?.roundToInt() ?: 0
         val volatilityScore = pairBlock?.atrPct ?: 0
         val contScore = pairBlock?.cont ?: 0
+        val trendDir = mapPillDirection(pairBlock?.pills?.h4)
 
         val entry = signals.potential[pair]
         if (entry == null) {
             return PairNode(
                 pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null,
                 momentum = momentumScore, adx = adxScore, volatility = volatilityScore, cont = contScore,
+                trendDirection = trendDir,
             )
         }
         return PairNode(
@@ -72,7 +74,16 @@ object WheelMapper {
             adx = adxScore,
             volatility = volatilityScore,
             cont = contScore,
+            trendDirection = trendDir,
         )
+    }
+
+    /** ADX (Trend) is computed on H4, so its own direction read must come from the H4 pill, not
+     *  the pair's overall D1-derived `direction` — see PairNode.trendDirection's own doc comment. */
+    private fun mapPillDirection(pill: String?): Direction = when (pill) {
+        "bull", "bull_strong" -> Direction.BULL
+        "bear", "bear_strong" -> Direction.BEAR
+        else -> Direction.NEUTRAL
     }
 
     private fun mapDirection(raw: String?): Direction = when (raw) {
@@ -179,6 +190,9 @@ object WheelMapper {
     }
 
     // ── Nucleus / hub ────────────────────────────────────────────────────────────────────────
+    // Fixed at H4, deliberately (2026-09-06, Pieter's own settled call) — part of the wheel's own
+    // consensus set (H4 Regime, H4 Trend, D1 Momentum, D1 Volatility), not a togglable read. A
+    // D1/H4/H1 toggle here was tried and reverted the same session.
     private fun mapNucleus(signals: Signals): NucleusState {
         val regime = signals.regimeH4
         val regimeName = regime?.regime ?: "Unknown"
