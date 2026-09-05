@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-04T23:37:00.735146+00:00",
+  "updated": "2026-09-05T02:22:12.622196+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79700.0,
-      "delta_pct": -1.9,
+      "value": 79586.0,
+      "delta_pct": -2.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT accelerated: Strong NFP supports JPY carry unwind through risk-off sentiment.",
-    "updated": "2026-09-04T23:37:00.735146+00:00"
+    "text": "NZDJPY SHORT: Strong NFP accelerates JPY weakness via risk-on sentiment, undermining short thesis materially.",
+    "updated": "2026-09-05T02:22:12.622196+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Copper strength challenges setup, risk-on favors NZD.\n\nCADJPY SHORT: Risk-on medium supports CAD, weakens short case.\n\nGBPJPY SHORT: Mixed regime confirms JPY strength, supports short.",
+    "text": "NZDJPY SHORT: Risk-on medium challenges short thesis via commodity strength.\n\nCADJPY SHORT: Risk-on medium challenges short as energy rallies support CAD.\n\nGBPJPY SHORT: Mixed regime confirms short with JPY safe haven appeal.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.28
       }
     ],
-    "updated": "2026-09-04T23:37:00.735146+00:00"
+    "updated": "2026-09-05T02:22:12.622196+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-04T23:37:00.735146+00:00"
+    "updated": "2026-09-05T02:22:12.622196+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean mildly risk-off, with equities softer, VIX firmer, and Bitcoin down, while gold's modest slip and a firmer DXY broadly confirm the defensive tone rather than contradict it. Rising US10Y yields add a touch of dollar support, though copper's gain hints at some underlying growth resilience muddying the picture. Headlines center squarely on the dollar, with shifting Fed hike expectations and payroll positioning driving choppy, two-way price action across major pairs. Risk-sensitive currencies remain vulnerable in this backdrop. No high-impact data lands in the",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls beat: +162K vs +56K expected",
+      "US August non-farm payrolls +162K beats +56K estimate significantly",
       "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
-      "Trump tells Fed: Lower rates or stop trading with deficit countries"
+      "Trump tells Fed: Lower rate or stop trading with deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-04T23:37:00.735146+00:00"
+    "updated": "2026-09-05T02:22:12.622196+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
