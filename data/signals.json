@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-05T07:58:04.504883+00:00",
+  "updated": "2026-09-05T11:41:18.070411+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79722.0,
-      "delta_pct": 0.1,
+      "value": 79636.0,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT accelerated by strong NFP +162K beats expectations, supporting USD strength via JPY funding cost differential.",
-    "updated": "2026-09-05T07:58:04.504883+00:00"
+    "text": "NZDJPY SHORT, CADJPY SHORT, GBPJPY SHORT accelerated by stronger USD from NFP beat strengthening carry unwind headwinds.",
+    "updated": "2026-09-05T11:41:18.070411+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Risk-on medium supports carry unwind thesis.\n\nCADJPY SHORT: Gold weakness challenges safe-haven JPY strength setup.\n\nGBPJPY SHORT: Risk-on medium contradicts GBP weakness from mixed regime.",
+    "text": "NZDJPY SHORT: Risk-on medium challenges short thesis, weakens conviction.\n\nCADJPY SHORT: Mixed regime confirms momentum divergence setup, supports short.\n\nGBPJPY SHORT: Gold decline confirms yen strength bias, supports short.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.28
       }
     ],
-    "updated": "2026-09-05T07:58:04.504883+00:00"
+    "updated": "2026-09-05T11:41:18.070411+00:00"
   },
   "calendar": {
     "events": [
@@ -885,15 +885,15 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-05T07:58:04.504883+00:00"
+    "updated": "2026-09-05T11:41:18.070411+00:00"
   },
   "deep_analysis": {
-    "text": "Markets lean mildly risk-off, with equities softer, VIX firmer, and Bitcoin down, while gold's modest slip and a firmer DXY broadly confirm the defensive tone rather than contradict it. Rising US10Y yields add a touch of dollar support, though copper's gain hints at some underlying growth resilience muddying the picture. Headlines center squarely on the dollar, with shifting Fed hike expectations and payroll positioning driving choppy, two-way price action across major pairs. Risk-sensitive currencies remain vulnerable in this backdrop. No high-impact data lands in the",
-    "generated_at": "2026-09-04T23:37:27.922170+00:00"
+    "text": "Cross-asset signals lean risk-off: gold is lower alongside a firmer VIX and softer equities, while the dollar index edges higher and yields tick up, giving the greenback modest support even as gold's pullback is not confirmed by a matching bitcoin move, which sits flat. Copper and oil holding steady tempers the risk-off read slightly, suggesting conviction is limited. Headlines center on Fed hike bets and mixed data (weak ADP) keeping the dollar choppy ahead of payrolls, with risk-sensitive currencies staying on the back foot. No high-impact calendar events land",
+    "generated_at": "2026-09-05T11:41:45.605099+00:00"
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls +162K beats +56K forecast significantly",
+      "US August non-farm payrolls beat +162K versus +56K expected",
       "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
       "Trump tells Fed: Lower rates or stop trading with deficit countries"
     ],
@@ -902,7 +902,7 @@
       "rates",
       "rates"
     ],
-    "updated": "2026-09-05T07:58:04.504883+00:00"
+    "updated": "2026-09-05T11:41:18.070411+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
@@ -914,19 +914,19 @@
     "updated": "2026-09-04T21:22:28.269103+00:00"
   },
   "recommendation": {
-    "headline": "Stand Aside: CADJPY bear",
+    "headline": "Stand Aside: NZDJPY bear",
     "bias": "mixed",
     "action": "stand_aside",
-    "primary_pair": "CADJPY",
+    "primary_pair": "NZDJPY",
     "direction": "bear",
     "confidence": "Low",
-    "rationale": "CADJPY SHORT: Macro risk-on challenges setup; copper strength supports Canadian commodity demand.\n\nGBPJPY SHORT: Macro risk-on challenges setup; risk sentiment favors sterling over yen carry.\n\nNZDJPY SHORT: Macro risk-on challenges setup; copper rally supports New Zealand commodity currency.",
+    "rationale": "NZDJPY SHORT: Risk-on medium challenges short thesis, weakens conviction.\n\nCADJPY SHORT: Mixed regime confirms momentum divergence setup, supports short.\n\nGBPJPY SHORT: Gold decline confirms yen strength bias, supports short.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "ISM Services PMI",
       "iso": "2026-09-04T14:00:00+00:00"
     },
-    "generated_at": "2026-09-04T21:27:16.019150+00:00",
+    "generated_at": "2026-09-05T11:41:45.608219+00:00",
     "_narrated": false
   },
   "conviction": {
