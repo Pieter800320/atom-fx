@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-05T02:22:12.622196+00:00",
+  "updated": "2026-09-05T07:58:04.504883+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -759,21 +759,21 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4477.2,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "value": 4429.8,
+      "delta_pct": -1.4,
+      "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.157,
+      "value": 99.16,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.668,
-      "delta_pct": 1.4,
-      "direction": "up",
+      "value": 6.597,
+      "delta_pct": 0.3,
+      "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
@@ -789,14 +789,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.22,
-      "delta_pct": -0.1,
+      "value": 91.48,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79586.0,
-      "delta_pct": -2.1,
+      "value": 79722.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT: Strong NFP accelerates JPY weakness via risk-on sentiment, undermining short thesis materially.",
-    "updated": "2026-09-05T02:22:12.622196+00:00"
+    "text": "NZDJPY SHORT accelerated by strong NFP +162K beats expectations, supporting USD strength via JPY funding cost differential.",
+    "updated": "2026-09-05T07:58:04.504883+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Risk-on medium challenges short thesis via commodity strength.\n\nCADJPY SHORT: Risk-on medium challenges short as energy rallies support CAD.\n\nGBPJPY SHORT: Mixed regime confirms short with JPY safe haven appeal.",
+    "text": "NZDJPY SHORT: Risk-on medium supports carry unwind thesis.\n\nCADJPY SHORT: Gold weakness challenges safe-haven JPY strength setup.\n\nGBPJPY SHORT: Risk-on medium contradicts GBP weakness from mixed regime.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.28
       }
     ],
-    "updated": "2026-09-05T02:22:12.622196+00:00"
+    "updated": "2026-09-05T07:58:04.504883+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-05T02:22:12.622196+00:00"
+    "updated": "2026-09-05T07:58:04.504883+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean mildly risk-off, with equities softer, VIX firmer, and Bitcoin down, while gold's modest slip and a firmer DXY broadly confirm the defensive tone rather than contradict it. Rising US10Y yields add a touch of dollar support, though copper's gain hints at some underlying growth resilience muddying the picture. Headlines center squarely on the dollar, with shifting Fed hike expectations and payroll positioning driving choppy, two-way price action across major pairs. Risk-sensitive currencies remain vulnerable in this backdrop. No high-impact data lands in the",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls +162K beats +56K estimate significantly",
+      "US August non-farm payrolls +162K beats +56K forecast significantly",
       "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
-      "Trump tells Fed: Lower rate or stop trading with deficit countries"
+      "Trump tells Fed: Lower rates or stop trading with deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-05T02:22:12.622196+00:00"
+    "updated": "2026-09-05T07:58:04.504883+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
