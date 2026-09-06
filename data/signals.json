@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T22:40:04.710170+00:00",
+  "updated": "2026-09-06T23:23:11.187322+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -765,8 +765,8 @@
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.161,
-      "delta_pct": 0.0,
+      "value": 99.134,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
     },
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79975.0,
-      "delta_pct": 0.2,
+      "value": 80167.0,
+      "delta_pct": 0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.3,
+      "delta_pct": 3.6,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "NFP data directly tests USD strength; Trump trade threats create policy uncertainty risk for Dollar pairs.",
-    "updated": "2026-09-06T22:40:04.710170+00:00"
+    "text": "NFP beat strengthens dollar bull case; invalidates weak ADP narrative across USD pairs",
+    "updated": "2026-09-06T23:23:11.187322+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T22:40:04.710170+00:00"
+    "updated": "2026-09-06T23:23:11.187322+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T22:40:04.710170+00:00"
+    "updated": "2026-09-06T23:23:11.187322+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "Weak ADP data hits Dollar; NFP becomes next critical test today",
-      "Fed rate hike bets lift DXY as EUR/USD and GBP/USD fall",
-      "Trump demands Fed rate cuts or threatens trade restrictions with deficit countries"
+      "NFP data becomes critical test for dollar direction across major pairs",
+      "Fed rate cut expectations weaken dollar; EUR/USD and GBP/USD recover",
+      "Trump pressures Fed to cut rates; threatens trade war retaliation"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T22:40:04.710170+00:00"
+    "updated": "2026-09-06T23:23:11.187322+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
