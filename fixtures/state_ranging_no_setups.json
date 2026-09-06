@@ -2956,13 +2956,13 @@
     "evidence": [
       {
         "axis": "risk",
-        "read": "SPX flat VIX flat",
+        "read": "mixed",
         "supports": false,
         "confirms_today": "quiet"
       },
       {
         "axis": "rates",
-        "read": "yields flat",
+        "read": "US10Y\u2192 / US3M\u2192",
         "supports": false,
         "confirms_today": "quiet"
       }

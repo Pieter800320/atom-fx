@@ -138,6 +138,13 @@ def _pct(ma, k):
     return v.get("delta_pct") if v.get("delta_pct") is not None else 0.0
 
 
+def _arrow(direction: str) -> str:
+    """"up"/"down" -> an arrow glyph, "flat" (or anything else) -> a flat dash — the one
+    formatting every axis's "read" string in `_axis_reads` uses, so the Evidence cards never
+    mix an arrow with a plain word again."""
+    return {"up": "↑", "down": "↓"}.get(direction, "→")
+
+
 def _axis_reads(ma: dict) -> dict:
     """Collapse the 10 instruments into 5 distinct axes with a net read each. Works on either
     the W1 dict or the 1-day dict — same shape, different clock (see module doc comment)."""
@@ -157,18 +164,22 @@ def _axis_reads(ma: dict) -> dict:
                   (1 if us3m == "up" else (-1 if us3m == "down" else 0))
     rates_net = "up" if rates_votes > 0 else ("down" if rates_votes < 0 else "flat")
 
+    # Every axis's "read" string uses the same arrow glyphs — Pieter's ask, 2026-09-06 — the
+    # risk axis used to be the only one that did (SPX↑ VIX↓ Copper↑), the other four printed
+    # the raw word ("US10Y up / US3M down") instead, an inconsistency visible on the Evidence
+    # cards themselves.
     parts = []
-    if spx != "flat":    parts.append(f"SPX{'↑' if spx=='up' else '↓'}")
-    if vix != "flat":    parts.append(f"VIX{'↑' if vix=='up' else '↓'}")
-    if copper != "flat": parts.append(f"Copper{'↑' if copper=='up' else '↓'}")
+    if spx != "flat":    parts.append(f"SPX{_arrow(spx)}")
+    if vix != "flat":    parts.append(f"VIX{_arrow(vix)}")
+    if copper != "flat": parts.append(f"Copper{_arrow(copper)}")
 
     return {
         "risk":      {"net": risk_net, "read": " ".join(parts) or "mixed"},
-        "rates":     {"net": rates_net, "read": f"US10Y {us10y} / US3M {us3m}"},
-        "usd":       {"net": dxy, "read": f"DXY {dxy}"},
+        "rates":     {"net": rates_net, "read": f"US10Y {_arrow(us10y)} / US3M {_arrow(us3m)}"},
+        "usd":       {"net": dxy, "read": f"DXY {_arrow(dxy)}"},
         "commodity": {"net": "up" if (wti == "up" or copper == "up") else ("down" if (wti == "down" or copper == "down") else "flat"),
-                      "read": f"WTI {wti} · Copper {copper}"},
-        "safe_haven":{"net": gold, "read": f"Gold {gold}"},
+                      "read": f"WTI {_arrow(wti)} · Copper {_arrow(copper)}"},
+        "safe_haven":{"net": gold, "read": f"Gold {_arrow(gold)}"},
     }
 
 

@@ -108,7 +108,7 @@ fun StatusStrip(
         ) {
             if (items.isEmpty()) {
                 RecoGlyphColumn(
-                    label = "—",
+                    label = null,
                     direction = null,
                     selected = expandedKey == EMPTY_KEY,
                     colors = colors,
@@ -165,7 +165,12 @@ private data class RecoItem(
 
 @Composable
 private fun RecoGlyphColumn(
-    label: String,
+    // Null for the "no qualifying setups" placeholder — 2026-09-06 (Pieter's ask): a bare "—"
+    // caption under the one glyph in that state read as a stray dash sitting under the glyph
+    // for no reason, not a label. There's nothing to distinguish when there's only ever one
+    // glyph in this state, so it goes back to having no caption at all, same as the single-
+    // glyph design before per-pair labels existed.
+    label: String?,
     direction: String?,
     selected: Boolean,
     colors: AtomColors,
@@ -181,13 +186,15 @@ private fun RecoGlyphColumn(
                 onClick = onClick,
             ),
         )
-        Text(
-            text = label,
-            // 10sp — same currency/pair-code caption size CsmBarStrip's own labels use
-            // (WheelScreen.kt).
-            style = AtomType.Caption.copy(color = if (selected) colors.textPrimary else colors.textMuted, fontSize = 10.sp),
-            modifier = Modifier.padding(top = 4.dp),
-        )
+        if (label != null) {
+            Text(
+                text = label,
+                // 10sp — same currency/pair-code caption size CsmBarStrip's own labels use
+                // (WheelScreen.kt).
+                style = AtomType.Caption.copy(color = if (selected) colors.textPrimary else colors.textMuted, fontSize = 10.sp),
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
     }
 }
 

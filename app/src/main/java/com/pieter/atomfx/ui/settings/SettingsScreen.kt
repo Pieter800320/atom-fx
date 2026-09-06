@@ -386,26 +386,59 @@ private fun NotificationsGroup(
     SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
     })
-    Text(
-        text = "Send test",
-        style = AtomType.Caption.copy(color = if (notif.enabled) colors.textSecondary else colors.textMuted),
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .pressWash(enabled = notif.enabled) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                sendTestNotification(context)
-            },
-    )
+    SettingsActionButton(
+        label = "Send test",
+        colors = colors,
+        enabled = notif.enabled,
+        modifier = Modifier.padding(top = 8.dp),
+    ) {
+        sendTestNotification(context)
+    }
     Text(
         text = "Notification history",
-        style = AtomType.Caption.copy(color = colors.textSecondary),
+        style = AtomType.Body.copy(color = colors.textSecondary),
         modifier = Modifier
-            .padding(top = 8.dp)
+            .padding(top = 12.dp)
             .pressWash {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onOpenHistory()
             },
     )
+}
+
+// Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,
+// controlBorder rim, pressWash-masked ripple), but sized and labelled as a standalone action
+// button rather than a multi-choice tab: wrap-content width, AtomType.Body (matching every
+// other Settings row label, not the tab pills' own smaller Caption) instead of a fixed height.
+// 2026-09-06 (Pieter's ask) — "Send test" and "Force refresh" were plain tappable Captions;
+// this is what they (and any future one-shot Settings action) should look like instead.
+private val SETTINGS_BUTTON_SHAPE = RoundedCornerShape(11.dp)
+
+@Composable
+private fun SettingsActionButton(
+    label: String,
+    colors: AtomColors,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    Box(
+        modifier = modifier
+            .background(colors.controlSurface, SETTINGS_BUTTON_SHAPE)
+            .border(1.dp, colors.controlBorder, SETTINGS_BUTTON_SHAPE)
+            .pressWash(SETTINGS_BUTTON_SHAPE, enabled = enabled) {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = AtomType.Body.copy(color = if (enabled) colors.textPrimary else colors.textMuted),
+        )
+    }
 }
 
 // Overload with a per-row disabled look (Level/Gold rows are meaningless with push off).
@@ -514,7 +547,6 @@ private fun PriceLevelAlertsGroup(colors: AtomColors) {
 
 @Composable
 private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors, onRefreshNow: () -> Unit) {
-    val haptics = LocalHapticFeedback.current
     val updated = loaded?.signals?.updated?.let {
         // Locale.US explicitly — the default locale can render month abbreviations differently
         // (e.g. "sept." instead of "Sep"), same bug class swept out of every other formatter.
@@ -530,14 +562,9 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
     DiagRow("Last updated", updated, colors)
     DiagRow("Status", freshnessWord, colors, if (loaded?.freshness == Freshness.STALE) colors.bear else colors.bull)
     DiagRow("Schema version", schema, colors)
-    Text(
-        text = "Force refresh",
-        style = AtomType.Caption.copy(color = colors.textSecondary),
-        modifier = Modifier.padding(top = 8.dp).pressWash {
-            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            onRefreshNow()
-        },
-    )
+    SettingsActionButton(label = "Force refresh", colors = colors, modifier = Modifier.padding(top = 8.dp)) {
+        onRefreshNow()
+    }
 }
 
 @Composable

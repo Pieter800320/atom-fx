@@ -2995,7 +2995,7 @@
       },
       {
         "axis": "usd",
-        "read": "DXY flat",
+        "read": "DXY\u2192",
         "supports": false,
         "confirms_today": "quiet"
       },

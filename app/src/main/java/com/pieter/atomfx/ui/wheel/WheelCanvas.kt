@@ -72,11 +72,6 @@ private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of 
 // near-white in dark theme and near-black in light theme, so it reads in both).
 private const val TAP_WASH_ALPHA = 0.16f
 
-// Pieter, 2026-09-04 — the pair-ring wedges and the CSM bars (`WheelScreen.kt`'s `CsmBarStrip`)
-// share this slightly-brighter wash: "slightly brighter, slightly more solid" than the cross-
-// asset ring's own 18%, one step back from the fully-solid fill that read as too loud when tried.
-const val PAIR_WASH_ALPHA = 0.28f
-
 // Cross-asset ring cells — matches the corner buttons' own outer-corner rounding
 // (drawCornerButtons' cornerRadiusPx). Pair-ring wedges use their own, smaller
 // [PAIR_WEDGE_FILL_CORNER_RADIUS_DP] instead (matches the CSM bars' own corner radius).
@@ -566,17 +561,18 @@ private fun DrawScope.drawPairRing(
         drawPath(bgPath, color = colors.surfaceRaised)
         drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f), style = Stroke(px(0.9f)))
 
-        // Pieter, 2026-09-04 — tried solid first (matching the CSM bar strip's then-solid bars),
-        // read as too loud on-device; settled on a wash instead, same technique the cross-asset
-        // ring uses but at its own, slightly brighter alpha (PAIR_WASH_ALPHA) and its own,
-        // smaller corner radius (PAIR_WEDGE_FILL_CORNER_RADIUS_DP, matching the CSM bars'
-        // CSM_BAR_CORNER) — CSM bars now match both of these too (`CsmBarStrip` in
-        // `WheelScreen.kt`), so wedges and CSM read as one language, distinct from cross-asset.
+        // 2026-09-06 (Pieter's ask) — solid now, matching the CSM bar strip's own solid fill
+        // (`CsmBarStrip` in `WheelScreen.kt`, itself switched from a wash to solid the same day)
+        // — a wash was tried here originally (2026-09-04) and briefly matched the CSM bars back
+        // when THEY were still washed too, but the two drifted out of sync once CSM went solid
+        // and this didn't follow; same corner radius (PAIR_WEDGE_FILL_CORNER_RADIUS_DP, matching
+        // the CSM bars' own CSM_BAR_CORNER) as before, still distinct from the cross-asset ring's
+        // own wash-based cells (CrossAssetSheet's cards, the wheel's own ring is gone).
         val fillFrac = (fillAnims[node.pair]?.value ?: modeFillFrac(node, mode)).coerceIn(0f, 1f)
         if (fillFrac > 0f) {
             val rOut = r0 + (graphMax - r0) * fillFrac
             val fillPath = roundedWedgePath(cx, cy, r0 + 1f, rOut, a0 + 2f, a1 - 2f, px(PAIR_WEDGE_FILL_CORNER_RADIUS_DP))
-            drawPath(fillPath, color = hue.copy(alpha = PAIR_WASH_ALPHA))
+            drawPath(fillPath, color = hue)
         }
 
         val platePath = wedgePath(cx, cy, plateR0, plateR1, a0 + 0.6f, a1 - 0.6f)
