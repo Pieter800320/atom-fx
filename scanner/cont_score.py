@@ -134,8 +134,17 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
     is_bull = d1_pill in ("bull", "bull_strong")
     is_bear = d1_pill in ("bear", "bear_strong")
 
+    # 2026-09-06 (Rule #1 sign-off) — D1-neutral no longer means an automatic 0. Every component
+    # below scores RELATIVE TO a direction, so the score still needs one to mean anything — but
+    # forcing 0 whenever D1 alone hasn't confirmed yet silenced exactly the setup worth flagging:
+    # H4/H1 already aligned, structure already confirming, D1 just hasn't caught up. Falls back to
+    # H4's own direction when D1 reads neutral; only a genuine 0 (neither D1 nor H4 has a bias)
+    # returns 0 outright.
     if not is_bull and not is_bear:
-        return 0
+        is_bull = h4_pill in ("bull", "bull_strong")
+        is_bear = h4_pill in ("bear", "bear_strong")
+        if not is_bull and not is_bear:
+            return 0
 
     d1_strong = "_strong" in d1_pill
     h4_strong = "_strong" in h4_pill

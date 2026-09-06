@@ -279,7 +279,7 @@
     "CADJPY": {
       "adx": 30.0,
       "atr_pct": 80,
-      "cont": 0,
+      "cont": 58,
       "mom": {
         "cmp": 64,
         "d1": 72,
@@ -308,7 +308,7 @@
     "EURJPY": {
       "adx": 36.2,
       "atr_pct": 18,
-      "cont": 0,
+      "cont": 74,
       "mom": {
         "cmp": 61,
         "d1": 65,
@@ -482,7 +482,7 @@
     "USDCAD": {
       "adx": 31.9,
       "atr_pct": 69,
-      "cont": 0,
+      "cont": 65,
       "mom": {
         "cmp": 37,
         "d1": 30,
