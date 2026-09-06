@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T12:06:42.521302+00:00",
+  "updated": "2026-09-06T12:16:57.473267+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79911.0,
-      "delta_pct": 0.1,
+      "value": 79987.0,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -808,29 +808,13 @@
     }
   },
   "catalyst": {
-    "text": "CADJPY SHORT accelerates: Strong NFP +162K beat supports USD strength, lifting CADJPY higher.",
-    "updated": "2026-09-06T12:05:32.287265+00:00"
+    "text": "No breaking catalysts.",
+    "updated": "2026-09-06T12:16:57.473267+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Copper strength challenges setup, risk-on favors commodity currencies.\n\nCADJPY SHORT: Risk-on medium challenges setup, oil-sensitive CAD stays bid.\n\nGBPJPY SHORT: Mixed regime confirms setup, GBP underperforms in uncertainty.",
-    "top": [
-      {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 7.53
-      },
-      {
-        "pair": "CADJPY",
-        "direction": "bear",
-        "score": 6.3
-      },
-      {
-        "pair": "GBPJPY",
-        "direction": "bear",
-        "score": 6.28
-      }
-    ],
-    "updated": "2026-09-06T12:05:32.287265+00:00"
+    "text": "No qualifying setups.",
+    "top": [],
+    "updated": "2026-09-06T12:16:57.473267+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +869,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T12:05:32.287265+00:00"
+    "updated": "2026-09-06T12:16:57.473267+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-off, with gold sliding and VIX firming while equities dip, though the read is muddied by a firmer dollar alongside a slight uptick in bitcoin and rising Treasury yields, pointing to selective dollar strength rather than a clean flight-to-safety move. Copper and oil holding steady suggest growth fears remain contained. Headlines center on Federal Reserve rate expectations and the dollar's mixed reaction to recent data, keeping traders focused on labor-market signals. With no high-impact releases in the next 24 hours, positioning likely stays cautious, with risk-sens",
@@ -893,16 +877,16 @@
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls beat +162K vs +56K expected",
+      "US August non-farm payrolls beat: +162K versus +56K expected",
       "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
-      "Trump tells Fed: Lower rates or stop trading with deficit countries"
+      "Trump Demands Fed Rate Cuts or Trade War Escalation"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T12:05:32.287265+00:00"
+    "updated": "2026-09-06T12:16:57.473267+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
@@ -3644,5 +3628,57 @@
     "narrative": "Growth-positive risk-on: favour AUD \u00b7 NZD \u00b7 CAD over JPY \u00b7 CHF.",
     "updated": "2026-09-06T12:06:42.521302+00:00"
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "macro_assets_w1": {
+    "vix": {
+      "direction": "flat",
+      "delta_pct": 0.7,
+      "label": "VIX"
+    },
+    "spx": {
+      "direction": "flat",
+      "delta_pct": 0.1,
+      "label": "S&P 500"
+    },
+    "gold": {
+      "direction": "flat",
+      "delta_pct": -0.0,
+      "label": "Gold"
+    },
+    "dxy": {
+      "direction": "flat",
+      "delta_pct": -0.5,
+      "label": "DXY"
+    },
+    "copper": {
+      "direction": "flat",
+      "delta_pct": 1.8,
+      "label": "Copper"
+    },
+    "us10y": {
+      "direction": "flat",
+      "delta_bp": 6.4,
+      "label": "US 10Y"
+    },
+    "us3m": {
+      "direction": "flat",
+      "delta_bp": 2.7,
+      "label": "US 3M"
+    },
+    "wti": {
+      "direction": "up",
+      "delta_pct": 9.7,
+      "label": "WTI Oil"
+    },
+    "btc": {
+      "direction": "flat",
+      "delta_pct": 3.3,
+      "label": "Bitcoin"
+    },
+    "curve": {
+      "direction": "flat",
+      "delta_bp": 3.7,
+      "label": "10Y-3M"
+    }
+  }
 }
