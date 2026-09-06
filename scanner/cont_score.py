@@ -110,6 +110,27 @@ def _structure_component(structure_h4, is_bull):
         return 3
 
 
+def pill_direction(pills: dict) -> str | None:
+    """
+    "Which way is this pair actually pointing" — D1's pill decides; H4's own pill is the
+    fallback when D1 reads neutral (2026-09-06, Rule #1 sign-off — see compute_cont's own
+    D1-gate doc comment for why). Shared here, not reimplemented, so rank.py and
+    state_alerts.py can't independently drift from the same answer compute_cont itself
+    uses — they used to re-derive "bull if d1 pill says so, else bear if.., else None"
+    inline, missing this fallback: a pair whose D1 hadn't confirmed yet but whose H4 already
+    had could score a real, qualifying Continuation Score yet still get excluded from
+    ranking (or show a blank direction on its own Setup alert) for "having no direction",
+    contradicting its own score.
+    """
+    d1 = pills.get("d1", "neutral")
+    if d1 in ("bull", "bull_strong"): return "bull"
+    if d1 in ("bear", "bear_strong"): return "bear"
+    h4 = pills.get("h4", "neutral")
+    if h4 in ("bull", "bull_strong"): return "bull"
+    if h4 in ("bear", "bear_strong"): return "bear"
+    return None
+
+
 def compute_cont(pair, pills, adx, csm_h4, regime_h4,
                  reset_score=None, atr_pct=None, structure_h4=None):
     """
@@ -131,20 +152,15 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
     h4_pill = pills.get("h4", "neutral")
     h1_pill = pills.get("h1", "neutral")
 
-    is_bull = d1_pill in ("bull", "bull_strong")
-    is_bear = d1_pill in ("bear", "bear_strong")
-
-    # 2026-09-06 (Rule #1 sign-off) — D1-neutral no longer means an automatic 0. Every component
-    # below scores RELATIVE TO a direction, so the score still needs one to mean anything — but
-    # forcing 0 whenever D1 alone hasn't confirmed yet silenced exactly the setup worth flagging:
-    # H4/H1 already aligned, structure already confirming, D1 just hasn't caught up. Falls back to
-    # H4's own direction when D1 reads neutral; only a genuine 0 (neither D1 nor H4 has a bias)
-    # returns 0 outright.
-    if not is_bull and not is_bear:
-        is_bull = h4_pill in ("bull", "bull_strong")
-        is_bear = h4_pill in ("bear", "bear_strong")
-        if not is_bull and not is_bear:
-            return 0
+    # Every component below scores RELATIVE TO a direction, so the score needs one to mean
+    # anything — but forcing 0 whenever D1 alone hasn't confirmed yet silenced exactly the
+    # setup worth flagging: H4/H1 already aligned, structure already confirming, D1 just
+    # hasn't caught up. See pill_direction()'s own doc comment for the fallback rule.
+    direction = pill_direction(pills)
+    if direction is None:
+        return 0
+    is_bull = direction == "bull"
+    is_bear = direction == "bear"
 
     d1_strong = "_strong" in d1_pill
     h4_strong = "_strong" in h4_pill

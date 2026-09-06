@@ -18,6 +18,8 @@ remaining lines the body; `<b>` tags are harmless since the Telegram fallback pa
 HTML).
 """
 
+from scanner.cont_score import pill_direction
+
 _ATR_SPIKE_THRESHOLD = 90
 _ALIGNED_PILLS = ("bull_strong", "bear_strong")
 
@@ -43,9 +45,10 @@ def _pair_setup_alerts(out: dict, prev: dict) -> list:
         prev_cont = prev.get("pairs", {}).get(pair, {}).get("cont")
         if prev_cont is not None and prev_cont >= _CONT_QUALIFY_THRESHOLD:
             continue
-        pills = block.get("pills") or {}
-        d1_pill = pills.get("d1")
-        direction = "bull" if d1_pill in ("bull", "bull_strong") else "bear" if d1_pill in ("bear", "bear_strong") else None
+        # 2026-09-06 (Rule #1 sign-off) — was D1-pill-only, so a pair qualifying via
+        # compute_cont's own D1-else-H4 fallback would fire this alert with a blank "—"
+        # direction. pill_direction() is the same fallback compute_cont itself uses.
+        direction = pill_direction(block.get("pills") or {})
         dir_word = "LONG" if direction == "bull" else "SHORT" if direction == "bear" else "—"
         alerts.append({
             "type": "potential_state",

@@ -567,7 +567,71 @@
       }
     }
   },
-  "rank": [],
+  "rank": [
+    {
+      "adx": 31.9,
+      "cmp": 37,
+      "cont": 65,
+      "cross_signals": [],
+      "csm_base": 0.0,
+      "csm_quote": 66.1,
+      "dd1": -17,
+      "direction": "bear",
+      "pair": "USDCAD",
+      "regime": "Ranging",
+      "score": 6.95,
+      "scores": {
+        "cmp": 10,
+        "cont": 3.6,
+        "cross": 5,
+        "csm": 10,
+        "mom_dlt": 7,
+        "regime": 5
+      }
+    },
+    {
+      "adx": 36.2,
+      "cmp": 61,
+      "cont": 74,
+      "cross_signals": [],
+      "csm_base": 100.0,
+      "csm_quote": 35.5,
+      "dd1": 6,
+      "direction": "bull",
+      "pair": "EURJPY",
+      "regime": "Ranging",
+      "score": 6.92,
+      "scores": {
+        "cmp": 10,
+        "cont": 5.3,
+        "cross": 5,
+        "csm": 10,
+        "mom_dlt": 4,
+        "regime": 5
+      }
+    },
+    {
+      "adx": 30.0,
+      "cmp": 64,
+      "cont": 58,
+      "cross_signals": [],
+      "csm_base": 66.1,
+      "csm_quote": 35.5,
+      "dd1": -1,
+      "direction": "bull",
+      "pair": "CADJPY",
+      "regime": "Ranging",
+      "score": 5.0,
+      "scores": {
+        "cmp": 10,
+        "cont": 2.4,
+        "cross": 5,
+        "csm": 7,
+        "mom_dlt": 0,
+        "regime": 5
+      }
+    }
+  ],
   "regime": {
     "d1": {
       "confidence": "Low",

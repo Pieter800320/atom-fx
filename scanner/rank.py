@@ -10,8 +10,11 @@ Six components (weighted):
   regime    10% — D1 regime supports direction
   cross     10% — cross-asset macro tailwinds
 
-Hard gate: D1 pill must be directional AND cont >= 45.
+Hard gate: pair must have a direction (D1, else H4 — see cont_score.pill_direction) AND
+cont >= 45.
 """
+
+from scanner.cont_score import pill_direction
 
 # ── Cross-asset currency impact table ─────────────────────────────────────────
 # (asset, direction) -> {currency: impact}
@@ -52,10 +55,11 @@ WEIGHTS = {
 # ── Component scorers (each returns 0–10) ─────────────────────────────────────
 
 def _pair_direction(pair_data):
-    d1 = pair_data.get("pills", {}).get("d1", "neutral")
-    if d1 in ("bull", "bull_strong"): return "bull"
-    if d1 in ("bear", "bear_strong"): return "bear"
-    return None
+    # 2026-09-06 (Rule #1 sign-off) — delegates to cont_score.pill_direction (D1, else H4
+    # fallback) instead of checking D1 alone, so a pair that now qualifies via that same
+    # fallback in compute_cont() can actually reach the ranking below instead of being
+    # excluded for "having no direction" despite its own cont score saying otherwise.
+    return pill_direction(pair_data.get("pills", {}))
 
 
 def _cont_sc(cont):
