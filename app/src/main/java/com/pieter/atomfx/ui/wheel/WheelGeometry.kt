@@ -46,9 +46,11 @@ object WheelGeometry {
     // Radius fractions of the canvas half-side (mockup viewBox 800, centre 400).
     const val HUB_FRAC = 0.275f      // hub outer radius (110/400)
     const val RING_R0_FRAC = 0.31f   // middle ring inner (124/400)
-    const val RING_R1_FRAC = 0.74f   // middle ring outer (296/400)
-    const val XA_R0_FRAC = 0.765f    // outer cross-asset ring inner (306/400)
-    const val XA_R1_FRAC = 0.905f    // outer cross-asset ring outer (362/400)
+    // 2026-09-06 (Pieter's ask) — grown from 0.74 to 0.905: the outer cross-asset ring was removed
+    // from the dial entirely (still on the Macro screen, now styled like CrossAssetSheet's own
+    // cards), so the pair ring expands to fill exactly the radius band that ring used to occupy,
+    // rather than leaving a blank gap. Same outer boundary the cross-asset ring used to end at.
+    const val RING_R1_FRAC = 0.905f
 
     // The four corner buttons — a 4th ring, but deliberately different from every data cell:
     // tapered trapezoids (wide at the hub-facing edge, narrower at the tip — [TOGGLE_INNER_SPAN_DEG]
@@ -66,8 +68,8 @@ object WheelGeometry {
     // Volatility; Momentum unchanged) as part of the wheel-wing simplification, but the physical
     // corner assignment (which corner is which) is untouched — only these constants' names follow
     // the rename, not their values.
-    const val TOGGLE_R0_FRAC = 0.935f    // gap from XA_R1_FRAC ~0.03 — matches the other ring gaps
-                                          // (hub→ring 0.035, ring→XA 0.025), not the near-zero gap before
+    const val TOGGLE_R0_FRAC = 0.935f    // gap from RING_R1_FRAC ~0.03 — matches the other ring gaps
+                                          // (hub→ring 0.035), not the near-zero gap before
     const val TOGGLE_R1_FRAC = 1.18f     // thickness ~0.245 vs the XA ring's 0.14 — ~75% thicker
     const val TOGGLE_INNER_SPAN_DEG = 34f // angular width at r0 (wide base)
     const val TOGGLE_OUTER_SPAN_DEG = 18f // angular width at r1 (tapered tip)

@@ -43,9 +43,12 @@ import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.reading.ReadingTarget
+import com.pieter.atomfx.ui.sheets.ASSET_AXES
+import com.pieter.atomfx.ui.sheets.CrossAssetRow
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
+import com.pieter.atomfx.ui.wheel.WheelGeometry
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 
@@ -136,7 +139,7 @@ private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (R
             }
         }
 
-        CrossAssetTable(signals.macroAssets, colors)
+        CrossAssetTable(signals.macroAssets, regime, colors)
     }
 }
 
@@ -238,7 +241,15 @@ private const val EVIDENCE_LIT_AMOUNT = 0.08f
 /** Each evidence axis on its own standard card (Pieter, 2026-09-03 — the mockup's `.axis-row` is
  *  a plain divided list; cards read better here, matching every other Home/Macro info row).
  *  Supporting evidence ("up") gets a subtly bull-tinted card, not just a coloured dot — see
- *  [EVIDENCE_LIT_AMOUNT]. */
+ *  [EVIDENCE_LIT_AMOUNT].
+ *
+ *  2026-09-06 (Pieter's ask, the Macro rework) — `supports` alone used to be the only signal;
+ *  now each card also carries a `confirmsToday` line ("Today confirms / is fighting / is quiet
+ *  on this trend"). `supports` says whether this axis's OWN W1 trend backs the archetype that
+ *  won; `confirmsToday` says whether TODAY's daily move is continuing or reversing that trend —
+ *  the handbook's own "the path matters, not just the level" discipline (§4.3 / Mistake 4), made
+ *  into an actual per-axis decision cue instead of a static list. See `macro_regime.py`'s own
+ *  module doc comment for the full two-clock design this is built on. */
 @Composable
 private fun EvidenceAxes(evidence: List<MacroEvidence>, colors: AtomColors) {
     if (evidence.isEmpty()) return
@@ -246,105 +257,94 @@ private fun EvidenceAxes(evidence: List<MacroEvidence>, colors: AtomColors) {
         Text(text = "EVIDENCE", style = AtomType.Caption.copy(color = colors.textSecondary))
         evidence.forEach { e ->
             val fill = if (e.supports) lerp(colors.cardSurface, colors.bull, EVIDENCE_LIT_AMOUNT) else colors.cardSurface
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(fill, CARD_SHAPE)
                     .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                EvidenceDot(color = if (e.supports) colors.bull else colors.textMuted)
-                Text(
-                    text = AXIS_LABELS[e.axis] ?: e.axis ?: "—",
-                    style = AtomType.Caption.copy(color = colors.textMuted),
-                    modifier = Modifier.width(76.dp),
-                )
-                Text(
-                    text = e.read ?: "—",
-                    style = AtomType.Body.copy(color = colors.textSecondary),
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f),
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    EvidenceDot(color = if (e.supports) colors.bull else colors.textMuted)
+                    Text(
+                        text = AXIS_LABELS[e.axis] ?: e.axis ?: "—",
+                        style = AtomType.Caption.copy(color = colors.textMuted),
+                        modifier = Modifier.width(76.dp),
+                    )
+                    Text(
+                        text = e.read ?: "—",
+                        style = AtomType.Body.copy(color = colors.textSecondary),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                confirmsTodayLabel(e.confirmsToday)?.let { label ->
+                    Text(
+                        text = label,
+                        style = AtomType.Caption.copy(color = confirmsTodayColor(e.confirmsToday, colors)),
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
         }
     }
 }
 
-/** The cross-asset dashboard (Functional Spec §19.2 Appendix-A table) — a plain divided list per
- *  the mockup's `.xtab` (hairline under every row), not cards. Three columns, evenly spread across
- *  the full width (Pieter, 2026-09-03 — was fixed-width columns packed to the left inside a
- *  horizontal scroll; three columns fit the screen on their own, no scrolling needed). */
+private fun confirmsTodayLabel(tag: String?): String? = when (tag) {
+    "confirming" -> "Today confirms this trend"
+    "diverging" -> "Today is fighting this trend"
+    "quiet" -> "No fresh move today"
+    else -> null
+}
+
+private fun confirmsTodayColor(tag: String?, colors: AtomColors): Color = when (tag) {
+    "confirming" -> colors.bull
+    "diverging" -> colors.watch
+    else -> colors.textMuted
+}
+
+/** The cross-asset dashboard (Functional Spec §19.2 Appendix-A table) — one card per asset, same
+ *  [CrossAssetRow] look as the wheel's old cross-asset wedge sheet (`CrossAssetSheet.kt`).
+ *
+ *  2026-09-06 (Pieter's ask) — was a plain divided 3-column table; restyled to match the bottom
+ *  sheet exactly (direction-tinted fill, impact/confirms caption, value+delta on the right) now
+ *  that the outer cross-asset ring is gone from the wheel itself (see `WheelCanvas.kt`) and this
+ *  is the dashboard's own permanent home, not just a mirror of it.
+ *
+ *  2026-09-06 follow-up — no longer tappable (Pieter's call: opening the identical-looking
+ *  `CrossAssetSheet` from a screen that already shows the same cards was redundant, not a real
+ *  second view). Sorted instead: assets actually moving (direction up/down) float above flat/no-data
+ *  ones — a stable sort, so ties keep [WheelGeometry.XASSET_ORDER]'s own canonical order rather than
+ *  jittering between scans. */
 @Composable
-private fun CrossAssetTable(macroAssets: Map<String, MacroAssetEntry>, colors: AtomColors) {
+private fun CrossAssetTable(
+    macroAssets: Map<String, MacroAssetEntry>,
+    regime: MacroRegimeBlock?,
+    colors: AtomColors,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(text = "CROSS-ASSET", style = AtomType.Caption.copy(color = colors.textSecondary))
         if (macroAssets.isEmpty()) {
             Text(text = "Not available yet", style = AtomType.Body.copy(color = colors.textMuted))
             return
         }
-        Column(modifier = Modifier.fillMaxWidth()) {
-            TableHeaderRow(colors)
-            Divider(colors)
-            macroAssets.values.forEach { asset ->
-                TableRow(asset, colors)
-                Divider(colors)
+        val supportingAxes = regime?.evidence?.filter { it.supports }?.mapNotNull { it.axis }?.toSet() ?: emptySet()
+        val ordered = WheelGeometry.XASSET_ORDER.sortedByDescending { (key, _) ->
+            macroAssets[key]?.direction in listOf("up", "down")
+        }
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ordered.forEach { (key, fallbackLabel) ->
+                CrossAssetRow(
+                    key = key,
+                    fallbackLabel = fallbackLabel,
+                    entry = macroAssets[key],
+                    pinned = false,
+                    confirms = (ASSET_AXES[key] ?: emptyList()).any { it in supportingAxes },
+                    colors = colors,
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun Divider(colors: AtomColors) {
-    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(colors.hairline))
-}
-
-@Composable
-private fun TableHeaderRow(colors: AtomColors) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Text(
-            text = "Asset", style = AtomType.Caption.copy(color = colors.textMuted),
-            modifier = Modifier.weight(1f),
-        )
-        listOf("Value", "Δ").forEach { header ->
-            Text(
-                text = header,
-                style = AtomType.Caption.copy(color = colors.textMuted),
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun TableRow(asset: MacroAssetEntry, colors: AtomColors) {
-    // Locale.US explicitly — the default locale's decimal separator (e.g. a comma) isn't what a
-    // trading number should ever render with, regardless of device region.
-    val delta = asset.deltaPct?.let { "%+.1f%%".format(java.util.Locale.US, it) }
-        ?: asset.deltaBp?.let { "%+.1fbp".format(java.util.Locale.US, it) } ?: "—"
-    val dirColor = when (asset.direction) {
-        "up" -> colors.bull
-        "down" -> colors.bear
-        else -> colors.textSecondary
-    }
-    // More breathing room between divider lines than a table row usually needs (Pieter, 2026-09-03
-    // — was 8dp, read as cramped once the columns spread full-width).
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp)) {
-        Text(
-            text = asset.label ?: "—", style = AtomType.Body.copy(color = colors.textPrimary),
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = asset.value?.let { "%.2f".format(java.util.Locale.US, it) } ?: "—",
-            style = AtomType.Body.copy(color = colors.textPrimary),
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = delta, style = AtomType.Body.copy(color = dirColor),
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
     }
 }

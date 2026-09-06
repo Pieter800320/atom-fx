@@ -1,39 +1,39 @@
 package com.pieter.atomfx.ui.components
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -42,39 +42,39 @@ import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 import com.pieter.atomfx.ui.wheel.WheelUiState
-import kotlinx.coroutines.launch
 
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
-// 272dp, not the first-guess 240dp — device-checked twice: the 4-item consensus row (REGIME/
-// TREND/MOM/VOL, each dot+label) needs more room than a quick guess gave it. 240dp wrapped VOL
-// letter-by-letter; 250dp+10dp gaps still wrapped it "VO/L". Paired with the tighter 8dp gap below.
-private val POPUP_WIDTH = 272.dp
-private val POPUP_GAP = 8.dp
 
-// Item Library #03 ("Inline Fan-Out Capture") timing, ported from its Views/CSS source verbatim —
-// 260ms, cubic-bezier(.34,1.56,.64,1) (Compose's own equivalent of Android's
-// OvershootInterpolator(1.1f)). This app's own variant floats over the page rather than reflowing
-// content below it (Item #03's own canonical behaviour) — Pieter's explicit call, "pop out over
-// the page to the right" — so it's a `Popup`, not an in-place reveal; the growth mechanic itself
-// (small+transparent at the trigger's own corner, animating to full size/opacity) is unchanged.
-private const val FAN_OUT_DURATION_MS = 260
-private val FAN_OUT_EASING = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
-private const val FAN_OUT_MIN_SCALE = 0.15f
+// Item Library #03 ("Inline Fan-Out Capture") timing, ported verbatim — 260ms,
+// cubic-bezier(.34,1.56,.64,1) (Compose's own equivalent of Android's OvershootInterpolator(1.1f)).
+private const val PANEL_DURATION_MS = 260
+private val PANEL_EASING = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
+
+private const val EMPTY_KEY = "__empty__"
 
 /**
- * 2026-09-06 (Pieter's ask) — replaces the old always-visible "Summary"/"Recommendation" card
- * (itself a replacement for the original 9-button cascade, same day) with a small glyph
- * (`RecommendationGlyph`) that fans the same content out from its own corner, Item Library #03's
- * "doors grow from the +" mechanic ported to Compose. Collapsed, this is the entire footprint —
- * `EvenlySpacedColumn` (`WheelScreen.kt`) redistributes the vertical space the old permanent card
- * used to occupy as larger gaps between Home's other elements automatically, no separate spacing
- * change needed.
+ * 2026-09-06 (Pieter's follow-up ask) — was one glyph for the single deterministic
+ * `recommendation.primary_pair`; now one small glyph PER pair in `signals.ranked.top`
+ * (`rank.py::rank_pairs`, hard-capped to 3 by `scan_news.py::call_ranked_analysis` — never all 12,
+ * however many pairs actually clear its directional+continuation gate). The glyphs sit in a row
+ * above the wheel, horizontally scrollable if more than fit (in practice at most 3, so this is a
+ * safety net, not the common case).
  *
- * Content itself is unchanged from the previous pass: deliberately the TECHNICAL counterpart to
- * Insights' AI-narrated recommendation — `signals.recommendation`'s deterministic seed
- * (`primary_pair`/`direction`/`confidence`, refreshed every hourly scan, no model call) plus that
- * pair's own Regime/Trend/Momentum/Volatility consensus (the same four the pair sheet's Overview
- * tab shows). Tapping the card opens that pair's own sheet and collapses the popup.
+ * Tapping a glyph opens a FULL-WIDTH panel below the row — Item Library #03's canonical §4
+ * "reflow, not overlay" behaviour (superseding this same feature's own brief same-day detour into
+ * a floating `Popup`, §9): it's an ordinary in-flow composable, so it pushes the wheel/CSM
+ * strip/TF row down exactly like the old always-visible Summary card used to, no manual position
+ * math needed. Tapping the same glyph again, or a different glyph, collapses the panel (a
+ * different-glyph tap swaps the panel's content directly rather than closing-then-reopening — the
+ * visible effect is the same "was showing X, now shows Y").
+ *
+ * Content is deliberately the TECHNICAL counterpart to Insights' AI-narrated recommendation: each
+ * pair's own Regime/Trend/Momentum/Volatility/Structure consensus, Structure now included (Pieter's
+ * ask — it was on the old Overview tab already, `PairSheet.kt`'s own `structureRow`, just never
+ * surfaced here) plus its ranked setup score (`ranked.top[].score` — there's no per-pair confidence
+ * word at this granularity, only the deterministic `recommendation` object has that, so the raw
+ * score is shown instead of inventing a bucketed label). Tapping the panel opens that pair's own
+ * sheet.
  */
 @Composable
 fun StatusStrip(
@@ -84,124 +84,137 @@ fun StatusStrip(
     onCellClick: (SheetTarget) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rec = signals.recommendation
-    val primaryPair = rec?.primaryPair
-    val node = primaryPair?.let { pair -> state.nodes.firstOrNull { it.pair == pair } }
-
-    val haptics = LocalHapticFeedback.current
-    val scope = rememberCoroutineScope()
-    val density = LocalDensity.current
-    // `expanded` is the target state (drives the needle-adjacent tap toggle); `showPopup` is
-    // actual presence — stays true through the close animation so it can play out, only unmounts
-    // once `progress` has actually reached 0 (mirrors the old cascade's own
-    // "close, then hide" sequencing, now for one Popup instead of nine staggered cards).
-    var expanded by remember { mutableStateOf(false) }
-    var showPopup by remember { mutableStateOf(false) }
-    val progress = remember { Animatable(0f) }
-
-    fun open() {
-        expanded = true
-        showPopup = true
-        scope.launch { progress.animateTo(1f, tween(FAN_OUT_DURATION_MS, easing = FAN_OUT_EASING)) }
-    }
-    fun close() {
-        expanded = false
-        scope.launch {
-            progress.animateTo(0f, tween(FAN_OUT_DURATION_MS, easing = FAN_OUT_EASING))
-            showPopup = false
+    val items = remember(signals.ranked, state.nodes) {
+        signals.ranked?.top.orEmpty().mapNotNull { r ->
+            val pair = r.pair ?: return@mapNotNull null
+            val node = state.nodes.firstOrNull { it.pair == pair } ?: return@mapNotNull null
+            RecoItem(
+                pair = pair,
+                direction = r.direction,
+                score = r.score,
+                node = node,
+                structureEvent = signals.pairs[pair]?.structure?.h4?.event,
+            )
         }
     }
 
-    Box(modifier = modifier) {
-        RecommendationGlyph(
-            direction = rec?.direction,
-            colors = colors,
-            modifier = Modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                if (expanded) close() else open()
-            },
-        )
+    val haptics = LocalHapticFeedback.current
+    var expandedKey by remember { mutableStateOf<String?>(null) }
 
-        if (showPopup) {
-            val offsetPx = with(density) { (RECOMMENDATION_GLYPH_SIZE + POPUP_GAP).roundToPx() }
-            Popup(
-                alignment = Alignment.TopStart,
-                offset = IntOffset(offsetPx, 0),
-                onDismissRequest = { close() },
-                properties = PopupProperties(focusable = false),
-            ) {
-                val p = progress.value
-                val scale = FAN_OUT_MIN_SCALE + (1f - FAN_OUT_MIN_SCALE) * p
-                Box(
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        alpha = p
-                        transformOrigin = TransformOrigin(0f, 0f)
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            if (items.isEmpty()) {
+                RecoGlyphColumn(
+                    label = "—",
+                    direction = null,
+                    selected = expandedKey == EMPTY_KEY,
+                    colors = colors,
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        expandedKey = if (expandedKey == EMPTY_KEY) null else EMPTY_KEY
                     },
-                ) {
-                    if (rec == null || primaryPair == null || node == null) {
-                        EmptyRecommendationCard(colors)
-                    } else {
-                        RecommendationCard(
-                            pair = primaryPair,
-                            direction = rec.direction,
-                            confidence = rec.confidence,
-                            node = node,
-                            colors = colors,
-                            // A second, faintly staggered fade remapped off the same shared
-                            // `progress` (Item #03's own per-item stagger, cheapened to one
-                            // Animatable instead of N) — the consensus row settles a beat after
-                            // the header rather than everything landing in lockstep.
-                            consensusAlpha = ((p - 0.15f) / 0.85f).coerceIn(0f, 1f),
-                        ) {
-                            close()
-                            onCellClick(SheetTarget.Node(primaryPair))
-                        }
+                )
+            } else {
+                items.forEach { item ->
+                    RecoGlyphColumn(
+                        label = item.pair,
+                        direction = item.direction,
+                        selected = expandedKey == item.pair,
+                        colors = colors,
+                        onClick = {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            expandedKey = if (expandedKey == item.pair) null else item.pair
+                        },
+                    )
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = expandedKey != null,
+            enter = expandVertically(tween(PANEL_DURATION_MS, easing = PANEL_EASING)) +
+                fadeIn(tween(PANEL_DURATION_MS, easing = PANEL_EASING)),
+            exit = shrinkVertically(tween(PANEL_DURATION_MS, easing = PANEL_EASING)) +
+                fadeOut(tween(PANEL_DURATION_MS, easing = PANEL_EASING)),
+        ) {
+            Column(modifier = Modifier.padding(top = 10.dp).animateContentSize()) {
+                val item = items.firstOrNull { it.pair == expandedKey }
+                if (item != null) {
+                    RecommendationPanel(item, colors) {
+                        expandedKey = null
+                        onCellClick(SheetTarget.Node(item.pair))
                     }
+                } else {
+                    EmptyRecommendationPanel(colors)
                 }
             }
         }
     }
 }
 
+private data class RecoItem(
+    val pair: String,
+    val direction: String?,
+    val score: Double?,
+    val node: PairNode,
+    val structureEvent: String?,
+)
+
 @Composable
-private fun EmptyRecommendationCard(colors: AtomColors) {
-    Box(
-        modifier = Modifier
-            .width(POPUP_WIDTH)
-            .background(colors.controlSurface, CARD_SHAPE)
-            .border(1.dp, colors.controlBorder, CARD_SHAPE)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-    ) {
-        Column {
-            Text(text = "RECOMMENDATION", style = AtomType.Caption.copy(color = colors.textMuted, fontWeight = FontWeight.Normal))
-            Text(
-                text = "No qualifying setup this scan.",
-                style = AtomType.Body.copy(color = colors.textSecondary),
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
+private fun RecoGlyphColumn(
+    label: String,
+    direction: String?,
+    selected: Boolean,
+    colors: AtomColors,
+    onClick: () -> Unit,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        RecommendationGlyph(
+            direction = direction,
+            colors = colors,
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+            ),
+        )
+        Text(
+            text = label,
+            // 10sp — same currency/pair-code caption size CsmBarStrip's own labels use
+            // (WheelScreen.kt).
+            style = AtomType.Caption.copy(color = if (selected) colors.textPrimary else colors.textMuted, fontSize = 10.sp),
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 }
 
 @Composable
-private fun RecommendationCard(
-    pair: String,
-    direction: String?,
-    confidence: String?,
-    node: PairNode,
-    colors: AtomColors,
-    consensusAlpha: Float,
-    onClick: () -> Unit,
-) {
+private fun EmptyRecommendationPanel(colors: AtomColors) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.controlSurface, CARD_SHAPE)
+            .border(1.dp, colors.controlBorder, CARD_SHAPE)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        Text(text = "RECOMMENDATION", style = AtomType.Caption.copy(color = colors.textMuted, fontWeight = FontWeight.Normal))
+        Text(
+            text = "No qualifying setups this scan.",
+            style = AtomType.Body.copy(color = colors.textSecondary),
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun RecommendationPanel(item: RecoItem, colors: AtomColors, onClick: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     Column(
         modifier = Modifier
-            .width(POPUP_WIDTH)
+            .fillMaxWidth()
             .background(colors.controlSurface, CARD_SHAPE)
             .border(1.dp, colors.controlBorder, CARD_SHAPE)
             .clickable(
@@ -213,34 +226,31 @@ private fun RecommendationCard(
             }
             .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
-        Row(modifier = Modifier, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "RECOMMENDATION", style = AtomType.Caption.copy(color = colors.textMuted, fontWeight = FontWeight.Normal))
-        }
+        Text(text = "RECOMMENDATION", style = AtomType.Caption.copy(color = colors.textMuted, fontWeight = FontWeight.Normal))
         Row(
             modifier = Modifier.padding(top = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(text = pair, style = AtomType.Title.copy(color = colors.textPrimary))
-            Text(text = directionWord(direction), style = AtomType.Caption.copy(color = directionColor(direction, colors)))
+            Text(text = item.pair, style = AtomType.Title.copy(color = colors.textPrimary))
+            Text(text = directionWord(item.direction), style = AtomType.Caption.copy(color = directionColor(item.direction, colors)))
         }
-        if (confidence != null) {
+        if (item.score != null) {
             Text(
-                text = "$confidence confidence".uppercase(),
+                text = "SETUP SCORE %.1f".format(java.util.Locale.US, item.score),
                 style = AtomType.Caption.copy(color = colors.textMuted),
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
         Row(
-            modifier = Modifier
-                .padding(top = 10.dp)
-                .graphicsLayer { alpha = consensusAlpha },
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            ConsensusItem("REGIME", regimeDotColor(node, colors), colors)
-            ConsensusItem("TREND", trendDotColor(node, colors), colors)
-            ConsensusItem("MOM", momentumDotColor(node, colors), colors)
-            ConsensusItem("VOL", volatilityDotColor(node, colors), colors)
+            ConsensusItem("REGIME", regimeDotColor(item.node, colors), colors)
+            ConsensusItem("TREND", trendDotColor(item.node, colors), colors)
+            ConsensusItem("MOM", momentumDotColor(item.node, colors), colors)
+            ConsensusItem("VOL", volatilityDotColor(item.node, colors), colors)
+            ConsensusItem("STRUCTURE", structureDotColor(item.structureEvent, colors), colors)
         }
     }
 }
@@ -249,9 +259,6 @@ private fun RecommendationCard(
 private fun ConsensusItem(label: String, dotColor: Color, colors: AtomColors) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         EvidenceDot(color = dotColor, modifier = Modifier.padding(end = 6.dp))
-        // maxLines = 1 as a safety net, not the real fix — the real fix is POPUP_WIDTH actually
-        // fitting the row (see its own comment); this just guarantees a future width regression
-        // clips instead of wrapping "VOL" into "VO"/"L" the way two earlier width guesses did.
         Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted), maxLines = 1)
     }
 }
@@ -286,3 +293,12 @@ private fun momentumDotColor(node: PairNode, colors: AtomColors): Color =
 
 private fun volatilityDotColor(node: PairNode, colors: AtomColors): Color =
     if (node.volatility in 20..70) colors.bull else colors.watch
+
+// Same BOS/CHoCH convention as PairSheet.kt's own Overview `structureRow` — BOS confirms the
+// existing trend (bull-tinted), CHoCH is a live reversal warning (bear-tinted), no recent event
+// reads as neutral, same as every other dot here when there's nothing to report.
+private fun structureDotColor(event: String?, colors: AtomColors): Color = when (event) {
+    "BOS" -> colors.bull
+    "CHoCH" -> colors.bear
+    else -> colors.textMuted
+}

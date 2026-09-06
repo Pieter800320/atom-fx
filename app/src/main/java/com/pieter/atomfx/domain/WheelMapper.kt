@@ -3,7 +3,6 @@ package com.pieter.atomfx.domain
 import com.pieter.atomfx.data.model.PotentialEntry
 import com.pieter.atomfx.data.model.PotentialFactors
 import com.pieter.atomfx.data.model.Signals
-import com.pieter.atomfx.ui.wheel.CrossAssetSeg
 import com.pieter.atomfx.ui.wheel.CurrencySeg
 import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
@@ -14,7 +13,6 @@ import com.pieter.atomfx.ui.wheel.RingDescriptor
 import com.pieter.atomfx.ui.wheel.Tint
 import com.pieter.atomfx.ui.wheel.WheelGeometry
 import com.pieter.atomfx.ui.wheel.WheelUiState
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -36,7 +34,6 @@ object WheelMapper {
             currencies = mapCurrencies(signals, "h4"),
             currenciesD1 = mapCurrencies(signals, "d1"),
             currenciesH1 = mapCurrencies(signals, "h1"),
-            crossAssets = mapCrossAssets(signals),
         )
     }
 
@@ -140,53 +137,6 @@ object WheelMapper {
                 tint = if (strength >= 50) Tint.BULL else Tint.BEAR,
             )
         }
-    }
-
-    // ── Cross-assets (outer ring) ───────────────────────────────────────────────────────────
-    /** Each asset → the macro axis it belongs to (an asset may touch two). */
-    private val ASSET_AXES: Map<String, List<String>> = mapOf(
-        "vix" to listOf("risk"), "spx" to listOf("risk"), "btc" to listOf("risk"),
-        "us10y" to listOf("rates"), "us3m" to listOf("rates"), "curve" to listOf("rates"),
-        "dxy" to listOf("usd"),
-        "wti" to listOf("commodity"),
-        "copper" to listOf("risk", "commodity"),
-        "gold" to listOf("commodity", "safe_haven"),
-    )
-
-    private fun mapCrossAssets(signals: Signals): List<CrossAssetSeg> {
-        val supportingAxes: Set<String> = signals.macroRegime?.evidence
-            ?.filter { it.supports }
-            ?.mapNotNull { it.axis }
-            ?.toSet()
-            ?: emptySet()
-
-        return WheelGeometry.XASSET_ORDER.mapIndexed { index, (key, fallbackLabel) ->
-            val entry = signals.macroAssets[key]
-            val dir = entry?.direction
-            val axes = ASSET_AXES[key] ?: emptyList()
-            CrossAssetSeg(
-                id = key,
-                index = index,
-                label = entry?.label ?: fallbackLabel,
-                up = dir == "up",
-                flat = dir == null || dir == "flat",
-                confirm = axes.any { it in supportingAxes },
-                valueText = formatValue(entry?.value),
-                deltaText = formatDelta(entry?.deltaPct, entry?.deltaBp),
-            )
-        }
-    }
-
-    private fun formatValue(v: Double?): String = when {
-        v == null -> "—"
-        abs(v) >= 100 -> "%.0f".format(v)
-        else -> "%.2f".format(v)
-    }
-
-    private fun formatDelta(pct: Double?, bp: Double?): String = when {
-        pct != null -> "%+.1f%%".format(pct)
-        bp != null -> "%+.1fbp".format(bp)
-        else -> "—"
     }
 
     // ── Nucleus / hub ────────────────────────────────────────────────────────────────────────

@@ -35,7 +35,6 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
-import com.pieter.atomfx.ui.theme.lighten
 import kotlin.math.min
 import kotlinx.coroutines.launch
 
@@ -44,7 +43,10 @@ sealed interface WheelTapTarget {
     data object Nucleus : WheelTapTarget
     data class Node(val pair: String) : WheelTapTarget          // a pair wedge
     data class Currency(val code: String) : WheelTapTarget      // reachable via CsmBarStrip, not the dial itself
-    data class CrossAsset(val id: String) : WheelTapTarget      // an outer-ring wedge
+    // 2026-09-06 — the outer-ring wedge this used to come from is gone (see WheelCanvas's own doc
+    // comment); reachable via MacroScreen's cross-asset cards instead, not the dial itself, same
+    // shape as Currency above.
+    data class CrossAsset(val id: String) : WheelTapTarget
     data class Ring(val factor: Factor) : WheelTapTarget         // emitted by the factor pills, not the dial
     // 2026-09-04 — the 4 corner wings, one per WheelMode, each a direct selector (not a 2-way
     // toggle) now that D1/H4/H1 moved off the wheel entirely into WheelScreen's own bottom row.
@@ -70,17 +72,6 @@ private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of 
 // near-white in dark theme and near-black in light theme, so it reads in both).
 private const val TAP_WASH_ALPHA = 0.16f
 
-// "Soft corners everywhere else in the app, why not the wheel" experiment, 2026-09-03 — every
-// wash cell (cross-asset cells, the green/red graph fill on the Potential/Strength rings) now
-// uses the exact same colour formula as an Electric Treatment pill (ScrollingPills.kt's own
-// wash = tint@18%, see the Macro "Confidence" pill), no border, corners rounded via
-// [roundedWedgePath]. Previously 0.4f with a coloured border, added when the un-plated wash read
-// as nearly invisible (~1.2:1) — that fix was to the wrong thing; the pill's own 18% reads fine
-// once composited onto the surfaceRaised plate every wash cell already sits on. Cross-asset ring
-// only — Pieter's own call, 2026-09-04: the pair-ring wedges/CSM bars unified onto the same wash
-// TECHNIQUE but not this exact alpha, see [PAIR_WASH_ALPHA] below.
-const val XA_WASH_ALPHA = 0.18f
-
 // Pieter, 2026-09-04 — the pair-ring wedges and the CSM bars (`WheelScreen.kt`'s `CsmBarStrip`)
 // share this slightly-brighter wash: "slightly brighter, slightly more solid" than the cross-
 // asset ring's own 18%, one step back from the fully-solid fill that read as too loud when tried.
@@ -98,9 +89,13 @@ private const val WHEEL_CELL_CORNER_RADIUS_DP = 7f
 private const val PAIR_WEDGE_FILL_CORNER_RADIUS_DP = 3f
 
 /**
- * The Wheel v2 radial dial. Three zones: outer cross-asset ring, the middle 12-pair ring, and the
- * regime hub. Angular identity is fixed (WheelGeometry); only radial fill animates as data
+ * The Wheel v2 radial dial. Two zones: the middle 12-pair ring and the regime hub (plus the 4
+ * corner mode wings). Angular identity is fixed (WheelGeometry); only radial fill animates as data
  * changes (Design §7). Pure consumer of [WheelUiState].
+ *
+ * 2026-09-06 (Pieter's ask) — the outer cross-asset ring is gone; cross-assets are Macro-screen
+ * only now (still reachable from the app, just not from the dial — see MacroScreen's cross-asset
+ * cards). The pair ring grew outward to fill the freed radius band (WheelGeometry.RING_R1_FRAC).
  *
  * 2026-09-04 — the middle ring no longer cross-fades between a currency ring and a pair ring:
  * CSM/currency strength moved off the wheel entirely (its own permanent `CsmBarStrip` in
@@ -210,9 +205,6 @@ private fun hitTest(offset: Offset, w: Float, h: Float): WheelTapTarget? {
     val deg = g.compassDeg(cx, cy, offset)
     if (dist in (g.RING_R0_FRAC * half)..(g.RING_R1_FRAC * half)) {
         return WheelTapTarget.Node(g.PAIR_ORDER[g.segIndexAt(g.PAIR_ORDER.size, deg)])
-    }
-    if (dist in (g.XA_R0_FRAC * half)..(g.XA_R1_FRAC * half)) {
-        return WheelTapTarget.CrossAsset(g.XASSET_ORDER[g.segIndexAt(g.XASSET_ORDER.size, deg)].first)
     }
     if (dist in (g.TOGGLE_R0_FRAC * half)..(g.TOGGLE_R1_FRAC * half)) {
         val (o0, o1) = g.cornerHitRange(g.TOGGLE_OVERALL_CENTER_DEG)
@@ -371,7 +363,6 @@ private fun DrawScope.drawDial(
         ),
     )
 
-    drawCrossAssetRing(state, colors, isDark, cx, cy, half, tapFlash)
     drawCornerButtons(mode, colors, isDark, cx, cy, half, tapFlash)
     drawPairRing(state, mode, colors, cx, cy, half, fillAnims, tapFlash)
     drawHub(state.nucleus, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
@@ -380,51 +371,6 @@ private fun DrawScope.drawDial(
 /** Reads the current tap-flash value (0f if never/no-longer flashing) for [key]. */
 private fun flashOf(tapFlash: Map<String, Animatable<Float, *>>, key: String): Float =
     tapFlash[key]?.value ?: 0f
-
-/**
- * Pieter, 2026-09-03 — simplified to a two-state indicator: moving (any non-flat direction, up or
- * down alike) is green, inert (flat) is dim. Was previously three dimensions at once (up/down/
- * flat direction × regime-confirm × label emphasis) — deliberately dropped the direction (green
- * vs. red) and regime-confirm distinctions from the ring itself; both are still one tap away in
- * the Cross Asset sheet (Functional Spec §6.6), which keeps its full up/down arrows and
- * confirm/dim badges unchanged. The ring's own job now is exactly what Pieter asked for: "which
- * cross assets are moving, and which aren't" — nothing more.
- */
-private fun DrawScope.drawCrossAssetRing(state: WheelUiState, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float, tapFlash: Map<String, Animatable<Float, *>>) {
-    val g = WheelGeometry
-    val r0 = g.XA_R0_FRAC * half
-    val r1 = g.XA_R1_FRAC * half
-    val labelR = (r0 + r1) / 2f
-    val count = state.crossAssets.size.coerceAtLeast(1)
-    state.crossAssets.forEach { xa ->
-        val (a0, a1) = g.segAngles(count, xa.index, GAP_DEG * 0.6f)
-        val mid = g.midDeg(count, xa.index)
-        // Pieter, 2026-09-03 follow-up — back to three states (up/down/flat), not two: the
-        // two-state "just moving vs. inert" simplification read as a real bug in practice — a
-        // falling DXY still showed green, since green meant "moving," not "up." Direction is
-        // real information, not redundant with anything else at a glance (only the Cross Asset
-        // sheet, one tap away, had it). Electric Treatment (wash + bright rim + brighter-still
-        // text, all one hue) now keyed on direction: bull green when up, bear red when down,
-        // dim/hairline grey when flat — the mechanics are unchanged from the two-state version,
-        // only which hue (or none) drives them.
-        val hue = if (xa.flat) null else if (xa.up) colors.bull else colors.bear
-        val path = roundedWedgePath(cx, cy, r0, r1, a0, a1, px(WHEEL_CELL_CORNER_RADIUS_DP))
-        // Plate first (matches drawPairRing's own base), then the hue wash on top — see
-        // XA_WASH_ALPHA above for why. Borderless, corners rounded — the pill treatment, not the
-        // old bordered/sharp-cornered cell.
-        drawPath(path, color = colors.surfaceRaised)
-        val bg = hue?.copy(alpha = XA_WASH_ALPHA) ?: colors.surface
-        drawPath(path, color = bg)
-        // Aesthetics pass, 2026-09-03 — lighten(hue, 0.45) only reads against a near-black wedge
-        // fill (dark theme); on a light wedge it washed the label toward white on white, nearly
-        // invisible. Same fix shape as ScrollingPills' pill text: raw hue in light theme, it's
-        // already tuned to sit on a light fill.
-        val labelColor = hue?.let { if (isDark) lighten(it, 0.45f) else it } ?: colors.textMuted
-        curvedLabel(cx, cy, labelR, mid, a0, a1, xa.label, labelColor, sp(11f), bold = false)
-        val flash = flashOf(tapFlash, "xa:${xa.id}")
-        if (flash > 0f) drawPath(path, color = colors.textPrimary.copy(alpha = TAP_WASH_ALPHA * flash))
-    }
-}
 
 /**
  * A tapered wedge — curved top/bottom edges (following the dial's own r0/r1 radii, so it still

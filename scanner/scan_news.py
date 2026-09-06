@@ -1010,6 +1010,13 @@ def main():
     w1      = compute_w1_regime(macro, prev_w1)
     mac     = compute_macro(macro, prev_mac)
     macro_assets = build_macro_assets(macro)
+    # 2026-09-06 (Pieter's ask) — a W1 (5-session) counterpart to `macro_assets`, purely
+    # additive: same already-fetched `macro` dict (its `w1_close` field was already sitting
+    # here unused for this purpose), no new fetch. Feeds `macro_regime.classify_macro_regime`'s
+    # regime-naming pick instead of the 1-day `macro_assets` (see that module's own doc
+    # comment for why); `macro_assets` itself is untouched and keeps its existing job.
+    from scanner.extend import macro_regime as _macro_regime
+    macro_assets_w1 = _macro_regime.build_macro_assets_w1(macro)
     session = current_session(now)
     print(f"  Session: {session}")
     print(f"  W1:    {w1['regime']} {w1['confidence']} ({'Stable' if w1['stable'] else 'Shifting'})")
@@ -1089,6 +1096,7 @@ def main():
     signals["regime_w1"]    = w1
     signals["macro"]        = mac
     signals["macro_assets"] = macro_assets
+    signals["macro_assets_w1"] = macro_assets_w1
     signals["catalyst"]     = {"text": catalyst, "updated": now.isoformat()}
     signals["ranked"]       = {**ranked_out, "updated": now.isoformat()}
     signals["calendar"]     = {"events": events, "updated": now.isoformat()}

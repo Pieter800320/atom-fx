@@ -451,7 +451,7 @@ private fun CsmBarStrip(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             ordered.forEach { c ->
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text(text = c.code, style = AtomType.Caption.copy(color = colors.textMuted, fontSize = 10.sp))
+                    Text(text = c.code, style = AtomType.Caption.copy(color = colors.textPrimary, fontSize = 10.sp))
                 }
             }
         }

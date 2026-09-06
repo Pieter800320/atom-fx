@@ -12,12 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.MacroAssetEntry
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.WheelGeometry
 
 /**
@@ -61,8 +64,11 @@ fun CrossAssetSheet(selectedId: String, signals: Signals, colors: AtomColors) {
     }
 }
 
-/** Which regime evidence axis (or axes) each asset speaks to — mirrors Macro's own EvidenceAxes. */
-private val ASSET_AXES: Map<String, List<String>> = mapOf(
+/** Which regime evidence axis (or axes) each asset speaks to — mirrors Macro's own EvidenceAxes.
+ *  Internal (not private): MacroScreen's own cross-asset cards reuse this + [CrossAssetRow]
+ *  directly (2026-09-06, Pieter's ask — "make Macro's cross assets look like the bottom sheet's"),
+ *  rather than forking a second copy of the impact/axis logic. */
+internal val ASSET_AXES: Map<String, List<String>> = mapOf(
     "vix" to listOf("risk"), "spx" to listOf("risk"), "btc" to listOf("risk"),
     "us10y" to listOf("rates"), "us3m" to listOf("rates"), "curve" to listOf("rates"),
     "dxy" to listOf("usd"), "wti" to listOf("commodity"),
@@ -70,7 +76,7 @@ private val ASSET_AXES: Map<String, List<String>> = mapOf(
 )
 
 /** Short, presentational read of what the move implies — copy only, not a computed signal. */
-private val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
+internal val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
     ("vix" to true) to "risk-off — JPY/CHF bid", ("vix" to false) to "risk-on — AUD/NZD bid",
     ("spx" to true) to "risk-on", ("spx" to false) to "risk-off",
     ("us10y" to true) to "USD bid vs JPY", ("us10y" to false) to "JPY/CHF relief",
@@ -83,19 +89,23 @@ private val IMPACT: Map<Pair<String, Boolean>, String> = mapOf(
     ("btc" to true) to "risk-on", ("btc" to false) to "risk-off",
 )
 
-private val XA_CARD_SHAPE = RoundedCornerShape(14.dp)
+internal val XA_CARD_SHAPE = RoundedCornerShape(14.dp)
 // Same evidence formula as Macro's EvidenceAxes / PairSheet's WhyChecklist, now keyed to the
 // asset's own direction instead of regime-support.
 private const val XA_LIT_AMOUNT = 0.08f
 
+/** One cross-asset's card — the direction-tinted fill, title/impact left, value/delta right.
+ *  Internal so [MacroScreen] can render its own cross-asset section with the identical look. */
 @Composable
-private fun CrossAssetRow(
+internal fun CrossAssetRow(
     key: String,
     fallbackLabel: String,
     entry: MacroAssetEntry?,
     pinned: Boolean,
     confirms: Boolean,
     colors: AtomColors,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
 ) {
     val dir = entry?.direction
     val up = dir == "up"
@@ -125,11 +135,26 @@ private fun CrossAssetRow(
         else -> colors.surfaceRaised
     }
 
+    val haptics = LocalHapticFeedback.current
+
     // Left side (title + impact) stacks top-down inside its own Column; the value/delta on the
     // right are direct children of this outer Row, so CenterVertically centres them against the
     // Column's full height instead of pinning them to the title line.
     Row(
-        modifier = Modifier.fillMaxWidth().background(fill, XA_CARD_SHAPE).padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(fill, XA_CARD_SHAPE)
+            .then(
+                if (onClick != null) {
+                    Modifier.pressWash(XA_CARD_SHAPE) {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClick()
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {

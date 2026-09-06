@@ -14,8 +14,10 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 
-/** The Recommendation glyph's own footprint (top-left of Home, 2026-09-06 — replaces the old
- *  always-visible "Summary" cascade card entirely). */
+/** One Recommendation glyph's own footprint (above the wheel, 2026-09-06 — replaces the old
+ *  always-visible "Summary" cascade card entirely). One instance per ranked pair now (StatusStrip's
+ *  own follow-up the same day — was a single always-one glyph, see StatusStrip.kt's own doc
+ *  comment), laid out in a row; this composable itself is unchanged either way. */
 val RECOMMENDATION_GLYPH_SIZE = 40.dp
 
 /**
@@ -23,9 +25,9 @@ val RECOMMENDATION_GLYPH_SIZE = 40.dp
  * specifically the *non*-AI counterpart to Insights' own recommendation, so an "AI-generated"
  * coded glyph would send the wrong signal. Same radial-gradient + hairline-ring recipe as the
  * wheel's own hub (`WheelCanvas.drawHub`), at 40dp instead of the hub's own scale — a small needle
- * inside rotates to the recommendation's own direction (up-right for long, down-right for short,
- * a flat dash if neutral/no qualifying pair), so the badge is meaningful at rest, not just a
- * decorative trigger — colour and angle already tell you the bias before you tap anything.
+ * inside rotates to this pair's own direction (up-right for long, down-right for short, a flat
+ * dash if neutral/no qualifying pair), so the badge is meaningful at rest, not just a decorative
+ * trigger — colour and angle already tell you the bias before you tap anything.
  *
  * Mocked up as an Artifact first (three candidate glyphs shown side by side) — Pieter picked this
  * one over a bullseye ("Target," no way to hint at direction without extra colour logic) and a

@@ -113,18 +113,6 @@ data class CurrencySeg(
     val tint: Tint,         // BULL if strength>=50 else BEAR
 )
 
-/** One cross-asset wedge in the outer ring. */
-data class CrossAssetSeg(
-    val id: String,          // macro_assets map key (e.g. "vix", "curve")
-    val index: Int,          // position in WheelGeometry.XASSET_ORDER (angle = identity)
-    val label: String,       // display label (e.g. "VIX", "10Y-3M")
-    val up: Boolean,         // direction == "up"
-    val flat: Boolean,       // direction == "flat" (neither confirm-green nor -red emphasis)
-    val confirm: Boolean,    // supports the current regime (macro_regime.evidence)
-    val valueText: String,
-    val deltaText: String,
-)
-
 data class NucleusState(
     val regimeLabel: String,
     val strengthWord: String,
@@ -147,7 +135,6 @@ data class WheelUiState(
     val currencies: List<CurrencySeg> = emptyList(),   // size 8, H4 (CURRENCIES mode default)
     val currenciesD1: List<CurrencySeg> = emptyList(), // size 8, D1 (CURRENCIES mode, D1 toggle)
     val currenciesH1: List<CurrencySeg> = emptyList(), // size 8, H1 (CURRENCIES mode, H1 toggle)
-    val crossAssets: List<CrossAssetSeg> = emptyList(), // size 10 (outer ring)
 )
 
 /**

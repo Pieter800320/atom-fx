@@ -63,7 +63,7 @@ SCAN_TF = "h1"  # primary fetch timeframe
 # on the very next hourly scan. A new cross-cadence key needs adding here the same session
 # it starts being written, not after.
 PRESERVED_KEYS = (
-    "regime_w1", "macro", "macro_assets",
+    "regime_w1", "macro", "macro_assets", "macro_assets_w1",
     "catalyst", "ranked", "calendar", "week_ahead",
     "deep_analysis", "breaking", "last_alert", "gold_signal",
     "recommendation", "conviction",
@@ -396,8 +396,18 @@ def main():
             reset=pair_reset, atr_pct=pair_atr_pct,
         )
 
-        mr = _macro_regime.classify_macro_regime(out.get("macro_assets", {}),
-                                                 updated=now.isoformat())
+        # 2026-09-06 (Pieter's ask) — the regime NAME is picked from the W1 (5-session) view
+        # now, not the 1-day one; the 1-day `macro_assets` still feeds the fast confirm/diverge
+        # evidence tag and the sudden-shock check. `prev` (already loaded above for the D1/H4/H1
+        # regime comparisons) supplies the standing regime for the new hysteresis gate — see
+        # macro_regime.py's own module doc comment. Both preserved keys, so they're already
+        # sitting in `out` from the last scan_news.py run even on hours it doesn't itself run.
+        mr = _macro_regime.classify_macro_regime(
+            out.get("macro_assets_w1", {}),
+            out.get("macro_assets", {}),
+            prev_regime=prev.get("macro_regime"),
+            updated=now.isoformat(),
+        )
         if mr:
             out["macro_regime"] = mr
 

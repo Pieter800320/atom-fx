@@ -199,30 +199,122 @@ def test_spark_shape():
 
 
 # ── 3. Macro regime + recommendation seed ─────────────────────────────────────────
+# 2026-09-06 — `classify_macro_regime` now picks the regime NAME off a W1 (5-session) axis
+# read, not the 1-day one; `ma`/`ma_w1` below plays that role in these tests. See
+# `macro_regime.py`'s own module doc comment for why (the handbook's own "the path matters,
+# not the level" discipline — a single day's wobble shouldn't swap the whole regime name).
 def test_macro_regime_risk_on():
-    ma = {
-        "spx":    {"direction": "up",   "delta_pct": 0.5},
-        "vix":    {"direction": "down", "delta_pct": -3.0},
-        "copper": {"direction": "up",   "delta_pct": 1.5},
+    ma_w1 = {
+        "spx":    {"direction": "up",   "delta_pct": 3.5},
+        "vix":    {"direction": "down", "delta_pct": -18.0},
+        "copper": {"direction": "up",   "delta_pct": 2.5},
         "dxy":    {"direction": "flat", "delta_pct": 0.0},
-        "us10y":  {"direction": "up",   "delta_bp": 2.0},
+        "us10y":  {"direction": "up",   "delta_bp": 5.0},
         "us3m":   {"direction": "flat", "delta_bp": 0.0},
         "wti":    {"direction": "flat", "delta_pct": 0.0},
-        "gold":   {"direction": "up",   "delta_pct": 1.2},
-        "curve":  {"direction": "up",   "delta_bp": 3.0},
-        "btc":    {"direction": "up",   "delta_pct": 0.5},
+        "gold":   {"direction": "up",   "delta_pct": 4.5},
+        "curve":  {"direction": "up",   "delta_bp": 16.0},
+        "btc":    {"direction": "up",   "delta_pct": 16.0},
     }
-    mr = macro_regime.classify_macro_regime(ma, updated="2026-08-28T00:00:00+00:00")
+    mr = macro_regime.classify_macro_regime(ma_w1, updated="2026-08-28T00:00:00+00:00")
     assert mr["primary"]["code"] in macro_regime.REGIME_LIB
     assert mr["primary"]["code"] == "A", mr["primary"]          # growth-positive risk-on
     assert mr["primary"]["confidence"] in ("Low", "Medium", "High")
     assert set(mr["currency_bias"]) == {"strong", "weak"}
     assert len(mr["evidence"]) == 5
     assert mr["gold_overlay"] in ("defensive", "diversification", "neutral")
+    # No daily dict passed — every axis falls back to comparing W1 against itself, so nothing
+    # can read as diverging; "quiet" or "confirming" only.
+    assert all(e["confirms_today"] in ("confirming", "quiet") for e in mr["evidence"])
 
 
 def test_macro_regime_empty():
     assert macro_regime.classify_macro_regime({}) == {}
+
+
+def test_macro_regime_confirms_today():
+    """The fast 1-day read tags each axis confirming/diverging/quiet against the W1 trend —
+    a property of the axis, not of whichever regime happens to win (module doc comment)."""
+    ma_w1 = {
+        "spx": {"direction": "up", "delta_pct": 3.5}, "vix": {"direction": "down", "delta_pct": -18.0},
+        "copper": {"direction": "flat"}, "btc": {"direction": "flat"},
+        "dxy": {"direction": "flat"}, "us10y": {"direction": "flat"}, "us3m": {"direction": "flat"},
+        "wti": {"direction": "flat"}, "gold": {"direction": "flat"}, "curve": {"direction": "flat"},
+    }
+    # Today: SPX and VIX both fight the weekly risk-on trend (SPX down, VIX up) — diverging.
+    ma_daily_diverge = {**ma_w1, "spx": {"direction": "down", "delta_pct": -0.5}, "vix": {"direction": "up", "delta_pct": 6.0}}
+    mr = macro_regime.classify_macro_regime(ma_w1, ma_daily_diverge, updated="2026-08-28T00:00:00+00:00")
+    risk_evidence = next(e for e in mr["evidence"] if e["axis"] == "risk")
+    assert risk_evidence["confirms_today"] == "diverging"
+
+    # Today: no daily move at all on the risk instruments — quiet, not confirming/diverging.
+    ma_daily_quiet = {**ma_w1, "spx": {"direction": "flat"}, "vix": {"direction": "flat"}}
+    mr2 = macro_regime.classify_macro_regime(ma_w1, ma_daily_quiet, updated="2026-08-28T00:00:00+00:00")
+    assert next(e for e in mr2["evidence"] if e["axis"] == "risk")["confirms_today"] == "quiet"
+
+    # Today: SPX up / VIX down again, same direction as the W1 trend — confirming.
+    ma_daily_confirm = {**ma_w1, "spx": {"direction": "up", "delta_pct": 0.6}, "vix": {"direction": "down", "delta_pct": -6.0}}
+    mr3 = macro_regime.classify_macro_regime(ma_w1, ma_daily_confirm, updated="2026-08-28T00:00:00+00:00")
+    assert next(e for e in mr3["evidence"] if e["axis"] == "risk")["confirms_today"] == "confirming"
+
+
+def test_macro_regime_hysteresis_sticky_on_tie():
+    """A regime only flips if the new leader clears the standing code's own axis count —
+    a tie (or the standing code still scoring just as well) keeps the standing regime rather
+    than falling through to the alphabetical tie-break `scored.sort` would otherwise apply."""
+    # Growth-positive risk-on (A: risk+commodity) and Disinflationary easing (C: rates+risk+usd)
+    # can both score 2 axes on the same inputs depending on rates/usd reads — construct exactly
+    # that tie and confirm the standing code (A) survives instead of falling through to C.
+    ma_w1 = {
+        "spx": {"direction": "up"}, "vix": {"direction": "down"},   # risk axis -> risk_on
+        "copper": {"direction": "up"}, "wti": {"direction": "flat"}, # commodity axis -> up
+        "us10y": {"direction": "down"}, "us3m": {"direction": "down"},  # rates axis -> down
+        "dxy": {"direction": "down"},                                   # usd axis -> down
+        "gold": {"direction": "flat"}, "curve": {"direction": "flat"}, "btc": {"direction": "flat"},
+    }
+    # A scores {risk, commodity} = 2. C scores {rates, risk, usd} = 3 — not actually a tie on
+    # these inputs (C legitimately wins on merit), so first confirm the fresh (no prior regime)
+    # pick is C, matching the plain axis count with no standing regime to protect yet.
+    fresh = macro_regime.classify_macro_regime(ma_w1, updated="2026-08-28T00:00:00+00:00")
+    assert fresh["primary"]["code"] == "C"
+
+    # Now simulate A as the STANDING regime on the exact same inputs — A's own recomputed count
+    # (2) is less than C's (3), so this is a real, earned flip, not hysteresis kicking in.
+    prev = {"primary": {"code": "A"}}
+    flipped = macro_regime.classify_macro_regime(ma_w1, prev_regime=prev, updated="2026-08-28T00:00:00+00:00")
+    assert flipped["primary"]["code"] == "C"
+
+    # Construct a genuine tie: drop USD support so C falls to 2 axes ({rates, risk}), matching
+    # A's own 2 ({risk, commodity}) exactly. With NO standing regime, the plain sort's
+    # alphabetical tie-break picks A (it sorts before C in REGIME_LIB). The actual hysteresis
+    # test: make C the STANDING regime on this same tied input — the naive tie-break would
+    # still swap it for A, but the sticky rule should keep C, since A only ties C, it doesn't
+    # beat it.
+    ma_tie = {**ma_w1, "dxy": {"direction": "flat"}}
+    no_prev = macro_regime.classify_macro_regime(ma_tie, updated="2026-08-28T00:00:00+00:00")
+    assert no_prev["primary"]["code"] == "A"  # confirms the tie — alphabetical tie-break picks A
+
+    prev_c = {"primary": {"code": "C"}}
+    sticky = macro_regime.classify_macro_regime(ma_tie, prev_regime=prev_c, updated="2026-08-28T00:00:00+00:00")
+    assert sticky["primary"]["code"] == "C"  # tie keeps the standing regime, not the tie-break's A
+
+
+def test_build_macro_assets_w1_basic():
+    macro = {
+        "spx":   {"close": 5160.0, "prev_close": 5100.0, "w1_close": 5000.0, "label": "S&P 500"},  # +3.2% W1 -> up
+        "vix":   {"close": 18.0,   "prev_close": 19.0,   "w1_close": 22.0,   "label": "VIX"},        # -18.2% W1 -> down
+        "dxy":   {"close": 104.0,  "prev_close": 103.9,  "w1_close": 104.05, "label": "DXY"},         # ~-0.05% -> flat
+        "us10y": {"close": 4.31,   "prev_close": 4.28,   "w1_close": 4.10,   "label": "US 10Y"},      # +21bp -> up
+        "us3m":  {"close": 5.30,   "prev_close": 5.29,   "w1_close": 5.30,   "label": "US 3M"},       # 0bp -> flat
+    }
+    out = macro_regime.build_macro_assets_w1(macro)
+    assert out["spx"]["direction"] == "up"
+    assert out["vix"]["direction"] == "down"
+    assert out["dxy"]["direction"] == "flat"
+    assert out["us10y"]["direction"] == "up"
+    assert out["us3m"]["direction"] == "flat"
+    # curve (10Y-3M) computed, not fetched — same pattern as build_macro_assets' own curve entry.
+    assert "curve" in out
 
 
 def test_recommendation_seed_deterministic():

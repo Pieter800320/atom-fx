@@ -24,6 +24,7 @@ data class Signals(
     val potential: Map<String, PotentialEntry> = emptyMap(),
     val calendar: CalendarBlock? = null,
     val recommendation: RecommendationBlock? = null,
+    val ranked: RankedBlock? = null,
     @SerialName("deep_analysis") val deepAnalysis: DeepAnalysisBlock? = null,
     val breaking: BreakingBlock? = null,
     val catalyst: CatalystBlock? = null,
@@ -175,6 +176,23 @@ data class RecommendationBlock(
     @SerialName("generated_at") val generatedAt: String? = null,
 )
 
+/** `rank.py::rank_pairs` scored+sorted (never re-derived here), capped to the top 3 by
+ *  `scan_news.py::call_ranked_analysis` — never all 12, whatever the number of pairs that pass
+ *  its hard gate (directional D1 pill + cont >= 45). Home's per-pair Recommendation glyphs
+ *  (`StatusStrip.kt`) read this list directly, one glyph per entry. */
+@Serializable
+data class RankedBlock(
+    val text: String? = null,
+    val top: List<RankedEntry> = emptyList(),
+)
+
+@Serializable
+data class RankedEntry(
+    val pair: String? = null,
+    val direction: String? = null,
+    val score: Double? = null,
+)
+
 @Serializable
 data class NextCatalyst(
     val event: String? = null,
@@ -278,6 +296,10 @@ data class MacroEvidence(
     val axis: String? = null,
     val read: String? = null,
     val supports: Boolean = false,
+    // "confirming" | "diverging" | "quiet" — 2026-09-06: is TODAY's daily move backing this
+    // axis's own W1 trend, fighting it, or silent (see macro_regime.py's own doc comment).
+    // A property of the axis itself, not of whichever regime `supports` happens to be about.
+    @SerialName("confirms_today") val confirmsToday: String? = null,
 )
 
 /** Signals Roadmap §4 — the COT-based Conviction/crowding overlay. Weekly cadence (its own
