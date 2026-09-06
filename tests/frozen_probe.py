@@ -100,9 +100,10 @@ def compute_frozen() -> dict:
         h4_dir = _pill_dir(pair_pills[key].get("h4", "neutral"))
         reset = compute_reset_score(ohlcv[key]["h4"]["close"].tolist(), direction=h4_dir)
         atrp = atr_percentile(ohlcv[key]["h4"])
-        cont = compute_cont(key, pair_pills[key], adx, out["csm"]["h4"],
-                            out["regime"]["h4"], reset_score=reset, atr_pct=atrp)
         structure = h4_score["structure"] if h4_score else None
+        cont = compute_cont(key, pair_pills[key], adx, out["csm"]["h4"],
+                            out["regime"]["h4"], reset_score=reset, atr_pct=atrp,
+                            structure_h4=structure)
         out["pairs"][key] = {
             "pills": pair_pills[key],
             "mom": mom,

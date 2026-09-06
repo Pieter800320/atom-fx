@@ -2,13 +2,21 @@
 FX Signal Board — Continuation Score (0-100)
 Port of Forex1212 computeQAI() to Python.
 
-Six components (weights match Forex1212 exactly):
+Six components:
   1. TF Alignment      35%  - D1/H4/H1 pill direction agreement
-  2. Entry Position    23%  - reset_score + atr_percentile (H4-based)
+  2. Entry Position    23%  - reset_score (H4) + atr_percentile (D1, H4 fallback)
   3. CSM Divergence    16%  - H4 CSM base vs quote spread
   4. Regime Fit        13%  - macro context supports trade direction
-  5. Rate Differential  5%  - DEFAULTS TO NEUTRAL (no rates data in FSB)
+  5. Structure          5%  - H4 BOS/CHoCH agreement with trade direction
   6. Session Fit        8%  - is current UTC session optimal for this pair
+
+2026-09-06 (Rule #1 sign-off — Pieter, see git log) — component 5 replaces the original
+Forex1212 "Rate Differential" weight, which this app never populated (`rate_score = 5`,
+a fixed neutral placeholder — no live rates feed, and Pieter's own call that a
+manually-typed-and-saved rates workflow isn't worth building). H4 structure
+(BOS/CHoCH, `structure.py`) was sitting completely unused by this score despite being
+computed every scan and being the most direct available "does price action confirm
+this trade right now" read — the natural replacement, not a new external dependency.
 
 Gates (applied after weighted sum):
   - ADX < 20  -> score capped at 45
@@ -67,18 +75,54 @@ def _market_closed(utc_weekday, utc_hour):
     return False
 
 
+def _structure_component(structure_h4, is_bull):
+    """
+    2026-09-06 (Rule #1 sign-off) — component 5, replacing the dead Rate Differential slot.
+
+    structure_h4 : pairs.<PAIR>.structure.h4 shape — {"direction","event","strength","multiplier"}
+                   or None. `strength` is 0.0-1.0 (structure.py, itself fixed the same day this
+                   landed — a bull BOS's strength now measures distance from the level it actually
+                   broke, not a fixed reference that pinned every BOS at 1.0).
+
+    A neutral/missing read scores the same "no information" 5 every other component uses when its
+    own input is missing (reset_comp/atr_comp above). An agreeing BOS is the strongest possible
+    confirmation, scaled by how decisive the break was; an agreeing CHoCH is a live warning even
+    though the trend label hasn't flipped yet (CHoCH means the LATEST close just broke back through
+    the opposing extreme). Mirrored, dimmer, for an opposing structure: an opposing BOS is a direct
+    structural contradiction of the trade; an opposing CHoCH is early evidence structure may be
+    about to turn in the trade's favour, so it scores a little above a plain (eventless) opposition.
+    """
+    if not structure_h4:
+        return 5
+    direction = structure_h4.get("direction", "neutral")
+    if direction == "neutral":
+        return 5
+    event    = structure_h4.get("event", "none")
+    strength = structure_h4.get("strength") or 0.0
+    agrees   = (direction == "bull") == is_bull
+    if agrees:
+        if event == "BOS":   return 10 if strength >= 0.5 else 8
+        if event == "CHoCH": return 3
+        return 6
+    else:
+        if event == "BOS":   return 1
+        if event == "CHoCH": return 4
+        return 3
+
+
 def compute_cont(pair, pills, adx, csm_h4, regime_h4,
-                 reset_score=None, atr_pct=None):
+                 reset_score=None, atr_pct=None, structure_h4=None):
     """
     Compute continuation score for one pair (0-100).
 
-    pair        : "EURUSD" etc.
-    pills       : {"d1": "bear", "h4": "bear_strong", "h1": "bear"}
-    adx         : H4 ADX float or None
-    csm_h4      : {"USD": 80, "EUR": 20, ...}
-    regime_h4   : {"regime": "Risk-Off", ...}
-    reset_score : 0-100 from compute_reset_score() or None
-    atr_pct     : 0-100 from atr_percentile() or None
+    pair         : "EURUSD" etc.
+    pills        : {"d1": "bear", "h4": "bear_strong", "h1": "bear"}
+    adx          : H4 ADX float or None
+    csm_h4       : {"USD": 80, "EUR": 20, ...}
+    regime_h4    : {"regime": "Risk-Off", ...}
+    reset_score  : 0-100 from compute_reset_score() or None
+    atr_pct      : 0-100 from atr_percentile() or None
+    structure_h4 : pairs.<PAIR>.structure.h4 dict or None (2026-09-06, see _structure_component)
     """
     base  = pair[:3]
     quote = pair[3:]
@@ -102,11 +146,18 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
     h1m = h1_pill in ("bull", "bull_strong") if is_bull else h1_pill in ("bear", "bear_strong")
     h1n = h1_pill == "neutral"
 
+    # 2026-09-06 (Rule #1 sign-off) — bug fix: "H4 dissents, H1 agrees" (D1+H1 both support the
+    # trade, only H4 doesn't) used to fall through the missing branch into the catch-all `else`,
+    # scoring identically to a full three-way conflict (H4 AND H1 both against the trade). It's
+    # the direct mirror of the "H4 agrees, H1 dissents" branch two lines up, so it gets the same
+    # score that branch already does (5) — one dissenting timeframe, not a real conflict, whichever
+    # side it's on.
     if   h4m and h1m:               align_score = 10 if (d1_strong or h4_strong) else 9
     elif h4m and h1n:               align_score = 7
     elif h4m and not h1m and not h1n: align_score = 5
     elif h4n and h1m:               align_score = 5
     elif h4n and h1n:               align_score = 3
+    elif not h4m and not h4n and h1m: align_score = 5
     else:                           align_score = 1
 
     # 2. ENTRY POSITION (23%)
@@ -153,8 +204,8 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
     elif regime == "Ranging":
         reg_score = 4
 
-    # 5. RATE DIFFERENTIAL (5%) - neutral default
-    rate_score = 5
+    # 5. STRUCTURE CONFIRMATION (5%) — see _structure_component's own doc comment.
+    structure_score = _structure_component(structure_h4, is_bull)
 
     # 6. SESSION FIT (8%)
     now       = datetime.now(timezone.utc)
@@ -169,12 +220,12 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
 
     # Weighted sum
     raw = round((
-        align_score * 0.35 +
-        entry_score * 0.23 +
-        csm_score   * 0.16 +
-        reg_score   * 0.13 +
-        rate_score  * 0.05 +
-        sess_score  * 0.08
+        align_score     * 0.35 +
+        entry_score     * 0.23 +
+        csm_score       * 0.16 +
+        reg_score       * 0.13 +
+        structure_score * 0.05 +
+        sess_score      * 0.08
     ) * 10)
 
     # ADX gate

@@ -250,14 +250,20 @@ def main():
         mom   = pair_mom.get(key, {})
         adx   = pair_adx.get(key)
 
+        # 2026-09-06 (Rule #1 sign-off) — feeds compute_cont's new Structure component
+        # (replacing the dead Rate Differential slot); same score_pair() H4 result already
+        # used above for `pair_adx`, just reading its own "structure" key instead of "raw".
+        h4_structure = (pair_scores.get(key, {}).get("h4") or {}).get("structure")
+
         cont = compute_cont(
-            pair        = key,
-            pills       = pills,
-            adx         = adx,
-            csm_h4      = csm["h4"],
-            regime_h4   = regime_h4,
-            reset_score = pair_reset.get(key),
-            atr_pct     = pair_atr_pct.get(key),
+            pair         = key,
+            pills        = pills,
+            adx          = adx,
+            csm_h4       = csm["h4"],
+            regime_h4    = regime_h4,
+            reset_score  = pair_reset.get(key),
+            atr_pct      = pair_atr_pct.get(key),
+            structure_h4 = h4_structure,
         )
 
         d1_df       = ohlcv.get(key, {}).get("d1")

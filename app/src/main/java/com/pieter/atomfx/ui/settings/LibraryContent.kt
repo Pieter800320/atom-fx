@@ -138,8 +138,8 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         term = "Continuation Score",
         category = "Setup Quality",
         summary = "0–100. How likely the current move is to keep going, once you're already aware of the direction.",
-        howItWorks = "Six weighted components: timeframe alignment across D1/H4/H1 (35%), entry position — a blend of Reset Score and ATR Percentile (23%), CSM divergence (16%), regime fit (13%), rate differential (5%, currently a fixed neutral placeholder — no live rates feed), session fit (8%). Then two gates apply: capped at 45 if H4 ADX is below 20, and capped further on a counter-regime trade.",
-        whyItMatters = "This is the single number Factor 6 (Entry) and Setup Rank both lean on hardest — the app's best answer to \"will this actually continue.\"",
+        howItWorks = "Six weighted components: timeframe alignment across D1/H4/H1 (35%), entry position — a blend of Reset Score and ATR Percentile (23%), CSM divergence (16%), regime fit (13%), H4 structure confirmation — does the latest H4 BOS/CHoCH agree with the trade's direction (5%, 2026-09-06 — replaces the original Forex1212 \"rate differential\" slot, which this app never populated: no live rates feed, and a manually-typed-and-saved workflow wasn't worth building; H4 structure was already computed every scan and unused by this score, the natural fit), session fit (8%). Then two gates apply: capped at 45 if H4 ADX is below 20, and capped further on a counter-regime trade.",
+        whyItMatters = "This is the single number Factor 6 (Entry) and Setup Rank both lean on hardest — the app's best answer to \"will this actually continue.\" 2026-09-06 fix alongside the component swap: the timeframe-alignment scoring had a gap where \"H4 alone disagrees while D1+H1 both support the trade\" fell through into the same worst score as a full three-way conflict — now scores the same as its mirror case (H4 agrees, H1 alone disagrees) instead.",
     ),
     LibraryEntry(
         id = "reset-score",
