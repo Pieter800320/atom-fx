@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T16:37:57.028766+00:00",
+  "updated": "2026-09-06T19:50:51.966872+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79711.0,
-      "delta_pct": -0.1,
+      "value": 79812.0,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.0,
+      "delta_pct": 3.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "NFP beat invalidates weak ADP narrative; supports USD strength, challenges EUR/USD and GBP/USD recoveries.",
-    "updated": "2026-09-06T16:37:57.028766+00:00"
+    "text": "NFP beat accelerates USD strength; potential Fed policy shift conflict with Trump pressure creates volatility for EUR/USD, GBP/USD.",
+    "updated": "2026-09-06T19:50:51.966872+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T16:37:57.028766+00:00"
+    "updated": "2026-09-06T19:50:51.966872+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T16:37:57.028766+00:00"
+    "updated": "2026-09-06T19:50:51.966872+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "NFP beats expectations; DXY rallies as Fed rate cut bets diminish",
-      "Trump pressures Fed to cut rates, threatening trade restrictions on deficit countries",
-      "Weak ADP data precedes NFP test; EUR/USD and GBP/USD key levels"
+      "US nonfarm payrolls beat expectations; NFP becomes critical dollar test ahead",
+      "Fed rate cut bets lift DXY as EUR/USD and GBP/USD fall",
+      "Trump pressures Fed to lower rates or face trade restrictions with deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T16:37:57.028766+00:00"
+    "updated": "2026-09-06T19:50:51.966872+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
