@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T21:52:54.103081+00:00",
+  "updated": "2026-09-06T22:40:04.710170+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -740,9 +740,9 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -2,
-    "total": 2,
-    "confidence": "Medium",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
     "stable": true
   },
   "macro_assets": {
@@ -760,19 +760,19 @@
     },
     "gold": {
       "value": 4476.6,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "delta_pct": 1.1,
+      "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.16,
-      "delta_pct": 0.2,
+      "value": 99.161,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
       "value": 6.6825,
-      "delta_pct": 1.6,
+      "delta_pct": 1.3,
       "direction": "up",
       "label": "Copper"
     },
@@ -790,13 +790,13 @@
     },
     "wti": {
       "value": 91.48,
-      "delta_pct": 0.2,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79926.0,
-      "delta_pct": 0.1,
+      "value": 79975.0,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -820,17 +820,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -0.0,
+      "delta_pct": 1.0,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -0.5,
+      "delta_pct": -0.3,
       "label": "DXY"
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": 1.8,
+      "delta_pct": 1.3,
       "label": "Copper"
     },
     "us10y": {
@@ -845,7 +845,7 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 9.7,
+      "delta_pct": 6.7,
       "label": "WTI Oil"
     },
     "btc": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "No breaking catalysts.",
-    "updated": "2026-09-06T21:52:54.103081+00:00"
+    "text": "NFP data directly tests USD strength; Trump trade threats create policy uncertainty risk for Dollar pairs.",
+    "updated": "2026-09-06T22:40:04.710170+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T21:52:54.103081+00:00"
+    "updated": "2026-09-06T22:40:04.710170+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T21:52:54.103081+00:00"
+    "updated": "2026-09-06T22:40:04.710170+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "US nonfarm payrolls beat expectations; NFP becomes next critical dollar test",
-      "Fed rate cut bets lift DXY as EUR/USD and GBP/USD fall sharply",
-      "Trump demands Fed rate cuts or threatens trade restrictions on deficit nations"
+      "Weak ADP data hits Dollar; NFP becomes next critical test today",
+      "Fed rate hike bets lift DXY as EUR/USD and GBP/USD fall",
+      "Trump demands Fed rate cuts or threatens trade restrictions with deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T21:52:54.103081+00:00"
+    "updated": "2026-09-06T22:40:04.710170+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
@@ -3687,7 +3687,7 @@
   },
   "schema_version": 1,
   "week_ahead": {
-    "text": "Disappointing domestic data have re-emerged, reducing expectations of potential tightening by the Federal Reserve in the coming months , keeping the dollar subdued and risk appetite medium. The RBNZ rate decision Wednesday at 02:00 GMT is the week's pivotal central bank event, with NZD facing a 25bps hike that could sharpen antipodean currency strength amid broader risk-on sentiment. USD/JPY fell sharply last week with no clear sign of bottoming yet , making it the key pair to watch as geopolitical tensions and yen safe-haven flows battle medium risk appetite. The biggest wildcard is whether ISM manufacturing and services data beat forecasts to signal economic resilience or disappoint further, potentially amplifying dollar weakness and testing ranging support levels.",
-    "generated_at": "2026-09-06T21:52:54.103081+00:00"
+    "text": "I'll search for current FX market previews to provide you with an accurate weekly briefing. The search results are outdated (from July-August 2026) and do not provide current September 6, 2026 market intelligence. Let me search for more current FX data. Central bank monetary policy divergence drives forex markets as traders weigh which central bank will tighten more aggressively , with three major central banks meeting within an eight-day window in mid-September anchoring this week's risk-on environment. The Fed publishes employment data Tuesday and inflation Friday, with stronger readings pushing rate hike expectations higher , making this the critical catalyst for USD directional bias ahead of September 18 FOMC decision. USD/JPY fell sharply with downside bias toward 154.76/155.01 support , presenting the most tradeable technicals as BOJ rate hike odds rise with firming inflation signaling policy normalization . BOJ intervention capped USD/JPY near 160 after sharp moves from 164, though effectiveness remains questionable as technical levels reassert resistance .",
+    "generated_at": "2026-09-06T22:40:04.710170+00:00"
   }
 }
