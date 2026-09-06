@@ -67,8 +67,13 @@ fun InsightsScreen(viewModel: WheelViewModel, colors: AtomColors, modifier: Modi
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)
-            // Top is owned by MainActivity's persistent gear bar — see WheelScreen.kt's same note.
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
+            // Top is owned by MainActivity's persistent gear bar, bottom by its real AtomBottomNav
+            // row below this pager page — see WheelScreen.kt's same note. Reserving safeDrawing's
+            // own Bottom inset HERE TOO (2026-09-06 bug fix, Pieter's ask) double-counted it: the
+            // nav bar already consumes that inset by sitting below the pager, so this was padding
+            // scrollable content up by a second nav-bar-height gap, clipping it well above the
+            // real nav row rather than right above it.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         when (val state = screenState) {
             WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)

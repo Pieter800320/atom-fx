@@ -45,6 +45,7 @@ import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.sheets.ASSET_AXES
 import com.pieter.atomfx.ui.sheets.CrossAssetRow
+import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -85,8 +86,13 @@ fun MacroScreen(
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)
-            // Top is owned by MainActivity's persistent gear bar — see WheelScreen.kt's same note.
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
+            // Top is owned by MainActivity's persistent gear bar, bottom by its real AtomBottomNav
+            // row below this pager page — see WheelScreen.kt's same note. Reserving safeDrawing's
+            // own Bottom inset HERE TOO (2026-09-06 bug fix, Pieter's ask) double-counted it: the
+            // nav bar already consumes that inset by sitting below the pager, so this was padding
+            // scrollable content up by a second nav-bar-height gap, clipping it well above the
+            // real nav row rather than right above it.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         when (val state = screenState) {
             WheelScreenState.Loading -> CenteredMessage("LOADING…", colors)
@@ -117,6 +123,7 @@ private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (R
         if (regime?.primary != null) {
             MacroBannerCard(regime, colors, onOpenReading)
             EvidenceAxes(regime.evidence, colors)
+            SheetDivider(colors)
         } else {
             // No archetype read yet — same card position/shape as the real banner, so the layout
             // doesn't jump once `macro_regime` lands.
@@ -343,6 +350,9 @@ private fun CrossAssetTable(
                     pinned = false,
                     confirms = (ASSET_AXES[key] ?: emptyList()).any { it in supportingAxes },
                     colors = colors,
+                    // 2026-09-06 (Pieter's ask) — same white as the Evidence cards above, not the
+                    // bottom sheet's own surfaceRaised.
+                    baseFill = colors.cardSurface,
                 )
             }
         }

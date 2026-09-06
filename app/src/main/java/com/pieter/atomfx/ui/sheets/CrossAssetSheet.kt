@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -106,6 +107,10 @@ internal fun CrossAssetRow(
     colors: AtomColors,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    // 2026-09-06 (Pieter's ask) — Macro's own cross-asset cards pass `colors.cardSurface` here so
+    // their neutral fill matches Evidence's cards exactly; the bottom sheet keeps the original
+    // `surfaceRaised` (unchanged, not part of this ask).
+    baseFill: Color = colors.surfaceRaised,
 ) {
     val dir = entry?.direction
     val up = dir == "up"
@@ -130,9 +135,9 @@ internal fun CrossAssetRow(
     }
 
     val fill = when {
-        up -> lerp(colors.surfaceRaised, colors.bull, XA_LIT_AMOUNT)
-        down -> lerp(colors.surfaceRaised, colors.bear, XA_LIT_AMOUNT)
-        else -> colors.surfaceRaised
+        up -> lerp(baseFill, colors.bull, XA_LIT_AMOUNT)
+        down -> lerp(baseFill, colors.bear, XA_LIT_AMOUNT)
+        else -> baseFill
     }
 
     val haptics = LocalHapticFeedback.current

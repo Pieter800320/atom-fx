@@ -36,6 +36,17 @@ data class AtomColors(
     val controlSurface: Color,
     val controlBorder: Color,
     val cardSurface: Color,
+    // 2026-09-06 (Pieter's ask, light theme only) — the wheel's pair wedges and the CSM/Flow bar
+    // strip both fill with a raw status colour ([bull]/[bear]/[watch]/[neutral]) at full strength,
+    // which reads harsh across that much light-theme area (a wedge/bar is a big flat shape, not a
+    // small dot or line). These are a softer, still fully-opaque alternative for those two
+    // surfaces specifically — dark theme keeps the exact same raw tokens (never asked to change),
+    // light theme lerps 35% toward white. Everywhere else ([bull]/[bear]/[watch] on text, pills,
+    // the hub tint, arrows, etc.) is untouched.
+    val wheelBull: Color,
+    val wheelBear: Color,
+    val wheelWatch: Color,
+    val wheelNeutral: Color,
 )
 
 val DarkColors = AtomColors(
@@ -71,10 +82,17 @@ val DarkColors = AtomColors(
     controlBorder = Color(0xFF2C3947),
     // = surfaceRaised — lighter than plain `surface`, which sat almost on top of `ground`.
     cardSurface = Color(0xFF161F29),
+    // Dark theme: unchanged from the raw status colours (not part of this ask).
+    wheelBull = Color(0xFF2FBF71),
+    wheelBear = Color(0xFFE5484D),
+    wheelWatch = Color(0xFFE7AE3A),
+    wheelNeutral = Color(0xFF61707E),
 )
 
 val LightColors = AtomColors(
-    ground = Color(0xFFEDF1F6),
+    // 2026-09-06 (Pieter's ask) — "ever so slightly darker": nudged a few points down from the
+    // original EDF1F6, still the same cool-paper hue, not a different colour.
+    ground = Color(0xFFE7ECF1),
     groundRadial = Color(0xFFFFFFFF),
     surface = Color(0xFFFFFFFF),
     surfaceRaised = Color(0xFFF2F6FA),
@@ -100,6 +118,13 @@ val LightColors = AtomColors(
     controlBorder = Color(0xFFDDE4EC),
     // Unchanged from plain `surface` — Pieter: light theme's Tradeable Now card is already fine.
     cardSurface = Color(0xFFFFFFFF),
+    // Light theme: each raw status colour lerped 35% toward white — softer, still fully opaque
+    // (see the field doc comment above). Neutral is already a cool, muted grey with nothing to
+    // soften, so it's reused as-is.
+    wheelBull = lerp(Color(0xFF159E5B), Color.White, 0.35f),
+    wheelBear = lerp(Color(0xFFD0383D), Color.White, 0.35f),
+    wheelWatch = lerp(Color(0xFFB27A16), Color.White, 0.35f),
+    wheelNeutral = Color(0xFF93A0AD),
 )
 
 // ── Wheel v2 helpers — derived from tokens, so light + dark both work (no literal hex) ─────────

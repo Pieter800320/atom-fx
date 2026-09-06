@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.pieter.atomfx.ui.components.StatusStrip
 import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
+import com.pieter.atomfx.ui.sheets.ControlButtonRow
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomTheme
@@ -397,7 +398,7 @@ private fun CsmBarStrip(
                             // 2026-09-06 (Pieter's ask) — solid now, not a 28%-alpha wash, so
                             // Strength and Flow bars read at the same brightness when toggling
                             // between them rather than Strength looking muted by comparison.
-                            val barColor = if (c.tint == Tint.BULL) colors.bull else colors.bear
+                            val barColor = if (c.tint == Tint.BULL) colors.wheelBull else colors.wheelBear
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -420,7 +421,7 @@ private fun CsmBarStrip(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .fillMaxHeight(fraction = (c.delta.toFloat() / CSM_FLOW_SCALE_MAX).coerceIn(0f, 1f))
-                                                .background(colors.bull, CSM_BAR_CORNER_TOP),
+                                                .background(colors.wheelBull, CSM_BAR_CORNER_TOP),
                                         )
                                     }
                                 }
@@ -430,7 +431,7 @@ private fun CsmBarStrip(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .fillMaxHeight(fraction = (kotlin.math.abs(c.delta).toFloat() / CSM_FLOW_SCALE_MAX).coerceIn(0f, 1f))
-                                                .background(colors.bear, CSM_BAR_CORNER_BOTTOM),
+                                                .background(colors.wheelBear, CSM_BAR_CORNER_BOTTOM),
                                         )
                                     }
                                 }
@@ -458,13 +459,13 @@ private fun CsmBarStrip(
     }
 }
 
-private val TF_BUTTON_SHAPE = RoundedCornerShape(14.dp) // matches StatusStrip's own Summary-button CARD_SHAPE
+private val TIMEFRAME_OPTIONS = listOf(Timeframe.D1 to "D1", Timeframe.H4 to "H4", Timeframe.H1 to "H1")
 
 /**
  * D1/H4/H1, relocated off the wheel's own top corners (2026-09-04 — see the doc comment on
- * [WheelScreen]). Same control recipe as StatusStrip's Summary button — `TF_BUTTON_SHAPE`,
- * `controlSurface`/`controlBorder`, 14/12dp padding around a plain-weight Caption label — reused
- * verbatim rather than a copied height constant, so "same height" is exact by construction.
+ * [WheelScreen]). Delegates to [ControlButtonRow] (moved out to `SheetComponents.kt`, 2026-09-06,
+ * so the Chart sheet's own timeframe row can match this one exactly rather than a hand-copied
+ * approximation) — same control recipe as StatusStrip's Summary button.
  */
 @Composable
 private fun TimeframeButtons(
@@ -473,34 +474,13 @@ private fun TimeframeButtons(
     colors: AtomColors,
     modifier: Modifier = Modifier,
 ) {
-    val haptics = LocalHapticFeedback.current
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        listOf(Timeframe.D1 to "D1", Timeframe.H4 to "H4", Timeframe.H1 to "H1").forEach { (tf, label) ->
-            val active = tf == timeframe
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(colors.controlSurface, TF_BUTTON_SHAPE)
-                    .border(1.dp, colors.controlBorder, TF_BUTTON_SHAPE)
-                    .pressWash(TF_BUTTON_SHAPE) {
-                        if (!active) {
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            onChange(tf)
-                        }
-                    }
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = label,
-                    style = AtomType.Caption.copy(
-                        color = if (active) colors.textPrimary else colors.textMuted,
-                        fontWeight = FontWeight.Normal,
-                    ),
-                )
-            }
-        }
-    }
+    ControlButtonRow(
+        labels = TIMEFRAME_OPTIONS.map { it.second },
+        selected = TIMEFRAME_OPTIONS.indexOfFirst { it.first == timeframe },
+        colors = colors,
+        modifier = modifier,
+        onSelect = { onChange(TIMEFRAME_OPTIONS[it].first) },
+    )
 }
 
 private val CSM_MODE_SHAPE = RoundedCornerShape(12.dp)

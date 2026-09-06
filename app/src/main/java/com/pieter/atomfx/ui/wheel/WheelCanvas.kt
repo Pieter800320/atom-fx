@@ -359,7 +359,7 @@ private fun DrawScope.drawDial(
     )
 
     drawCornerButtons(mode, colors, isDark, cx, cy, half, tapFlash)
-    drawPairRing(state, mode, colors, cx, cy, half, fillAnims, tapFlash)
+    drawPairRing(state, mode, colors, isDark, cx, cy, half, fillAnims, tapFlash)
     drawHub(state.nucleus, colors, cx, cy, half, dotAlpha, textMeasurer, tapFlash)
 }
 
@@ -414,6 +414,13 @@ private fun DrawScope.taperedCornerPath(
     }
 }
 
+// Pieter, 2026-09-06 — "wedge outlines exactly like the wing buttons' outlines": one shared
+// formula so the two can never drift apart again, same lighten-in-dark/darken-in-light reasoning
+// [drawCornerButtons] already established (controlBorder reads too faint in light theme against a
+// flat colour fill).
+private fun wedgeBorderColor(isDark: Boolean, colors: AtomColors): Color =
+    if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
+
 private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val flashKey: String)
 
 /**
@@ -441,7 +448,7 @@ private fun DrawScope.drawCornerButtons(
     // button/Cascade rows/ticker chips) read too faint against the trapezoids' own controlSurface
     // fill specifically, so these get their own slightly-darker border rather than changing the
     // shared token everywhere else it's used. Dark theme is untouched.
-    val borderColor = if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
+    val borderColor = wedgeBorderColor(isDark, colors)
 
     listOf(
         CornerButtonSpec("OVERALL", g.TOGGLE_OVERALL_CENTER_DEG, mode == WheelMode.OVERALL, "wing:overall"),
@@ -529,17 +536,17 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
  */
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
     WheelMode.OVERALL -> tintForDir(node.direction, colors)
-    WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.bull else colors.bear
+    WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.wheelBull else colors.wheelBear
     WheelMode.TREND -> if (node.adx >= 25 && node.trendDirection == Direction.NEUTRAL) {
-        colors.watch
+        colors.wheelWatch
     } else {
         tintForDir(node.trendDirection, colors)
     }
-    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.bull else colors.watch
+    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelBull else colors.wheelWatch
 }
 
 private fun DrawScope.drawPairRing(
-    state: WheelUiState, mode: WheelMode, colors: AtomColors, cx: Float, cy: Float, half: Float,
+    state: WheelUiState, mode: WheelMode, colors: AtomColors, isDark: Boolean, cx: Float, cy: Float, half: Float,
     fillAnims: Map<String, Animatable<Float, *>>, tapFlash: Map<String, Animatable<Float, *>>,
 ) {
     val g = WheelGeometry
@@ -551,6 +558,9 @@ private fun DrawScope.drawPairRing(
     val labelR = (plateR0 + plateR1) / 2f
     val graphMax = plateR0 - span * 0.03f
     val count = state.nodes.size.coerceAtLeast(1)
+    // Pieter, 2026-09-06 — "wedge outlines exactly like the wing buttons'": same colour formula
+    // and 1dp weight as [drawCornerButtons]' own border, replacing the old plain hairline stroke.
+    val borderColor = wedgeBorderColor(isDark, colors)
 
     state.nodes.forEach { node ->
         val (a0, a1) = g.segAngles(count, node.index, GAP_DEG)
@@ -559,7 +569,7 @@ private fun DrawScope.drawPairRing(
 
         val bgPath = wedgePath(cx, cy, r0, r1, a0, a1)
         drawPath(bgPath, color = colors.surfaceRaised)
-        drawPath(bgPath, color = colors.hairline.copy(alpha = 0.4f), style = Stroke(px(0.9f)))
+        drawPath(bgPath, color = borderColor, style = Stroke(px(1f)))
 
         // 2026-09-06 (Pieter's ask) — solid now, matching the CSM bar strip's own solid fill
         // (`CsmBarStrip` in `WheelScreen.kt`, itself switched from a wash to solid the same day)
@@ -586,9 +596,9 @@ private fun DrawScope.drawPairRing(
 }
 
 private fun tintForDir(direction: Direction, colors: AtomColors): Color = when (direction) {
-    Direction.BULL -> colors.bull
-    Direction.BEAR -> colors.bear
-    Direction.NEUTRAL -> colors.neutral
+    Direction.BULL -> colors.wheelBull
+    Direction.BEAR -> colors.wheelBear
+    Direction.NEUTRAL -> colors.wheelNeutral
 }
 
 private fun DrawScope.drawHub(

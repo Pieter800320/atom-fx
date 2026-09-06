@@ -99,6 +99,53 @@ fun NotAvailableRow(label: String, colors: AtomColors) {
     SheetRow(label = label, value = "Not available yet", colors = colors, valueColor = colors.textMuted)
 }
 
+// = WheelScreen's own `TF_BUTTON_SHAPE` (matches StatusStrip's Summary-button CARD_SHAPE).
+private val CONTROL_BUTTON_SHAPE = RoundedCornerShape(14.dp)
+
+/**
+ * HOME's own D1/H4/H1 button row look (WheelScreen's `TimeframeButtons`, moved here 2026-09-06 so
+ * the Chart sheet's timeframe row can match it exactly rather than hand-copying the recipe):
+ * equal-width pills, `controlSurface`/`controlBorder`, 14/12dp padding around a plain-weight
+ * Caption label, active = textPrimary, inactive = textMuted.
+ */
+@Composable
+fun ControlButtonRow(
+    labels: List<String>,
+    selected: Int,
+    colors: AtomColors,
+    modifier: Modifier = Modifier,
+    onSelect: (Int) -> Unit,
+) {
+    val haptics = LocalHapticFeedback.current
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        labels.forEachIndexed { index, label ->
+            val active = index == selected
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(colors.controlSurface, CONTROL_BUTTON_SHAPE)
+                    .border(1.dp, colors.controlBorder, CONTROL_BUTTON_SHAPE)
+                    .pressWash(CONTROL_BUTTON_SHAPE) {
+                        if (!active) {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onSelect(index)
+                        }
+                    }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = label,
+                    style = AtomType.Caption.copy(
+                        color = if (active) colors.textPrimary else colors.textMuted,
+                        fontWeight = FontWeight.Normal,
+                    ),
+                )
+            }
+        }
+    }
+}
+
 // Exactly ScrollingPills' ELECTRIC_PILL_HEIGHT/SHAPE (matched there to the wheel's own Currency
 // Flow Ticker chips) — Pieter, 2026-09-03 follow-up: "exactly the same size... text included," so
 // this mirrors that recipe wholesale rather than approximating it with wrap-content padding.

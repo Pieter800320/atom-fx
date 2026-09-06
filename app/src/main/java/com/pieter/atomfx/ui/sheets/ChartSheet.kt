@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,14 @@ private val TABS = listOf("D1", "H4", "H1")
 // (LineChart, D1/H4/H1), just one at a time and full-size instead of three small previews.
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
 
+// Pieter, 2026-09-06 — "let the sheet come up slightly higher, maybe 8mm": ModalBottomSheet sizes
+// itself to content (BottomSheetHost's own doc comment), so there's no separate "sheet height" to
+// set — padding the content out is how you make it rise further. 8mm ≈ 50dp at the density-
+// independent 160dp/inch dp is defined against (25.4mm/inch ÷ 160dp/inch). Also gives the
+// bottom-relocated TF row (below) clearance from the gesture-nav area instead of sitting flush
+// against it.
+private val EXTRA_RISE = 50.dp
+
 /** Design §16/§19.1 — long-press a node opens this: the native 3-TF close-price line, no candles. */
 @Composable
 fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
@@ -46,7 +55,6 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
             return@Column
         }
 
-        SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         if (closes.size < 2) {
             NotAvailableRow("Price history (${TABS[selectedTab]})", colors)
         } else {
@@ -62,5 +70,17 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
                 LineChart(closes, colors, modifier = Modifier.fillMaxWidth().height(160.dp).padding(top = 8.dp))
             }
         }
+
+        // 2026-09-06 (Pieter's ask) — the TF row moved from above the chart to below it, styled
+        // exactly like HOME's own D1/H4/H1 row ([ControlButtonRow], shared from WheelScreen's
+        // `TimeframeButtons`) instead of the small scrolling-pill `SheetTabs` every other sheet uses.
+        ControlButtonRow(
+            labels = TABS,
+            selected = selectedTab,
+            colors = colors,
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            onSelect = { selectedTab = it },
+        )
+        Spacer(modifier = Modifier.height(EXTRA_RISE))
     }
 }
