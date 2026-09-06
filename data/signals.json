@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T12:19:07.719612+00:00",
+  "updated": "2026-09-06T13:19:54.895932+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79987.0,
-      "delta_pct": 0.2,
+      "value": 79838.0,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.3,
+      "delta_pct": 3.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -861,12 +861,12 @@
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-06T12:16:57.473267+00:00"
+    "updated": "2026-09-06T13:19:54.895932+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T12:16:57.473267+00:00"
+    "updated": "2026-09-06T13:19:54.895932+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T12:16:57.473267+00:00"
+    "updated": "2026-09-06T13:19:54.895932+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-off, with gold sliding and VIX firming while equities dip, though the read is muddied by a firmer dollar alongside a slight uptick in bitcoin and rising Treasury yields, pointing to selective dollar strength rather than a clean flight-to-safety move. Copper and oil holding steady suggest growth fears remain contained. Headlines center on Federal Reserve rate expectations and the dollar's mixed reaction to recent data, keeping traders focused on labor-market signals. With no high-impact releases in the next 24 hours, positioning likely stays cautious, with risk-sens",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls beat: +162K versus +56K expected",
-      "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
-      "Trump Demands Fed Rate Cuts or Trade War Escalation"
+      "NFP data imminent; dollar faces critical test across major pairs",
+      "Fed rate cut bets lift DXY; EUR/USD and GBP/USD pressured",
+      "Trump demands Fed rate cuts; threatens trade restrictions on deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T12:16:57.473267+00:00"
+    "updated": "2026-09-06T13:19:54.895932+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
