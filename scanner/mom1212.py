@@ -4,7 +4,11 @@ Ported from Forex1212 dashboard index.html for calculation coherence.
 
 Exact formula match:
   momentum = (SMA12_now - SMA12_past) / (12 × ATR14)
-  normalised = 50 + 50 × tanh(5.6 × momentum)   [sigmoid, rounds to int]
+  normalised = 50 + 50 × tanh(2.8 × momentum)   [sigmoid, rounds to int]
+  (2026-09-06 — fixed this line's constant: the code's own sigmoid, `50 + 50 ×
+  (e^(5.6m) - 1) / (e^(5.6m) + 1)`, is algebraically 50 + 50×tanh(2.8m), not
+  tanh(5.6m) as this comment previously said. Comment-only; _norm1212() below
+  already had the correct derivation and is unchanged.)
 
 W1 DROPPED — FSB uses D1 / H4 / H1 only.
 

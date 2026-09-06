@@ -88,7 +88,22 @@ def detect_structure(df, atr, swing_n=5):
         elif last_c < swL[-1][1]: event = "CHoCH"
 
     # ── Strength ─────────────────────────────────────────────────────────────
-    ref      = swL[-1][1] if trend == "bull" else swH[-1][1]
+    # 2026-09-06 (Rule #1 sign-off — Pieter, see git log) — the reference level must be
+    # the level the CURRENT EVENT actually broke, not a level keyed off trend direction
+    # alone. A bull BOS breaks swH[-1] (the swing high); a bull CHoCH breaks swL[-1] (the
+    # swing low) — those are two different levels. The old code used swL[-1] for BOTH
+    # events in a bull trend (and swH[-1] for both in a bear trend), so a bull BOS's
+    # "strength" — which drives up to a 1.30x score multiplier below — measured how far
+    # price had run above its last higher low (trend-leg extension) instead of how
+    # decisively it broke the high (breakout conviction). That let strength pin near its
+    # 1.0 cap in almost any mature trend on a marginal break, rewarding trend age rather
+    # than breakout quality. CHoCH's reference was already correct (the level a reversal
+    # violates IS the opposing extreme), so this only changes the BOS case.
+    if event == "BOS":
+        ref = swH[-1][1] if trend == "bull" else swL[-1][1]
+    else:  # CHoCH, or "none" (nothing broke — the old, direction-keyed reference is as
+        # good a default as any and keeps "none"'s output byte-identical to before).
+        ref = swL[-1][1] if trend == "bull" else swH[-1][1]
     atr_safe = max(float(atr), 1e-8)
     strength = round(min(abs(last_c - ref) / atr_safe / 2.0, 1.0), 2)
 

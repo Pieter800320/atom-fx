@@ -33,9 +33,16 @@ def _ema(series, span):
 
 
 def _rsi(close, period=14):
+    # 2026-09-06 (Rule #1 sign-off — Pieter, see git log) — Wilder's own smoothing
+    # (recursive, alpha=1/period), not a plain rolling mean. A plain `.rolling().mean()`
+    # here computes "Cutler's RSI", a well-known variant that reads differently from the
+    # RSI on every broker/charting platform (which all implement Wilder's original 1978
+    # formula). `.ewm(alpha=1/period, adjust=False)` is the standard practical equivalent
+    # of Wilder's recursive average once warmed up over enough bars (score_pair requires
+    # >=210), which every caller here has.
     delta = close.diff()
-    gain  = delta.clip(lower=0).rolling(period).mean()
-    loss  = (-delta.clip(upper=0)).rolling(period).mean()
+    gain  = delta.clip(lower=0).ewm(alpha=1.0 / period, adjust=False).mean()
+    loss  = (-delta.clip(upper=0)).ewm(alpha=1.0 / period, adjust=False).mean()
     rs    = gain / loss
     return 100 - (100 / (1 + rs))
 
@@ -46,13 +53,28 @@ def _macd(close):
     return macd_line, signal_line, macd_line - signal_line
 
 
+def _wilder_smooth(series, period):
+    """Wilder's own recursive smoothing (alpha=1/period), NOT a plain rolling mean.
+
+    2026-09-06 (Rule #1 sign-off — Pieter, see git log): the previous `.rolling(period)
+    .mean()` here computed a simple-moving-average variant of ATR/DI/ADX (sometimes
+    called "Cutler's" variant) that reads differently — sometimes substantially, around
+    volatility shocks — from the ADX/ATR every broker and charting platform shows,
+    which all implement Wilder's 1978 original. `.ewm(alpha=1/period, adjust=False)` is
+    the standard practical equivalent of Wilder's recursive average once warmed up over
+    enough bars; every caller here works on >=210-bar windows, so it's fully settled by
+    the last bar this reads.
+    """
+    return series.ewm(alpha=1.0 / period, adjust=False).mean()
+
+
 def _atr_series(high, low, close, period=14):
     tr = pd.concat([
         high - low,
         (high - close.shift()).abs(),
         (low  - close.shift()).abs(),
     ], axis=1).max(axis=1)
-    return tr.rolling(period).mean()
+    return _wilder_smooth(tr, period)
 
 
 def _dmi(high, low, close, period=14):
@@ -67,12 +89,12 @@ def _dmi(high, low, close, period=14):
         index=close.index,
     )
     atr      = _atr_series(high, low, close, period)
-    plus_di  = 100 * plus_dm.rolling(period).mean() / atr
-    minus_di = 100 * minus_dm.rolling(period).mean() / atr
+    plus_di  = 100 * _wilder_smooth(plus_dm, period) / atr
+    minus_di = 100 * _wilder_smooth(minus_dm, period) / atr
     dx       = (100 * (plus_di - minus_di).abs() / (plus_di + minus_di)).replace(
         [np.inf, -np.inf], np.nan
     )
-    return plus_di, minus_di, dx.rolling(period).mean()
+    return plus_di, minus_di, _wilder_smooth(dx, period)
 
 
 def _adx_weight(adx_val):

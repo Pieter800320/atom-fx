@@ -219,8 +219,8 @@
   },
   "pairs": {
     "AUDJPY": {
-      "adx": 46.5,
-      "atr_pct": 8,
+      "adx": 21.8,
+      "atr_pct": 6,
       "cont": 0,
       "mom": {
         "cmp": 39,
@@ -237,19 +237,19 @@
       "pills": {
         "d1": "neutral",
         "h1": "neutral",
-        "h4": "bear"
+        "h4": "neutral"
       },
-      "reset": 61,
+      "reset": 44,
       "structure": {
         "direction": "bear",
         "event": "none",
         "multiplier": 1.0,
-        "strength": 0.39
+        "strength": 0.38
       }
     },
     "AUDUSD": {
-      "adx": 51.6,
-      "atr_pct": 45,
+      "adx": 23.9,
+      "atr_pct": 69,
       "cont": 0,
       "mom": {
         "cmp": 45,
@@ -277,8 +277,8 @@
       }
     },
     "CADJPY": {
-      "adx": 40.6,
-      "atr_pct": 41,
+      "adx": 30.0,
+      "atr_pct": 80,
       "cont": 0,
       "mom": {
         "cmp": 64,
@@ -302,12 +302,12 @@
         "direction": "bull",
         "event": "none",
         "multiplier": 1.0,
-        "strength": 0.5
+        "strength": 0.48
       }
     },
     "EURJPY": {
-      "adx": 43.0,
-      "atr_pct": 45,
+      "adx": 36.2,
+      "atr_pct": 18,
       "cont": 0,
       "mom": {
         "cmp": 61,
@@ -324,7 +324,7 @@
       "pills": {
         "d1": "neutral",
         "h1": "neutral",
-        "h4": "bull_strong"
+        "h4": "bull"
       },
       "reset": 60,
       "structure": {
@@ -335,8 +335,8 @@
       }
     },
     "EURUSD": {
-      "adx": 57.8,
-      "atr_pct": 86,
+      "adx": 42.5,
+      "atr_pct": 67,
       "cont": 0,
       "mom": {
         "cmp": 83,
@@ -364,8 +364,8 @@
       }
     },
     "GBPJPY": {
-      "adx": 16.8,
-      "atr_pct": 22,
+      "adx": 19.6,
+      "atr_pct": 12,
       "cont": 0,
       "mom": {
         "cmp": 48,
@@ -381,7 +381,7 @@
       },
       "pills": {
         "d1": "neutral",
-        "h1": "bear_strong",
+        "h1": "neutral",
         "h4": "neutral"
       },
       "reset": 12,
@@ -393,7 +393,7 @@
       }
     },
     "GBPUSD": {
-      "adx": 12.6,
+      "adx": 10.6,
       "atr_pct": 0,
       "cont": 0,
       "mom": {
@@ -418,11 +418,11 @@
         "direction": "bull",
         "event": "none",
         "multiplier": 1.0,
-        "strength": 0.35
+        "strength": 0.33
       }
     },
     "NZDJPY": {
-      "adx": 25.4,
+      "adx": 18.4,
       "atr_pct": 25,
       "cont": 0,
       "mom": {
@@ -447,12 +447,12 @@
         "direction": "bull",
         "event": "none",
         "multiplier": 1.0,
-        "strength": 0.72
+        "strength": 0.71
       }
     },
     "NZDUSD": {
-      "adx": 37.6,
-      "atr_pct": 67,
+      "adx": 18.2,
+      "atr_pct": 94,
       "cont": 0,
       "mom": {
         "cmp": 45,
@@ -469,9 +469,9 @@
       "pills": {
         "d1": "neutral",
         "h1": "neutral",
-        "h4": "bear"
+        "h4": "neutral"
       },
-      "reset": 45,
+      "reset": 12,
       "structure": {
         "direction": "neutral",
         "event": "none",
@@ -480,8 +480,8 @@
       }
     },
     "USDCAD": {
-      "adx": 27.5,
-      "atr_pct": 67,
+      "adx": 31.9,
+      "atr_pct": 69,
       "cont": 0,
       "mom": {
         "cmp": 37,
@@ -498,19 +498,19 @@
       "pills": {
         "d1": "neutral",
         "h1": "neutral",
-        "h4": "neutral"
+        "h4": "bear"
       },
-      "reset": 28,
+      "reset": 35,
       "structure": {
         "direction": "bear",
         "event": "none",
         "multiplier": 1.0,
-        "strength": 0.85
+        "strength": 0.86
       }
     },
     "USDCHF": {
-      "adx": 11.5,
-      "atr_pct": 8,
+      "adx": 11.0,
+      "atr_pct": 2,
       "cont": 0,
       "mom": {
         "cmp": 68,
@@ -538,7 +538,7 @@
       }
     },
     "USDJPY": {
-      "adx": 18.7,
+      "adx": 13.5,
       "atr_pct": 2,
       "cont": 0,
       "mom": {
@@ -555,15 +555,15 @@
       },
       "pills": {
         "d1": "neutral",
-        "h1": "neutral",
+        "h1": "bear",
         "h4": "neutral"
       },
       "reset": 42,
       "structure": {
         "direction": "bear",
         "event": "BOS",
-        "multiplier": 1.3,
-        "strength": 1.0
+        "multiplier": 1.066,
+        "strength": 0.22
       }
     }
   },
