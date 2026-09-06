@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T19:50:51.966872+00:00",
+  "updated": "2026-09-06T21:52:54.103081+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79812.0,
-      "delta_pct": -0.0,
+      "value": 79926.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.1,
+      "delta_pct": 3.3,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "NFP beat accelerates USD strength; potential Fed policy shift conflict with Trump pressure creates volatility for EUR/USD, GBP/USD.",
-    "updated": "2026-09-06T19:50:51.966872+00:00"
+    "text": "No breaking catalysts.",
+    "updated": "2026-09-06T21:52:54.103081+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T19:50:51.966872+00:00"
+    "updated": "2026-09-06T21:52:54.103081+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T19:50:51.966872+00:00"
+    "updated": "2026-09-06T21:52:54.103081+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "US nonfarm payrolls beat expectations; NFP becomes critical dollar test ahead",
-      "Fed rate cut bets lift DXY as EUR/USD and GBP/USD fall",
-      "Trump pressures Fed to lower rates or face trade restrictions with deficit countries"
+      "US nonfarm payrolls beat expectations; NFP becomes next critical dollar test",
+      "Fed rate cut bets lift DXY as EUR/USD and GBP/USD fall sharply",
+      "Trump demands Fed rate cuts or threatens trade restrictions on deficit nations"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T19:50:51.966872+00:00"
+    "updated": "2026-09-06T21:52:54.103081+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
@@ -3685,5 +3685,9 @@
     "narrative": "Growth-positive risk-on: favour AUD \u00b7 NZD \u00b7 CAD over JPY \u00b7 CHF.",
     "updated": "2026-09-06T12:19:07.719612+00:00"
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "week_ahead": {
+    "text": "Disappointing domestic data have re-emerged, reducing expectations of potential tightening by the Federal Reserve in the coming months , keeping the dollar subdued and risk appetite medium. The RBNZ rate decision Wednesday at 02:00 GMT is the week's pivotal central bank event, with NZD facing a 25bps hike that could sharpen antipodean currency strength amid broader risk-on sentiment. USD/JPY fell sharply last week with no clear sign of bottoming yet , making it the key pair to watch as geopolitical tensions and yen safe-haven flows battle medium risk appetite. The biggest wildcard is whether ISM manufacturing and services data beat forecasts to signal economic resilience or disappoint further, potentially amplifying dollar weakness and testing ranging support levels.",
+    "generated_at": "2026-09-06T21:52:54.103081+00:00"
+  }
 }
