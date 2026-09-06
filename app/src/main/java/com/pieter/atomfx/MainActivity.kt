@@ -33,6 +33,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,10 +51,12 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -166,6 +169,25 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
             },
         )
         val colors = AtomTheme.colors
+
+        // 2026-09-06 (Pieter's ask) — dark mode only ("light mode is fine for now"): white status-
+        // bar/nav-bar icon content instead of the OS default dark icons, which read poorly against
+        // this app's own dark background. Both `AtomGearBar` and `AtomBottomNav` already paint
+        // `colors.ground`/`colors.surface` full-bleed under the status/navigation bar themselves
+        // (edge-to-edge; each pads only its CONTENT by the inset, not its background) — so in dark
+        // mode that strip is already near-black from the app's own layout, and the only thing
+        // actually missing is the OS icon colour. There's no equivalent bar-colour API left to call
+        // here: targeting API 35+ makes `Window.setStatusBarColor`/`setNavigationBarColor` a no-op
+        // under enforced edge-to-edge, so a real colour fix has to come from Compose content like
+        // this, not the Window.
+        val view = LocalView.current
+        SideEffect {
+            val window = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+            val insetsController = WindowCompat.getInsetsController(window, view)
+            insetsController.isAppearanceLightStatusBars = !isDark
+            insetsController.isAppearanceLightNavigationBars = !isDark
+        }
+
         val screenState by viewModel.screenState.collectAsState()
         val loaded = screenState as? WheelScreenState.Loaded
         val pagerState = rememberPagerState(initialPage = AppTab.Wheel.ordinal) { AppTab.entries.size }
