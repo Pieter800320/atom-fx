@@ -348,7 +348,9 @@ private fun NotificationsGroup(
     val haptics = LocalHapticFeedback.current
     val notif = prefsState.notifications
 
-    SettingsRow("Push notifications", colors, "Gold signals and level alerts, via FCM") {
+    // 2026-09-06 — was "Gold signals and level alerts" (the latter greyed out below now, see
+    // that row's own comment); named a live example instead of one that can't fire yet.
+    SettingsRow("Push notifications", colors, "Gold signals and setup alerts, via FCM") {
         SettingsSwitch(notif.enabled, colors) { enabled ->
             preferences.setNotificationsEnabled(enabled)
             if (enabled) {
@@ -361,9 +363,20 @@ private fun NotificationsGroup(
     SettingsRow("Gold signal alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.goldSignal, colors, enabled = notif.enabled) { preferences.setGoldSignalEnabled(it) }
     })
-    SettingsRow("Level alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.levelAlerts, colors, enabled = notif.enabled) { preferences.setLevelAlertsEnabled(it) }
-    })
+    // 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
+    // server-side (level_ema_alerts.py -> send_push_alert) and the preference/toggle wiring is
+    // untouched ("maybe in future we will use it"), but it can never actually fire today — it
+    // depends on `data/level_alerts.json`, which needs a dashboard or on-device "set alert" flow
+    // that doesn't exist yet (the exact same gap `PriceLevelAlertsGroup`'s own "Sync alerts to
+    // GitHub" row below already documents). Presenting it as a live switch next to seven alerts
+    // that really do fire was the actual bug — this makes the gap visible instead of silent.
+    SettingsRow(
+        "Level alerts",
+        colors,
+        "Not available yet — needs an on-device \"set alert\" row on the pair sheet (see \"Sync alerts to GitHub\" below); kept for when that ships.",
+    ) {
+        SettingsSwitch(checked = notif.levelAlerts, colors = colors, enabled = false) {}
+    }
     // Signals Roadmap §2 (Phase 1) — five new state-transition alert toggles. Structure
     // covers both new BOS and CHoCH events; Regime covers both an H4 regime flip and a
     // Macro Archetype change (Pieter's call on both mergers, 2026-09-04).

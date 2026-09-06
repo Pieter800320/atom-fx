@@ -105,8 +105,10 @@ private val CONTROL_BUTTON_SHAPE = RoundedCornerShape(14.dp)
 /**
  * HOME's own D1/H4/H1 button row look (WheelScreen's `TimeframeButtons`, moved here 2026-09-06 so
  * the Chart sheet's timeframe row can match it exactly rather than hand-copying the recipe):
- * equal-width pills, `controlSurface`/`controlBorder`, 14/12dp padding around a plain-weight
- * Caption label, active = textPrimary, inactive = textMuted.
+ * equal-width pills, `controlBorder`, 14/12dp padding around a plain-weight Caption label, active
+ * = textPrimary, inactive = textMuted. The active pill's fill is `controlSurfaceActive` (2026-09-06
+ * follow-up, Pieter's ask — matches [RecommendationGlyph]'s own fill in light theme; a no-op in
+ * dark theme, see that token's own doc comment), the inactive fill stays plain `controlSurface`.
  */
 @Composable
 fun ControlButtonRow(
@@ -123,7 +125,7 @@ fun ControlButtonRow(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .background(colors.controlSurface, CONTROL_BUTTON_SHAPE)
+                    .background(if (active) colors.controlSurfaceActive else colors.controlSurface, CONTROL_BUTTON_SHAPE)
                     .border(1.dp, colors.controlBorder, CONTROL_BUTTON_SHAPE)
                     .pressWash(CONTROL_BUTTON_SHAPE) {
                         if (!active) {

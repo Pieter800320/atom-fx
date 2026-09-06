@@ -47,6 +47,14 @@ data class AtomColors(
     val wheelBear: Color,
     val wheelWatch: Color,
     val wheelNeutral: Color,
+    // 2026-09-06 (Pieter's ask, light theme only) — a tapped/active `ControlButtonRow` pill
+    // (HOME's D1/H4/H1 row, also the Chart sheet's own TF row) gets this fill instead of the
+    // plain [controlSurface] every pill uses at rest, matching [RecommendationGlyph]'s own fill
+    // (a surfaceRaised→surface radial gradient) at its whitest point. Dark theme is untouched —
+    // `surface` is DARKER than `controlSurface` there (the opposite direction from light theme),
+    // so mirroring this mechanically would make the active pill recede instead of stand out; it
+    // just reuses `controlSurface`, i.e. no visible change from today.
+    val controlSurfaceActive: Color,
 )
 
 val DarkColors = AtomColors(
@@ -87,6 +95,8 @@ val DarkColors = AtomColors(
     wheelBear = Color(0xFFE5484D),
     wheelWatch = Color(0xFFE7AE3A),
     wheelNeutral = Color(0xFF61707E),
+    // Dark theme: no visible change requested — same fill an active pill already had.
+    controlSurfaceActive = Color(0xFF212C38),
 )
 
 val LightColors = AtomColors(
@@ -125,6 +135,10 @@ val LightColors = AtomColors(
     wheelBear = lerp(Color(0xFFD0383D), Color.White, 0.35f),
     wheelWatch = lerp(Color(0xFFB27A16), Color.White, 0.35f),
     wheelNeutral = Color(0xFF93A0AD),
+    // = surface — the recommendation glyph's own fill (surfaceRaised→surface radial gradient)
+    // is whitest at its edge, which IS `surface` in light theme (pure white); an active TF pill
+    // matches that exactly.
+    controlSurfaceActive = Color(0xFFFFFFFF),
 )
 
 // ── Wheel v2 helpers — derived from tokens, so light + dark both work (no literal hex) ─────────

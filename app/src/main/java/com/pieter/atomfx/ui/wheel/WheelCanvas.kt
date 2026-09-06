@@ -16,8 +16,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -29,7 +31,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -63,6 +67,7 @@ internal fun tintColor(tint: Tint, colors: AtomColors): Color = when (tint) {
 
 private const val GAP_DEG = 1.0f          // gutter between wedges
 private const val PLATE_FRAC = 0.26f      // label plate depth as a fraction of the ring span
+private const val FILL_ANIM_MS = 62       // Pieter, 2026-09-06 — "twice as fast" (was 125ms)
 
 // Pieter, 2026-09-03 — tap-selection no longer draws a border anywhere on the wheel, corner
 // buttons included (2026-09-03 follow-up dropped their own selected-state white border too — see
@@ -111,6 +116,7 @@ fun WheelCanvas(
     onLongPress: (String) -> Unit = {},
 ) {
     val textMeasurer = rememberTextMeasurer()
+    val haptics = LocalHapticFeedback.current
     // Pieter, 2026-09-03 — tap feedback is a brief flash, not a persistent "selected" state:
     // snaps to full wash on tap, animates back down to 0. Keyed per-element so multiple wedges/
     // wings can each hold their own independent fade. Applies to every tappable thing on the
@@ -132,8 +138,20 @@ fun WheelCanvas(
     val fillAnims = remember { mutableMapOf<String, Animatable<Float, AnimationVector1D>>() }
     state.nodes.forEach { fillAnims.getOrPut(it.pair) { Animatable(modeFillFrac(it, mode)) } }
 
+    // Pieter, 2026-09-06 — "twice as fast": was 125ms.
+    // A faint haptic per wedge as it reshapes, but only when a wing tap actually caused this
+    // (`mode` changed) — this effect also re-runs on every silent background data refresh
+    // (WheelViewModel's own refresh loop touches `state.nodes`), and buzzing the phone
+    // unprompted every few minutes on a passive poll would violate Design §16's "haptics on
+    // every INTERACTIVE control," not on background data changes.
+    var lastMode by remember { mutableStateOf(mode) }
     LaunchedEffect(state.nodes, mode) {
-        state.nodes.forEach { n -> fillAnims[n.pair]?.animateTo(modeFillFrac(n, mode), tween(125)) }
+        val modeChanged = mode != lastMode
+        lastMode = mode
+        state.nodes.forEach { n ->
+            fillAnims[n.pair]?.animateTo(modeFillFrac(n, mode), tween(FILL_ANIM_MS))
+            if (modeChanged) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
     }
 
     Canvas(

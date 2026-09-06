@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
@@ -180,11 +182,11 @@ private fun RecoGlyphColumn(
         RecommendationGlyph(
             direction = direction,
             colors = colors,
-            modifier = Modifier.clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick,
-            ),
+            // 2026-09-06 (Pieter's ask) — was a raw `clickable(indication = null)`, i.e. no press
+            // feedback at all. `pressWash(CircleShape)` masks the ripple to the glyph's own circle
+            // (Item Library #04 — the badge is round, its touch bounds aren't; an unmasked wash
+            // would bleed into the corners the glyph itself never draws into).
+            modifier = Modifier.pressWash(shape = CircleShape, onClick = onClick),
         )
         if (label != null) {
             Text(

@@ -233,9 +233,9 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "level-ema-alerts",
         term = "Level & EMA Alerts",
         category = "Alerts & Recommendation",
-        summary = "Two always-on price-based alert types, separate from the Gold Signal.",
-        howItWorks = "Level alerts fire on user-configured price levels. EMA touch alerts run on all 12 pairs automatically with no configuration, firing when price touches its own EMA200.",
-        whyItMatters = "The most direct, no-analysis alert type in the app — a plain price event, not a computed signal.",
+        summary = "A user-configured price-level alert type, separate from the Gold Signal — currently greyed out in Settings, not yet available.",
+        howItWorks = "Level alerts would fire when price crosses a user-set level, read from data/level_alerts.json — a file the previous (Forex1212 web dashboard) iteration wrote via the GitHub API. That dashboard doesn't exist in ATOM FX, and nothing on-device writes that file yet, so the toggle in Settings > Notifications is greyed out (2026-09-06) rather than presented as live. EMA touch alerts (price touching its own H4 EMA200/EMA50) were removed the same way one step earlier — the checker function still exists in level_ema_alerts.py but scan_h1.py no longer calls it.",
+        whyItMatters = "Kept, not deleted — Pieter's call, in case an on-device \"set alert\" row on the pair sheet gets built later, at which point this becomes a real, live alert type again.",
     ),
     LibraryEntry(
         id = "conviction",
