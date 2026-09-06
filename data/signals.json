@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T08:16:10.167001+00:00",
+  "updated": "2026-09-06T12:05:32.287265+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79854.0,
-      "delta_pct": 0.0,
+      "value": 79911.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -808,11 +808,11 @@
     }
   },
   "catalyst": {
-    "text": "CADJPY SHORT accelerates: Strong NFP beats support USD strength, boosting JPY carry unwind pressures on pair.",
-    "updated": "2026-09-06T08:16:10.167001+00:00"
+    "text": "CADJPY SHORT accelerates: Strong NFP +162K beat supports USD strength, lifting CADJPY higher.",
+    "updated": "2026-09-06T12:05:32.287265+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Copper strength challenges setup via commodity-linked NZD support.\n\nCADJPY SHORT: Risk-on medium supports CAD but reinforces JPY weakness shorts.\n\nGBPJPY SHORT: Mixed regime with strong ADX confirms momentum-driven yen haven shorts.",
+    "text": "NZDJPY SHORT: Copper strength challenges setup, risk-on favors commodity currencies.\n\nCADJPY SHORT: Risk-on medium challenges setup, oil-sensitive CAD stays bid.\n\nGBPJPY SHORT: Mixed regime confirms setup, GBP underperforms in uncertainty.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -830,7 +830,7 @@
         "score": 6.28
       }
     ],
-    "updated": "2026-09-06T08:16:10.167001+00:00"
+    "updated": "2026-09-06T12:05:32.287265+00:00"
   },
   "calendar": {
     "events": [
@@ -885,7 +885,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T08:16:10.167001+00:00"
+    "updated": "2026-09-06T12:05:32.287265+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-off, with gold sliding and VIX firming while equities dip, though the read is muddied by a firmer dollar alongside a slight uptick in bitcoin and rising Treasury yields, pointing to selective dollar strength rather than a clean flight-to-safety move. Copper and oil holding steady suggest growth fears remain contained. Headlines center on Federal Reserve rate expectations and the dollar's mixed reaction to recent data, keeping traders focused on labor-market signals. With no high-impact releases in the next 24 hours, positioning likely stays cautious, with risk-sens",
@@ -893,16 +893,16 @@
   },
   "breaking": {
     "headlines": [
-      "US August non-farm payrolls +162K beats forecast significantly; NFP risk materializes",
-      "Fed hike bets lift DXY as EUR/USD and GBP/USD fall sharply",
-      "Trump pressures Fed to lower rates; threatens trade restrictions with deficit countries"
+      "US August non-farm payrolls beat +162K vs +56K expected",
+      "Fed Hike Bets Lift DXY as EUR/USD and GBP/USD Fall",
+      "Trump tells Fed: Lower rates or stop trading with deficit countries"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T08:16:10.167001+00:00"
+    "updated": "2026-09-06T12:05:32.287265+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
