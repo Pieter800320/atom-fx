@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07T16:23:38.541325+00:00",
+  "updated": "2026-09-07T19:31:32.940418+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -743,12 +743,12 @@
     "signals": 1,
     "total": 3,
     "confidence": "Low",
-    "stable": false
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.27,
-      "delta_pct": 5.1,
+      "value": 15.3,
+      "delta_pct": 5.3,
       "direction": "up",
       "label": "VIX"
     },
@@ -765,9 +765,9 @@
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.888,
-      "delta_pct": -0.3,
-      "direction": "down",
+      "value": 98.925,
+      "delta_pct": -0.2,
+      "direction": "flat",
       "label": "DXY"
     },
     "copper": {
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79108.0,
-      "delta_pct": -1.5,
+      "value": 79256.0,
+      "delta_pct": -1.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -810,7 +810,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 2.3,
+      "delta_pct": 2.5,
       "label": "VIX"
     },
     "spx": {
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.3,
+      "delta_pct": 2.5,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,16 +860,16 @@
     }
   },
   "catalyst": {
-    "text": "EURJPY SHORT at risk: Eurozone GDP beats 0.6%, ECB tightening odds rise, supporting EUR upside against JPY.",
-    "updated": "2026-09-07T15:25:52.926066+00:00"
+    "text": "GBPJPY SHORT invalidated: yen surging on BOJ hike expectations conflicts bearish yen bias required for short.",
+    "updated": "2026-09-07T19:31:32.940418+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: VIX and Gold rising confirm JPY strength bias.\n\nGBPJPY SHORT: Rising VIX and Gold support safe haven JPY demand.\n\nEURJPY SHORT: Mixed macro neutral challenges momentum divergence setup reliability slightly.",
+    "text": "NZDJPY SHORT: VIX and Gold rises confirm JPY strength bias perfectly.\n\nGBPJPY SHORT: VIX surge confirms JPY bid, but ADX extremeness challenges continuation.\n\nNZDUSD SHORT: VIX rise confirms USD bid, but Gold rise challenges.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.67
+        "score": 8.2
       },
       {
         "pair": "GBPJPY",
@@ -877,12 +877,12 @@
         "score": 6.85
       },
       {
-        "pair": "EURJPY",
+        "pair": "NZDUSD",
         "direction": "bear",
-        "score": 6.33
+        "score": 6.58
       }
     ],
-    "updated": "2026-09-07T15:25:52.926066+00:00"
+    "updated": "2026-09-07T19:31:32.940418+00:00"
   },
   "calendar": {
     "events": [
@@ -937,7 +937,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-07T15:25:52.926066+00:00"
+    "updated": "2026-09-07T19:31:32.940418+00:00"
   },
   "week_ahead": {
     "text": "I'll search for current FX market previews to provide you with an accurate weekly briefing. The search results are outdated (from July-August 2026) and do not provide current September 6, 2026 market intelligence. Let me search for more current FX data. Central bank monetary policy divergence drives forex markets as traders weigh which central bank will tighten more aggressively , with three major central banks meeting within an eight-day window in mid-September anchoring this week's risk-on environment. The Fed publishes employment data Tuesday and inflation Friday, with stronger readings pushing rate hike expectations higher , making this the critical catalyst for USD directional bias ahead of September 18 FOMC decision. USD/JPY fell sharply with downside bias toward 154.76/155.01 support , presenting the most tradeable technicals as BOJ rate hike odds rise with firming inflation signaling policy normalization . BOJ intervention capped USD/JPY near 160 after sharp moves from 164, though effectiveness remains questionable as technical levels reassert resistance .",
@@ -949,16 +949,16 @@
   },
   "breaking": {
     "headlines": [
-      "US jobs data NFP looms as next major dollar test this week",
-      "Eurozone Q2 GDP accelerates to 0.6% amid trade boost strength",
-      "Yen surges amid US holiday; oil climbs on Saudi Aramco attack"
+      "USD falls as yen surges on BOJ rate-hike expectations",
+      "Dollar faces NFP risk; EUR/USD and GBP/USD recover",
+      "Strong jobs revive Fed hike bets; ECB decision looms"
     ],
     "themes": [
       "rates",
-      "rates",
-      "commodity"
+      "usd",
+      "rates"
     ],
-    "updated": "2026-09-07T15:25:52.926066+00:00"
+    "updated": "2026-09-07T19:31:32.940418+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
