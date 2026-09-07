@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06T23:23:11.187322+00:00",
+  "updated": "2026-09-07T02:15:14.653472+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -765,7 +765,7 @@
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.134,
+      "value": 99.155,
       "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80167.0,
-      "delta_pct": 0.4,
+      "value": 79838.0,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.6,
+      "delta_pct": 3.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "NFP beat strengthens dollar bull case; invalidates weak ADP narrative across USD pairs",
-    "updated": "2026-09-06T23:23:11.187322+00:00"
+    "text": "No breaking catalysts.",
+    "updated": "2026-09-07T02:15:14.653472+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-06T23:23:11.187322+00:00"
+    "updated": "2026-09-07T02:15:14.653472+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +921,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-06T23:23:11.187322+00:00"
+    "updated": "2026-09-07T02:15:14.653472+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
@@ -929,16 +929,16 @@
   },
   "breaking": {
     "headlines": [
-      "NFP data becomes critical test for dollar direction across major pairs",
-      "Fed rate cut expectations weaken dollar; EUR/USD and GBP/USD recover",
-      "Trump pressures Fed to cut rates; threatens trade war retaliation"
+      "Dollar faces NFP risk across EUR/USD, USD/CAD, USD/CHF pairs",
+      "Fed hike bets lift DXY as EUR/USD and GBP/USD fall",
+      "Weak ADP data hits DXY; NFP becomes next major test"
     ],
     "themes": [
-      "rates",
+      "usd",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-06T23:23:11.187322+00:00"
+    "updated": "2026-09-07T02:15:14.653472+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
@@ -950,20 +950,20 @@
     "updated": "2026-09-06T12:19:07.719612+00:00"
   },
   "recommendation": {
-    "headline": "Stand Aside: EURUSD none",
+    "headline": "Stand aside as EUR flow diverges from risk-on regime",
     "bias": "risk_off",
     "action": "stand_aside",
     "primary_pair": "EURUSD",
     "direction": "none",
     "confidence": "Medium",
-    "rationale": "No qualifying setups.",
-    "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
+    "rationale": "Macro backdrop is growth-positive risk-on, yet flow shows CHF leading (+62.5) while EUR lags sharply (-100.0), a defensive skew that contradicts the regime. Rate-driven DXY strength and NFP risk add uncertainty. With no breaking catalysts confirming direction, standing aside on EURUSD is warranted.",
+    "invalidation": "A clear EUR flow reversal or dovish Fed surprise that realigns risk appetite with the growth-positive regime would invalidate this stand-aside call.",
     "next_catalyst": {
       "event": "ISM Services PMI",
       "iso": "2026-09-04T14:00:00+00:00"
     },
-    "generated_at": "2026-09-06T12:21:59.225789+00:00",
-    "_narrated": false
+    "generated_at": "2026-09-07T02:15:36.929517+00:00",
+    "_narrated": true
   },
   "conviction": {
     "currencies": {
