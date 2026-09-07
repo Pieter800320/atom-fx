@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07T02:15:14.653472+00:00",
+  "updated": "2026-09-07T08:48:33.369569+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -739,16 +739,16 @@
     "stable": true
   },
   "macro": {
-    "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
-    "stable": true
+    "label": "Mixed",
+    "signals": 0,
+    "total": 2,
+    "confidence": "Neutral",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 14.53,
-      "delta_pct": 1.5,
+      "value": 15.03,
+      "delta_pct": 3.4,
       "direction": "flat",
       "label": "VIX"
     },
@@ -765,9 +765,9 @@
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.155,
-      "delta_pct": -0.0,
-      "direction": "flat",
+      "value": 98.894,
+      "delta_pct": -0.3,
+      "direction": "down",
       "label": "DXY"
     },
     "copper": {
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79838.0,
-      "delta_pct": 0.0,
+      "value": 79476.0,
+      "delta_pct": -1.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -825,7 +825,7 @@
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -0.3,
+      "delta_pct": -0.5,
       "label": "DXY"
     },
     "copper": {
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.1,
+      "delta_pct": 2.8,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,13 @@
     }
   },
   "catalyst": {
-    "text": "No breaking catalysts.",
-    "updated": "2026-09-07T02:15:14.653472+00:00"
+    "text": "NFP data directly tests USD strength across majors. Eurozone confidence supports EUR upside against weakening dollar.",
+    "updated": "2026-09-07T08:48:33.369569+00:00"
   },
   "ranked": {
     "text": "No qualifying setups.",
     "top": [],
-    "updated": "2026-09-07T02:15:14.653472+00:00"
+    "updated": "2026-09-07T08:48:33.369569+00:00"
   },
   "calendar": {
     "events": [
@@ -921,24 +921,24 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-07T02:15:14.653472+00:00"
+    "updated": "2026-09-07T08:48:33.369569+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals lean mildly risk-off but lack conviction: VIX firmer, equities softer, and the dollar index edging higher align with a cautious tone, yet gold's slight dip and flat Bitcoin fail to confirm a decisive flight-to-safety move, while copper's notable strength pushes against the risk-off narrative. Treasury yields ticked up, offering modest dollar support, and oil's mild gain keeps commodity currencies steady rather than pressured. The dominant market theme remains dollar positioning ahead of Non-Farm Payrolls, with recent headlines showing chopp",
-    "generated_at": "2026-09-06T16:38:23.546170+00:00"
+    "text": "Cross-asset signals are mixed rather than confirming a clean regime. Gold and VIX both higher points to some risk-off hedging, and equities are softer, yet the dollar itself is not benefiting \u2014 DXY is down and BTC only modestly weaker, which contradicts a classic risk-off dollar bid. Copper's strength adds a growth-friendly undertone that clashes with the VIX move. Headlines remain fixated on payrolls positioning and shifting Fed-hike expectations, keeping the dollar narrative headline-driven rather than data-confirmed. With no high-impact release in the next 24",
+    "generated_at": "2026-09-07T08:49:20.291699+00:00"
   },
   "breaking": {
     "headlines": [
-      "Dollar faces NFP risk across EUR/USD, USD/CAD, USD/CHF pairs",
-      "Fed hike bets lift DXY as EUR/USD and GBP/USD fall",
-      "Weak ADP data hits DXY; NFP becomes next major test"
+      "Weak ADP hits DXY; NFP becomes next critical dollar test today",
+      "DXY weakens ahead of NFP; EUR/USD and GBP/USD recover strongly",
+      "Eurozone investor confidence jumps to four-year high, supports EUR"
     ],
     "themes": [
       "usd",
-      "rates",
-      "rates"
+      "usd",
+      null
     ],
-    "updated": "2026-09-07T02:15:14.653472+00:00"
+    "updated": "2026-09-07T08:48:33.369569+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
