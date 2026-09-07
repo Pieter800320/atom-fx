@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07T10:08:21.849651+00:00",
+  "updated": "2026-09-07T15:25:52.926066+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -739,17 +739,17 @@
     "stable": true
   },
   "macro": {
-    "label": "Mixed",
-    "signals": 0,
-    "total": 2,
-    "confidence": "Neutral",
+    "label": "Risk-Off",
+    "signals": 1,
+    "total": 3,
+    "confidence": "Low",
     "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 15.03,
-      "delta_pct": 3.4,
-      "direction": "flat",
+      "value": 15.27,
+      "delta_pct": 5.1,
+      "direction": "up",
       "label": "VIX"
     },
     "spx": {
@@ -765,7 +765,7 @@
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.894,
+      "value": 98.888,
       "delta_pct": -0.3,
       "direction": "down",
       "label": "DXY"
@@ -795,8 +795,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79476.0,
-      "delta_pct": -1.1,
+      "value": 79108.0,
+      "delta_pct": -1.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -810,7 +810,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 0.7,
+      "delta_pct": 2.3,
       "label": "VIX"
     },
     "spx": {
@@ -850,7 +850,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.8,
+      "delta_pct": 2.3,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,13 +860,29 @@
     }
   },
   "catalyst": {
-    "text": "NFP data directly tests USD strength across majors. Eurozone confidence supports EUR upside against weakening dollar.",
-    "updated": "2026-09-07T08:48:33.369569+00:00"
+    "text": "EURJPY SHORT at risk: Eurozone GDP beats 0.6%, ECB tightening odds rise, supporting EUR upside against JPY.",
+    "updated": "2026-09-07T15:25:52.926066+00:00"
   },
   "ranked": {
-    "text": "No qualifying setups.",
-    "top": [],
-    "updated": "2026-09-07T08:48:33.369569+00:00"
+    "text": "NZDJPY SHORT: VIX and Gold rising confirm JPY strength bias.\n\nGBPJPY SHORT: Rising VIX and Gold support safe haven JPY demand.\n\nEURJPY SHORT: Mixed macro neutral challenges momentum divergence setup reliability slightly.",
+    "top": [
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 7.67
+      },
+      {
+        "pair": "GBPJPY",
+        "direction": "bear",
+        "score": 6.85
+      },
+      {
+        "pair": "EURJPY",
+        "direction": "bear",
+        "score": 6.33
+      }
+    ],
+    "updated": "2026-09-07T15:25:52.926066+00:00"
   },
   "calendar": {
     "events": [
@@ -921,7 +937,7 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-07T08:48:33.369569+00:00"
+    "updated": "2026-09-07T15:25:52.926066+00:00"
   },
   "week_ahead": {
     "text": "I'll search for current FX market previews to provide you with an accurate weekly briefing. The search results are outdated (from July-August 2026) and do not provide current September 6, 2026 market intelligence. Let me search for more current FX data. Central bank monetary policy divergence drives forex markets as traders weigh which central bank will tighten more aggressively , with three major central banks meeting within an eight-day window in mid-September anchoring this week's risk-on environment. The Fed publishes employment data Tuesday and inflation Friday, with stronger readings pushing rate hike expectations higher , making this the critical catalyst for USD directional bias ahead of September 18 FOMC decision. USD/JPY fell sharply with downside bias toward 154.76/155.01 support , presenting the most tradeable technicals as BOJ rate hike odds rise with firming inflation signaling policy normalization . BOJ intervention capped USD/JPY near 160 after sharp moves from 164, though effectiveness remains questionable as technical levels reassert resistance .",
@@ -933,16 +949,16 @@
   },
   "breaking": {
     "headlines": [
-      "Weak ADP hits DXY; NFP becomes next critical dollar test today",
-      "DXY weakens ahead of NFP; EUR/USD and GBP/USD recover strongly",
-      "Eurozone investor confidence jumps to four-year high, supports EUR"
+      "US jobs data NFP looms as next major dollar test this week",
+      "Eurozone Q2 GDP accelerates to 0.6% amid trade boost strength",
+      "Yen surges amid US holiday; oil climbs on Saudi Aramco attack"
     ],
     "themes": [
-      "usd",
-      "usd",
-      null
+      "rates",
+      "rates",
+      "commodity"
     ],
-    "updated": "2026-09-07T08:48:33.369569+00:00"
+    "updated": "2026-09-07T15:25:52.926066+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
