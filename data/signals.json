@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07T20:28:23.345701+00:00",
+  "updated": "2026-09-07T22:26:01.852746+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -734,8 +734,8 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
@@ -759,20 +759,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4476.6,
-      "delta_pct": 1.1,
+      "value": 4458.4,
+      "delta_pct": 0.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.925,
-      "delta_pct": -0.2,
+      "value": 99.176,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6825,
-      "delta_pct": 1.3,
+      "value": 6.728,
+      "delta_pct": 2.0,
       "direction": "up",
       "label": "Copper"
     },
@@ -789,14 +789,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.48,
-      "delta_pct": 0.0,
-      "direction": "flat",
+      "value": 92.64,
+      "delta_pct": 1.3,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79256.0,
-      "delta_pct": -1.4,
+      "value": 79158.0,
+      "delta_pct": -1.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -820,17 +820,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.0,
+      "delta_pct": 0.6,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -0.5,
+      "delta_pct": -0.3,
       "label": "DXY"
     },
     "copper": {
-      "direction": "flat",
-      "delta_pct": 1.3,
+      "direction": "up",
+      "delta_pct": 2.0,
       "label": "Copper"
     },
     "us10y": {
@@ -845,12 +845,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 6.7,
+      "delta_pct": 8.0,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.5,
+      "delta_pct": 2.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,29 +860,29 @@
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT invalidated: yen surging on BOJ hike expectations conflicts bearish yen bias required for short.",
-    "updated": "2026-09-07T19:31:32.940418+00:00"
+    "text": "EURUSD LONG and GBPUSD LONG accelerated by USD weakness/yen strength. NFP risk threatens all positions.",
+    "updated": "2026-09-07T22:26:01.852746+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: VIX and Gold rises confirm JPY strength bias perfectly.\n\nGBPJPY SHORT: VIX surge confirms JPY bid, but ADX extremeness challenges continuation.\n\nNZDUSD SHORT: VIX rise confirms USD bid, but Gold rise challenges.",
+    "text": "NZDUSD SHORT: VIX surge confirms USD bid, supports short thesis strongly.\n\nEURUSD LONG: Risk-off environment challenges long, favors USD strength instead.\n\nGBPUSD LONG: Risk-off headwind challenges long setup, weakens conviction substantially.",
     "top": [
-      {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 8.2
-      },
-      {
-        "pair": "GBPJPY",
-        "direction": "bear",
-        "score": 6.85
-      },
       {
         "pair": "NZDUSD",
         "direction": "bear",
         "score": 6.58
+      },
+      {
+        "pair": "EURUSD",
+        "direction": "bull",
+        "score": 2.62
+      },
+      {
+        "pair": "GBPUSD",
+        "direction": "bull",
+        "score": 2.4
       }
     ],
-    "updated": "2026-09-07T19:31:32.940418+00:00"
+    "updated": "2026-09-07T22:26:01.852746+00:00"
   },
   "calendar": {
     "events": [
@@ -937,28 +937,28 @@
         "note": "Services expansion continues, USD supports"
       }
     ],
-    "updated": "2026-09-07T19:31:32.940418+00:00"
+    "updated": "2026-09-07T22:26:01.852746+00:00"
   },
   "week_ahead": {
     "text": "I'll search for current FX market previews to provide you with an accurate weekly briefing. The search results are outdated (from July-August 2026) and do not provide current September 6, 2026 market intelligence. Let me search for more current FX data. Central bank monetary policy divergence drives forex markets as traders weigh which central bank will tighten more aggressively , with three major central banks meeting within an eight-day window in mid-September anchoring this week's risk-on environment. The Fed publishes employment data Tuesday and inflation Friday, with stronger readings pushing rate hike expectations higher , making this the critical catalyst for USD directional bias ahead of September 18 FOMC decision. USD/JPY fell sharply with downside bias toward 154.76/155.01 support , presenting the most tradeable technicals as BOJ rate hike odds rise with firming inflation signaling policy normalization . BOJ intervention capped USD/JPY near 160 after sharp moves from 164, though effectiveness remains questionable as technical levels reassert resistance .",
     "generated_at": "2026-09-06T22:40:04.710170+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals are mixed rather than confirming a clean regime. Gold and VIX both higher points to some risk-off hedging, and equities are softer, yet the dollar itself is not benefiting \u2014 DXY is down and BTC only modestly weaker, which contradicts a classic risk-off dollar bid. Copper's strength adds a growth-friendly undertone that clashes with the VIX move. Headlines remain fixated on payrolls positioning and shifting Fed-hike expectations, keeping the dollar narrative headline-driven rather than data-confirmed. With no high-impact release in the next 24",
-    "generated_at": "2026-09-07T08:49:20.291699+00:00"
+    "text": "Cross-asset signals are pulling in different directions today. Gold's modest gain alongside a firmer VIX and softer BTC suggests some hedging demand, yet DXY sits flat and equities are only mildly softer, undercutting a clean risk-off narrative. Copper and WTI both firming point to underlying growth resilience, while yields ticked up slightly, offering the dollar little support. Headlines center on broad dollar softness, particularly against the yen amid BOJ rate-hike speculation, with EUR/USD and GBP/USD recovering ahead of Friday's payrolls. Overall backdr",
+    "generated_at": "2026-09-07T22:26:30.629896+00:00"
   },
   "breaking": {
     "headlines": [
-      "USD falls as yen surges on BOJ rate-hike expectations",
-      "Dollar faces NFP risk; EUR/USD and GBP/USD recover",
-      "Strong jobs revive Fed hike bets; ECB decision looms"
+      "US Dollar tests new lows against Japanese Yen; USD weakness accelerates",
+      "Dollar faces NFP risk; DXY weakens ahead of critical jobs data",
+      "Yen surges on BOJ rate-hike expectations; USD falls sharply"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-07T19:31:32.940418+00:00"
+    "updated": "2026-09-07T22:26:01.852746+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
