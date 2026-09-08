@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-07T22:26:01.852746+00:00",
+  "updated": "2026-09-08T02:27:53.665966+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -759,8 +759,8 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4458.4,
-      "delta_pct": 0.6,
+      "value": 4472.8,
+      "delta_pct": 1.0,
       "direction": "up",
       "label": "Gold"
     },
@@ -771,8 +771,8 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.728,
-      "delta_pct": 2.0,
+      "value": 6.7805,
+      "delta_pct": 2.8,
       "direction": "up",
       "label": "Copper"
     },
@@ -789,14 +789,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.64,
-      "delta_pct": 1.3,
-      "direction": "up",
+      "value": 92.36,
+      "delta_pct": 1.0,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79158.0,
-      "delta_pct": -1.5,
+      "value": 79336.0,
+      "delta_pct": -1.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -820,7 +820,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.6,
+      "delta_pct": 0.9,
       "label": "Gold"
     },
     "dxy": {
@@ -830,7 +830,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.0,
+      "delta_pct": 2.8,
       "label": "Copper"
     },
     "us10y": {
@@ -845,12 +845,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 8.0,
+      "delta_pct": 7.7,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.4,
+      "delta_pct": 2.6,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,11 +860,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD LONG and GBPUSD LONG accelerated by USD weakness/yen strength. NFP risk threatens all positions.",
-    "updated": "2026-09-07T22:26:01.852746+00:00"
+    "text": "EURUSD LONG: ECB hawkish tightening expectations and dollar weakness pre-NFP accelerate setup. GBPUSD LONG: DXY weakness and consumer signals recovery support position. NZDUSD SHORT: Japan wage strength may delay BOJ divergence benefit.",
+    "updated": "2026-09-08T02:27:53.665966+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: VIX surge confirms USD bid, supports short thesis strongly.\n\nEURUSD LONG: Risk-off environment challenges long, favors USD strength instead.\n\nGBPUSD LONG: Risk-off headwind challenges long setup, weakens conviction substantially.",
+    "text": "NZDUSD SHORT: Macro confirms via VIX rise strengthening USD safe haven demand.\n\nEURUSD LONG: Macro challenges setup as risk off weakens EUR fundamentals.\n\nGBPUSD LONG: Macro challenges setup as risk off pressures GBP carry flows.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -882,66 +882,72 @@
         "score": 2.4
       }
     ],
-    "updated": "2026-09-07T22:26:01.852746+00:00"
+    "updated": "2026-09-08T02:27:53.665966+00:00"
   },
   "calendar": {
     "events": [
       {
-        "day": "Tue",
-        "time": "14:00",
-        "iso": "2026-09-01T14:00:00+00:00",
-        "currency": "USD",
-        "name": "ISM Manufacturing PMI",
-        "forecast": "55.2",
-        "previous": "54.6",
-        "note": "Services expansion intact, USD supportive"
+        "day": "Thu",
+        "time": "13:15",
+        "iso": "2026-09-10T13:15:00+00:00",
+        "currency": "EUR",
+        "name": "ECB Rate Decision",
+        "forecast": "Hold",
+        "previous": "2.40%",
+        "note": "Major EUR directional driver high volatility"
       },
       {
         "day": "Wed",
         "time": "02:00",
-        "iso": "2026-09-02T02:00:00+00:00",
+        "iso": "2026-09-09T02:00:00+00:00",
         "currency": "NZD",
         "name": "RBNZ Rate Decision",
-        "forecast": "2.75%",
+        "forecast": "Hike 25bps",
         "previous": "2.50%",
-        "note": "25bp hike expected, consensual decision"
+        "note": "NZD strength expected hawkish bias"
       },
       {
-        "day": "Wed",
-        "time": "01:30",
-        "iso": "2026-09-02T01:30:00+00:00",
-        "currency": "AUD",
-        "name": "Australian GDP Q2",
-        "forecast": "0.3% qoq",
-        "previous": "0.3% qoq",
-        "note": "Q2 beat 0.4%, supports AUD bullish"
-      },
-      {
-        "day": "Wed",
-        "time": "13:45",
-        "iso": "2026-09-02T13:45:00+00:00",
-        "currency": "CAD",
-        "name": "BoC Rate Decision",
-        "forecast": "2.25%",
-        "previous": "2.25%",
-        "note": "Hold consensus, focus on statement tone"
+        "day": "Thu",
+        "time": "12:30",
+        "iso": "2026-09-10T12:30:00+00:00",
+        "currency": "USD",
+        "name": "PPI (Producer Prices)",
+        "forecast": "0.1% m/m",
+        "previous": "0.1% m/m",
+        "note": "Inflation indicator USD direction tight"
       },
       {
         "day": "Fri",
-        "time": "14:00",
-        "iso": "2026-09-04T14:00:00+00:00",
+        "time": "12:30",
+        "iso": "2026-09-11T12:30:00+00:00",
         "currency": "USD",
-        "name": "ISM Services PMI",
-        "forecast": "54.2",
-        "previous": "54.1",
-        "note": "Services expansion continues, USD supports"
+        "name": "CPI (Consumer Prices)",
+        "forecast": "3.2% y/y",
+        "previous": "3.4% y/y",
+        "note": "High impact inflation data USD major driver"
+      },
+      {
+        "day": "Fri",
+        "time": "12:30",
+        "iso": "2026-09-11T12:30:00+00:00",
+        "currency": "USD",
+        "name": "Core CPI",
+        "forecast": "2.4% y/y",
+        "previous": "2.5% y/y",
+        "note": "Fed preferred inflation gauge strong volatility"
+      },
+      {
+        "day": "Thu",
+        "time": "12:30",
+        "iso": "2026-09-10T12:30:00+00:00",
+        "currency": "USD",
+        "name": "Unemployment Claims Weekly",
+        "forecast": "235K",
+        "previous": "228K",
+        "note": "Labor market health USD sensitive"
       }
     ],
-    "updated": "2026-09-07T22:26:01.852746+00:00"
-  },
-  "week_ahead": {
-    "text": "I'll search for current FX market previews to provide you with an accurate weekly briefing. The search results are outdated (from July-August 2026) and do not provide current September 6, 2026 market intelligence. Let me search for more current FX data. Central bank monetary policy divergence drives forex markets as traders weigh which central bank will tighten more aggressively , with three major central banks meeting within an eight-day window in mid-September anchoring this week's risk-on environment. The Fed publishes employment data Tuesday and inflation Friday, with stronger readings pushing rate hike expectations higher , making this the critical catalyst for USD directional bias ahead of September 18 FOMC decision. USD/JPY fell sharply with downside bias toward 154.76/155.01 support , presenting the most tradeable technicals as BOJ rate hike odds rise with firming inflation signaling policy normalization . BOJ intervention capped USD/JPY near 160 after sharp moves from 164, though effectiveness remains questionable as technical levels reassert resistance .",
-    "generated_at": "2026-09-06T22:40:04.710170+00:00"
+    "updated": "2026-09-08T02:27:53.665966+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today. Gold's modest gain alongside a firmer VIX and softer BTC suggests some hedging demand, yet DXY sits flat and equities are only mildly softer, undercutting a clean risk-off narrative. Copper and WTI both firming point to underlying growth resilience, while yields ticked up slightly, offering the dollar little support. Headlines center on broad dollar softness, particularly against the yen amid BOJ rate-hike speculation, with EUR/USD and GBP/USD recovering ahead of Friday's payrolls. Overall backdr",
@@ -949,16 +955,16 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar tests new lows against Japanese Yen; USD weakness accelerates",
-      "Dollar faces NFP risk; DXY weakens ahead of critical jobs data",
-      "Yen surges on BOJ rate-hike expectations; USD falls sharply"
+      "US Dollar weakens ahead of NFP; EUR/USD and GBP/USD recover strongly",
+      "Japan wage growth strongest since 1997 strengthens BOJ rate hike case",
+      "ECB markets pricing more rate hikes than economists expect going forward"
     ],
     "themes": [
-      "rates",
       "usd",
+      "rates",
       "rates"
     ],
-    "updated": "2026-09-07T22:26:01.852746+00:00"
+    "updated": "2026-09-08T02:27:53.665966+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
