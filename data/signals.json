@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-08T18:34:15.791676+00:00",
+  "updated": "2026-09-08T19:10:57.785903+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -734,8 +734,8 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
@@ -747,62 +747,62 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 15.65,
-      "delta_pct": 2.3,
+      "value": 15.48,
+      "delta_pct": 1.2,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7682.14,
-      "delta_pct": -0.5,
+      "value": 7685.37,
+      "delta_pct": -0.4,
       "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4443.9,
-      "delta_pct": 0.3,
+      "value": 4417.7,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.85,
-      "delta_pct": -0.3,
+      "value": 98.812,
+      "delta_pct": -0.4,
       "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.851,
-      "delta_pct": 3.9,
+      "value": 6.806,
+      "delta_pct": 3.2,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.78,
-      "delta_bp": -0.4,
+      "value": 4.808,
+      "delta_bp": 2.4,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.76,
-      "delta_bp": 0.3,
+      "value": 3.775,
+      "delta_bp": 1.8,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 93.22,
-      "delta_pct": 1.9,
+      "value": 93.63,
+      "delta_pct": 2.4,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77932.0,
-      "delta_pct": -1.5,
+      "value": 78464.0,
+      "delta_pct": -0.8,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.0,
-      "delta_bp": -0.7,
+      "value": 103.3,
+      "delta_bp": 0.6,
       "direction": "flat",
       "label": "10Y-3M"
     }
@@ -810,17 +810,17 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -4.2,
+      "delta_pct": -5.3,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": -0.1,
+      "delta_pct": -0.0,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.3,
+      "delta_pct": -0.3,
       "label": "Gold"
     },
     "dxy": {
@@ -830,59 +830,59 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 3.9,
+      "delta_pct": 3.2,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 2.2,
+      "delta_bp": 5.0,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 2.8,
+      "delta_bp": 4.3,
       "label": "US 3M"
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 8.7,
+      "delta_pct": 9.2,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -4.1,
+      "delta_pct": -3.5,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -0.6,
+      "delta_bp": 0.7,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT at risk: Fed hike bets rising could support JPY weakness, conflicting short thesis.",
-    "updated": "2026-09-08T14:02:46.984725+00:00"
+    "text": "USDJPY SHORT invalidated. USD testing new lows against JPY contradicts short setup requiring JPY weakness or USD strength.",
+    "updated": "2026-09-08T19:10:57.785903+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: S&P 500 falling confirms JPY bid thesis strongly.\n\nNZDUSD SHORT: Risk-on low challenges NZD weakness without cross asset support.\n\nGBPJPY SHORT: S&P 500 falling confirms dual JPY bid setup.",
+    "text": "NZDJPY SHORT: S&P 500 falling confirms JPY bid thesis strongly.\n\nNZDUSD SHORT: Risk-on medium and oil strength challenge downside bias.\n\nUSDJPY SHORT: S&P 500 falling and DXY weakness confirm setup.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 8.28
+        "score": 8.2
       },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 7.38
+        "score": 7.15
       },
       {
-        "pair": "GBPJPY",
+        "pair": "USDJPY",
         "direction": "bear",
-        "score": 6.53
+        "score": 5.75
       }
     ],
-    "updated": "2026-09-08T14:02:46.984725+00:00"
+    "updated": "2026-09-08T19:10:57.785903+00:00"
   },
   "calendar": {
     "events": [
@@ -947,7 +947,7 @@
         "note": "Labor market health USD sensitive"
       }
     ],
-    "updated": "2026-09-08T14:02:46.984725+00:00"
+    "updated": "2026-09-08T19:10:57.785903+00:00"
   },
   "deep_analysis": {
     "text": "Markets show mixed signals despite equities and VIX pointing to a cautious tone: stocks softer and volatility up, yet gold is barely higher, the dollar index is slipping, and Bitcoin is down modestly\u2014an inconsistent risk-off picture. Commodity-linked currencies get some support from firmer oil and a sharp copper rally, hinting at underlying demand resilience even as headline sentiment stays defensive. News flow centers on diverging central bank paths, with Fed hike bets resurfacing against ECB tightening chatter, keeping the dollar narrative in focus. The next major risk is the",
@@ -955,16 +955,16 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar tests new lows against Japanese Yen amid broader weakness",
       "Fed hike bets rise as ECB tightening supports Euro strength",
-      "Bond market tightening pressures multiple currency pairs simultaneously"
+      "USD tests new lows against Japanese Yen; USD/JPY weakens",
+      "NY Fed survey shows unemployment expectations at highest since April 2020"
     ],
     "themes": [
-      "usd",
       "rates",
+      "usd",
       "rates"
     ],
-    "updated": "2026-09-08T14:02:46.984725+00:00"
+    "updated": "2026-09-08T19:10:57.785903+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
