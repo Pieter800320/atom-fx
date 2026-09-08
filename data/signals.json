@@ -1,53 +1,53 @@
 {
-  "updated": "2026-09-08T16:43:06.959008+00:00",
+  "updated": "2026-09-08T18:34:15.791676+00:00",
   "regime_d1": {
-    "regime": "Risk-Off",
-    "confidence": "Medium",
-    "score": 9.1,
+    "regime": "Mixed",
+    "confidence": "Low",
+    "score": 5.0,
     "stable": false
   },
   "regime_h4": {
-    "regime": "Risk-Off",
-    "confidence": "High",
-    "score": 10.0,
+    "regime": "Mixed",
+    "confidence": "Low",
+    "score": 5.0,
     "stable": false
   },
   "regime_h1": {
-    "regime": "Ranging",
+    "regime": "Mixed",
     "confidence": "Low",
     "score": 5.0,
     "stable": false
   },
   "csm": {
     "d1": {
-      "GBP": 54.2,
-      "EUR": 69.1,
+      "GBP": 49.8,
+      "EUR": 77.2,
       "AUD": 100.0,
       "NZD": 0.0,
-      "CAD": 78.2,
-      "JPY": 67.6,
-      "CHF": 55.6,
-      "USD": 76.8
+      "CAD": 74.7,
+      "JPY": 64.2,
+      "CHF": 39.6,
+      "USD": 70.7
     },
     "h4": {
-      "GBP": 45.1,
-      "EUR": 74.9,
-      "AUD": 75.3,
+      "GBP": 49.5,
+      "EUR": 47.0,
+      "AUD": 100.0,
       "NZD": 0.0,
-      "CAD": 100.0,
-      "JPY": 65.9,
-      "CHF": 92.8,
-      "USD": 69.0
+      "CAD": 96.4,
+      "JPY": 57.5,
+      "CHF": 81.2,
+      "USD": 38.2
     },
     "h1": {
-      "GBP": 9.3,
-      "EUR": 34.2,
-      "AUD": 25.6,
-      "NZD": 59.8,
-      "CAD": 57.0,
-      "JPY": 32.5,
+      "GBP": 0.0,
+      "EUR": 87.6,
+      "AUD": 46.3,
+      "NZD": 74.2,
+      "CAD": 68.1,
+      "JPY": 51.0,
       "CHF": 100.0,
-      "USD": 0.0
+      "USD": 31.7
     }
   },
   "correlations": {
@@ -69,37 +69,37 @@
       [
         1.0,
         0.69,
-        -0.64,
-        -0.7,
+        -0.63,
+        -0.71,
         0.66,
-        -0.54,
-        0.51,
-        -0.42,
-        -0.47,
-        -0.34,
-        -0.22,
-        -0.43
+        -0.55,
+        0.52,
+        -0.41,
+        -0.46,
+        -0.33,
+        -0.21,
+        -0.42
       ],
       [
         0.69,
         1.0,
-        -0.48,
+        -0.47,
         -0.83,
-        0.61,
+        0.6,
         -0.6,
         0.47,
-        -0.33,
-        -0.18,
-        -0.18,
-        -0.1,
-        -0.23
+        -0.32,
+        -0.17,
+        -0.17,
+        -0.09,
+        -0.22
       ],
       [
-        -0.64,
-        -0.48,
+        -0.63,
+        -0.47,
         1.0,
-        0.61,
-        -0.5,
+        0.6,
+        -0.49,
         0.32,
         -0.27,
         0.97,
@@ -109,39 +109,39 @@
         0.9
       ],
       [
-        -0.7,
+        -0.71,
         -0.83,
-        0.61,
+        0.6,
         1.0,
         -0.6,
         0.62,
         -0.47,
-        0.48,
+        0.47,
         0.38,
-        0.34,
-        0.22,
-        0.36
+        0.33,
+        0.21,
+        0.35
       ],
       [
         0.66,
-        0.61,
-        -0.5,
+        0.6,
+        -0.49,
         -0.6,
         1.0,
-        -0.64,
+        -0.65,
         0.72,
-        -0.37,
-        -0.34,
-        0.03,
-        0.06,
-        -0.23
+        -0.36,
+        -0.33,
+        0.04,
+        0.07,
+        -0.22
       ],
       [
-        -0.54,
+        -0.55,
         -0.6,
         0.32,
         0.62,
-        -0.64,
+        -0.65,
         1.0,
         -0.52,
         0.2,
@@ -151,27 +151,27 @@
         -0.12
       ],
       [
-        0.51,
+        0.52,
         0.47,
         -0.27,
         -0.47,
         0.72,
         -0.52,
         1.0,
-        -0.15,
+        -0.14,
         -0.13,
-        0.12,
-        0.47,
-        -0.05
+        0.13,
+        0.48,
+        -0.04
       ],
       [
-        -0.42,
-        -0.33,
+        -0.41,
+        -0.32,
         0.97,
-        0.48,
-        -0.37,
+        0.47,
+        -0.36,
         0.2,
-        -0.15,
+        -0.14,
         1.0,
         0.96,
         0.89,
@@ -179,11 +179,11 @@
         0.92
       ],
       [
-        -0.47,
-        -0.18,
+        -0.46,
+        -0.17,
         0.95,
         0.38,
-        -0.34,
+        -0.33,
         0.15,
         -0.13,
         0.96,
@@ -193,13 +193,13 @@
         0.93
       ],
       [
-        -0.34,
-        -0.18,
+        -0.33,
+        -0.17,
         0.85,
-        0.34,
-        0.03,
+        0.33,
+        0.04,
         -0.02,
-        0.12,
+        0.13,
         0.89,
         0.89,
         1.0,
@@ -207,13 +207,13 @@
         0.9
       ],
       [
-        -0.22,
-        -0.1,
+        -0.21,
+        -0.09,
         0.72,
-        0.22,
-        0.06,
+        0.21,
+        0.07,
         -0.08,
-        0.47,
+        0.48,
         0.78,
         0.77,
         0.87,
@@ -221,13 +221,13 @@
         0.79
       ],
       [
-        -0.43,
-        -0.23,
+        -0.42,
+        -0.22,
         0.9,
-        0.36,
-        -0.23,
+        0.35,
+        -0.22,
         -0.12,
-        -0.05,
+        -0.04,
         0.92,
         0.93,
         0.9,
@@ -246,28 +246,28 @@
       "mom": {
         "d1": 37,
         "dd1": -15,
-        "h4": 55,
-        "dh4": 7,
+        "h4": 57,
+        "dh4": 8,
         "h1": 42,
-        "dh1": -30,
-        "cmp": 43,
-        "dcmp4": 0,
-        "dcmp8": -1,
-        "dcmp12": -3
+        "dh1": -32,
+        "cmp": 44,
+        "dcmp4": 1,
+        "dcmp8": 1,
+        "dcmp12": -1
       },
-      "adx": 27.0,
-      "d1_pct": 0.01,
-      "d5_pct": 0.11,
+      "adx": 26.9,
+      "d1_pct": 0.05,
+      "d5_pct": 0.15,
       "prev_close": 1.16218,
       "prev5_close": 1.16101,
-      "cont": 50,
-      "reset_score": 14,
+      "cont": 68,
+      "reset_score": 34,
       "atr_pct": 14,
       "structure": {
         "h4": {
           "direction": "bull",
           "event": "none",
-          "strength": 0.82,
+          "strength": 1.0,
           "multiplier": 1.0
         },
         "d1": {
@@ -282,27 +282,27 @@
       "pills": {
         "d1": "neutral",
         "h4": "neutral",
-        "h1": "neutral"
+        "h1": "bull"
       },
       "mom": {
-        "d1": 29,
-        "dd1": -17,
-        "h4": 58,
-        "dh4": 26,
-        "h1": 48,
-        "dh1": -18,
-        "cmp": 41,
-        "dcmp4": 0,
-        "dcmp8": -1,
-        "dcmp12": -3
+        "d1": 30,
+        "dd1": -16,
+        "h4": 61,
+        "dh4": 28,
+        "h1": 49,
+        "dh1": -21,
+        "cmp": 42,
+        "dcmp4": 1,
+        "dcmp8": 1,
+        "dcmp12": -1
       },
-      "adx": 21.7,
-      "d1_pct": -0.13,
-      "d5_pct": 0.21,
+      "adx": 21.5,
+      "d1_pct": -0.05,
+      "d5_pct": 0.3,
       "prev_close": 1.35519,
       "prev5_close": 1.35056,
       "cont": 0,
-      "reset_score": 30,
+      "reset_score": 26,
       "atr_pct": 0,
       "structure": {
         "h4": {
@@ -322,24 +322,24 @@
     "USDJPY": {
       "pills": {
         "d1": "bear_strong",
-        "h4": "bear",
+        "h4": "bear_strong",
         "h1": "neutral"
       },
       "mom": {
         "d1": 30,
         "dd1": -18,
-        "h4": 22,
-        "dh4": -2,
-        "h1": 52,
-        "dh1": 42,
-        "cmp": 31,
+        "h4": 20,
+        "dh4": -1,
+        "h1": 60,
+        "dh1": 52,
+        "cmp": 32,
         "dcmp4": 2,
-        "dcmp8": 3,
-        "dcmp12": 6
+        "dcmp8": 4,
+        "dcmp12": 5
       },
-      "adx": 60.6,
-      "d1_pct": 0.27,
-      "d5_pct": -1.02,
+      "adx": 59.7,
+      "d1_pct": 0.21,
+      "d5_pct": -1.08,
       "prev_close": 153.87698,
       "prev5_close": 155.89232,
       "cont": 67,
@@ -349,14 +349,14 @@
         "h4": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.94,
-          "multiplier": 1.282
+          "strength": 1.0,
+          "multiplier": 1.3
         },
         "d1": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.47,
-          "multiplier": 1.141
+          "strength": 0.51,
+          "multiplier": 1.153
         }
       }
     },
@@ -364,27 +364,27 @@
       "pills": {
         "d1": "neutral",
         "h4": "neutral",
-        "h1": "neutral"
+        "h1": "bear"
       },
       "mom": {
         "d1": 65,
         "dd1": 16,
-        "h4": 50,
-        "dh4": -12,
+        "h4": 49,
+        "dh4": -10,
         "h1": 59,
         "dh1": 37,
-        "cmp": 60,
-        "dcmp4": 0,
-        "dcmp8": 2,
-        "dcmp12": 3
+        "cmp": 59,
+        "dcmp4": -1,
+        "dcmp8": -1,
+        "dcmp12": 2
       },
-      "adx": 18.4,
-      "d1_pct": 0.02,
-      "d5_pct": -0.1,
+      "adx": 17.6,
+      "d1_pct": -0.04,
+      "d5_pct": -0.16,
       "prev_close": 0.8094,
       "prev5_close": 0.8104,
       "cont": 0,
-      "reset_score": 12,
+      "reset_score": 34,
       "atr_pct": 55,
       "structure": {
         "h4": {
@@ -396,7 +396,7 @@
         "d1": {
           "direction": "bear",
           "event": "none",
-          "strength": 0.64,
+          "strength": 0.7,
           "multiplier": 1.0
         }
       }
@@ -410,22 +410,22 @@
       "mom": {
         "d1": 63,
         "dd1": -9,
-        "h4": 61,
-        "dh4": 9,
-        "h1": 49,
-        "dh1": -22,
-        "cmp": 60,
+        "h4": 63,
+        "dh4": 7,
+        "h1": 52,
+        "dh1": -26,
+        "cmp": 61,
         "dcmp4": 1,
-        "dcmp8": 1,
-        "dcmp12": 1
+        "dcmp8": 2,
+        "dcmp12": 2
       },
-      "adx": 9.4,
-      "d1_pct": -0.11,
-      "d5_pct": 0.24,
+      "adx": 9.8,
+      "d1_pct": -0.0,
+      "d5_pct": 0.35,
       "prev_close": 0.72246,
       "prev5_close": 0.71994,
       "cont": 0,
-      "reset_score": 38,
+      "reset_score": 40,
       "atr_pct": 0,
       "structure": {
         "h4": {
@@ -445,28 +445,28 @@
     "USDCAD": {
       "pills": {
         "d1": "bear",
-        "h4": "neutral",
-        "h1": "bear"
+        "h4": "bear",
+        "h1": "bear_strong"
       },
       "mom": {
         "d1": 55,
         "dd1": 1,
-        "h4": 38,
+        "h4": 34,
         "dh4": -2,
-        "h1": 37,
-        "dh1": 19,
-        "cmp": 46,
+        "h1": 38,
+        "dh1": 21,
+        "cmp": 45,
         "dcmp4": -1,
-        "dcmp8": 0,
+        "dcmp8": -1,
         "dcmp12": 0
       },
-      "adx": 20.0,
-      "d1_pct": 0.03,
-      "d5_pct": -0.47,
+      "adx": 21.3,
+      "d1_pct": -0.05,
+      "d5_pct": -0.55,
       "prev_close": 1.37874,
       "prev5_close": 1.3856,
-      "cont": 68,
-      "reset_score": 55,
+      "cont": 81,
+      "reset_score": 60,
       "atr_pct": 88,
       "structure": {
         "h4": {
@@ -486,28 +486,28 @@
     "NZDUSD": {
       "pills": {
         "d1": "neutral",
-        "h4": "bear_strong",
+        "h4": "bear",
         "h1": "neutral"
       },
       "mom": {
         "d1": 29,
         "dd1": -21,
         "h4": 41,
-        "dh4": 13,
-        "h1": 24,
-        "dh1": -43,
+        "dh4": 12,
+        "h1": 26,
+        "dh1": -44,
         "cmp": 32,
-        "dcmp4": 0,
-        "dcmp8": -2,
-        "dcmp12": -4
+        "dcmp4": 1,
+        "dcmp8": -1,
+        "dcmp12": -3
       },
-      "adx": 33.4,
-      "d1_pct": -0.05,
-      "d5_pct": -0.5,
+      "adx": 34.6,
+      "d1_pct": 0.06,
+      "d5_pct": -0.39,
       "prev_close": 0.58554,
       "prev5_close": 0.58818,
-      "cont": 77,
-      "reset_score": 43,
+      "cont": 76,
+      "reset_score": 42,
       "atr_pct": 37,
       "structure": {
         "h4": {
@@ -519,7 +519,7 @@
         "d1": {
           "direction": "bull",
           "event": "none",
-          "strength": 0.45,
+          "strength": 0.55,
           "multiplier": 1.0
         }
       }
@@ -533,29 +533,29 @@
       "mom": {
         "d1": 25,
         "dd1": -24,
-        "h4": 20,
-        "dh4": 0,
-        "h1": 50,
-        "dh1": 40,
-        "cmp": 27,
+        "h4": 19,
+        "dh4": 3,
+        "h1": 59,
+        "dh1": 50,
+        "cmp": 28,
         "dcmp4": 2,
-        "dcmp8": 3,
-        "dcmp12": 4
+        "dcmp8": 4,
+        "dcmp12": 5
       },
-      "adx": 68.4,
-      "d1_pct": 0.28,
-      "d5_pct": -0.94,
+      "adx": 67.1,
+      "d1_pct": 0.26,
+      "d5_pct": -0.96,
       "prev_close": 178.8359,
       "prev5_close": 181.03531,
       "cont": 62,
-      "reset_score": 63,
-      "atr_pct": 82,
+      "reset_score": 64,
+      "atr_pct": 84,
       "structure": {
         "h4": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.78,
-          "multiplier": 1.234
+          "strength": 0.85,
+          "multiplier": 1.255
         },
         "d1": {
           "direction": "bear",
@@ -574,35 +574,35 @@
       "mom": {
         "d1": 22,
         "dd1": -24,
-        "h4": 23,
-        "dh4": 7,
-        "h1": 51,
-        "dh1": 41,
-        "cmp": 27,
+        "h4": 21,
+        "dh4": 8,
+        "h1": 61,
+        "dh1": 51,
+        "cmp": 28,
         "dcmp4": 2,
-        "dcmp8": 3,
+        "dcmp8": 4,
         "dcmp12": 5
       },
-      "adx": 66.9,
-      "d1_pct": 0.14,
-      "d5_pct": -0.82,
+      "adx": 65.5,
+      "d1_pct": 0.15,
+      "d5_pct": -0.81,
       "prev_close": 208.54823,
       "prev5_close": 210.5624,
-      "cont": 71,
+      "cont": 62,
       "reset_score": 63,
       "atr_pct": 76,
       "structure": {
         "h4": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.72,
-          "multiplier": 1.216
+          "strength": 0.74,
+          "multiplier": 1.222
         },
         "d1": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.22,
-          "multiplier": 1.066
+          "strength": 0.21,
+          "multiplier": 1.063
         }
       }
     },
@@ -615,29 +615,29 @@
       "mom": {
         "d1": 37,
         "dd1": -28,
-        "h4": 24,
-        "dh4": 0,
-        "h1": 52,
-        "dh1": 40,
-        "cmp": 35,
+        "h4": 22,
+        "dh4": 1,
+        "h1": 63,
+        "dh1": 50,
+        "cmp": 37,
         "dcmp4": 3,
-        "dcmp8": 3,
-        "dcmp12": 5
+        "dcmp8": 6,
+        "dcmp12": 6
       },
-      "adx": 59.9,
-      "d1_pct": 0.15,
-      "d5_pct": -0.8,
+      "adx": 58.6,
+      "d1_pct": 0.18,
+      "d5_pct": -0.76,
       "prev_close": 111.1883,
       "prev5_close": 112.24774,
-      "cont": 68,
+      "cont": 61,
       "reset_score": 63,
       "atr_pct": 69,
       "structure": {
         "h4": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.44,
-          "multiplier": 1.132
+          "strength": 0.41,
+          "multiplier": 1.123
         },
         "d1": {
           "direction": "neutral",
@@ -656,22 +656,22 @@
       "mom": {
         "d1": 21,
         "dd1": -28,
-        "h4": 18,
-        "dh4": 4,
-        "h1": 33,
-        "dh1": 20,
-        "cmp": 22,
-        "dcmp4": 1,
-        "dcmp8": 1,
-        "dcmp12": 1
+        "h4": 17,
+        "dh4": 5,
+        "h1": 42,
+        "dh1": 29,
+        "cmp": 23,
+        "dcmp4": 2,
+        "dcmp8": 2,
+        "dcmp12": 2
       },
-      "adx": 64.2,
-      "d1_pct": 0.22,
-      "d5_pct": -1.53,
+      "adx": 63.9,
+      "d1_pct": 0.27,
+      "d5_pct": -1.48,
       "prev_close": 90.10146,
       "prev5_close": 91.70527,
-      "cont": 87,
-      "reset_score": 65,
+      "cont": 80,
+      "reset_score": 64,
       "atr_pct": 84,
       "structure": {
         "h4": {
@@ -697,29 +697,29 @@
       "mom": {
         "d1": 28,
         "dd1": -17,
-        "h4": 25,
-        "dh4": -3,
-        "h1": 58,
-        "dh1": 45,
+        "h4": 23,
+        "dh4": -1,
+        "h1": 66,
+        "dh1": 54,
         "cmp": 33,
-        "dcmp4": 4,
-        "dcmp8": 4,
-        "dcmp12": 7
+        "dcmp4": 2,
+        "dcmp8": 5,
+        "dcmp12": 5
       },
-      "adx": 58.5,
+      "adx": 57.3,
       "d1_pct": 0.24,
       "d5_pct": -0.56,
       "prev_close": 111.62332,
       "prev5_close": 112.51776,
-      "cont": 67,
+      "cont": 61,
       "reset_score": 62,
       "atr_pct": 84,
       "structure": {
         "h4": {
           "direction": "bear",
           "event": "BOS",
-          "strength": 0.22,
-          "multiplier": 1.066
+          "strength": 0.23,
+          "multiplier": 1.069
         },
         "d1": {
           "direction": "bear",
@@ -971,24 +971,24 @@
     "direction": "neutral",
     "gold_pct": 0.3,
     "h4_confirmed": false,
-    "h4_confidence": "High",
+    "h4_confidence": "Low",
     "h1_confirmed": false,
-    "updated": "2026-09-08T16:43:06.959008+00:00"
+    "updated": "2026-09-08T18:34:15.791676+00:00"
   },
   "recommendation": {
-    "headline": "Watch: NZDJPY bear",
-    "bias": "risk_off",
-    "action": "watch",
+    "headline": "Stand Aside: NZDJPY bear",
+    "bias": "mixed",
+    "action": "stand_aside",
     "primary_pair": "NZDJPY",
     "direction": "bear",
-    "confidence": "High",
+    "confidence": "Low",
     "rationale": "NZDJPY SHORT: S&P 500 falling confirms JPY bid thesis strongly.\n\nNZDUSD SHORT: Risk-on low challenges NZD weakness without cross asset support.\n\nGBPJPY SHORT: S&P 500 falling confirms dual JPY bid setup.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Rate Decision",
       "iso": "2026-09-09T02:00:00+00:00"
     },
-    "generated_at": "2026-09-08T16:47:17.674525+00:00",
+    "generated_at": "2026-09-08T18:37:24.742950+00:00",
     "_narrated": false
   },
   "conviction": {
@@ -1126,54 +1126,54 @@
   },
   "csm_delta": {
     "d1": {
-      "GBP": 7.5,
-      "EUR": 6.9,
+      "GBP": 2.2,
+      "EUR": 17.3,
       "AUD": 0.0,
       "NZD": 0.0,
-      "CAD": 23.0,
-      "JPY": 9.0,
-      "CHF": 19.1,
-      "USD": 11.0
+      "CAD": 20.4,
+      "JPY": 5.7,
+      "CHF": 2.8,
+      "USD": 4.6
     },
     "h4": {
-      "GBP": -51.6,
-      "EUR": -7.9,
-      "AUD": -24.7,
-      "NZD": -39.5,
-      "CAD": 13.9,
-      "JPY": 2.5,
-      "CHF": 31.1,
-      "USD": 69.0
+      "GBP": -50.5,
+      "EUR": 4.7,
+      "AUD": 29.8,
+      "NZD": -70.5,
+      "CAD": 31.4,
+      "JPY": 6.3,
+      "CHF": 51.0,
+      "USD": 38.2
     },
     "h1": {
-      "GBP": -73.4,
-      "EUR": -39.0,
-      "AUD": -47.6,
-      "NZD": 25.3,
-      "CAD": -5.6,
-      "JPY": -35.3,
-      "CHF": 100.0,
-      "USD": -100.0
+      "GBP": -100.0,
+      "EUR": 87.6,
+      "AUD": -47.1,
+      "NZD": 47.7,
+      "CAD": 35.0,
+      "JPY": 3.5,
+      "CHF": 72.0,
+      "USD": 2.4
     }
   },
   "currency_flow": {
-    "leader": "USD",
-    "leader_delta": 69.0,
-    "laggard": "GBP",
-    "laggard_delta": -51.6,
-    "absolute_leader": "CAD",
+    "leader": "CHF",
+    "leader_delta": 51.0,
+    "laggard": "NZD",
+    "laggard_delta": -70.5,
+    "absolute_leader": "AUD",
     "absolute_laggard": "NZD",
-    "driver_spread": 120.6,
+    "driver_spread": 121.5,
     "tf": "h4"
   },
   "breadth": {
     "h4": {
       "GBP": {
-        "support": 4,
+        "support": 2,
         "total": 4,
-        "pct": 1.0,
-        "band": "strong",
-        "net": -34.09,
+        "pct": 0.5,
+        "band": "moderate",
+        "net": -10.45,
         "dir": "weak"
       },
       "EUR": {
@@ -1181,23 +1181,23 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-        "net": 14.85,
-        "dir": "strong"
+        "net": -13.43,
+        "dir": "weak"
       },
       "AUD": {
         "support": 4,
         "total": 5,
         "pct": 0.8,
         "band": "strong",
-        "net": 15.58,
+        "net": 48.91,
         "dir": "strong"
       },
       "NZD": {
-        "support": 3,
+        "support": 2,
         "total": 3,
-        "pct": 1.0,
-        "band": "strong",
-        "net": -108.13,
+        "pct": 0.67,
+        "band": "moderate",
+        "net": -68.69,
         "dir": "weak"
       },
       "CAD": {
@@ -1205,32 +1205,32 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-        "net": 56.1,
+        "net": 44.68,
         "dir": "strong"
       },
       "JPY": {
-        "support": 2,
+        "support": 4,
         "total": 4,
-        "pct": 0.5,
-        "band": "moderate",
-        "net": 0.14,
-        "dir": "strong"
+        "pct": 1.0,
+        "band": "strong",
+        "net": -1.08,
+        "dir": "weak"
       },
       "CHF": {
         "support": 3,
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-        "net": 44.23,
+        "net": 26.83,
         "dir": "strong"
       },
       "USD": {
-        "support": 2,
+        "support": 5,
         "total": 7,
-        "pct": 0.29,
-        "band": "weak",
-        "net": 5.25,
-        "dir": "strong"
+        "pct": 0.71,
+        "band": "strong",
+        "net": -23.8,
+        "dir": "weak"
       }
     },
     "d1": {
@@ -1239,7 +1239,7 @@
         "total": 4,
         "pct": 0.75,
         "band": "strong",
-        "net": -48.91,
+        "net": -51.33,
         "dir": "weak"
       },
       "EUR": {
@@ -1247,7 +1247,7 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-        "net": 9.42,
+        "net": 53.17,
         "dir": "strong"
       },
       "AUD": {
@@ -1255,7 +1255,7 @@
         "total": 5,
         "pct": 0.6,
         "band": "moderate",
-        "net": 130.8,
+        "net": 140.18,
         "dir": "strong"
       },
       "NZD": {
@@ -1263,7 +1263,7 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-        "net": -261.62,
+        "net": -241.64,
         "dir": "weak"
       },
       "CAD": {
@@ -1271,7 +1271,7 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-        "net": 45.17,
+        "net": 43.55,
         "dir": "strong"
       },
       "JPY": {
@@ -1279,7 +1279,7 @@
         "total": 4,
         "pct": 1.0,
         "band": "strong",
-        "net": 3.55,
+        "net": 3.56,
         "dir": "strong"
       },
       "CHF": {
@@ -1287,7 +1287,7 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-        "net": -43.34,
+        "net": -90.62,
         "dir": "weak"
       },
       "USD": {
@@ -1295,24 +1295,24 @@
         "total": 7,
         "pct": 0.57,
         "band": "moderate",
-        "net": 39.79,
+        "net": 28.12,
         "dir": "strong"
       }
     },
     "pairs": {
       "h4": {
-        "EURUSD": 19,
-        "GBPUSD": -64,
-        "USDJPY": -11,
-        "USDCHF": -36,
-        "AUDUSD": 26,
-        "USDCAD": -36,
-        "NZDUSD": -64,
-        "EURJPY": 8,
-        "GBPJPY": -75,
-        "AUDJPY": 15,
-        "NZDJPY": -75,
-        "CADJPY": 25
+        "EURUSD": 2,
+        "GBPUSD": 10,
+        "USDJPY": 14,
+        "USDCHF": -86,
+        "AUDUSD": 76,
+        "USDCAD": -86,
+        "NZDUSD": 2,
+        "EURJPY": 16,
+        "GBPJPY": 25,
+        "AUDJPY": 90,
+        "NZDJPY": 16,
+        "CADJPY": 100
       },
       "d1": {
         "EURUSD": 5,
@@ -1388,10 +1388,9 @@
         1.16124,
         1.16277,
         1.16218,
-        1.16232
+        1.16276
       ],
       "h4": [
-        1.15423,
         1.15741,
         1.1579,
         1.15918,
@@ -1446,11 +1445,10 @@
         1.16306,
         1.16145,
         1.16218,
-        1.16232
+        1.16263,
+        1.16276
       ],
       "h1": [
-        1.16197,
-        1.16197,
         1.16163,
         1.16163,
         1.16124,
@@ -1504,7 +1502,9 @@
         1.16218,
         1.16301,
         1.16277,
-        1.16232
+        1.16231,
+        1.16263,
+        1.16276
       ]
     },
     "GBPUSD": {
@@ -1564,10 +1564,9 @@
         1.35341,
         1.35375,
         1.35519,
-        1.35345
+        1.35457
       ],
       "h4": [
-        1.35397,
         1.35346,
         1.35352,
         1.3544,
@@ -1622,11 +1621,10 @@
         1.35431,
         1.35302,
         1.35519,
-        1.35345
+        1.35418,
+        1.35457
       ],
       "h1": [
-        1.35139,
-        1.35139,
         1.35289,
         1.35289,
         1.35341,
@@ -1680,7 +1678,9 @@
         1.35519,
         1.35523,
         1.35421,
-        1.35345
+        1.3536,
+        1.35418,
+        1.35457
       ]
     },
     "USDJPY": {
@@ -1740,10 +1740,9 @@
         156.24966,
         154.58533,
         153.87698,
-        154.29518
+        154.20567
       ],
       "h4": [
-        160.03136,
         160.10338,
         160.15597,
         159.833,
@@ -1798,11 +1797,10 @@
         153.40289,
         153.93393,
         153.87698,
-        154.29518
+        154.24672,
+        154.20567
       ],
       "h1": [
-        156.23571,
-        156.23523,
         156.23915,
         156.23663,
         156.24966,
@@ -1856,7 +1854,9 @@
         153.87698,
         153.99616,
         154.23367,
-        154.29518
+        154.29733,
+        154.24672,
+        154.20567
       ]
     },
     "USDCHF": {
@@ -1916,10 +1916,9 @@
         0.807,
         0.80901,
         0.8094,
-        0.80956
+        0.80909
       ],
       "h4": [
-        0.80864,
         0.80821,
         0.80957,
         0.80859,
@@ -1974,11 +1973,10 @@
         0.80858,
         0.81138,
         0.8094,
-        0.80956
+        0.80899,
+        0.80909
       ],
       "h1": [
-        0.81001,
-        0.80845,
         0.80746,
         0.8066,
         0.807,
@@ -2032,7 +2030,9 @@
         0.8094,
         0.80851,
         0.80904,
-        0.80956
+        0.80932,
+        0.80899,
+        0.80909
       ]
     },
     "AUDUSD": {
@@ -2092,10 +2092,9 @@
         0.7206,
         0.72205,
         0.72246,
-        0.72169
+        0.72244
       ],
       "h4": [
-        0.71683,
         0.71619,
         0.71606,
         0.71666,
@@ -2150,11 +2149,10 @@
         0.72182,
         0.72136,
         0.72246,
-        0.72169
+        0.72223,
+        0.72244
       ],
       "h1": [
-        0.71999,
-        0.71999,
         0.72033,
         0.7204,
         0.7206,
@@ -2208,7 +2206,9 @@
         0.72246,
         0.72221,
         0.72186,
-        0.72169
+        0.7218,
+        0.72223,
+        0.72244
       ]
     },
     "USDCAD": {
@@ -2268,10 +2268,9 @@
         1.38213,
         1.38108,
         1.37874,
-        1.37915
+        1.37801
       ],
       "h4": [
-        1.3898,
         1.39031,
         1.39118,
         1.38916,
@@ -2326,11 +2325,10 @@
         1.37926,
         1.3801,
         1.37874,
-        1.37915
+        1.37836,
+        1.37801
       ],
       "h1": [
-        1.38367,
-        1.38367,
         1.38237,
         1.38237,
         1.38213,
@@ -2384,7 +2382,9 @@
         1.37874,
         1.37803,
         1.37798,
-        1.37915
+        1.37882,
+        1.37836,
+        1.37801
       ]
     },
     "NZDUSD": {
@@ -2444,10 +2444,9 @@
         0.58798,
         0.58823,
         0.58554,
-        0.58524
+        0.58591
       ],
       "h4": [
-        0.59198,
         0.59134,
         0.5916,
         0.59123,
@@ -2502,11 +2501,10 @@
         0.58628,
         0.58444,
         0.58554,
-        0.58524
+        0.58583,
+        0.58591
       ],
       "h1": [
-        0.58802,
-        0.58802,
         0.58802,
         0.58802,
         0.58798,
@@ -2560,7 +2558,9 @@
         0.58554,
         0.58604,
         0.58546,
-        0.58524
+        0.58532,
+        0.58583,
+        0.58591
       ]
     },
     "EURJPY": {
@@ -2620,10 +2620,9 @@
         181.44374,
         179.75579,
         178.8359,
-        179.3315
+        179.29748
       ],
       "h4": [
-        184.71543,
         185.30672,
         185.45686,
         185.26823,
@@ -2678,11 +2677,10 @@
         178.41429,
         178.77384,
         178.8359,
-        179.3315
+        179.32877,
+        179.29748
       ],
       "h1": [
-        181.54219,
-        181.54128,
         181.49276,
         181.48987,
         181.44374,
@@ -2736,7 +2734,9 @@
         178.8359,
         179.12134,
         179.33614,
-        179.3315
+        179.34498,
+        179.32877,
+        179.29748
       ]
     },
     "GBPJPY": {
@@ -2796,10 +2796,9 @@
         211.47129,
         209.25718,
         208.54823,
-        208.83408
+        208.85724
       ],
       "h4": [
-        216.68005,
         216.69456,
         216.76802,
         216.47295,
@@ -2854,11 +2853,10 @@
         207.7578,
         208.27498,
         208.54823,
-        208.83408
+        208.87165,
+        208.85724
       ],
       "h1": [
-        211.13876,
-        211.13847,
         211.37799,
         211.37359,
         211.47129,
@@ -2912,7 +2910,9 @@
         208.54823,
         208.72435,
         208.85978,
-        208.83408
+        208.85235,
+        208.87165,
+        208.85724
       ]
     },
     "AUDJPY": {
@@ -2972,10 +2972,9 @@
         112.59357,
         111.60854,
         111.1883,
-        111.35489
+        111.39184
       ],
       "h4": [
-        114.71452,
         114.66448,
         114.67913,
         114.54464,
@@ -3030,11 +3029,10 @@
         110.72753,
         111.04165,
         111.1883,
-        111.35489
+        111.39765,
+        111.39184
       ],
       "h1": [
-        112.48763,
-        112.48852,
         112.54472,
         112.55358,
         112.59357,
@@ -3088,7 +3086,9 @@
         111.1883,
         111.22238,
         111.3292,
-        111.35489
+        111.36947,
+        111.39765,
+        111.39184
       ]
     },
     "NZDJPY": {
@@ -3148,10 +3148,9 @@
         91.87147,
         90.92703,
         90.10146,
-        90.30098
+        90.34457
       ],
       "h4": [
-        94.73351,
         94.67519,
         94.75146,
         94.49519,
@@ -3206,11 +3205,10 @@
         89.93529,
         89.96453,
         90.10146,
-        90.30098
+        90.35762,
+        90.34457
       ],
       "h1": [
-        91.87118,
-        91.8711,
         91.87301,
         91.87105,
         91.87147,
@@ -3264,7 +3262,9 @@
         90.10146,
         90.25719,
         90.2983,
-        90.30098
+        90.31334,
+        90.35762,
+        90.34457
       ]
     },
     "CADJPY": {
@@ -3324,10 +3324,9 @@
         113.04807,
         111.93755,
         111.62332,
-        111.887
+        111.88782
       ],
       "h4": [
-        115.14722,
         115.1555,
         115.12434,
         115.06012,
@@ -3382,11 +3381,10 @@
         111.22216,
         111.54654,
         111.62332,
-        111.887
+        111.90343,
+        111.88782
       ],
       "h1": [
-        112.91227,
-        112.91242,
         113.02187,
         113.01919,
         113.04807,
@@ -3440,7 +3438,9 @@
         111.62332,
         111.75764,
         111.92821,
-        111.887
+        111.90422,
+        111.90343,
+        111.88782
       ]
     }
   },
@@ -3449,7 +3449,7 @@
       "direction": "none",
       "level": 0,
       "state": "low",
-      "score": 5,
+      "score": 7,
       "factors": {
         "regime": false,
         "flow": false,
@@ -3458,9 +3458,9 @@
         "structure": false,
         "entry": false
       },
-      "setup_rank": 1.2,
+      "setup_rank": 2.8,
       "blocked_at": null,
-      "quality": -5
+      "quality": -3
     },
     "GBPUSD": {
       "direction": "none",
@@ -3481,11 +3481,11 @@
     },
     "USDJPY": {
       "direction": "bear",
-      "level": 1,
+      "level": 0,
       "state": "low",
-      "score": 26,
+      "score": 11,
       "factors": {
-        "regime": true,
+        "regime": false,
         "flow": false,
         "breadth": false,
         "momentum": false,
@@ -3493,7 +3493,7 @@
         "entry": false
       },
       "setup_rank": 5.8,
-      "blocked_at": "flow",
+      "blocked_at": "regime",
       "quality": 1
     },
     "USDCHF": {
@@ -3534,7 +3534,7 @@
       "direction": "bear",
       "level": 0,
       "state": "low",
-      "score": 8,
+      "score": 10,
       "factors": {
         "regime": false,
         "flow": false,
@@ -3543,12 +3543,80 @@
         "structure": false,
         "entry": false
       },
-      "setup_rank": 3.9,
+      "setup_rank": 4.7,
       "blocked_at": "regime",
-      "quality": -2
+      "quality": 0
     },
     "NZDUSD": {
       "direction": "none",
+      "level": 0,
+      "state": "low",
+      "score": 13,
+      "factors": {
+        "regime": false,
+        "flow": false,
+        "breadth": false,
+        "momentum": false,
+        "structure": false,
+        "entry": false
+      },
+      "setup_rank": 7.2,
+      "blocked_at": null,
+      "quality": 3
+    },
+    "EURJPY": {
+      "direction": "bear",
+      "level": 0,
+      "state": "low",
+      "score": 10,
+      "factors": {
+        "regime": false,
+        "flow": false,
+        "breadth": false,
+        "momentum": false,
+        "structure": false,
+        "entry": false
+      },
+      "setup_rank": 5.1,
+      "blocked_at": "regime",
+      "quality": 0
+    },
+    "GBPJPY": {
+      "direction": "bear",
+      "level": 0,
+      "state": "low",
+      "score": 11,
+      "factors": {
+        "regime": false,
+        "flow": false,
+        "breadth": false,
+        "momentum": false,
+        "structure": false,
+        "entry": false
+      },
+      "setup_rank": 5.5,
+      "blocked_at": "regime",
+      "quality": 1
+    },
+    "AUDJPY": {
+      "direction": "bear",
+      "level": 0,
+      "state": "low",
+      "score": 11,
+      "factors": {
+        "regime": false,
+        "flow": false,
+        "breadth": false,
+        "momentum": false,
+        "structure": false,
+        "entry": false
+      },
+      "setup_rank": 5.5,
+      "blocked_at": "regime",
+      "quality": 1
+    },
+    "NZDJPY": {
+      "direction": "bear",
       "level": 0,
       "state": "low",
       "score": 14,
@@ -3560,94 +3628,26 @@
         "structure": false,
         "entry": false
       },
-      "setup_rank": 7.5,
-      "blocked_at": null,
+      "setup_rank": 8.2,
+      "blocked_at": "regime",
       "quality": 4
-    },
-    "EURJPY": {
-      "direction": "bear",
-      "level": 5,
-      "state": "watch",
-      "score": 86,
-      "factors": {
-        "regime": true,
-        "flow": true,
-        "breadth": true,
-        "momentum": true,
-        "structure": true,
-        "entry": false
-      },
-      "setup_rank": 5.4,
-      "blocked_at": "entry",
-      "quality": 1
-    },
-    "GBPJPY": {
-      "direction": "bear",
-      "level": 5,
-      "state": "watch",
-      "score": 87,
-      "factors": {
-        "regime": true,
-        "flow": true,
-        "breadth": true,
-        "momentum": true,
-        "structure": true,
-        "entry": false
-      },
-      "setup_rank": 6.2,
-      "blocked_at": "entry",
-      "quality": 2
-    },
-    "AUDJPY": {
-      "direction": "bear",
-      "level": 5,
-      "state": "watch",
-      "score": 87,
-      "factors": {
-        "regime": true,
-        "flow": true,
-        "breadth": true,
-        "momentum": true,
-        "structure": true,
-        "entry": false
-      },
-      "setup_rank": 6.2,
-      "blocked_at": "entry",
-      "quality": 2
-    },
-    "NZDJPY": {
-      "direction": "bear",
-      "level": 5,
-      "state": "watch",
-      "score": 90,
-      "factors": {
-        "regime": true,
-        "flow": true,
-        "breadth": true,
-        "momentum": true,
-        "structure": true,
-        "entry": false
-      },
-      "setup_rank": 8.8,
-      "blocked_at": "entry",
-      "quality": 5
     },
     "CADJPY": {
       "direction": "bear",
-      "level": 1,
+      "level": 0,
       "state": "low",
-      "score": 26,
+      "score": 10,
       "factors": {
-        "regime": true,
+        "regime": false,
         "flow": false,
         "breadth": false,
         "momentum": false,
         "structure": false,
         "entry": false
       },
-      "setup_rank": 5.7,
-      "blocked_at": "flow",
-      "quality": 1
+      "setup_rank": 5.1,
+      "blocked_at": "regime",
+      "quality": 0
     }
   },
   "macro_regime": {
@@ -3709,7 +3709,7 @@
     ],
     "conflicts": [],
     "narrative": "Growth-positive risk-on: favour AUD \u00b7 NZD \u00b7 CAD over JPY \u00b7 CHF.",
-    "updated": "2026-09-08T16:43:06.959008+00:00"
+    "updated": "2026-09-08T18:34:15.791676+00:00"
   },
   "schema_version": 1
 }
