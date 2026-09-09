@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-09T15:38:25.693599+00:00",
+  "updated": "2026-09-09T16:38:33.359577+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -756,75 +756,75 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
-    "label": "Mixed",
-    "signals": 0,
-    "total": 2,
-    "confidence": "Neutral",
-    "stable": true
+    "label": "Risk-Off",
+    "signals": 1,
+    "total": 3,
+    "confidence": "Low",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 16.24,
-      "delta_pct": 3.3,
-      "direction": "flat",
+      "value": 16.58,
+      "delta_pct": 5.5,
+      "direction": "up",
       "label": "VIX"
     },
     "spx": {
-      "value": 7648.19,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "value": 7635.07,
+      "delta_pct": -0.5,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4466.4,
-      "delta_pct": 1.7,
+      "value": 4445.8,
+      "delta_pct": 1.2,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.658,
-      "delta_pct": -0.2,
+      "value": 98.82,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.8345,
-      "delta_pct": 1.4,
+      "value": 6.854,
+      "delta_pct": 1.7,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.81,
-      "delta_bp": 0.4,
-      "direction": "flat",
+      "value": 4.849,
+      "delta_bp": 4.3,
+      "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.795,
-      "delta_bp": 2.0,
-      "direction": "flat",
+      "value": 3.81,
+      "delta_bp": 3.5,
+      "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 95.99,
-      "delta_pct": 3.2,
+      "value": 96.34,
+      "delta_pct": 3.6,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79271.0,
-      "delta_pct": 1.1,
+      "value": 78782.0,
+      "delta_pct": 0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 101.5,
-      "delta_bp": -1.6,
+      "value": 103.9,
+      "delta_bp": 0.8,
       "direction": "flat",
       "label": "10Y-3M"
     }
@@ -832,79 +832,79 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 6.8,
+      "delta_pct": 9.1,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": 0.2,
+      "delta_pct": 0.0,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 2.7,
+      "delta_pct": 2.2,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -1.0,
+      "delta_pct": -0.9,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 5.0,
+      "delta_pct": 5.3,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 1.4,
+      "delta_bp": 5.3,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 2.3,
+      "delta_bp": 3.8,
       "label": "US 3M"
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 6.4,
+      "delta_pct": 6.8,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -0.5,
+      "delta_pct": -1.1,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -0.9,
+      "delta_bp": 1.5,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPJPY SHORT at risk: USD/JPY weakness contradicts yen strength thesis underlying short setup.",
-    "updated": "2026-09-09T14:38:15.920424+00:00"
+    "text": "USD/JPY weakness conflicts CADJPY SHORT setup; JPY strength may limit CAD downside momentum.",
+    "updated": "2026-09-09T16:38:33.359577+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rally confirms JPY bid, strengthens short thesis.\n\nNZDUSD SHORT: Mixed macro neutral, lacks cross asset confirmation for short.\n\nGBPJPY SHORT: Gold strength supports JPY appreciation, validates short bias.",
+    "text": "NZDJPY SHORT: VIX spike and equity weakness strongly confirm JPY bid thesis.\n\nNZDUSD SHORT: Rising US yields and VIX support USD strength confirmation.\n\nCADJPY SHORT: Equity selloff and gold rally reinforce safe haven JPY demand.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.17
+        "score": 8.68
       },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 6.53
+        "score": 7.85
       },
       {
-        "pair": "GBPJPY",
+        "pair": "CADJPY",
         "direction": "bear",
-        "score": 6.17
+        "score": 6.85
       }
     ],
-    "updated": "2026-09-09T14:38:15.920424+00:00"
+    "updated": "2026-09-09T16:38:33.359577+00:00"
   },
   "calendar": {
     "events": [
@@ -969,7 +969,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-09T14:38:15.920424+00:00"
+    "updated": "2026-09-09T16:38:33.359577+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today. Gold\u2019s rise alongside a softer dollar index points toward a risk-on tilt, yet the jump in VIX and modest equity pullback suggest lingering caution beneath the surface, while BTC\u2019s mild gain leans risk-friendly. Oil and copper strength hints at firmer global demand, supporting commodity-linked currencies. Headlines center on shifting Fed rate-hike expectations against ECB tightening, keeping the dollar\u2019s broader trend uncertain. With US CPI data due within hours alongside ECB and BoE decisions, vol",
@@ -977,7 +977,7 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar tests new lows against Japanese Yen; USD/JPY weakens",
+      "US Dollar tests new lows against Japanese Yen amid USD/JPY weakness",
       "Fed hike bets rise as ECB tightening supports Euro strength",
       "DXY weakens ahead of NFP; EUR/USD and GBP/USD recover"
     ],
@@ -986,7 +986,7 @@
       "rates",
       "usd"
     ],
-    "updated": "2026-09-09T14:38:15.920424+00:00"
+    "updated": "2026-09-09T16:38:33.359577+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
