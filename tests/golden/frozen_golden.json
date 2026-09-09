@@ -187,39 +187,39 @@
   },
   "csm": {
     "d1": {
-      "AUD": 60.9,
-      "CAD": 66.1,
-      "CHF": 18.2,
+      "AUD": 72.5,
+      "CAD": 78.8,
+      "CHF": 21.7,
       "EUR": 100.0,
-      "GBP": 2.4,
-      "JPY": 35.5,
-      "NZD": 39.3,
+      "GBP": 10.8,
+      "JPY": 42.0,
+      "NZD": 46.8,
       "USD": 0.0
     },
     "dispersion": {
-      "d1": 206.4258,
+      "d1": 173.2629,
       "h1": 78.7961,
-      "h4": 102.6881
+      "h4": 89.0272
     },
     "h1": {
       "AUD": 75.5,
       "CAD": 0.0,
       "CHF": 100.0,
-      "EUR": 12.3,
-      "GBP": 94.6,
-      "JPY": 44.2,
+      "EUR": 20.2,
+      "GBP": 84.3,
+      "JPY": 44.7,
       "NZD": 14.6,
       "USD": 16.5
     },
     "h4": {
-      "AUD": 62.3,
-      "CAD": 72.9,
+      "AUD": 71.8,
+      "CAD": 84.1,
       "CHF": 0.0,
       "EUR": 100.0,
-      "GBP": 62.6,
-      "JPY": 47.4,
-      "NZD": 74.6,
-      "USD": 2.2
+      "GBP": 68.4,
+      "JPY": 54.9,
+      "NZD": 86.1,
+      "USD": 2.6
     }
   },
   "pairs": {
@@ -579,7 +579,7 @@
       "cont": 70,
       "cross_signals": [],
       "csm_base": 0.0,
-      "csm_quote": 66.1,
+      "csm_quote": 78.8,
       "dd1": -17,
       "direction": "bear",
       "pair": "USDCAD",
@@ -600,7 +600,7 @@
       "cont": 79,
       "cross_signals": [],
       "csm_base": 100.0,
-      "csm_quote": 35.5,
+      "csm_quote": 42.0,
       "dd1": 6,
       "direction": "bull",
       "pair": "EURJPY",
@@ -620,8 +620,8 @@
       "cmp": 64,
       "cont": 63,
       "cross_signals": [],
-      "csm_base": 66.1,
-      "csm_quote": 35.5,
+      "csm_base": 78.8,
+      "csm_quote": 42.0,
       "dd1": -1,
       "direction": "bull",
       "pair": "CADJPY",

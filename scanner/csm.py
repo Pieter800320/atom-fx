@@ -2,10 +2,11 @@
 FX Signal Board — Currency Strength Model
 Ported from Forex1212 scanner/csm.py for calculation coherence.
 
-D1 CSM : ATR-normalised 14-bar return, D1×0.7 + H4×0.3 blend, 16 pairs
-H4 CSM : ATR-normalised 5-bar H4 return, H4×0.8 + H1×0.2 (if H1 available), 16 pairs
+D1 CSM : ATR-normalised 14-bar return, D1×0.7 + H4×0.3 blend, 18 pairs
+H4 CSM : ATR-normalised 5-bar H4 return, H4×0.8 + H1×0.2 (if H1 available), 18 pairs
 
-These parameters exactly match Forex1212 so both dashboards show the same values.
+These parameters exactly match Forex1212 so both dashboards show the same values, except
+STRENGTH_PAIRS itself — see its own comment below (2026-09-10, Pieter's sign-off).
 """
 import numpy as np
 import pandas as pd
@@ -22,13 +23,20 @@ H1_LOOKBACK = 8    # H1 component lookback in H4 CSM
 H4_CSM_W    = 0.8
 H1_CSM_W    = 0.2
 
-# 16-pair set — same as Forex1212 STRENGTH_PAIRS
+# 2026-09-10 (Pieter's sign-off) — was the verbatim 16-pair Forex1212 STRENGTH_PAIRS set,
+# which silently excluded EUR/JPY and GBP/JPY: both are fully-tracked pairs in this app
+# (config.PAIRS, already fetched every scan — zero new API cost) but never fed CSM or
+# currency breadth for EUR/GBP/JPY. No comment in the original ever explained the omission,
+# and it's the specific gap that made JPY's own H4 breadth read (2/4 that day) blind to two
+# of its six real crosses. Appearance counts per currency: USD 7 (unchanged), AUD 5
+# (unchanged), CHF/CAD/NZD 3 each (unchanged), GBP 4->5, JPY 4->6, EUR 3->4.
 STRENGTH_PAIRS = [
     "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF",
     "AUD/USD", "USD/CAD", "NZD/USD",
     "AUD/JPY", "NZD/JPY", "CAD/JPY",
     "EUR/GBP", "EUR/CHF", "GBP/CHF",
     "AUD/NZD", "AUD/CAD", "GBP/AUD",
+    "EUR/JPY", "GBP/JPY",
 ]
 
 

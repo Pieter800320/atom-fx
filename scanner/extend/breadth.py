@@ -4,11 +4,12 @@ ATOM FX — Currency breadth  (EXTEND §5.3)
 "Is a currency's move broad, or produced by one or two pairs?"
 
 Reuses the frozen CSM internals: in csm.py each pair contributes +combined to its
-base and -combined to its quote across the 16-pair STRENGTH_PAIRS set. Breadth for
+base and -combined to its quote across the 18-pair STRENGTH_PAIRS set (2026-09-10 —
+was 16, gained EUR/JPY and GBP/JPY, see csm.py's own comment). Breadth for
 a currency = the share of its contributions that agree with its net direction.
 
 Accuracy note (do NOT flatten to /8): each currency appears a different number of
-times in the frozen 16-pair set (USD=7, AUD=5, GBP=4, JPY=4, EUR/CHF/CAD/NZD=3).
+times in the frozen 18-pair set (USD=7, AUD=5, JPY=6, GBP=5, EUR=4, CHF/CAD/NZD=3).
 So `total` varies 3-7 and pass logic / colour bands compare by `pct`, never by raw
 `support`. The UI may still show `support/total`.
 

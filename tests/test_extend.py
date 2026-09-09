@@ -154,8 +154,10 @@ def _fixture():
     return ohlcv, csm_now
 
 
-EXPECTED_APPEARANCES = {"USD": 7, "AUD": 5, "GBP": 4, "JPY": 4,
-                        "EUR": 3, "CHF": 3, "CAD": 3, "NZD": 3}
+# 2026-09-10 — STRENGTH_PAIRS gained EUR/JPY and GBP/JPY (csm.py, Pieter's sign-off):
+# GBP 4->5, JPY 4->6, EUR 3->4. Others unchanged.
+EXPECTED_APPEARANCES = {"USD": 7, "AUD": 5, "GBP": 5, "JPY": 6,
+                        "EUR": 4, "CHF": 3, "CAD": 3, "NZD": 3}
 
 
 def test_csm_delta_shape():

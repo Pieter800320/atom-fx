@@ -5,12 +5,23 @@ Classifies the current market environment from H4 pair scores and CSM.
 
 Four votes are cast:
   1. Safe-haven divergence: (JPY+CHF) vs (AUD+NZD+CAD) from H4 CSM
-  2. USD proxy: USD vs risk currencies from H4 CSM
-  3. Risk basket: average of risk pair scores from pills
+  2. USD proxy: USD vs the rest of the majors (EUR+GBP+AUD+NZD+CAD) from H4 CSM
+  3. Risk basket: pill direction of the commodity bloc (AUD+NZD+CAD) vs USD/JPY
   4. Ranging override: if <40% pairs have directional pills, force Ranging
 
 Votes 1 & 2 can be forced to "mixed" via the caller-supplied `csm_unreliable` flag
 (2026-09-06) — see classify_regime's own doc comment.
+
+2026-09-10 (Pieter's sign-off, FX-methodology pass) — Vote 3 used to mix AUD/NZD (the
+commodity bloc) with GBP/EUR (core European majors, not classic risk currencies — their
+moves are driven far more by ECB/BoE policy and regional growth/political risk than by
+global risk appetite) in one tally. Replaced GBPUSD/EURUSD with CADJPY + USDCAD, so Vote 3
+now measures the exact same currency bloc as Vote 1 (AUD+NZD+CAD vs havens), just via pills
+instead of CSM — a genuine second, independent-methodology confirmation of the same concept,
+not a third, differently-defined opinion. Vote 2 gained CAD (was EUR+GBP+AUD+NZD only) since
+its own "USD vs the rest" framing has no principled reason to exclude a major currency.
+STRENGTH_PAIRS (csm.py) gained EUR/JPY and GBP/JPY the same day — a separate, unrelated fix
+(CSM/breadth data completeness for EUR/GBP/JPY, not a risk-currency definition question).
 
 Output:
   {
@@ -55,7 +66,7 @@ def classify_regime(csm: dict, pair_pills: dict, prev_regime: dict | None, tf: s
 
     # ── Vote 2: USD proxy ──────────────────────────────────────────────────────
     usd = csm.get("USD", 50)
-    non_usd_risk = ["EUR", "GBP", "AUD", "NZD"]
+    non_usd_risk = ["EUR", "GBP", "AUD", "NZD", "CAD"]
     non_usd_avg  = sum(csm.get(c, 50) for c in non_usd_risk) / len(non_usd_risk)
 
     v2 = "mixed" if csm_unreliable else (
@@ -64,13 +75,21 @@ def classify_regime(csm: dict, pair_pills: dict, prev_regime: dict | None, tf: s
     )
 
     # ── Vote 3: risk basket (pill direction of risk pairs at target TF) ────────
-    risk_pairs = ["AUDUSD", "NZDUSD", "GBPUSD", "EURUSD", "AUDJPY", "NZDJPY"]
+    # Same currency bloc as Vote 1 (AUD+NZD+CAD vs havens) — base currency is always the risk
+    # bloc except USD/CAD, where CAD is the quote, so that one pair's bull/bear reading is
+    # inverted before counting.
+    risk_pairs = ["AUDUSD", "NZDUSD", "AUDJPY", "NZDJPY", "CADJPY"]
+    inverted_risk_pairs = ["USDCAD"]
     bull_count = bear_count = 0
-    for p in risk_pairs:
+    for p in risk_pairs + inverted_risk_pairs:
         pill = pair_pills.get(p, {}).get(tf, "neutral")
-        if pill in ("bull", "bull_strong"):
+        is_bull = pill in ("bull", "bull_strong")
+        is_bear = pill in ("bear", "bear_strong")
+        if p in inverted_risk_pairs:
+            is_bull, is_bear = is_bear, is_bull
+        if is_bull:
             bull_count += 1
-        elif pill in ("bear", "bear_strong"):
+        elif is_bear:
             bear_count += 1
 
     v3 = "risk_off" if bear_count > bull_count + 1 else \
