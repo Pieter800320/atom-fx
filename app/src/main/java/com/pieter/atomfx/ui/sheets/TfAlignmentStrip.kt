@@ -11,8 +11,6 @@ import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Pills
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
-import com.pieter.atomfx.ui.theme.DarkColors
-import com.pieter.atomfx.ui.theme.lighten
 
 /**
  * Signals Roadmap §2.7 — the "3-TF alignment" strip. `pills.{d1,h4,h1}` is the same frozen
@@ -27,15 +25,19 @@ import com.pieter.atomfx.ui.theme.lighten
  * dropped the earlier same-day "D1 · B" inline text for a plain label-above/value-inside layout
  * to match). Found live: at the old, taller card size sitting right under the header, these read
  * as tappable buttons (Pieter's own words) — indistinguishable from the sheet's real controls.
+ *
+ * Same day, follow-up (Pieter's ask) — the abbreviation text was tinted (lighten(tint, 0.45) in
+ * dark theme) to carry the pill's own colour twice over; now plain `textPrimary`, matching MOM's
+ * value-number colour exactly, not just its font style. The wash background alone carries the
+ * tint — same split MomBar already uses (plain value, tinted wash + tinted delta).
  */
 @Composable
 fun TfAlignmentStrip(pills: Pills?, colors: AtomColors) {
     if (pills == null) return
-    val isDark = colors == DarkColors
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TfPill("D1", pills.d1, colors, isDark, Modifier.weight(1f))
-        TfPill("H4", pills.h4, colors, isDark, Modifier.weight(1f))
-        TfPill("H1", pills.h1, colors, isDark, Modifier.weight(1f))
+        TfPill("D1", pills.d1, colors, Modifier.weight(1f))
+        TfPill("H4", pills.h4, colors, Modifier.weight(1f))
+        TfPill("H1", pills.h1, colors, Modifier.weight(1f))
     }
 }
 
@@ -56,15 +58,9 @@ private fun pillColor(pill: String?, colors: AtomColors): Color = when (pill) {
 }
 
 @Composable
-private fun TfPill(label: String, pill: String?, colors: AtomColors, isDark: Boolean, modifier: Modifier = Modifier) {
+private fun TfPill(label: String, pill: String?, colors: AtomColors, modifier: Modifier = Modifier) {
     val tint = pillColor(pill, colors)
-    // Same electric-pill text-colour rule as ScrollingPills: lighten(tint, 0.45) only reads
-    // correctly against a near-black wash — light theme's tint is already tuned to sit on white.
-    val textColor = if (isDark) lighten(tint, 0.45f) else tint
-    // 2026-09-09 (Pieter's ask) — matches MOM's own value-number style exactly (AtomType.Body, no
-    // weight override), not Caption; only the colour differs (tinted here vs MOM's plain
-    // textPrimary, since this pill's whole job is to carry that tint).
     SmallPillCell(label, tint, colors, modifier) {
-        Text(text = pillAbbrev(pill), style = AtomType.Body.copy(color = textColor))
+        Text(text = pillAbbrev(pill), style = AtomType.Body.copy(color = colors.textPrimary))
     }
 }

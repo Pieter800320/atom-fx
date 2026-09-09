@@ -1,6 +1,7 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,10 +31,12 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.WatchlistStore
 import com.pieter.atomfx.data.model.PairBlock
@@ -102,6 +106,17 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * deliberately stayed put, directly under the header: they're the sheet's single most glanceable
  * element and were never part of the "looks like a button" complaint (see that composable's own
  * doc comment on why they're header material, not tab content).
+ *
+ * 2026-09-09 (Pieter's ask) — all three tabs now open at the same height: Breakdown's own natural
+ * height. Overview's five chunky checklist cards are the tallest content; Breakdown (three compact
+ * sections) is a reasonable middle ground that keeps the sheet from either towering over lighter
+ * tabs or leaving Correlation's 11 rows with a lot of dead space below. Measured live via
+ * `SubcomposeLayout` (`PairSheetTabContent`) rather than a guessed fixed dp — content height
+ * varies per pair (the Structure CHoCH warning line, direction-word lengths), so a hardcoded
+ * number would drift wrong for edge-case pairs. Whichever tab is shorter/taller than that measured
+ * height gets its own internal scroll rather than clipping or resizing the sheet — same-direction
+ * nested scrolling cooperates with the outer ModalBottomSheet's own scroll (BottomSheetHost.kt)
+ * automatically, no custom gesture handling needed.
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -112,11 +127,43 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
         PairHeader(node, allNodes, colors)
         Spark3Row(node.pair, signals, colors)
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
-        when (selectedTab) {
-            0 -> OverviewChecklist(node, signals, pairBlock, colors)
-            1 -> BreakdownContent(pairBlock, colors)
-            else -> CorrelationTabContent(node.pair, signals, colors)
-        }
+        PairSheetTabContent(selectedTab, node, signals, pairBlock, colors)
+    }
+}
+
+@Composable
+private fun PairSheetTabContent(
+    selectedTab: Int,
+    node: PairNode,
+    signals: Signals,
+    pairBlock: PairBlock?,
+    colors: AtomColors,
+) {
+    val scrollState = remember(selectedTab, node.pair) { ScrollState(0) }
+    SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
+        val looseConstraints = constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+        val breakdownHeightPx = subcompose("breakdown-probe") { BreakdownContent(pairBlock, colors) }
+            .first()
+            .measure(looseConstraints)
+            .height
+        val breakdownHeightDp = breakdownHeightPx.toDp()
+
+        val placeable = subcompose("visible") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(breakdownHeightDp)
+                    .verticalScroll(scrollState),
+            ) {
+                when (selectedTab) {
+                    0 -> OverviewChecklist(node, signals, pairBlock, colors)
+                    1 -> BreakdownContent(pairBlock, colors)
+                    else -> CorrelationTabContent(node.pair, signals, colors)
+                }
+            }
+        }.first().measure(constraints)
+
+        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
     }
 }
 

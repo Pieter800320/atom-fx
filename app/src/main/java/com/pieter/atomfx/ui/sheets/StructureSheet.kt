@@ -1,7 +1,9 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +30,9 @@ fun StructureTabContent(structure: StructureBlock?, colors: AtomColors) {
         }
         SheetRow("D1", directionLine(structure.d1?.direction), colors)
         SheetRow("H4", directionLine(structure.h4?.direction), colors)
-        SheetDivider(colors)
+        // Pieter, 2026-09-09 — divider removed, spacing kept: 17dp matches SheetDivider's own
+        // footprint (8dp padding + 1dp line + 8dp padding) exactly, just without drawing the line.
+        Spacer(modifier = Modifier.height(17.dp))
 
         val h4 = structure.h4
         SheetRow("Last event (H4)", h4?.event?.uppercase() ?: "—", colors)
