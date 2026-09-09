@@ -222,7 +222,8 @@ def _ewma(new_val: float, prev_val: float | None, alpha: float = 0.6) -> float:
     return round(alpha * new_val + (1 - alpha) * prev_val, 1)
 
 
-# Theoretical max: +1 +1 +2 +2 +1 +2 = +9. Theoretical min: -2 -1 -2 -2 -2 -1 = -10.
+# Theoretical max (inputs 1-6 in order): +2 +1 +2 +2 +1 +2 = +10.
+# Theoretical min: -2 -1 -2 -2 -2 -1 = -10.
 # Symmetric +-10 denominator, same as the original.
 SCORE_MAX = 10.0
 

@@ -19,6 +19,7 @@ from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendati
 from scanner.extend import state_alerts
 from scanner.extend import conviction
 from scanner import scan_h1
+from scanner import csm
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
@@ -164,6 +165,49 @@ def test_csm_delta_shape():
             assert isinstance(v, float)
 
 
+def test_slice_ohlcv_bar_offset_correct():
+    """Regression for the audit's #off-by-one risk: _slice_ohlcv must drop exactly n
+    bars from the TAIL, and a zero drop must be a true no-op — verified against plain
+    pandas slicing, independent of the function under test."""
+    from scanner.extend.csm_delta import _slice_ohlcv
+    ohlcv, _ = _fixture()
+    sample = next(iter(ohlcv.values()))
+    d1_len, h4_len = len(sample["d1"]), len(sample["h4"])
+
+    sliced = _slice_ohlcv(ohlcv, {"d1": 0, "h4": 0})
+    out = next(iter(sliced.values()))
+    assert len(out["d1"]) == d1_len and out["d1"].equals(sample["d1"])
+    assert len(out["h4"]) == h4_len and out["h4"].equals(sample["h4"])
+
+    for n in (1, 6, 24):
+        sliced_n = _slice_ohlcv(ohlcv, {"h4": n})
+        out_n = next(iter(sliced_n.values()))
+        assert len(out_n["h4"]) == h4_len - n
+        assert out_n["h4"].equals(sample["h4"].iloc[: h4_len - n])
+
+
+def test_csm_delta_numeric_correctness():
+    """Independently re-slices with plain pandas (not _slice_ohlcv) and recomputes
+    "past" CSM via the same frozen csm.compute_csm_<tf> the module calls, then
+    asserts compute_csm_delta's output matches now-minus-past exactly — a sign flip
+    or wrong offset in the module's own slicing would fail this, unlike the old
+    shape-only check."""
+    ohlcv, csm_now = _fixture()
+    d = csm_delta.compute_csm_delta(ohlcv, csm_now)
+
+    for tf, fn in (("d1", csm.compute_csm_d1), ("h4", csm.compute_csm_h4), ("h1", csm.compute_csm_h1)):
+        drops = cfg.PAST_SLICE[tf]
+        past_ohlcv = {
+            key: {t: (df.iloc[: len(df) - drops[t]] if t in drops and df is not None else df)
+                  for t, df in tfs.items()}
+            for key, tfs in ohlcv.items()
+        }
+        csm_past = fn(past_ohlcv)
+        for c in EXPECTED_APPEARANCES:
+            expected = round(csm_now[tf].get(c, 0.0) - csm_past.get(c, 0.0), cfg.CSM_DELTA_DP)
+            assert d[tf][c] == expected, (tf, c, d[tf][c], expected)
+
+
 def test_currency_flow_shape():
     ohlcv, csm_now = _fixture()
     d = csm_delta.compute_csm_delta(ohlcv, csm_now)
@@ -185,6 +229,23 @@ def test_breadth_totals_match_frozen_appearances():
         assert 0.0 <= cell["pct"] <= 1.0
         assert cell["band"] in ("strong", "moderate", "weak")
         assert cell["dir"] in ("strong", "weak", "flat")
+
+
+def test_breadth_contributions_match_csm_raw():
+    """Regression for the audit's #maintenance-fragility finding: breadth.py hand-
+    duplicates csm.py's internal per-pair accumulation (necessary — csm.py doesn't
+    expose it), with nothing previously cross-checking the two stay in sync. Compares
+    breadth._contributions directly against csm.py's own _raw_<tf> functions (added
+    this session for CSM dispersion) — any future change to either side's accumulation
+    formula that desyncs them now fails here instead of silently drifting."""
+    from scanner.extend.breadth import _contributions
+    ohlcv, _ = _fixture()
+    raw_fns = {"d1": csm._raw_d1, "h4": csm._raw_h4, "h1": csm._raw_h1}
+    for tf, fn in raw_fns.items():
+        expected = fn(ohlcv)
+        actual = _contributions(ohlcv, tf)
+        for c in EXPECTED_APPEARANCES:
+            assert actual.get(c, []) == expected.get(c, []), (tf, c, actual.get(c), expected.get(c))
 
 
 def test_spark_shape():
