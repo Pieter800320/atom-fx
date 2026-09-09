@@ -40,6 +40,14 @@ class WheelViewModel(
     private val _screenState = MutableStateFlow<WheelScreenState>(WheelScreenState.Loading)
     val screenState: StateFlow<WheelScreenState> = _screenState.asStateFlow()
 
+    // 2026-09-09 (Pieter's ask) — backs both the pull-to-refresh spinner (Material3's
+    // PullToRefreshBox needs an explicit in-flight flag to drive its own indicator) and general
+    // "did anything actually happen" visibility: a "Force refresh" that silently no-ops on a
+    // failed fetch (falls back to the same stale cache, SignalsRepository's own documented
+    // behaviour) previously gave no sign a refresh was even attempted.
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         refresh()
         viewModelScope.launch {
@@ -52,6 +60,7 @@ class WheelViewModel(
 
     fun refresh() {
         viewModelScope.launch {
+            _isRefreshing.value = true
             _screenState.value = when (val result = repository.fetch()) {
                 is SignalsResult.Fresh ->
                     WheelScreenState.Loaded(WheelMapper.map(result.signals), result.signals, Freshness.FRESH)
@@ -59,6 +68,7 @@ class WheelViewModel(
                     WheelScreenState.Loaded(WheelMapper.map(result.signals), result.signals, Freshness.STALE)
                 SignalsResult.Unavailable -> WheelScreenState.Unavailable
             }
+            _isRefreshing.value = false
         }
     }
 }

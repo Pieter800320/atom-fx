@@ -32,11 +32,13 @@ class SignalsRepository(context: Context, private val urlProvider: () -> String 
 
     suspend fun fetch(): SignalsResult = withContext(Dispatchers.IO) {
         val body = runCatching { httpGet(urlProvider()).also { cacheFile.writeText(it) } }
+            .onFailure { android.util.Log.w("SignalsRepository", "fetch failed, falling back to cache", it) }
             .getOrNull()
             ?: cacheFile.takeIf { it.exists() }?.readText()
             ?: return@withContext SignalsResult.Unavailable
 
         val signals = runCatching { json.decodeFromString(Signals.serializer(), body) }
+            .onFailure { android.util.Log.w("SignalsRepository", "parse failed", it) }
             .getOrNull()
             ?: return@withContext SignalsResult.Unavailable
 

@@ -33,6 +33,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -169,6 +170,21 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
             },
         )
         val colors = AtomTheme.colors
+
+        // 2026-09-09 (Pieter's ask) — "reopening the app" previously did NOT refetch: a fresh
+        // network fetch only ever happened once (ViewModel's own init{}) and on a fixed timer
+        // (refreshMinutes) — nothing hooked the app coming back to the foreground, so a
+        // backgrounded-not-killed process could sit on hours-old data indefinitely. ON_RESUME
+        // fires on true cold start too (right after init{}'s own fetch) — a harmless redundant
+        // fetch, not worth guarding against for this app's usage pattern.
+        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) viewModel.refresh()
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
 
         // 2026-09-06 (Pieter's ask) — dark mode only ("light mode is fine for now"): white status-
         // bar/nav-bar icon content instead of the OS default dark icons, which read poorly against
@@ -436,7 +452,13 @@ private fun CalendarGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
 private fun formatUpdated(updated: String?): String {
     val timestamp = updated ?: return "—"
     return runCatching {
-        java.time.OffsetDateTime.parse(timestamp).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+        // 2026-09-09 fix — `updated` is always UTC (`+00:00`); formatting an OffsetDateTime
+        // directly prints ITS OWN offset's clock time, not the device's. atZoneSameInstant with
+        // systemDefault() converts to whatever timezone the phone is actually set to, DST
+        // included (e.g. Europe/Berlin's CEST/CET switch) — no manual zone handling needed.
+        java.time.OffsetDateTime.parse(timestamp)
+            .atZoneSameInstant(java.time.ZoneId.systemDefault())
+            .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
     }.getOrDefault("—")
 }
 

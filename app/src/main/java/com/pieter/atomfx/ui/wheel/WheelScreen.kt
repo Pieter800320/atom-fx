@@ -101,6 +101,7 @@ private val CARD_TOP_SPACING = 16.dp
  * only ever had meaning for one pair — they're reached via that pair's own sheet tabs, not a
  * wheel-level row that had to arbitrarily pick `topPair()`.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun WheelScreen(
     viewModel: WheelViewModel,
@@ -110,6 +111,7 @@ fun WheelScreen(
     onOpenReading: (ReadingTarget) -> Unit = {},
 ) {
     val screenState by viewModel.screenState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     val colors = AtomTheme.colors
     var activeSheet by remember { mutableStateOf(initialDeepLink) }
     // 2026-09-05 — OVERALL by default, the wheel's flagship mode (matches the thumb-zone
@@ -151,6 +153,17 @@ fun WheelScreen(
         // open or not; §17's original "wheel shrinks to fit" behavior is gone by construction,
         // not just unused. Same fallback now covers the CSM strip/TF row skeleton if it ever
         // doesn't fit — the goal is for that never to trigger in normal use, verified on-device.
+        // 2026-09-09 (Pieter's ask) — drag-down-to-refresh. Nests naturally inside the existing
+        // verticalScroll (this screen already scrolls, see the 2026-09-03 §17-supersession note
+        // above) — PullToRefreshBox's own gesture detection is vertical-only via nestedScroll, so
+        // it doesn't compete with the HorizontalPager ancestor's horizontal tab-swipe gesture, and
+        // doesn't compete with the wheel dial's own tap/long-press handling either (orthogonal
+        // gesture types, not both drag).
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier.fillMaxSize(),
+        ) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             // Pieter, 2026-09-03 follow-up — "distribute the leftover space evenly": every direct
             // child here gets one shared, evenly-sized gap between it and the next, computed from
@@ -267,6 +280,7 @@ fun WheelScreen(
                 // Nothing is drawn; only the GAP before it (sized the same as the others) matters.
                 Spacer(modifier = Modifier.fillMaxWidth().height(0.dp))
             }
+        }
         }
 
         val sheet = activeSheet

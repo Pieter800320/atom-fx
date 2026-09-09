@@ -73,6 +73,7 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * card/pill uses the same tokens as Home (Color.kt's control/card distinction, ScrollingPills'
  * Electric Treatment) rather than bare text rows.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun MacroScreen(
     viewModel: WheelViewModel,
@@ -81,8 +82,13 @@ fun MacroScreen(
     onOpenReading: (ReadingTarget) -> Unit = {},
 ) {
     val screenState by viewModel.screenState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    Box(
+    // 2026-09-09 (Pieter's ask) — drag-down-to-refresh, same as WheelScreen/InsightsScreen. This
+    // screen's own content already scrolls vertically, so PullToRefreshBox nests naturally.
+    androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() },
         modifier = modifier
             .fillMaxSize()
             .background(colors.ground)

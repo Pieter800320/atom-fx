@@ -563,7 +563,13 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
     val updated = loaded?.signals?.updated?.let {
         // Locale.US explicitly — the default locale can render month abbreviations differently
         // (e.g. "sept." instead of "Sep"), same bug class swept out of every other formatter.
-        runCatching { OffsetDateTime.parse(it).format(DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US)) }.getOrNull()
+        // 2026-09-09 — atZoneSameInstant(systemDefault()) converts UTC to the device's actual
+        // timezone (DST included) instead of printing the raw UTC offset, same fix as
+        // MainActivity's formatUpdated().
+        runCatching {
+            OffsetDateTime.parse(it).atZoneSameInstant(java.time.ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US))
+        }.getOrNull()
     } ?: "—"
     val freshnessWord = when (loaded?.freshness) {
         Freshness.FRESH -> "Fresh"
