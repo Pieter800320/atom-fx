@@ -89,6 +89,18 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * other pairs (not a `.take(5)` text list) — substantial enough on its own to earn the tab
  * Breakdown's other section (Momentum) still doesn't individually justify.
  * Three tabs now: "Overview" (the five reads), "Breakdown" (Momentum/Structure), "Correlation".
+ *
+ * Reorg, 2026-09-09 (Pieter's ask — "I keep on thinking the technical pills are buttons"): the
+ * D1/H4/H1 technical-pill strip (`TfAlignmentStrip`) moved out from between the header and the
+ * tabs into a new "ALIGNMENT" section at the top of Breakdown, alongside Momentum/Structure, and
+ * was restyled smaller (see that file's own doc comment) so it no longer visually reads as a
+ * button. The tabs themselves moved up to sit directly below the sparklines (previously the pill
+ * strip sat between them) and were restyled to match Settings' `ThemeControl` segmented-control
+ * look instead of the old scrolling-pill tab treatment (`SheetTabs`, SheetComponents.kt) — the
+ * sheet's real tap targets now look nothing like its read-only pills. Sparklines (`Spark3Row`)
+ * deliberately stayed put, directly under the header: they're the sheet's single most glanceable
+ * element and were never part of the "looks like a button" complaint (see that composable's own
+ * doc comment on why they're header material, not tab content).
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -97,7 +109,6 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
 
     Column(modifier = Modifier.fillMaxWidth()) {
         PairHeader(node, allNodes, colors)
-        TfAlignmentStrip(pairBlock?.pills, colors)
         Spark3Row(node.pair, signals, colors)
         SheetTabs(TABS, selectedTab, colors) { selectedTab = it }
         when (selectedTab) {
@@ -111,6 +122,8 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
 @Composable
 private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth()) {
+        BreakdownSection("ALIGNMENT", colors) { TfAlignmentStrip(pairBlock?.pills, colors) }
+        SheetDivider(colors)
         BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }
         SheetDivider(colors)
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }

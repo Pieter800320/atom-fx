@@ -2,14 +2,12 @@ package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -148,56 +146,44 @@ fun ControlButtonRow(
     }
 }
 
-// Exactly ScrollingPills' ELECTRIC_PILL_HEIGHT/SHAPE (matched there to the wheel's own Currency
-// Flow Ticker chips) — Pieter, 2026-09-03 follow-up: "exactly the same size... text included," so
-// this mirrors that recipe wholesale rather than approximating it with wrap-content padding.
-private val SHEET_TAB_HEIGHT = 26.dp
 private val SHEET_TAB_SHAPE = RoundedCornerShape(11.dp)
 
 /**
- * Scrolling-pill-style tab row (Design §15). Horizontally scrollable — Phase 9 grew PairSheet
- * to 6 tabs, past what a fixed non-scrolling Row could fit without individual labels wrapping.
- *
- * Aesthetics pass, 2026-09-03 — control treatment (Color.kt): fill/border always
- * `controlSurface`/`controlBorder` (was `surfaceRaised`/`surface`, no border, full capsule), the
- * selected tab distinguished by text colour alone, same convention the wheel's own corner buttons
- * use since dropping their white selected-state border.
+ * 2026-09-09 (Pieter's ask, Pair Sheet reorg) — restyled to match Settings' `ThemeControl`
+ * exactly, not the old scrolling-pill treatment: PairSheet is back down to 3 fixed tabs
+ * (Overview/Breakdown/Correlation — Momentum/Structure/Entry/Macro folded into Breakdown back on
+ * 2026-09-05), so an equal-width Row needs no horizontal scroll any more. This was also part of
+ * the "everything reads as an undifferentiated pill" complaint that started the reorg — a real
+ * segmented control here now visually distinguishes an actual tap target from the small read-only
+ * pills now living inside Breakdown's ALIGNMENT section (`TfAlignmentStrip`).
  */
 @Composable
 fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (Int) -> Unit) {
     val haptics = LocalHapticFeedback.current
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(bottom = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         tabs.forEachIndexed { index, tab ->
-            val isOn = index == selected
-            Row(
+            val active = index == selected
+            Box(
                 modifier = Modifier
-                    .padding(end = 8.dp)
-                    .height(SHEET_TAB_HEIGHT)
-                    // Item Library #04 — pressWash() masks the ripple to this pill's own rounded
-                    // shape instead of letting it bleed past the rounded corners as a rectangle.
-                    .background(colors.controlSurface, SHEET_TAB_SHAPE)
+                    .weight(1f)
+                    .background(if (active) colors.controlSurfaceActive else colors.controlSurface, SHEET_TAB_SHAPE)
                     .border(1.dp, colors.controlBorder, SHEET_TAB_SHAPE)
                     .pressWash(SHEET_TAB_SHAPE) {
-                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        onSelect(index)
+                        if (!active) {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onSelect(index)
+                        }
                     }
-                    // No vertical padding — ELECTRIC_PILL_HEIGHT already fixes the height;
-                    // CenterVertically below centres the text within it (ScrollingPills' own fix
-                    // for the same "8dp padding on top of a fixed height clips the text" bug).
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 6.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = tab,
-                    style = AtomType.Caption.copy(
-                        color = if (isOn) colors.textPrimary else colors.textSecondary,
-                        fontWeight = FontWeight.Normal,
-                    ),
+                    style = AtomType.Body.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    maxLines = 1,
                 )
             }
         }
