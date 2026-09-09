@@ -313,12 +313,41 @@ def compute_conviction(cot_data: dict, pairs_block: dict, csm_d1: dict, breadth:
 
 EXTREME_THRESHOLD = 80
 
+# 2026-09-09 (Rule #1 sign-off, P3 audit item #1) — when a currency's cot_available is
+# False (COT genuinely stale >9 days per cot.py, or that currency's own COT record was
+# missing this fetch), inputs 1-3 (cot_position/cot_oi/cot_disagg, max +-5 combined) are
+# zeroed in compute_conviction, so the achievable |raw| shrinks from 10 to 5 — the
+# normalised score can never exceed +-50. EXTREME_THRESHOLD=80 was then structurally
+# unreachable for the whole degraded window: not a deliberate calibration, an accident of
+# a fixed SCORE_MAX denominator. Deliberately NOT fixed by scaling SCORE_MAX itself —
+# that would perturb _ewma's week-to-week comparability (a score computed on a shifting
+# scale, right as cot_available flips, would jump/drop for reasons unrelated to actual
+# evidence changing). Fixed at the alert threshold instead: 80% of the degraded ceiling
+# (2 csm_extreme + 1 extension + 2 breadth = 5 max raw -> 50 normalised -> 40), so a
+# maximally-extreme reading on the technical-only evidence that IS available can still
+# alert, without ever touching how the score itself is computed or displayed.
+EXTREME_THRESHOLD_DEGRADED = round((2 + 1 + 2) / SCORE_MAX * 100 * 0.8)  # = 40
+
+
+def _extreme_threshold(cot_available: bool) -> int:
+    return EXTREME_THRESHOLD if cot_available else EXTREME_THRESHOLD_DEGRADED
+
 
 def compute_conviction_alerts(conviction: dict, prev_conviction: dict | None) -> list:
     """
-    Fires when a currency's conviction score newly crosses into a crowded/extreme band
-    (|score| >= 80) — never for a currency that was already extreme last week. First-ever
-    run (no prev_conviction) never fires, same guard as state_alerts.compute_state_alerts.
+    Fires when a currency's conviction score newly crosses into a crowded/extreme band —
+    never for a currency that was already extreme last week. First-ever run (no
+    prev_conviction) never fires, same guard as state_alerts.compute_state_alerts.
+
+    The crossing threshold is EXTREME_THRESHOLD (80) normally, or
+    EXTREME_THRESHOLD_DEGRADED (40) for a currency whose cot_available is False this
+    scan — see that constant's own comment for why. The "already extreme last week"
+    suppression check uses THAT PAST entry's own cot_available/threshold, not this
+    scan's, so a currency crossing from a degraded extreme into a full-data extreme (or
+    vice versa) is still evaluated correctly rather than against the wrong basis.
+    Alerts fired under degraded evidence carry "cot_confirmed": False and say so in
+    their own message — a technical-only extreme is real information, but it wasn't
+    positioning-confirmed, and the alert shouldn't imply otherwise.
     """
     if not prev_conviction:
         return []
@@ -327,17 +356,28 @@ def compute_conviction_alerts(conviction: dict, prev_conviction: dict | None) ->
     alerts = []
     for ccy, entry in conviction.get("currencies", {}).items():
         score = entry.get("conviction")
-        if score is None or abs(score) < EXTREME_THRESHOLD:
+        if score is None:
             continue
-        prev_score = prev_currencies.get(ccy, {}).get("conviction")
-        if prev_score is not None and abs(prev_score) >= EXTREME_THRESHOLD:
-            continue  # already extreme last week — not a new transition
+        cot_available = entry.get("cot_available", False)
+        threshold = _extreme_threshold(cot_available)
+        if abs(score) < threshold:
+            continue
+
+        prev_entry = prev_currencies.get(ccy, {})
+        prev_score = prev_entry.get("conviction")
+        if prev_score is not None:
+            prev_threshold = _extreme_threshold(prev_entry.get("cot_available", False))
+            if abs(prev_score) >= prev_threshold:
+                continue  # already extreme last week (by ITS OWN basis) — not a new transition
+
         direction = "bull" if score > 0 else "bear"
         dir_word = "bullish" if direction == "bull" else "bearish"
+        suffix = "" if cot_available else " (technical only — COT data unavailable)"
         alerts.append({
             "type": "conviction_extreme",
-            "msg": f"<b>{ccy} — Conviction Extreme</b>\nConviction {score:+d} · {dir_word}",
+            "msg": f"<b>{ccy} — Conviction Extreme</b>\nConviction {score:+d} · {dir_word}{suffix}",
             "deeplink": f"atomfx://currency/{ccy}",
             "direction": direction,
+            "cot_confirmed": cot_available,
         })
     return alerts

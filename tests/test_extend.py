@@ -537,16 +537,47 @@ def test_compute_conviction_shape_and_stability():
 
 
 def test_conviction_alerts_edge_trigger():
-    prev = {"currencies": {"EUR": {"conviction": 50}}}
-    new = {"currencies": {"EUR": {"conviction": 85}}}
+    # cot_available explicit on both sides — real compute_conviction output always sets
+    # it; this locks the test to the full-data 80 threshold, not the degraded 40 one
+    # (see test_conviction_alerts_degraded_threshold for that path).
+    prev = {"currencies": {"EUR": {"conviction": 50, "cot_available": True}}}
+    new = {"currencies": {"EUR": {"conviction": 85, "cot_available": True}}}
     alerts = conviction.compute_conviction_alerts(new, prev)
     assert len(alerts) == 1 and alerts[0]["type"] == "conviction_extreme"
     assert alerts[0]["direction"] == "bull"
+    assert alerts[0]["cot_confirmed"] is True
+    assert "technical only" not in alerts[0]["msg"]
     # already extreme last week -> no repeat fire
     assert conviction.compute_conviction_alerts(new, new) == []
     # first-ever run (no prev) never fires
     assert conviction.compute_conviction_alerts(new, None) == []
     assert conviction.compute_conviction_alerts(new, {}) == []
+
+
+def test_conviction_alerts_degraded_threshold():
+    """P3 audit item #1 fix — a currency without COT confirmation this scan can still
+    alert once it clears the DEGRADED threshold (40), which the old fixed-80 threshold
+    made structurally unreachable whenever cot_available was False; the alert says so."""
+    prev = {"currencies": {"EUR": {"conviction": 20, "cot_available": False}}}
+    new = {"currencies": {"EUR": {"conviction": 45, "cot_available": False}}}
+    alerts = conviction.compute_conviction_alerts(new, prev)
+    assert len(alerts) == 1 and alerts[0]["type"] == "conviction_extreme"
+    assert alerts[0]["cot_confirmed"] is False
+    assert "technical only" in alerts[0]["msg"]
+
+    # Below the degraded threshold (40) -> no fire, even though it would clear a
+    # hypothetical fixed-80 basis being irrelevant here.
+    quiet = {"currencies": {"EUR": {"conviction": 35, "cot_available": False}}}
+    assert conviction.compute_conviction_alerts(quiet, prev) == []
+
+    # Already extreme last week ON ITS OWN (degraded) BASIS -> no repeat fire.
+    assert conviction.compute_conviction_alerts(new, new) == []
+
+    # Crossing from a degraded extreme into a full-data reading that does NOT itself
+    # clear the full-data 80 threshold -> no fire (evaluated on the current scan's own
+    # cot_available, not grandfathered off last week's degraded pass).
+    recovered_but_not_extreme = {"currencies": {"EUR": {"conviction": 60, "cot_available": True}}}
+    assert conviction.compute_conviction_alerts(recovered_but_not_extreme, new) == []
 
 
 # ── 5. Cross-cadence key preservation regression (2026-09-04 bug) ────────────────
