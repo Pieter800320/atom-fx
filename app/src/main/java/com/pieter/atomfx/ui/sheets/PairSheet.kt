@@ -47,7 +47,6 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Direction
-import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 
 private val TABS = listOf("Overview", "Breakdown", "Correlation")
@@ -366,26 +365,41 @@ private fun OverviewChecklist(node: PairNode, signals: Signals, pairBlock: PairB
 
 private data class OverviewRow(val label: String, val tint: OverviewTint, val explanation: String, val value: String)
 
-// 2026-09-06 — each row's timeframe is now named in its own label (H4/D1), not left implicit,
-// and each is FIXED — Pieter's own settled call after weighing a togglable wheel and rejecting
-// it: Regime/Trend/Momentum/Volatility form a deliberate consensus set (H4 Regime, H4 Trend, D1
-// Momentum, D1 Volatility), not four independent dials. See WheelCanvas.modeFillFrac's own doc
-// comment for the full mathematical reasoning (Trend has no D1/H1 variant at all; Volatility is
-// D1 by construction, the same candles Momentum reads).
+// 2026-09-09 (Pieter's ask) — Regime/Trend/Momentum/Volatility form a deliberate consensus set,
+// each a FIXED timeframe (not four independent dials): D1 Regime (the master/steering bias — see
+// WheelMapper.mapNucleus's own doc comment for the H4->D1 switch), H4 Trend (no D1/H1 ADX exists
+// at all), H4 Momentum (switched from D1 same day — D1 Momentum re-read roughly the same candles
+// D1 Regime already votes on, not real multi-timeframe confluence; H4 genuinely checks whether a
+// faster timeframe still supports the D1 bias), D1 Volatility (judges entry timing, a different
+// job from the other three — its own H4 reading is only a rare data-availability fallback, not a
+// real parallel series, so it stays D1 pending backend work). See WheelCanvas.modeFillFrac's own
+// doc comment for the fill-magnitude reasoning.
 private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?): List<OverviewRow> {
-    val regime = signals.regimeH4
+    val regime = signals.regimeD1
     val h4Structure = pairBlock?.structure?.h4
-    val dd1 = pairBlock?.mom?.dd1
+    val dh4 = pairBlock?.mom?.dh4
     val dir = node.direction
 
-    val regimeAligned = Factor.REGIME in node.factorsPassed
+    // 2026-09-09 (Pieter's ask) — was a pair-specific "does regime agree with MY bias" pass/fail
+    // (Factor.REGIME in factorsPassed, an EXTEND flag hardcoded to regime_h4 backend-side —
+    // potential.py's _f_regime — that couldn't move to D1 without new backend work). Regime is now
+    // "the master direction steering the ship," so this row shows what the D1 regime itself IS,
+    // tinted by its own risk-on/off/mixed category — same mapping RegimeSheet's own regimeTint()
+    // uses for the wheel hub, small local copy per this codebase's established house style — not
+    // whether it happens to agree with this one pair.
     val regimeRow = OverviewRow(
-        label = "REGIME (H4)",
-        tint = if (regimeAligned) OverviewTint.BULL else OverviewTint.NEUTRAL,
-        explanation = if (regimeAligned) {
-            "H4 regime supports this pair's ${directionWord(dir).lowercase()} bias."
-        } else {
-            "H4 regime is neutral or against this pair's ${directionWord(dir).lowercase()} bias."
+        label = "REGIME (D1)",
+        tint = when (regime?.regime) {
+            "Risk-On" -> OverviewTint.BULL
+            "Risk-Off" -> OverviewTint.BEAR
+            "Mixed" -> OverviewTint.WATCH
+            else -> OverviewTint.NEUTRAL
+        },
+        explanation = when (regime?.regime) {
+            "Risk-On" -> "Risk-on backdrop — broadly favours the risk side."
+            "Risk-Off" -> "Risk-off backdrop — broadly favours the safe-haven side."
+            "Mixed" -> "Mixed — no clear risk backdrop right now."
+            else -> "Ranging — not enough directional conviction to call a backdrop."
         },
         value = "${regime?.regime ?: "—"} · ${regime?.confidence ?: "—"}",
     )
@@ -422,12 +436,12 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     )
 
     val momentumRow = OverviewRow(
-        label = "MOMENTUM (D1)",
+        label = "MOMENTUM (H4)",
         tint = if (node.momentum >= 50) OverviewTint.BULL else OverviewTint.BEAR,
         explanation = when {
-            node.momentum >= 50 && (dd1 ?: 0) > 0 -> "Bullish momentum, strengthening."
+            node.momentum >= 50 && (dh4 ?: 0) > 0 -> "Bullish momentum, strengthening."
             node.momentum >= 50 -> "Bullish momentum."
-            (dd1 ?: 0) < 0 -> "Bearish momentum, strengthening."
+            (dh4 ?: 0) < 0 -> "Bearish momentum, strengthening."
             else -> "Bearish momentum."
         },
         value = "MOM ${node.momentum}",

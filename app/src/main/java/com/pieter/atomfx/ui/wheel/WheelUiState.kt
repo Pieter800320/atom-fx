@@ -74,13 +74,16 @@ data class PairNode(
     // technical reads (none is itself bull/bear-signed) so they take their wedge colour from
     // `direction` (Trend) or their own value (Momentum), except Volatility, which isn't
     // inherently bullish or bearish at all — see WheelCanvas.modeHue.
-    // Unsigned 0..100, 50 = neutral — pairs[pair].mom.d1, the frozen D1-only momentum oscillator
+    // Unsigned 0..100, 50 = neutral — pairs[pair].mom.h4, the frozen H4-only momentum oscillator
     // (not the D1/H4/H1-blended CMP — Pieter's own pick: a fast-moving, single-timeframe read).
-    // Fixed at D1 everywhere it's used (the wheel's Momentum wing and the pair sheet's Overview
-    // row alike) — 2026-09-06, Pieter's own settled call: the wheel is a deliberate, fixed-TF
-    // consensus (D1 Regime, H4 Trend, D1 Momentum, D1 Volatility — hub moved H4->D1 2026-09-09),
-    // not a togglable one. A D1/H4/H1 toggle was tried and reverted the same session — see
-    // WheelScreen's TimeframeButtons doc comment for why it stays scoped to the CSM strip only.
+    // Fixed at H4 everywhere it's used (the wheel's Momentum wing and the pair sheet's Overview
+    // row alike) — switched from D1 to H4, 2026-09-09 (Pieter's ask): D1 Momentum re-read roughly
+    // the same candles D1 Regime already votes on (same timeframe, two lenses), not real
+    // multi-timeframe confluence; H4 genuinely checks whether a faster timeframe still supports
+    // the D1 Regime bias — the wheel is a deliberate, fixed-TF consensus (D1 Regime, H4 Trend, H4
+    // Momentum, D1 Volatility), not a togglable one. A D1/H4/H1 toggle was tried and reverted a
+    // separate session — see WheelScreen's TimeframeButtons doc comment for why it stays scoped to
+    // the CSM strip only.
     val momentum: Int = 0,
     // 0..100ish (ADX is mathematically bounded 0-100 but rarely exceeds ~60-70 in practice) —
     // pairs[pair].adx, frozen trend-strength indicator. This *is* Trend — ADX literally measures

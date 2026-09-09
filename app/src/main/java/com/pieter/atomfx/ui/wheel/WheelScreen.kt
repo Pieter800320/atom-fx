@@ -89,8 +89,9 @@ private val CARD_TOP_SPACING = 16.dp
  * 2026-09-06 — `timeframe` (the D1/H4/H1 row below the CSM strip) drives ONLY the CSM strip
  * (`currenciesFor`). A same-session attempt to also wire it to the hub and the Momentum wing was
  * tried and reverted — Pieter's own second-thought call: the wheel is meant to be a fixed,
- * "at a glance" consensus (D1 Regime, H4 Trend, D1 Momentum, D1 Volatility — hub moved H4->D1
- * 2026-09-09, "the H4 Regime changes too much"), not a togglable one.
+ * "at a glance" consensus (D1 Regime, H4 Trend, H4 Momentum, D1 Volatility — hub moved H4->D1 and
+ * Momentum moved D1->H4, both 2026-09-09: "the H4 Regime changes too much," and D1 Momentum was
+ * re-reading roughly the same candles D1 Regime already votes on), not a togglable one.
  * See `WheelCanvas.modeFillFrac`'s own doc comment for the mathematical reasoning behind which
  * fixed timeframe each wing uses.
  * One thing still deliberately unfinished: the CSM bar strip is plain bars, not yet the

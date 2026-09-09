@@ -524,18 +524,21 @@ private fun DrawScope.drawCornerButtons(
  * 100%) — a real 8% reading shows as a legible ~28%, not a barely-there sliver.
  *
  * 2026-09-06 (Pieter's own settled call, after trying and reverting a D1/H4/H1 toggle across the
- * whole wheel) — every value here is a FIXED timeframe, deliberately: D1 Regime (hub) + H4 Trend
- * + D1 Momentum + D1 Volatility, a consensus set, not a togglable one. Not arbitrary — Trend/ADX
- * is only ever computed at H4 in this system (no D1/H1 variant exists at all), and Volatility/ATR
- * percentile is computed from D1 candles by default (H4 only as a rare fallback for insufficient
- * D1 history) — so Volatility already reads the exact same candles Momentum does, the strongest
- * possible same-timeframe confirmation, while Trend directly shares its H4 timeframe with the H4
- * CSM-divergence/regime-fit/ADX-gate inputs that dominate Overall's own formula. Confirming
- * across D1 Regime → H4 Trend → D1 Momentum → D1 Volatility is a real top-down funnel (macro
- * backdrop → is it persistent → which way → is now sane), not a mix-and-match toggle.
+ * whole wheel) — every value here is a FIXED timeframe, deliberately, a consensus set, not a
+ * togglable one. Not arbitrary — Trend/ADX is only ever computed at H4 in this system (no D1/H1
+ * variant exists at all), while Trend directly shares its H4 timeframe with the H4
+ * CSM-divergence/regime-fit/ADX-gate inputs that dominate Overall's own formula.
  *
- * 2026-09-09 (Pieter's ask) — the hub moved from H4 Regime to D1 Regime ("the H4 Regime changes
- * too much"); the other three wings are unaffected, only the hub's own source changed.
+ * 2026-09-09 (Pieter's ask, two changes) — the hub moved from H4 Regime to D1 Regime ("the H4
+ * Regime changes too much"), and Momentum moved from D1 to H4: D1 Momentum was re-reading roughly
+ * the same candles D1 Regime already votes on (same timeframe, two lenses, not real
+ * multi-timeframe confluence), while H4 Momentum genuinely checks whether a faster timeframe still
+ * supports the D1 Regime bias — closer to a real top-down funnel (D1 macro backdrop → is it
+ * persistent at H4 → does H4 price action still confirm the direction → is D1 now sane to enter).
+ * Volatility/ATR percentile stays D1 for now (computed from D1 candles by default, H4 only as a
+ * rare data-availability fallback, not a real parallel series — Pieter's reviewing whether it's
+ * worth the backend work to give it a genuine H4 output before moving it too), so it and Momentum
+ * no longer share the exact same candles the way they briefly did.
  */
 private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
     WheelMode.OVERALL -> node.cont.coerceIn(0, 100) / 100f
@@ -545,9 +548,9 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
 }
 
 /**
- * Which hue fills a pair's wedge under the current [mode]. Momentum (D1) is the same 0..100/
- * 50-neutral shape CSM strength already used on the old currency ring, so it gets the same >=50
- * rule. Overall is a direction-agnostic read on its own (setup quality doesn't carry a sign) —
+ * Which hue fills a pair's wedge under the current [mode]. Momentum (H4, since 2026-09-09 — was
+ * D1) is the same 0..100/50-neutral shape CSM strength already used on the old currency ring, so
+ * it gets the same >=50 rule. Overall is a direction-agnostic read on its own (setup quality doesn't carry a sign) —
  * it takes its colour from the pair's own overall `direction` instead. Trend colours from
  * [PairNode.trendDirection] (the H4 pill), NOT `direction` — ADX is computed on H4, so its
  * direction read has to match that timeframe; a pair can show real H4 trend strength while its

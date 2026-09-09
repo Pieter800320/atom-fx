@@ -37,14 +37,23 @@ object WheelMapper {
         )
     }
 
-    // ── Pairs (the wheel's 4 modes: Overall/Trend(ADX)/Momentum(D1)/Volatility) ───────────
+    // ── Pairs (the wheel's 4 modes: Overall/Trend(ADX)/Momentum(H4)/Volatility) ───────────
     private fun mapNode(pair: String, index: Int, signals: Signals): PairNode {
         // All already computed backend-side (Rule #1, never re-derived here), all straight off
-        // the pair's own `pairs` block entry (mom.d1 the frozen D1-only momentum oscillator, adx
+        // the pair's own `pairs` block entry (mom.h4 the frozen H4-only momentum oscillator, adx
         // the frozen trend-strength read, atr_pct the frozen ATR percentile, cont the frozen
         // Continuation Score — see PairNode's own doc comments for what each feeds).
         val pairBlock = signals.pairs[pair]
-        val momentumScore = pairBlock?.mom?.d1 ?: 0
+        // 2026-09-09 (Pieter's ask) — switched D1 -> H4. D1 Momentum re-read roughly the same
+        // candles D1 Regime already votes on (same timeframe, two lenses), which isn't real
+        // multi-timeframe confluence — it's asking the same data twice. H4 Momentum genuinely
+        // checks whether a faster timeframe still supports the D1 Regime bias, closer to a real
+        // top-down "does this hold up when I look closer" read (Elder's triple-screen framing).
+        // mom.h4 is already a normal, fully-populated field (not a fallback), so this is a
+        // straight field swap, no backend change. Volatility stays D1 for now — its own H4
+        // reading is only a rare data-availability fallback, not a real parallel series; Pieter's
+        // reviewing charts to see whether it's worth the backend work to give it a real H4 output.
+        val momentumScore = pairBlock?.mom?.h4 ?: 0
         val adxScore = pairBlock?.adx?.roundToInt() ?: 0
         val volatilityScore = pairBlock?.atrPct ?: 0
         val contScore = pairBlock?.cont ?: 0
@@ -149,8 +158,9 @@ object WheelMapper {
     // Switched H4 -> D1 (2026-09-09, Pieter's ask): "the H4 Regime changes too much" — supersedes
     // the 2026-09-06 settled call below H4 was fixed on (a D1/H4/H1 toggle was tried and reverted
     // that session; this isn't that toggle coming back, it's the fixed choice itself moving to
-    // the slower timeframe). The wheel's consensus set is now D1 Regime, H4 Trend, D1 Momentum,
-    // D1 Volatility. `_regime_flip_alert` (state_alerts.py) made the same H4->D1 switch alongside
+    // the slower timeframe). The wheel's consensus set is now D1 Regime, H4 Trend, H4 Momentum
+    // (also switched off D1, same day — see mapNode's own comment), D1 Volatility.
+    // `_regime_flip_alert` (state_alerts.py) made the same H4->D1 switch alongside
     // this, so the regime shown at the hub and the one that pages Pieter stay the same timeframe.
     private fun mapNucleus(signals: Signals): NucleusState {
         val regime = signals.regimeD1
