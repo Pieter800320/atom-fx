@@ -113,7 +113,7 @@ private fun readingTitle(target: ReadingTarget): String = when (target) {
 }
 
 private fun readingSubtitle(target: ReadingTarget): String = when (target) {
-    is ReadingTarget.TechnicalRegime -> "H4 Structural Regime"
+    is ReadingTarget.TechnicalRegime -> "D1 Structural Regime"
     is ReadingTarget.MacroArchetype -> "Macro Archetype ${target.explanation.entry.code}"
     is ReadingTarget.Alert -> ""
 }

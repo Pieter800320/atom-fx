@@ -508,13 +508,15 @@ def test_state_alerts_structure_event_fires_on_new_event():
 
 
 def test_state_alerts_regime_flip_fires():
-    prev = {"regime_h4": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
-    out = {"regime_h4": {"regime": "Risk-On", "confidence": "Medium", "stable": False}}
+    # 2026-09-09 — trigger moved from regime_h4 to regime_d1 (Pieter's ask: "the H4 Regime
+    # changes too much"); classify_regime itself is untouched, only which field the alert reads.
+    prev = {"regime_d1": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
+    out = {"regime_d1": {"regime": "Risk-On", "confidence": "Medium", "stable": False}}
     alerts = state_alerts.compute_state_alerts(out, prev)
     assert len(alerts) == 1 and alerts[0]["type"] == "regime_flip"
     assert alerts[0]["regime_flip_to"] == "Risk-On"
     # a stable regime (no flip) fires nothing
-    stable_out = {"regime_h4": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
+    stable_out = {"regime_d1": {"regime": "Risk-Off", "confidence": "High", "stable": True}}
     assert state_alerts.compute_state_alerts(stable_out, prev) == []
 
 

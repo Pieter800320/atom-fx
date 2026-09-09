@@ -88,17 +88,22 @@ def _structure_event_alerts(out: dict, prev: dict) -> list:
 
 
 def _regime_flip_alert(out: dict, prev: dict) -> list:
-    prev_h4 = prev.get("regime_h4")
-    h4 = out.get("regime_h4", {})
-    if not prev_h4 or h4.get("stable") is not False:
+    # 2026-09-09 (Pieter's ask) — switched from regime_h4 to regime_d1: H4 flips too often to be
+    # a useful push notification (Pieter's own words, from real usage). Only the TRIGGER moved;
+    # classify_regime() itself is untouched, still computed identically for every timeframe — the
+    # wheel nucleus (WheelMapper.kt) made the same H4->D1 switch alongside this, so the headline
+    # regime shown in the app and the one that pages Pieter are the same timeframe again.
+    prev_d1 = prev.get("regime_d1")
+    d1 = out.get("regime_d1", {})
+    if not prev_d1 or d1.get("stable") is not False:
         return []
-    old = prev_h4.get("regime", "Unknown")
-    new = h4.get("regime", "Unknown")
+    old = prev_d1.get("regime", "Unknown")
+    new = d1.get("regime", "Unknown")
     if old == new:
         return []
     return [{
         "type": "regime_flip",
-        "msg": f"<b>Regime: {old} → {new}</b>\nH4 confidence: {h4.get('confidence', 'Low')}",
+        "msg": f"<b>Regime: {old} → {new}</b>\nD1 confidence: {d1.get('confidence', 'Low')}",
         "deeplink": "atomfx://regime",
         "direction": None,
         # Signals Roadmap "living handbook" pass, part 2 (2026-09-04) — mirrors

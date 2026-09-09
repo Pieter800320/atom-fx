@@ -3,8 +3,9 @@ package com.pieter.atomfx.ui.wheel
 /**
  * The wheel's own trimmed UI shape (Architecture §8.3). `WheelMapper` produces this from
  * `potential`, `csm`, `csm_delta`, `breadth`, `currency_flow`, `macro_assets`, `macro_regime`
- * and `regime_h4` — nothing here is computed; every field is a straight copy/format of a value
- * the frozen/extend backend already produced (spec §42).
+ * and `regime_d1` (hub source since 2026-09-09, was `regime_h4`) — nothing here is computed;
+ * every field is a straight copy/format of a value the frozen/extend backend already produced
+ * (spec §42).
  *
  * Wheel v2 (radial dial): the middle ring toggles between PAIRS (12 wedges, radius = potential
  * step-bands) and CURRENCIES (8 wedges, radius = CSM strength). The outer ring is the 10
@@ -77,9 +78,9 @@ data class PairNode(
     // (not the D1/H4/H1-blended CMP — Pieter's own pick: a fast-moving, single-timeframe read).
     // Fixed at D1 everywhere it's used (the wheel's Momentum wing and the pair sheet's Overview
     // row alike) — 2026-09-06, Pieter's own settled call: the wheel is a deliberate, fixed-TF
-    // consensus (H4 Regime, H4 Trend, D1 Momentum, D1 Volatility), not a togglable one. A D1/H4/H1
-    // toggle was tried and reverted the same session — see WheelScreen's TimeframeButtons doc
-    // comment for why it stays scoped to the CSM strip only.
+    // consensus (D1 Regime, H4 Trend, D1 Momentum, D1 Volatility — hub moved H4->D1 2026-09-09),
+    // not a togglable one. A D1/H4/H1 toggle was tried and reverted the same session — see
+    // WheelScreen's TimeframeButtons doc comment for why it stays scoped to the CSM strip only.
     val momentum: Int = 0,
     // 0..100ish (ADX is mathematically bounded 0-100 but rarely exceeds ~60-70 in practice) —
     // pairs[pair].adx, frozen trend-strength indicator. This *is* Trend — ADX literally measures
@@ -129,7 +130,7 @@ data class RingDescriptor(
 )
 
 data class WheelUiState(
-    val nucleus: NucleusState,   // fixed H4 — regime_h4, part of the wheel's own consensus set
+    val nucleus: NucleusState,   // fixed D1 — regime_d1, part of the wheel's own consensus set
     val nodes: List<PairNode>,             // size 12, PAIR_ORDER order (PAIRS mode)
     val rings: List<RingDescriptor>,       // size 6, the six factor legend pills
     val currencies: List<CurrencySeg> = emptyList(),   // size 8, H4 (CURRENCIES mode default)

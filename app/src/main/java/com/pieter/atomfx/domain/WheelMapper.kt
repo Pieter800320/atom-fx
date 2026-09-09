@@ -146,11 +146,14 @@ object WheelMapper {
     }
 
     // ── Nucleus / hub ────────────────────────────────────────────────────────────────────────
-    // Fixed at H4, deliberately (2026-09-06, Pieter's own settled call) — part of the wheel's own
-    // consensus set (H4 Regime, H4 Trend, D1 Momentum, D1 Volatility), not a togglable read. A
-    // D1/H4/H1 toggle here was tried and reverted the same session.
+    // Switched H4 -> D1 (2026-09-09, Pieter's ask): "the H4 Regime changes too much" — supersedes
+    // the 2026-09-06 settled call below H4 was fixed on (a D1/H4/H1 toggle was tried and reverted
+    // that session; this isn't that toggle coming back, it's the fixed choice itself moving to
+    // the slower timeframe). The wheel's consensus set is now D1 Regime, H4 Trend, D1 Momentum,
+    // D1 Volatility. `_regime_flip_alert` (state_alerts.py) made the same H4->D1 switch alongside
+    // this, so the regime shown at the hub and the one that pages Pieter stay the same timeframe.
     private fun mapNucleus(signals: Signals): NucleusState {
-        val regime = signals.regimeH4
+        val regime = signals.regimeD1
         val regimeName = regime?.regime ?: "Unknown"
         val score = regime?.score ?: 0.0
         val flow = signals.currencyFlow

@@ -524,15 +524,18 @@ private fun DrawScope.drawCornerButtons(
  * 100%) — a real 8% reading shows as a legible ~28%, not a barely-there sliver.
  *
  * 2026-09-06 (Pieter's own settled call, after trying and reverting a D1/H4/H1 toggle across the
- * whole wheel) — every value here is a FIXED timeframe, deliberately: H4 Regime (hub) + H4 Trend
+ * whole wheel) — every value here is a FIXED timeframe, deliberately: D1 Regime (hub) + H4 Trend
  * + D1 Momentum + D1 Volatility, a consensus set, not a togglable one. Not arbitrary — Trend/ADX
  * is only ever computed at H4 in this system (no D1/H1 variant exists at all), and Volatility/ATR
  * percentile is computed from D1 candles by default (H4 only as a rare fallback for insufficient
  * D1 history) — so Volatility already reads the exact same candles Momentum does, the strongest
  * possible same-timeframe confirmation, while Trend directly shares its H4 timeframe with the H4
  * CSM-divergence/regime-fit/ADX-gate inputs that dominate Overall's own formula. Confirming
- * across H4 Regime → H4 Trend → D1 Momentum → D1 Volatility is a real top-down funnel (macro
+ * across D1 Regime → H4 Trend → D1 Momentum → D1 Volatility is a real top-down funnel (macro
  * backdrop → is it persistent → which way → is now sane), not a mix-and-match toggle.
+ *
+ * 2026-09-09 (Pieter's ask) — the hub moved from H4 Regime to D1 Regime ("the H4 Regime changes
+ * too much"); the other three wings are unaffected, only the hub's own source changed.
  */
 private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
     WheelMode.OVERALL -> node.cont.coerceIn(0, 100) / 100f

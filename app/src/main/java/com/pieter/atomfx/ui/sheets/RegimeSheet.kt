@@ -42,8 +42,11 @@ import com.pieter.atomfx.ui.wheel.tintColor
 @Composable
 fun RegimeSheet(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
     val haptics = LocalHapticFeedback.current
-    val h4 = signals.regimeH4
-    val playbookEntry = TECHNICAL_REGIME_PLAYBOOK[h4?.regime]
+    // 2026-09-09 (Pieter's ask) — headline switched H4 -> D1, matching the wheel nucleus
+    // (WheelMapper.mapNucleus) and the regime_flip push trigger (state_alerts.py): "the H4 Regime
+    // changes too much." The three-square breakdown below still shows all of D1/H4/H1 for context.
+    val headline = signals.regimeD1
+    val playbookEntry = TECHNICAL_REGIME_PLAYBOOK[headline?.regime]
 
     Column(modifier = Modifier.fillMaxWidth()) {
         SheetTitle(
@@ -62,19 +65,19 @@ fun RegimeSheet(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTar
             },
         )
 
-        val tint = tintColor(regimeTint(h4?.regime), colors)
+        val tint = tintColor(regimeTint(headline?.regime), colors)
         Text(
-            text = regimeDisplayName(h4?.regime),
+            text = regimeDisplayName(headline?.regime),
             style = AtomType.Display.copy(color = tint),
         )
         Text(
-            text = "Confidence: ${(h4?.confidence ?: "—").uppercase()}",
+            text = "Confidence: ${(headline?.confidence ?: "—").uppercase()}",
             style = AtomType.Caption.copy(color = colors.textSecondary),
             modifier = Modifier.padding(bottom = 4.dp),
         )
         SheetRow(
-            label = "Score (H4)",
-            value = h4?.score?.let { "${if (it >= 0) "+" else ""}%.1f".format(java.util.Locale.US, it) } ?: "—",
+            label = "Score (D1)",
+            value = headline?.score?.let { "${if (it >= 0) "+" else ""}%.1f".format(java.util.Locale.US, it) } ?: "—",
             colors = colors,
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -92,7 +95,7 @@ fun RegimeSheet(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTar
 
         if (regimes.toSet().size > 1) {
             Text(
-                text = "Timeframes disagree — treat the H4 read as the principal regime.",
+                text = "Timeframes disagree — treat the D1 read as the principal regime.",
                 style = AtomType.Caption.copy(color = colors.watch),
                 modifier = Modifier.padding(top = 8.dp),
             )
@@ -101,8 +104,8 @@ fun RegimeSheet(signals: Signals, colors: AtomColors, onOpenReading: (ReadingTar
         Spacer(modifier = Modifier.height(8.dp))
         SheetDivider(colors)
         SheetRow(
-            label = "Regime stability (H4)",
-            value = when (h4?.stable) {
+            label = "Regime stability (D1)",
+            value = when (headline?.stable) {
                 true -> "Stable"
                 false -> "Not stable"
                 null -> "—"
