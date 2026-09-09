@@ -148,11 +148,21 @@ fun SettingsScreen(
                 // Swallows taps so they don't fall through to the scrim behind the panel.
                 .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {},
         ) {
+            // 2026-09-09 bug fix (found live: a regime_flip notification from 18 minutes ago
+            // looked "missing" because the History list scrolled up 8+ hours instead) — this one
+            // ScrollState backs the main settings list AND both swap-in screens (History,
+            // Library), so scrolling down in the main list and then opening History previously
+            // opened it already scrolled past its own newest entries. Reset to the top on every
+            // screen swap.
+            val scrollState = rememberScrollState()
+            val currentScreen = if (showHistory) "history" else if (showLibrary) "library" else "main"
+            LaunchedEffect(currentScreen) { scrollState.scrollTo(0) }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .padding(16.dp),
             ) {
                 if (showHistory) {
