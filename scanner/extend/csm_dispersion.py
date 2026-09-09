@@ -18,8 +18,15 @@ Persistence follows conviction.py's own established pattern (scan_cot.py reads
 `signals.get("conviction")` as `prev_conviction`, not a separate state file) rather than
 level_ema_alerts.py's older separate-JSON-file approach: this module is a pure function —
 it takes the previous scan's own history back in and returns the updated history for the
-caller to embed in THIS scan's own signals.json (under csm.dispersion_history), no file I/O
-of its own. Easier to test, and one fewer persistence mechanism in the codebase.
+caller to embed in THIS scan's own signals.json, no file I/O of its own. Easier to test, and
+one fewer persistence mechanism in the codebase.
+
+2026-09-09 — the caller (scan_h1.py) embeds the returned history under a TOP-LEVEL
+`csm_dispersion_history` key, not nested inside `csm` (was nested there originally; moved
+after it broke the Android app's on-device parsing — `Signals.kt` models the whole `csm`
+object as a blanket TF/currency -> Double map, and this history's TF -> List<Double> shape
+didn't fit). Purely a signals.json placement detail; this module's own return shape is
+unchanged.
 """
 
 # ~2.5 days of hourly scans — long enough that one unusually quiet hour can't flip the

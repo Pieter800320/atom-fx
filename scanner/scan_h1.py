@@ -185,20 +185,28 @@ def main():
     # CSM dispersion percentile (EXTEND, 2026-09-06, Rule #1 sign-off) — computed here,
     # ahead of the usual "EXTEND layer" block further down, because regime classification
     # and compute_cont() (both frozen, steps 8/9 below) need it. History round-trips through
-    # signals.json itself (prev.csm.dispersion_history -> this scan's csm.dispersion_history),
+    # signals.json itself (prev.csm_dispersion_history -> this scan's csm_dispersion_history),
     # same pattern conviction.py's own prev_conviction already uses — no separate state file.
+    # 2026-09-09 fix — this is a TOP-LEVEL signals.json key, deliberately NOT nested inside
+    # "csm": the Android app's Signals.kt models the whole csm object as a blanket
+    # Map<String, Map<String, Double>> (every existing sub-key — d1/h4/h1/dispersion — really is
+    # TF/currency -> Double), and dispersion_history's TF -> List<Double> shape broke that
+    # assumption, crashing every on-device parse (SignalsRepository fell back to Unavailable/
+    # stale cache with the failure silently swallowed — found live on Pieter's phone). This key
+    # is pure backend round-trip state the app has no use for; ignoreUnknownKeys skips an
+    # unmodeled top-level key harmlessly, which is simpler than teaching Kotlin a new type for
+    # data it never reads.
     # Wrapped in its own try/except so an EXTEND-layer failure can never block frozen
     # regime/cont computation — falling back to {"d1": None, ...} (every TF's gate off) is
     # exactly the same "no history yet" state a fresh run already produces on purpose.
     csm_dispersion_pct = {"d1": None, "h4": None, "h1": None}
+    csm_dispersion_history_out = (prev.get("csm_dispersion_history") or {})
     _low_dispersion_pct = 20  # matches csm_dispersion.LOW_DISPERSION_PCT; fallback if that import itself fails
     try:
         from scanner.extend import csm_dispersion as _csm_dispersion
-        prev_dispersion_history = (prev.get("csm") or {}).get("dispersion_history")
-        csm_dispersion_pct, _dispersion_history = _csm_dispersion.compute_dispersion_percentile(
-            csm.get("dispersion", {}), prev_dispersion_history,
+        csm_dispersion_pct, csm_dispersion_history_out = _csm_dispersion.compute_dispersion_percentile(
+            csm.get("dispersion", {}), prev.get("csm_dispersion_history"),
         )
-        csm["dispersion_history"] = _dispersion_history  # rides through into out["csm"] below
         _low_dispersion_pct = _csm_dispersion.LOW_DISPERSION_PCT
         print(f"  CSM dispersion percentile: {csm_dispersion_pct}")
     except Exception as e:
@@ -328,6 +336,8 @@ def main():
         "regime_h4":    regime_h4,
         "regime_h1":    regime_h1,
         "csm":          csm,
+        # Top-level, not nested in "csm" — see this variable's own assignment above for why.
+        "csm_dispersion_history": csm_dispersion_history_out,
         "correlations": correlations,
         "pairs":        pairs_out,
         **preserved,
