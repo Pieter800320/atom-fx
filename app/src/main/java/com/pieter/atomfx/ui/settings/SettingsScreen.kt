@@ -338,13 +338,42 @@ private fun SettingsSwitch(checked: Boolean, colors: AtomColors, enabled: Boolea
 
 @Composable
 private fun ThemeControl(mode: ThemeMode, colors: AtomColors, onSelect: (ThemeMode) -> Unit) {
+    // 2026-09-09 (Pieter's ask) — was SheetTabs (the pair-sheet tab-pill look); restyled to match
+    // "Send test" (SettingsActionButton) exactly instead: same SETTINGS_BUTTON_SHAPE, same
+    // controlSurface/controlBorder recipe, same AtomType.Body text. The one addition
+    // SettingsActionButton itself has no use for — a selected state — reuses ControlButtonRow's
+    // own established convention (controlSurfaceActive fill, textPrimary vs textMuted) rather
+    // than inventing a new one.
+    val haptics = LocalHapticFeedback.current
     val options = ThemeMode.entries
-    SheetTabs(
-        tabs = options.map { it.name },
-        selected = options.indexOf(mode),
-        colors = colors,
-        onSelect = { index -> onSelect(options[index]) },
-    )
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option ->
+            val active = option == mode
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(if (active) colors.controlSurfaceActive else colors.controlSurface, SETTINGS_BUTTON_SHAPE)
+                    .border(1.dp, colors.controlBorder, SETTINGS_BUTTON_SHAPE)
+                    .pressWash(SETTINGS_BUTTON_SHAPE) {
+                        if (!active) {
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onSelect(option)
+                        }
+                    }
+                    // Tighter than SettingsActionButton's own 16dp — that button is a single
+                    // wrap-content element with room to spare; three of these split evenly across
+                    // the same row width made "SYSTEM" wrap to two lines at the wider padding.
+                    .padding(horizontal = 6.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = option.name,
+                    style = AtomType.Body.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    maxLines = 1,
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -357,6 +386,19 @@ private fun NotificationsGroup(
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     val notif = prefsState.notifications
+
+    // 2026-09-09 (Pieter's ask) — moved to the top of the group: it's where you actually go to
+    // check what fired, so it shouldn't sit below every toggle and the test button.
+    Text(
+        text = "Notification history",
+        style = AtomType.Body.copy(color = colors.textSecondary),
+        modifier = Modifier
+            .padding(bottom = 14.dp)
+            .pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onOpenHistory()
+            },
+    )
 
     // 2026-09-06 — was "Gold signals and level alerts" (the latter greyed out below now, see
     // that row's own comment); named a live example instead of one that can't fire yet.
@@ -424,16 +466,6 @@ private fun NotificationsGroup(
     ) {
         sendTestNotification(context)
     }
-    Text(
-        text = "Notification history",
-        style = AtomType.Body.copy(color = colors.textSecondary),
-        modifier = Modifier
-            .padding(top = 12.dp)
-            .pressWash {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onOpenHistory()
-            },
-    )
 }
 
 // Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,

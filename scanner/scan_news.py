@@ -9,7 +9,7 @@ FX Signal Board — news scanner (runs every 2 hours via GitHub Actions)
 5. Haiku call 1 → News bar: themes + biggest event
 6. Haiku call 2 → Analysis bar: data tension from signals.json
 """
-import json, os, sys, time, xml.etree.ElementTree as ET, urllib.request, urllib.parse
+import json, os, re, sys, time, xml.etree.ElementTree as ET, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -398,7 +398,18 @@ def call_calendar_search(now: datetime) -> list[dict]:
         date_str = ev.get('date', '')
         time_str = ev.get('time', '00:00')
         try:
-            iso = f"{date_str}T{time_str}:00+00:00"
+            # 2026-09-09 fix — found live: iso came through blank for EVERY event (not an edge
+            # case), because the AI-search response's own `time` field carries a timezone
+            # abbreviation (e.g. "08:30 ET", "14:15 CET") despite the prompt asking for plain
+            # "HH:MM UTC" — the old naive f"{date}T{time}:00+00:00" fed that straight into
+            # datetime.fromisoformat() and broke every single time. Extract just the leading
+            # HH:MM before building the ISO string. (App-side, CalendarSheet.kt also gained a
+            # weekday-name fallback sort for whenever this or date_str itself still doesn't
+            # parse — this fix isn't the only line of defense, but same-day event ordering
+            # only has real granularity when iso actually parses, so worth fixing here too.)
+            time_match = re.match(r"(\d{1,2}:\d{2})", time_str.strip())
+            clean_time = time_match.group(1) if time_match else time_str
+            iso = f"{date_str}T{clean_time}:00+00:00"
             dt  = datetime.fromisoformat(iso)
             day = dt.strftime('%a')
         except Exception:
@@ -750,7 +761,13 @@ def call_daily_brief(signals: dict, headlines: list) -> dict:
         "Write the market-context brief."
     )
 
-    text = _sonnet(system, prompt, max_tokens=200).strip()
+    # 2026-09-09 fix — found live: the brief was getting hard-truncated mid-word. The system
+    # prompt already tells the model to self-limit to 50-100 words ("Count your words. If over
+    # 100, cut."), but that's advisory, not enforced — an LLM overshooting its own word target
+    # is normal, and 200 tokens leaves no headroom for that before the API's hard cap kicks in
+    # mid-sentence. 400 matches call_week_ahead's own already-working ratio for a comparable
+    # (80-word) target just below in this same file.
+    text = _sonnet(system, prompt, max_tokens=400).strip()
 
     return {
         "text":         text,

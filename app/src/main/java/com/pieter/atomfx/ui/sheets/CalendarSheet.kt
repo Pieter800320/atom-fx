@@ -43,7 +43,28 @@ fun CalendarSheet(signals: Signals, colors: AtomColors) {
             return@Column
         }
 
-        val grouped = events.groupBy { it.day?.takeIf { d -> d.isNotBlank() } ?: "—" }
+        // 2026-09-09 fix — found live: Thursday rendered before Wednesday. groupBy preserves
+        // each key's FIRST-ENCOUNTER order in the source list, not calendar order — if a
+        // Thursday event happened to appear earlier in the raw (unsorted) `events` list than any
+        // Wednesday one, its day header won.
+        //
+        // Sorting by the parsed `iso` timestamp alone turned out to be a no-op against real data
+        // (found on the same check): scan_news.py's AI-search calendar call returns `time` values
+        // with a timezone abbreviation attached (e.g. "08:30 ET"), which breaks its naive
+        // f"{date}T{time}:00+00:00" ISO construction for essentially every event — `iso` comes
+        // through blank across the board, not just occasionally, so every event landed on the
+        // same sentinel and the sort changed nothing. Primary key is the weekday name instead
+        // (always present, and reliable here specifically because the backend's own prompt scopes
+        // every event to one Monday-Friday window — no cross-week ambiguity to worry about); the
+        // parsed iso is kept only as a same-day tiebreaker for whenever it does happen to parse.
+        val WEEKDAY_ORDER = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+        val sortedEvents = events.sortedWith(
+            compareBy(
+                { e -> e.day?.take(3)?.let { WEEKDAY_ORDER.indexOf(it) }?.takeIf { it >= 0 } ?: Int.MAX_VALUE },
+                { e -> e.iso?.let { iso -> runCatching { OffsetDateTime.parse(iso) }.getOrNull() } ?: OffsetDateTime.MAX },
+            ),
+        )
+        val grouped = sortedEvents.groupBy { it.day?.takeIf { d -> d.isNotBlank() } ?: "—" }
         grouped.entries.forEachIndexed { groupIndex, (day, dayEvents) ->
             if (groupIndex > 0) SheetDivider(colors, modifier = Modifier.padding(vertical = 4.dp))
             Text(
