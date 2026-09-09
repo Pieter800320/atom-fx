@@ -397,11 +397,22 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
         value = "ATR percentile ${node.volatility}",
     )
 
+    // 2026-09-09 (Pieter's ask) — was coloured by event TYPE (BOS always green, CHoCH always
+    // red), which meant a bearish BOS (confirming a downtrend) or a bullish CHoCH (reversal
+    // upward) rendered the wrong colour outright — "confirms/warns" framing, not actual price
+    // direction. Now keyed off the event's own `direction` field instead: neutral when there's no
+    // recent event (same as before), bull/bear matching the event's real direction otherwise.
     val structureRow = OverviewRow(
         label = "STRUCTURE (H4)",
+        // Backend sends event as the literal string "none" (not JSON null) when there's nothing
+        // to report — matching on "BOS"/"CHoCH" first, same as the explanation/value below, so
+        // "none" (and anything else unexpected) falls through to the neutral `else`.
         tint = when (h4Structure?.event) {
-            "BOS" -> OverviewTint.BULL
-            "CHoCH" -> OverviewTint.BEAR
+            "BOS", "CHoCH" -> when (h4Structure?.direction) {
+                "bull" -> OverviewTint.BULL
+                "bear" -> OverviewTint.BEAR
+                else -> OverviewTint.NEUTRAL
+            }
             else -> OverviewTint.NEUTRAL
         },
         explanation = when (h4Structure?.event) {

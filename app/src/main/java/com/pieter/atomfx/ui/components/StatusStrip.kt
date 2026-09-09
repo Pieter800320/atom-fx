@@ -96,6 +96,7 @@ fun StatusStrip(
                 score = r.score,
                 node = node,
                 structureEvent = signals.pairs[pair]?.structure?.h4?.event,
+                structureDirection = signals.pairs[pair]?.structure?.h4?.direction,
             )
         }
     }
@@ -163,6 +164,7 @@ private data class RecoItem(
     val score: Double?,
     val node: PairNode,
     val structureEvent: String?,
+    val structureDirection: String?,
 )
 
 @Composable
@@ -259,7 +261,7 @@ private fun RecommendationPanel(item: RecoItem, colors: AtomColors, onClick: () 
             ConsensusItem("TREND", trendDotColor(item.node, colors), colors)
             ConsensusItem("MOM", momentumDotColor(item.node, colors), colors)
             ConsensusItem("VOL", volatilityDotColor(item.node, colors), colors)
-            ConsensusItem("STRUCTURE", structureDotColor(item.structureEvent, colors), colors)
+            ConsensusItem("STRUCTURE", structureDotColor(item.structureEvent, item.structureDirection, colors), colors)
         }
     }
 }
@@ -303,11 +305,17 @@ private fun momentumDotColor(node: PairNode, colors: AtomColors): Color =
 private fun volatilityDotColor(node: PairNode, colors: AtomColors): Color =
     if (node.volatility in 20..70) colors.bull else colors.watch
 
-// Same BOS/CHoCH convention as PairSheet.kt's own Overview `structureRow` — BOS confirms the
-// existing trend (bull-tinted), CHoCH is a live reversal warning (bear-tinted), no recent event
-// reads as neutral, same as every other dot here when there's nothing to report.
-private fun structureDotColor(event: String?, colors: AtomColors): Color = when (event) {
-    "BOS" -> colors.bull
-    "CHoCH" -> colors.bear
+// Same convention as PairSheet.kt's own Overview `structureRow` — 2026-09-09 (Pieter's ask):
+// coloured by the event's own `direction` (real price direction), not by event type (BOS/CHoCH
+// used to be hardcoded bull/bear regardless of which way they actually broke). No recent event
+// still reads as neutral, same as every other dot here when there's nothing to report — the
+// backend sends event as the literal string "none" (not JSON null) in that case, so this matches
+// on "BOS"/"CHoCH" first rather than checking for null, same as PairSheet's own row does.
+private fun structureDotColor(event: String?, direction: String?, colors: AtomColors): Color = when (event) {
+    "BOS", "CHoCH" -> when (direction) {
+        "bull" -> colors.bull
+        "bear" -> colors.bear
+        else -> colors.textMuted
+    }
     else -> colors.textMuted
 }

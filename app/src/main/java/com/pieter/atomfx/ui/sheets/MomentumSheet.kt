@@ -109,9 +109,14 @@ private fun deltaText(delta: Int): String {
     return "$sign$delta"
 }
 
+// 2026-09-09 (Pieter's ask) — the 41-59 dead zone used `colors.watch` (amber, this app's
+// "caution/outside the sane band" colour, e.g. Volatility's own watch state) which doesn't fit
+// what this band actually means: not a warning, just genuine indecision (the composite reading
+// too close to neutral to call a side). "Isn't grey the colour of indecision?" — `colors.neutral`
+// is exactly that elsewhere (pill neutral, direction-less state), so this band now matches.
 private fun cmpColor(cmp: Int?, colors: AtomColors) = when {
     cmp == null -> colors.textMuted
     cmp >= 60 -> colors.bull
     cmp <= 40 -> colors.bear
-    else -> colors.watch
+    else -> colors.neutral
 }
