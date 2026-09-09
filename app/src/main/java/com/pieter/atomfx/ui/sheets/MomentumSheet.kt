@@ -36,6 +36,15 @@ import com.pieter.atomfx.ui.theme.lighten
  * the smaller shared height. Value stays plain `textPrimary` exactly as before; only the delta
  * gets the electric-pill's dark-mode `lighten()` contrast fix, since it now sits on the same
  * near-black alpha wash the old opaque lerp fill didn't need it against.
+ *
+ * Same day, found live (Pieter's own catch, "should it be red if the value is 58?") — the pill's
+ * wash/hue was driven by the delta's sign, not the value: 58 (bullish territory, >= the 50
+ * neutral line) with a negative delta rendered as a bear-red pill, contradicting this same
+ * sheet's Overview tab (`overviewRows`' momentumRow: `tint = if (momentum >= 50) BULL else BEAR`)
+ * and the wheel's own Momentum wing (`WheelCanvas.modeHue`: same `>= 50` rule) — both of which
+ * read this identical number as bullish. Now the pill wash/value colour is value-based (matching
+ * both), and only the small delta number keeps its own delta-sign colour — still shows
+ * strengthening/weakening without contradicting the headline read.
  */
 @Composable
 fun MomentumTabContent(mom: Momentum?, colors: AtomColors) {
@@ -57,9 +66,10 @@ fun MomentumTabContent(mom: Momentum?, colors: AtomColors) {
 
 @Composable
 private fun MomBar(label: String, value: Int?, delta: Int?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val hue = directionHue(delta, colors)
+    val hue = valueHue(value, colors)
     val isDark = colors == DarkColors
-    val deltaColor = if (isDark) lighten(hue, 0.45f) else hue
+    val deltaHue = directionHue(delta, colors)
+    val deltaColor = if (isDark) lighten(deltaHue, 0.45f) else deltaHue
     SmallPillCell(label, hue, colors, modifier) {
         Text(text = value?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
         if (delta != null) {
@@ -77,6 +87,16 @@ private fun CmpBar(cmp: Int?, colors: AtomColors, modifier: Modifier = Modifier)
     }
 }
 
+// Value-based, matching this same sheet's Overview tab (`overviewRows`' momentumRow) and the
+// wheel's own Momentum wing (`WheelCanvas.modeHue`) — the pill's headline colour, not the delta's.
+private fun valueHue(value: Int?, colors: AtomColors): Color = when {
+    value == null -> colors.neutral
+    value >= 50 -> colors.bull
+    else -> colors.bear
+}
+
+// Delta-sign-based — used only for the small delta number's own colour (strengthening/weakening),
+// never for the pill's headline wash any more (see this file's own doc comment).
 private fun directionHue(delta: Int?, colors: AtomColors): Color = when {
     delta == null -> colors.neutral
     delta > 0 -> colors.bull
