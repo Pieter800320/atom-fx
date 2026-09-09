@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-09T20:38:19.013247+00:00",
+  "updated": "2026-09-09T21:50:33.113518+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -898,20 +898,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4440.0,
-      "delta_pct": 1.0,
+      "value": 4447.2,
+      "delta_pct": 1.2,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.824,
-      "delta_pct": -0.0,
+      "value": 98.768,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.85,
-      "delta_pct": 1.6,
+      "value": 6.8525,
+      "delta_pct": 1.7,
       "direction": "up",
       "label": "Copper"
     },
@@ -928,14 +928,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 96.77,
-      "delta_pct": 4.0,
+      "value": 96.67,
+      "delta_pct": 3.9,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78302.0,
-      "delta_pct": -0.2,
+      "value": 78032.0,
+      "delta_pct": -0.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -959,12 +959,12 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 2.1,
+      "delta_pct": 2.3,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -0.8,
+      "delta_pct": -0.9,
       "label": "DXY"
     },
     "copper": {
@@ -984,12 +984,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 7.3,
+      "delta_pct": 7.1,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.7,
+      "delta_pct": -2.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -999,11 +999,11 @@
     }
   },
   "catalyst": {
-    "text": "USD/JPY weakness conflicts with CADJPY SHORT. Yen strength accelerates JPY pairs lower, pressuring CAD relative strength.",
-    "updated": "2026-09-09T20:38:19.013247+00:00"
+    "text": "USD/JPY weakness conflicts CADJPY SHORT. Yen strength via safe-haven flows undermines carry unwind thesis.",
+    "updated": "2026-09-09T21:50:33.113518+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold and equities weakness confirm JPY bid strength thesis.\n\nNZDUSD SHORT: Mixed macro provides no directional confirmation for this pair.\n\nCADJPY SHORT: Gold strength and risk-off environment reinforce safe-haven JPY demand.",
+    "text": "NZDJPY SHORT: Gold rising and equities falling both confirm JPY strength bid.\n\nNZDUSD SHORT: Mixed macro provides no directional confirmation for this short setup.\n\nCADJPY SHORT: Gold and equity weakness reinforce the JPY safe haven demand.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -1021,7 +1021,7 @@
         "score": 6.8
       }
     ],
-    "updated": "2026-09-09T20:38:19.013247+00:00"
+    "updated": "2026-09-09T21:50:33.113518+00:00"
   },
   "calendar": {
     "events": [
@@ -1086,7 +1086,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-09T20:38:19.013247+00:00"
+    "updated": "2026-09-09T21:50:33.113518+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today. Gold\u2019s rise alongside a softer dollar index points toward a risk-on tilt, yet the jump in VIX and modest equity pullback suggest lingering caution beneath the surface, while BTC\u2019s mild gain leans risk-friendly. Oil and copper strength hints at firmer global demand, supporting commodity-linked currencies. Headlines center on shifting Fed rate-hike expectations against ECB tightening, keeping the dollar\u2019s broader trend uncertain. With US CPI data due within hours alongside ECB and BoE decisions, vol",
@@ -1094,16 +1094,16 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar Tests New Lows Against Japanese Yen; USD/JPY Weakness",
-      "Fed Hike Bets Rise as ECB Tightening Supports Euro Strength",
-      "DXY Weakens Ahead of NFP; EUR/USD and GBP/USD Recover"
+      "US Dollar tests new lows against Japanese Yen amid mixed Fed signals",
+      "Fed hike bets rise as ECB tightening supports Euro strength",
+      "DXY weakens ahead of NFP; EUR/USD and GBP/USD recover"
     ],
     "themes": [
-      "usd",
+      "rates",
       "rates",
       "usd"
     ],
-    "updated": "2026-09-09T20:38:19.013247+00:00"
+    "updated": "2026-09-09T21:50:33.113518+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
