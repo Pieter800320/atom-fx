@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Pills
 import com.pieter.atomfx.ui.theme.AtomColors
@@ -62,10 +61,10 @@ private fun TfPill(label: String, pill: String?, colors: AtomColors, isDark: Boo
     // Same electric-pill text-colour rule as ScrollingPills: lighten(tint, 0.45) only reads
     // correctly against a near-black wash — light theme's tint is already tuned to sit on white.
     val textColor = if (isDark) lighten(tint, 0.45f) else tint
+    // 2026-09-09 (Pieter's ask) — matches MOM's own value-number style exactly (AtomType.Body, no
+    // weight override), not Caption; only the colour differs (tinted here vs MOM's plain
+    // textPrimary, since this pill's whole job is to carry that tint).
     SmallPillCell(label, tint, colors, modifier) {
-        Text(
-            text = pillAbbrev(pill),
-            style = AtomType.Caption.copy(color = textColor, fontWeight = FontWeight.Normal),
-        )
+        Text(text = pillAbbrev(pill), style = AtomType.Body.copy(color = textColor))
     }
 }
