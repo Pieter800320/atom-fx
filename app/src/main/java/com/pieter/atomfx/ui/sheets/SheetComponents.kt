@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -95,6 +98,39 @@ fun BarMeter(fraction: Float, color: Color, colors: AtomColors, modifier: Modifi
 @Composable
 fun NotAvailableRow(label: String, colors: AtomColors) {
     SheetRow(label = label, value = "Not available yet", colors = colors, valueColor = colors.textMuted)
+}
+
+// 2026-09-09 (Pieter's ask) — the label-above/small-wash-squircle shape shared by Breakdown's
+// ALIGNMENT pills (TfAlignmentStrip) and MOMENTUM bars (MomentumSheet), so the two rows read as
+// one visual family: "style the Momentum pills like the technical pills now for uniformity."
+// Same size/corner-radius/wash either way; content stays per-caller (RowScope) since Alignment
+// shows one value and MOM shows a value plus a differently-coloured delta inline beside it — only
+// the shape/size/wash needed to match, not the text itself ("keep the text like MOM's pills are
+// now" — MOM's own value/delta styling is untouched, just laid out inside this shared shell).
+private val SMALL_PILL_HEIGHT = 26.dp
+private val SMALL_PILL_SHAPE = RoundedCornerShape(11.dp)
+
+@Composable
+fun SmallPillCell(
+    label: String,
+    tint: Color,
+    colors: AtomColors,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(SMALL_PILL_HEIGHT)
+                .background(tint.copy(alpha = 0.18f), SMALL_PILL_SHAPE),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            content = content,
+        )
+    }
 }
 
 // = WheelScreen's own `TF_BUTTON_SHAPE` (matches StatusStrip's Summary-button CARD_SHAPE).

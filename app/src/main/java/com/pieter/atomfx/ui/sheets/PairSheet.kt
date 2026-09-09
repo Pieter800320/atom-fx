@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -122,6 +123,9 @@ fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors
 @Composable
 private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth()) {
+        // Pieter, 2026-09-09 — more room than SheetTabs' own 16dp bottom padding gives: the tab
+        // row and this first section were reading too close together.
+        Spacer(modifier = Modifier.height(8.dp))
         BreakdownSection("ALIGNMENT", colors) { TfAlignmentStrip(pairBlock?.pills, colors) }
         SheetDivider(colors)
         BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }

@@ -1,34 +1,19 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Momentum
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
-
-// Matches ScrollingPills' ELECTRIC_PILL_SHAPE — same squircle, just twice the height (a bar has
-// two lines of text to carry, a pill has one).
-private val MOM_BAR_SHAPE = RoundedCornerShape(11.dp)
-private val MOM_BAR_HEIGHT = 52.dp
-// Same "evidence" wash formula as Macro's EvidenceAxes / PairSheet's WhyChecklist — an opaque
-// subtle lerp toward the hue, not an alpha-composited wash — Pieter, 2026-09-03: "make the wash
-// subtler, like the treatment you gave the evidence bars in Macro."
-private const val MOM_LIT_AMOUNT = 0.08f
+import com.pieter.atomfx.ui.theme.DarkColors
+import com.pieter.atomfx.ui.theme.lighten
 
 /**
  * Design §14.4 — `pairs.<PAIR>.mom` is frozen, so this tab is always fully populated.
@@ -42,6 +27,15 @@ private const val MOM_LIT_AMOUNT = 0.08f
  * Follow-up, same day: the timeframe label moved outside and above the square (centred), the
  * square itself now just centres a white value with a smaller coloured delta beneath, no arrow
  * glyph, and the wash uses the subtler evidence-style lerp instead of the pill's alpha wash.
+ *
+ * 2026-09-09 (Pieter's ask, Pair Sheet reorg follow-up) — "style the Momentum pills like the
+ * technical pills now for uniformity, but... keep the text like MOM's pills are now": bars moved
+ * onto the shared `SmallPillCell` (SheetComponents.kt) — same shape/height/wash as Breakdown's
+ * ALIGNMENT pills directly above this section — and the delta moved inline beside the value
+ * (same two font styles/colours as before, just side by side instead of stacked) so it still fits
+ * the smaller shared height. Value stays plain `textPrimary` exactly as before; only the delta
+ * gets the electric-pill's dark-mode `lighten()` contrast fix, since it now sits on the same
+ * near-black alpha wash the old opaque lerp fill didn't need it against.
  */
 @Composable
 fun MomentumTabContent(mom: Momentum?, colors: AtomColors) {
@@ -64,22 +58,13 @@ fun MomentumTabContent(mom: Momentum?, colors: AtomColors) {
 @Composable
 private fun MomBar(label: String, value: Int?, delta: Int?, colors: AtomColors, modifier: Modifier = Modifier) {
     val hue = directionHue(delta, colors)
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Spacer(modifier = Modifier.height(4.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(MOM_BAR_HEIGHT)
-                .background(lerp(colors.surfaceRaised, hue, MOM_LIT_AMOUNT), MOM_BAR_SHAPE)
-                .padding(horizontal = 6.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = value?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
-            if (delta != null) {
-                Text(text = deltaText(delta), style = AtomType.Caption.copy(color = hue))
-            }
+    val isDark = colors == DarkColors
+    val deltaColor = if (isDark) lighten(hue, 0.45f) else hue
+    SmallPillCell(label, hue, colors, modifier) {
+        Text(text = value?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
+        if (delta != null) {
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = deltaText(delta), style = AtomType.Caption.copy(color = deltaColor))
         }
     }
 }
@@ -87,20 +72,8 @@ private fun MomBar(label: String, value: Int?, delta: Int?, colors: AtomColors, 
 @Composable
 private fun CmpBar(cmp: Int?, colors: AtomColors, modifier: Modifier = Modifier) {
     val hue = cmpColor(cmp, colors)
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "CMP", style = AtomType.Caption.copy(color = colors.textMuted))
-        Spacer(modifier = Modifier.height(4.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(MOM_BAR_HEIGHT)
-                .background(lerp(colors.surfaceRaised, hue, MOM_LIT_AMOUNT), MOM_BAR_SHAPE)
-                .padding(horizontal = 6.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = cmp?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
-        }
+    SmallPillCell("CMP", hue, colors, modifier) {
+        Text(text = cmp?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
     }
 }
 
