@@ -182,6 +182,32 @@ def main():
     print(f"  H4: {dict(sorted(csm['h4'].items(), key=lambda x: -x[1]))}")
     print(f"  H1: {dict(sorted(csm['h1'].items(), key=lambda x: -x[1]))}")
 
+    # CSM dispersion percentile (EXTEND, 2026-09-06, Rule #1 sign-off) — computed here,
+    # ahead of the usual "EXTEND layer" block further down, because regime classification
+    # and compute_cont() (both frozen, steps 8/9 below) need it. History round-trips through
+    # signals.json itself (prev.csm.dispersion_history -> this scan's csm.dispersion_history),
+    # same pattern conviction.py's own prev_conviction already uses — no separate state file.
+    # Wrapped in its own try/except so an EXTEND-layer failure can never block frozen
+    # regime/cont computation — falling back to {"d1": None, ...} (every TF's gate off) is
+    # exactly the same "no history yet" state a fresh run already produces on purpose.
+    csm_dispersion_pct = {"d1": None, "h4": None, "h1": None}
+    _low_dispersion_pct = 20  # matches csm_dispersion.LOW_DISPERSION_PCT; fallback if that import itself fails
+    try:
+        from scanner.extend import csm_dispersion as _csm_dispersion
+        prev_dispersion_history = (prev.get("csm") or {}).get("dispersion_history")
+        csm_dispersion_pct, _dispersion_history = _csm_dispersion.compute_dispersion_percentile(
+            csm.get("dispersion", {}), prev_dispersion_history,
+        )
+        csm["dispersion_history"] = _dispersion_history  # rides through into out["csm"] below
+        _low_dispersion_pct = _csm_dispersion.LOW_DISPERSION_PCT
+        print(f"  CSM dispersion percentile: {csm_dispersion_pct}")
+    except Exception as e:
+        print(f"  [extend] csm_dispersion error (frozen data unaffected): {e}")
+
+    def _csm_unreliable(tf: str) -> bool:
+        pct = csm_dispersion_pct.get(tf)
+        return pct is not None and pct < _low_dispersion_pct
+
     # ── 6. ADX + per-pair entry metrics ───────────────────────────────────────
     print("\n[6/9] Extracting ADX, reset_score, atr_percentile…")
     pair_adx        = {}
@@ -222,9 +248,9 @@ def main():
 
     # ── 8. D1 / H4 / H1 Regime ───────────────────────────────────────────────
     print("\n[8/9] Computing D1 / H4 / H1 regimes…")
-    regime_d1 = classify_regime(csm["d1"], pair_pills, prev_d1_regime, tf="d1")
-    regime_h4 = classify_regime(csm["h4"], pair_pills, prev_h4_regime, tf="h4")
-    regime_h1 = classify_regime(csm["h1"], pair_pills, prev_h1_regime, tf="h1")
+    regime_d1 = classify_regime(csm["d1"], pair_pills, prev_d1_regime, tf="d1", csm_unreliable=_csm_unreliable("d1"))
+    regime_h4 = classify_regime(csm["h4"], pair_pills, prev_h4_regime, tf="h4", csm_unreliable=_csm_unreliable("h4"))
+    regime_h1 = classify_regime(csm["h1"], pair_pills, prev_h1_regime, tf="h1", csm_unreliable=_csm_unreliable("h1"))
     new_regime_name = regime_h4["regime"]
 
     # Confluence: all three agree on the same non-Mixed/non-Ranging regime
@@ -256,14 +282,15 @@ def main():
         h4_structure = (pair_scores.get(key, {}).get("h4") or {}).get("structure")
 
         cont = compute_cont(
-            pair         = key,
-            pills        = pills,
-            adx          = adx,
-            csm_h4       = csm["h4"],
-            regime_h4    = regime_h4,
-            reset_score  = pair_reset.get(key),
-            atr_pct      = pair_atr_pct.get(key),
-            structure_h4 = h4_structure,
+            pair           = key,
+            pills          = pills,
+            adx            = adx,
+            csm_h4         = csm["h4"],
+            regime_h4      = regime_h4,
+            reset_score    = pair_reset.get(key),
+            atr_pct        = pair_atr_pct.get(key),
+            structure_h4   = h4_structure,
+            csm_unreliable = _csm_unreliable("h4"),
         )
 
         d1_df       = ohlcv.get(key, {}).get("d1")

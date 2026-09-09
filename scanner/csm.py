@@ -62,18 +62,12 @@ def _adj_return(df: pd.DataFrame, lookback: int = LOOKBACK) -> float | None:
 
 
 # ── D1 CSM ────────────────────────────────────────────────────────────────────
-def compute_csm_d1(ohlcv: dict) -> dict:
-    """
-    D1 currency strength (0–100, 100=strongest).
-    Uses D1 (70%) + H4 (30%) ATR-normalised 14-bar returns across 16 pairs.
-    ohlcv keys like "EURUSD" → {"d1": df, "h4": df}
-    """
-    raw    = {c: [] for c in CURRENCIES}
+def _raw_d1(ohlcv: dict) -> dict:
+    """ohlcv keys like "EURUSD" → {"d1": df, "h4": df}. D1 (70%) + H4 (30%) blend."""
+    raw = {c: [] for c in CURRENCIES}
 
     for pair in STRENGTH_PAIRS:
         key   = pair.replace("/", "")
-        base  = pair[:3]
-        quote = pair[3:] if "/" not in pair else pair.split("/")[1]
         base  = pair.split("/")[0]
         quote = pair.split("/")[1]
 
@@ -91,15 +85,18 @@ def compute_csm_d1(ohlcv: dict) -> dict:
         if quote in raw:
             raw[quote].append(-combined)
 
-    return _normalise(raw)
+    return raw
+
+
+def compute_csm_d1(ohlcv: dict) -> dict:
+    """D1 currency strength (0–100, 100=strongest). See _raw_d1 for the underlying blend."""
+    normalised, _spread = _normalise(_raw_d1(ohlcv))
+    return normalised
 
 
 # ── H4 CSM ────────────────────────────────────────────────────────────────────
-def compute_csm_h4(ohlcv: dict) -> dict:
-    """
-    H4 currency strength (0–100, 100=strongest).
-    Uses H4 5-bar (80%) + H1 8-bar (20%) ATR-normalised returns across 16 pairs.
-    """
+def _raw_h4(ohlcv: dict) -> dict:
+    """H4 5-bar (80%) + H1 8-bar (20%) blend."""
     raw = {c: [] for c in CURRENCIES}
 
     for pair in STRENGTH_PAIRS:
@@ -121,17 +118,39 @@ def compute_csm_h4(ohlcv: dict) -> dict:
         if quote in raw:
             raw[quote].append(-combined)
 
-    return _normalise(raw)
+    return raw
+
+
+def compute_csm_h4(ohlcv: dict) -> dict:
+    """H4 currency strength (0–100, 100=strongest). See _raw_h4 for the underlying blend."""
+    normalised, _spread = _normalise(_raw_h4(ohlcv))
+    return normalised
 
 
 # ── Normalise to 0-100 ────────────────────────────────────────────────────────
-def _normalise(raw: dict) -> dict:
-    avg    = {c: float(np.mean(v)) if v else 0.0 for c, v in raw.items()}
-    vals   = list(avg.values())
-    min_v  = min(vals)
-    max_v  = max(vals)
-    spread = max_v - min_v if max_v != min_v else 1.0
-    return {c: round((avg[c] - min_v) / spread * 100, 1) for c in CURRENCIES}
+def _normalise(raw: dict) -> tuple[dict, float]:
+    """
+    Returns (normalised 0-100 dict, raw_spread).
+
+    raw_spread is the PRE-normalisation gap between the strongest and weakest currency's
+    average ATR-normalised return — 2026-09-06 addition (Rule #1 sign-off), not previously
+    exposed. Min-max rescaling always stretches whatever gap exists to fill exactly 0-100
+    every scan, so the 0-100 values alone can't tell "today's real dispersion is wide" from
+    "today's basket is thin and got stretched anyway" — that's what raw_spread is for. See
+    `scanner/extend/csm_dispersion.py` for how it's turned into a trustworthy signal (a
+    fixed floor on raw_spread doesn't work — calibration on synthetic data showed its
+    distribution looks the same whether there's real cross-currency signal or none, because
+    ATR-normalisation is deliberately volatility-invariant; it needs percentile-ranking
+    against its own recent history instead, the same idea atr_percentile() already uses).
+    """
+    avg        = {c: float(np.mean(v)) if v else 0.0 for c, v in raw.items()}
+    vals       = list(avg.values())
+    min_v      = min(vals)
+    max_v      = max(vals)
+    raw_spread = max_v - min_v
+    spread     = raw_spread if raw_spread != 0 else 1.0
+    normalised = {c: round((avg[c] - min_v) / spread * 100, 1) for c in CURRENCIES}
+    return normalised, raw_spread
 
 
 H1_ONLY_LOOKBACK = 6   # H1 CSM: 6 H1 bars ≈ 6 hours
@@ -139,11 +158,8 @@ H1_ONLY_W        = 1.0 # pure H1, no blend
 
 
 # ── H1 CSM ────────────────────────────────────────────────────────────────────
-def compute_csm_h1(ohlcv: dict) -> dict:
-    """
-    H1 currency strength (0–100, 100=strongest).
-    Uses H1 6-bar ATR-normalised returns across 16 pairs — pure H1, no blend.
-    """
+def _raw_h1(ohlcv: dict) -> dict:
+    """Pure H1, no blend."""
     raw = {c: [] for c in CURRENCIES}
 
     for pair in STRENGTH_PAIRS:
@@ -161,17 +177,35 @@ def compute_csm_h1(ohlcv: dict) -> dict:
         if quote in raw:
             raw[quote].append(-h1_ret)
 
-    return _normalise(raw)
+    return raw
+
+
+def compute_csm_h1(ohlcv: dict) -> dict:
+    """H1 currency strength (0–100, 100=strongest). See _raw_h1 for the underlying return."""
+    normalised, _spread = _normalise(_raw_h1(ohlcv))
+    return normalised
 
 
 # ── Public entry point ────────────────────────────────────────────────────────
 def compute_csm(ohlcv: dict) -> dict:
     """
     Compute D1, H4 and H1 CSM.
-    Returns {"d1": {cur: 0-100}, "h4": {cur: 0-100}, "h1": {cur: 0-100}}
+    Returns {"d1": {cur: 0-100}, "h4": {cur: 0-100}, "h1": {cur: 0-100},
+             "dispersion": {"d1": float, "h4": float, "h1": float}}
+
+    "dispersion" (2026-09-06 addition) is additive — every existing key/value is unchanged
+    byte-for-byte, this only adds a new one. See _normalise's own doc comment for what it is.
     """
+    d1_norm, d1_spread = _normalise(_raw_d1(ohlcv))
+    h4_norm, h4_spread = _normalise(_raw_h4(ohlcv))
+    h1_norm, h1_spread = _normalise(_raw_h1(ohlcv))
     return {
-        "d1": compute_csm_d1(ohlcv),
-        "h4": compute_csm_h4(ohlcv),
-        "h1": compute_csm_h1(ohlcv),
+        "d1": d1_norm,
+        "h4": h4_norm,
+        "h1": h1_norm,
+        "dispersion": {
+            "d1": round(d1_spread, 4),
+            "h4": round(h4_spread, 4),
+            "h1": round(h1_spread, 4),
+        },
     }

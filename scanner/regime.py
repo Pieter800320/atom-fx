@@ -9,6 +9,9 @@ Four votes are cast:
   3. Risk basket: average of risk pair scores from pills
   4. Ranging override: if <40% pairs have directional pills, force Ranging
 
+Votes 1 & 2 can be forced to "mixed" via the caller-supplied `csm_unreliable` flag
+(2026-09-06) — see classify_regime's own doc comment.
+
 Output:
   {
     "regime":     "Risk-Off" | "Risk-On" | "Mixed" | "Ranging",
@@ -20,12 +23,23 @@ Output:
 from scanner.config import PAIRS
 
 
-def classify_regime(csm: dict, pair_pills: dict, prev_regime: dict | None, tf: str = "h4") -> dict:
+def classify_regime(csm: dict, pair_pills: dict, prev_regime: dict | None, tf: str = "h4",
+                     csm_unreliable: bool = False) -> dict:
     """
-    csm         — CSM scores for the target TF {cur: 0-100}
-    pair_pills  — { "EURUSD": {"d1": "bear_strong"|..., "h4": ..., "h1": ...}, ... }
-    prev_regime — previous regime dict (for stability flag)
-    tf          — timeframe to read from pair_pills: "d1" | "h4" | "h1"
+    csm            — CSM scores for the target TF {cur: 0-100}
+    pair_pills     — { "EURUSD": {"d1": "bear_strong"|..., "h4": ..., "h1": ...}, ... }
+    prev_regime    — previous regime dict (for stability flag)
+    tf             — timeframe to read from pair_pills: "d1" | "h4" | "h1"
+    csm_unreliable — 2026-09-06 (Rule #1 sign-off), default False (no behaviour change unless
+                     a caller opts in). Votes 1 & 2 are both CSM-based point-gap checks; a
+                     caller should pass True when this TF's own CSM dispersion ranks
+                     unusually low against its recent history (see
+                     scanner.extend.csm_dispersion.compute_dispersion_percentile and its
+                     LOW_DISPERSION_PCT floor) — on a thin-dispersion day, those point-gaps
+                     are more likely rescaling noise than a real signal, so both votes are
+                     forced to "mixed" rather than trusted. Kept as a plain bool (not a raw
+                     percentile + threshold) so this frozen file doesn't need to import
+                     anything from scanner.extend to decide the cutoff itself.
     """
     # ── Vote 1: safe-haven divergence ─────────────────────────────────────────
     safe_havens = ["JPY", "CHF"]
@@ -34,16 +48,20 @@ def classify_regime(csm: dict, pair_pills: dict, prev_regime: dict | None, tf: s
     sh_avg   = sum(csm.get(c, 50) for c in safe_havens)  / len(safe_havens)
     risk_avg = sum(csm.get(c, 50) for c in risk_currs)   / len(risk_currs)
 
-    v1 = "risk_off" if sh_avg > risk_avg + 15 else \
-         "risk_on"  if risk_avg > sh_avg + 15 else "mixed"
+    v1 = "mixed" if csm_unreliable else (
+        "risk_off" if sh_avg > risk_avg + 15 else
+        "risk_on"  if risk_avg > sh_avg + 15 else "mixed"
+    )
 
     # ── Vote 2: USD proxy ──────────────────────────────────────────────────────
     usd = csm.get("USD", 50)
     non_usd_risk = ["EUR", "GBP", "AUD", "NZD"]
     non_usd_avg  = sum(csm.get(c, 50) for c in non_usd_risk) / len(non_usd_risk)
 
-    v2 = "risk_off" if usd > non_usd_avg + 20 else \
-         "risk_on"  if non_usd_avg > usd + 20  else "mixed"
+    v2 = "mixed" if csm_unreliable else (
+        "risk_off" if usd > non_usd_avg + 20 else
+        "risk_on"  if non_usd_avg > usd + 20  else "mixed"
+    )
 
     # ── Vote 3: risk basket (pill direction of risk pairs at target TF) ────────
     risk_pairs = ["AUDUSD", "NZDUSD", "GBPUSD", "EURUSD", "AUDJPY", "NZDJPY"]

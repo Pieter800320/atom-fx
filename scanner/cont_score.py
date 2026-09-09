@@ -132,18 +132,19 @@ def pill_direction(pills: dict) -> str | None:
 
 
 def compute_cont(pair, pills, adx, csm_h4, regime_h4,
-                 reset_score=None, atr_pct=None, structure_h4=None):
+                 reset_score=None, atr_pct=None, structure_h4=None, csm_unreliable=False):
     """
     Compute continuation score for one pair (0-100).
 
-    pair         : "EURUSD" etc.
-    pills        : {"d1": "bear", "h4": "bear_strong", "h1": "bear"}
-    adx          : H4 ADX float or None
-    csm_h4       : {"USD": 80, "EUR": 20, ...}
-    regime_h4    : {"regime": "Risk-Off", ...}
-    reset_score  : 0-100 from compute_reset_score() or None
-    atr_pct      : 0-100 from atr_percentile() or None
-    structure_h4 : pairs.<PAIR>.structure.h4 dict or None (2026-09-06, see _structure_component)
+    pair           : "EURUSD" etc.
+    pills          : {"d1": "bear", "h4": "bear_strong", "h1": "bear"}
+    adx            : H4 ADX float or None
+    csm_h4         : {"USD": 80, "EUR": 20, ...}
+    regime_h4      : {"regime": "Risk-Off", ...}
+    reset_score    : 0-100 from compute_reset_score() or None
+    atr_pct        : 0-100 from atr_percentile() or None
+    structure_h4   : pairs.<PAIR>.structure.h4 dict or None (2026-09-06, see _structure_component)
+    csm_unreliable : bool, default False (2026-09-06, see the CSM DIVERGENCE section below)
     """
     base  = pair[:3]
     quote = pair[3:]
@@ -203,6 +204,16 @@ def compute_cont(pair, pills, adx, csm_h4, regime_h4,
                  7  if csm_div >= 15 else
                  5  if csm_div >= 5  else
                  3  if csm_div >= -5 else 1)
+    # 2026-09-06 (Rule #1 sign-off) — csm_h4 is always min-max rescaled to fill 0-100 every
+    # scan (csm.py::_normalise), so csm_div's absolute size alone can't tell "today's real
+    # H4 dispersion is wide" from "today's whole basket is thin and got stretched anyway".
+    # A caller should pass True when H4's own CSM dispersion percentile
+    # (scanner.extend.csm_dispersion) ranks unusually low against its recent history — caps
+    # this component at the same "no reliable info" 5 every other component already falls
+    # back to, rather than letting a rescaled-noise gap earn the full 10. Default False: no
+    # behaviour change unless a caller opts in.
+    if csm_unreliable:
+        csm_score = min(csm_score, 5)
 
     # 4. REGIME FIT (13%)
     regime          = regime_h4.get("regime", "Mixed")
