@@ -284,7 +284,7 @@
     "CADJPY": {
       "adx": 30.0,
       "atr_pct": 80,
-      "cont": 57,
+      "cont": 63,
       "mom": {
         "cmp": 64,
         "d1": 72,
@@ -487,7 +487,7 @@
     "USDCAD": {
       "adx": 31.9,
       "atr_pct": 69,
-      "cont": 64,
+      "cont": 70,
       "mom": {
         "cmp": 37,
         "d1": 30,
@@ -574,6 +574,27 @@
   },
   "rank": [
     {
+      "adx": 31.9,
+      "cmp": 37,
+      "cont": 70,
+      "cross_signals": [],
+      "csm_base": 0.0,
+      "csm_quote": 66.1,
+      "dd1": -17,
+      "direction": "bear",
+      "pair": "USDCAD",
+      "regime": "Ranging",
+      "score": 7.17,
+      "scores": {
+        "cmp": 10,
+        "cont": 4.5,
+        "cross": 5,
+        "csm": 10,
+        "mom_dlt": 7,
+        "regime": 5
+      }
+    },
+    {
       "adx": 36.2,
       "cmp": 61,
       "cont": 79,
@@ -595,30 +616,9 @@
       }
     },
     {
-      "adx": 31.9,
-      "cmp": 37,
-      "cont": 64,
-      "cross_signals": [],
-      "csm_base": 0.0,
-      "csm_quote": 66.1,
-      "dd1": -17,
-      "direction": "bear",
-      "pair": "USDCAD",
-      "regime": "Ranging",
-      "score": 6.92,
-      "scores": {
-        "cmp": 10,
-        "cont": 3.5,
-        "cross": 5,
-        "csm": 10,
-        "mom_dlt": 7,
-        "regime": 5
-      }
-    },
-    {
       "adx": 30.0,
       "cmp": 64,
-      "cont": 57,
+      "cont": 63,
       "cross_signals": [],
       "csm_base": 66.1,
       "csm_quote": 35.5,
@@ -626,10 +626,10 @@
       "direction": "bull",
       "pair": "CADJPY",
       "regime": "Ranging",
-      "score": 4.95,
+      "score": 5.22,
       "scores": {
         "cmp": 10,
-        "cont": 2.2,
+        "cont": 3.3,
         "cross": 5,
         "csm": 7,
         "mom_dlt": 0,

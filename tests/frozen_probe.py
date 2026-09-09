@@ -13,7 +13,23 @@ the automated guardian of Rule #1.
 
 This file is TEST code — it is allowed to import and call the frozen modules,
 but it never modifies them.
+
+2026-09-09 — cont_score.py's Session Fit component reads the real wall clock
+(`datetime.now(timezone.utc)`), which makes compute_cont() NOT a pure function
+of its declared arguments: the same fixture can score differently depending on
+what real-world instant the probe happens to run at, and specifically flips
+whenever a UTC session boundary (7/8/12/16/21/22/23) is crossed between golden
+generation and test execution — this is exactly what caused a same-commit CI
+failure (golden regenerated locally, CI re-ran the probe ~1 UTC-hour-boundary
+later, several pairs' Session Fit — and therefore `cont` — silently differed).
+Frozen production code is correctly using real time here; the fix belongs in
+this TEST-only file: freeze `cont_score.datetime` to a fixed instant (a
+Wednesday, safely mid-session on both sides) for the duration of the probe, so
+compute_frozen() is finally a true pure function of FIXTURE_SEED alone.
 """
+import datetime as _datetime_module
+from unittest.mock import patch
+
 import numpy as np
 import pandas as pd
 
@@ -33,6 +49,17 @@ FIXTURE_PAIRS = sorted(set(CSM_PAIRS) | set(WHEEL_PAIRS))
 N_H1_BARS = 1300           # H4 ≈ 325 bars, D1 ≈ 54 bars — enough to exercise the pipeline
 FIXTURE_SEED = 20260101    # fixed — DO NOT change (would invalidate the golden)
 ROUND_DP = 6               # rounding tolerance for cross-environment float stability
+
+# Wednesday 14:00 UTC — LN (7-16) and NY (12-21) both active, at least 2h clear of every
+# session boundary (7/8/12/16/21/22/23) so no plausible test-runner delay can cross one.
+FROZEN_NOW = _datetime_module.datetime(2024, 6, 12, 14, 0, 0, tzinfo=_datetime_module.timezone.utc)
+
+
+class _FrozenDatetime(_datetime_module.datetime):
+    """datetime subclass whose .now() always returns FROZEN_NOW, everything else untouched."""
+    @classmethod
+    def now(cls, tz=None):
+        return FROZEN_NOW if tz is not None else FROZEN_NOW.replace(tzinfo=None)
 
 
 # ── deterministic OHLCV fixture ────────────────────────────────────────────────
@@ -101,9 +128,10 @@ def compute_frozen() -> dict:
         reset = compute_reset_score(ohlcv[key]["h4"]["close"].tolist(), direction=h4_dir)
         atrp = atr_percentile(ohlcv[key]["h4"])
         structure = h4_score["structure"] if h4_score else None
-        cont = compute_cont(key, pair_pills[key], adx, out["csm"]["h4"],
-                            out["regime"]["h4"], reset_score=reset, atr_pct=atrp,
-                            structure_h4=structure)
+        with patch("scanner.cont_score.datetime", _FrozenDatetime):
+            cont = compute_cont(key, pair_pills[key], adx, out["csm"]["h4"],
+                                out["regime"]["h4"], reset_score=reset, atr_pct=atrp,
+                                structure_h4=structure)
         out["pairs"][key] = {
             "pills": pair_pills[key],
             "mom": mom,
