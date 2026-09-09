@@ -433,9 +433,17 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
         value = "MOM ${node.momentum}",
     )
 
+    // 2026-09-09 (Pieter's ask) — was OverviewTint.BULL (green) in-band, which meant green read
+    // as "bullish price direction" on every other row but "sane/normal conditions" here — the
+    // same wedge colour carrying two unrelated meanings. Volatility isn't directional at all (see
+    // this row's own explanation), so green never belonged here; NEUTRAL (grey) in-band now
+    // matches CMP's own dead-zone fix (grey = nothing notable), leaving green exclusively
+    // "bullish" everywhere on the sheet. Out-of-band stays WATCH either side (too quiet or
+    // expanding are equally "outside normal," not one worse than the other — the explanation text
+    // below already says which and why, the colour doesn't need to double up on that distinction).
     val volatilityRow = OverviewRow(
         label = "VOLATILITY (D1)",
-        tint = if (node.volatility in 20..70) OverviewTint.BULL else OverviewTint.WATCH,
+        tint = if (node.volatility in 20..70) OverviewTint.NEUTRAL else OverviewTint.WATCH,
         explanation = when {
             node.volatility < 20 -> "Compressed — too quiet to trust a breakout yet."
             node.volatility > 70 -> "Expanding fast — widen stops, or wait for it to settle."

@@ -557,8 +557,11 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
  * on its own — watch-tinted, same register Volatility already uses for "outside the norm."
  * Volatility is different again: it isn't bullish or bearish at all, so direction-tinting it would
  * be meaningless — instead it uses the same 20-70 "sane band" language already established in the
- * Library (`atr-percentile` entry): inside the band reads as calm/tradeable (bull-tinted), outside
- * it (too quiet OR too extended, both flagged the same way) reads as a caution (watch-tinted).
+ * Library (`atr-percentile` entry): inside the band reads as calm/tradeable (grey/neutral-tinted —
+ * 2026-09-09, was bull-tinted; green read as "bullish" on every other wing but "normal conditions"
+ * here, the same colour carrying two unrelated meanings, so it's neutral now, matching the Overview
+ * VOLATILITY row's own fix), outside it (too quiet OR too extended, both flagged the same way, one
+ * isn't worse than the other) reads as a caution (watch-tinted).
  */
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
     WheelMode.OVERALL -> tintForDir(node.direction, colors)
@@ -568,7 +571,7 @@ private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color 
     } else {
         tintForDir(node.trendDirection, colors)
     }
-    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelBull else colors.wheelWatch
+    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelNeutral else colors.wheelWatch
 }
 
 private fun DrawScope.drawPairRing(
