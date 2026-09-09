@@ -5,6 +5,12 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+# Queue overlapping triggers instead of racing on the "Commit data" step's git push
+# (native schedule + the external Apps Script scheduler + a manual dispatch can now
+# all land close together) -- cancel-in-progress: false, never kill a scan mid-write.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   scan:
     runs-on: ubuntu-latest
