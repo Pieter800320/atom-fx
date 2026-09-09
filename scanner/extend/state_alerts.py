@@ -164,6 +164,46 @@ def _pills_aligned(pills: dict) -> str | None:
     return None
 
 
+def _bb_touch_alerts(out: dict, prev: dict) -> list:
+    """
+    Signals Roadmap §5 (Pieter's 2026-09-09 redesign) — fires on a pair's D1 close-basis
+    bb_d1.touching newly becoming "upper" or "lower" (attach_bb_d1 in bb_touch.py must run
+    before this, so out["pairs"][pair]["bb_d1"] exists). No confirmation gate — the touch
+    alone is the whole signal, per that module's own doc comment; direction/context here are
+    informational only, riding along in the message body, never deciding whether it fires.
+
+    direction: touching the upper band flags potential downside (bear), the lower band
+    potential upside (bull) — standard BB reversal framing, not a trade instruction.
+    """
+    alerts = []
+    for pair, block in out.get("pairs", {}).items():
+        bb = block.get("bb_d1")
+        touching = (bb or {}).get("touching")
+        if touching not in ("upper", "lower"):
+            continue
+        prev_bb = prev.get("pairs", {}).get(pair, {}).get("bb_d1")
+        if (prev_bb or {}).get("touching") == touching:
+            continue  # already touching this same band last scan — not a new transition
+
+        direction = "bear" if touching == "upper" else "bull"
+        adx = block.get("adx")
+        reset = block.get("reset_score")
+        pills = block.get("pills") or {}
+        alerts.append({
+            "type": "bb_touch",
+            "pair": pair,
+            "msg": (
+                f"<b>{pair} — D1 Bollinger {touching} touch</b>\n"
+                f"ADX {adx if adx is not None else '—'} · Reset {reset if reset is not None else '—'} · "
+                f"Bands {bb.get('width_trend', 'flat')} · "
+                f"D1/H4/H1 {pills.get('d1', '—')}/{pills.get('h4', '—')}/{pills.get('h1', '—')}"
+            ),
+            "deeplink": f"atomfx://pair/{pair}",
+            "direction": direction,
+        })
+    return alerts
+
+
 def _tf_alignment_alerts(out: dict, prev: dict) -> list:
     alerts = []
     for pair, block in out.get("pairs", {}).items():
@@ -196,4 +236,5 @@ def compute_state_alerts(out: dict, prev: dict) -> list:
     alerts += _archetype_change_alert(out, prev)
     alerts += _volatility_spike_alerts(out, prev)
     alerts += _tf_alignment_alerts(out, prev)
+    alerts += _bb_touch_alerts(out, prev)
     return alerts

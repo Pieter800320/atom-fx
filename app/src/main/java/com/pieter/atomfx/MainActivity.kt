@@ -46,7 +46,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -80,6 +82,7 @@ import com.pieter.atomfx.ui.theme.AtomFxTheme
 import com.pieter.atomfx.ui.theme.AtomTheme
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
+import com.pieter.atomfx.ui.watchlist.WatchlistScreen
 import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreen
 import com.pieter.atomfx.ui.wheel.WheelScreenState
@@ -209,6 +212,9 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
         val pagerState = rememberPagerState(initialPage = AppTab.Wheel.ordinal) { AppTab.entries.size }
         val scope = rememberCoroutineScope()
         var settingsOpen by remember { mutableStateOf(false) }
+        // Signals Roadmap §5 (2026-09-09, Pieter's own nav-placement call) — a sibling side panel
+        // to Settings, reached from its own header icon, not nested inside Settings.
+        var watchlistOpen by remember { mutableStateOf(false) }
         // Pieter, 2026-09-03 follow-up — the calendar affordance moved here from the Wheel-tab-
         // only HeaderBar, next to the gear. BottomSheetHost handles SheetTarget.Calendar as a
         // pure leaf (CalendarSheet(signals, colors), no onNavigate, wheelState unused for this
@@ -239,6 +245,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     isFresh = loaded?.freshness == Freshness.FRESH,
                     hasUnreadNotifications = hasUnreadNotifications,
                     onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
+                    onWatchlistClick = { watchlistOpen = true },
                     onSettingsClick = { settingsOpen = true },
                 )
                 HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
@@ -272,6 +279,19 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     onClose = { settingsOpen = false },
                     onNavigate = { activeAppSheet = it },
                     onOpenReading = { readingTarget = it },
+                )
+            }
+
+            if (watchlistOpen && loaded != null) {
+                BackHandler { watchlistOpen = false }
+                WatchlistScreen(
+                    signals = loaded.signals,
+                    colors = colors,
+                    onPairClick = { pair ->
+                        watchlistOpen = false
+                        activeAppSheet = SheetTarget.Node(pair)
+                    },
+                    onClose = { watchlistOpen = false },
                 )
             }
 
@@ -326,6 +346,7 @@ private fun AtomGearBar(
     isFresh: Boolean,
     hasUnreadNotifications: Boolean,
     onCalendarClick: () -> Unit,
+    onWatchlistClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -357,6 +378,12 @@ private fun AtomGearBar(
             CalendarGlyph(
                 colors = colors,
                 modifier = Modifier.padding(start = 16.dp).pressWash { tap(onCalendarClick) },
+            )
+            // Signals Roadmap §5 (2026-09-09, Pieter's own call) — its own header icon, a sibling
+            // to Settings' gear, not nested inside Settings.
+            WatchlistGlyph(
+                colors = colors,
+                modifier = Modifier.padding(start = 14.dp).pressWash { tap(onWatchlistClick) },
             )
             Box(modifier = Modifier.padding(start = 14.dp)) {
                 GearGlyph(
@@ -446,6 +473,33 @@ private fun CalendarGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
                 cap = StrokeCap.Round,
             )
         }
+    }
+}
+
+// Signals Roadmap §5 (2026-09-09) — a bookmark, same hand-drawn Canvas recipe as
+// GearGlyph/CalendarGlyph (one fixed box, same stroke width, same centring).
+@Composable
+private fun WatchlistGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(HEADER_ICON_SIZE)) {
+        val stroke = size.minDimension * 0.11f
+        val left = size.width * 0.22f
+        val right = size.width * 0.78f
+        val top = size.height * 0.08f
+        val bottom = size.height * 0.92f
+        val notchDepth = (bottom - top) * 0.32f
+        val path = Path().apply {
+            moveTo(left, top)
+            lineTo(right, top)
+            lineTo(right, bottom)
+            lineTo((left + right) / 2f, bottom - notchDepth)
+            lineTo(left, bottom)
+            close()
+        }
+        drawPath(
+            path = path,
+            color = colors.textSecondary,
+            style = Stroke(width = stroke, join = StrokeJoin.Round, cap = StrokeCap.Round),
+        )
     }
 }
 

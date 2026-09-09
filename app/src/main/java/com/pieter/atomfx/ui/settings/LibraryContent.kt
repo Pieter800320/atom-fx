@@ -28,6 +28,36 @@ val LIBRARY_CATEGORIES = listOf(
     "Setup Quality", "Regime & Macro", "Cross-Asset & Correlation", "Alerts & Recommendation",
 )
 
+// Signals Roadmap §5 (2026-09-09) — Pieter's own reversal checklist, written out in full
+// because he deliberately doesn't want it hardcoded into the bb_touch alert itself (see
+// bb_touch.py's own doc comment): a touch alone fires the notification, but whether it's
+// actually a good reversal candidate is his own judgment call, informed by this. Shared
+// verbatim between this Library entry and the Watchlist card's own tap-to-reveal section
+// (WatchlistScreen.kt) — one source of text, so the two surfaces can never drift apart.
+const val BB_REVERSAL_HOW_TO_READ =
+    "Check five things, in this order. (1) ADX — below ~20 means the market is ranging, " +
+    "where a touch is more likely to mean-revert cleanly; above ~20 means it's trending, and " +
+    "you should only trust a touch that's a pullback IN the trend's own direction, not a fade " +
+    "against it. (2) The pair's own D1/H4/H1 pills — the classic pullback signature is the " +
+    "higher timeframe still holding its trend (e.g. D1 bull/bull_strong) while the lower ones " +
+    "have cooled or flipped (H4/H1 neutral or bear) — a temporary counter-move inside a trend, " +
+    "not a real reversal. (3) Reset Score, read in the touch's implied direction (bull for a " +
+    "lower-band touch, bear for an upper-band touch) — a low reading means price is genuinely " +
+    "stretched from its own equilibrium, corroborating the touch independently. (4) Band-width " +
+    "trend — a touch arriving on expanding bands is more likely a breakout candle than " +
+    "exhaustion; a touch on narrow or converging bands is the better reversal candidate. " +
+    "(5) Structure — a fresh CHoCH in the touch's own direction (Breakdown tab) is real, " +
+    "independent confirmation that price action itself is turning."
+
+const val BB_REVERSAL_WHY_IT_MATTERS =
+    "A bare band touch is close to meaningless on its own — the bands answer \"is price high " +
+    "or low relative to its recent history,\" not \"buy or sell here.\" The five checks above " +
+    "are what separate a touch that's about to mean-revert from one that's just a pause before " +
+    "the trend continues. None of them are hardcoded into the alert on purpose — the " +
+    "thresholds that actually work are still being calibrated, so the notification stays broad " +
+    "(any touch) and the judgment stays with you, informed by this checklist and whatever you " +
+    "learn from the Watchlist over time."
+
 val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
     LibraryEntry(
         id = "potential",
@@ -252,5 +282,13 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         summary = "Six push alerts (added 2026-09-04) that fire the moment something changes, never for a condition that's merely still true.",
         howItWorks = "Each of the six compares this scan's value against last scan's, only on the app's own hourly cadence: Setup (a pair's Continuation Score newly crosses 45, the same qualifying line `rank.py` itself gates on — updated 2026-09-05, previously reaching Tradeable/A+ Potential before that gate retired), Structure (a pair's H4 structure newly reads a fresh BOS or CHoCH), Regime (the H4 regime flips, or the Macro Archetype changes), Volatility (a pair's ATR percentile newly crosses 90), and Alignment (a pair's D1/H4/H1 pills newly all agree at Strong Buy or Strong Sell). The very first scan after the feature shipped can't fire anything — there's nothing yet to compare against.",
         whyItMatters = "Edge-triggered, not level-triggered, on purpose: an alert that re-fires every hour for a condition that hasn't moved just trains you to ignore the channel. Each has its own Settings toggle (Structure covers both BOS and CHoCH; Regime covers both the H4 flip and an Archetype change). Four of the six — Structure, Regime, Volatility, Alignment — carry a book icon on their Notification History card (2026-09-04) opening a Playbook: the deeper theory behind that specific firing, not just the one-line \"what to consider\" text every alert already has. Setup doesn't get one — its mechanism is already the Overall/Continuation Score entries in full. Notification History itself groups all nine alert types under the same five headline concepts (2026-09-05) — Regime, Trend, Volatility, Structure, plus an OTHER bucket for the ones that don't cleanly fit (Gold, Level, Positioning, and Setup itself, which is a ranking-threshold crossing rather than one of the five).",
+    ),
+    LibraryEntry(
+        id = "bb_reversal_criteria",
+        term = "BB Reversal Touch (D1)",
+        category = "Alerts & Recommendation",
+        summary = "A D1 candle wicks a 12-period, 2-sigma Bollinger Band — the touch alone is the whole alert, on purpose.",
+        howItWorks = "Every hourly scan, each pair's current (possibly still-forming) D1 candle is checked against a 12-period SMA +-2 standard deviations. A wick touch counts even if the candle closes back inside — the alert fires once, the moment a pair transitions from not-touching to touching either band, and won't fire again for the same ongoing touch. Band-width trend (expanding/converging/flat, vs. ~5 D1 bars ago) rides along in the notification for context. $BB_REVERSAL_HOW_TO_READ",
+        whyItMatters = "$BB_REVERSAL_WHY_IT_MATTERS Deliberately NOT auto-confirmed (2026-09-09, Pieter's own redesign, superseding the original Phase 4 plan's midline-retest logic) — add the pair to the Watchlist (bookmark icon on its sheet) to track how it develops over the following D1 sessions; each watchlist card carries this same checklist behind its own tap-to-reveal.",
     ),
 )

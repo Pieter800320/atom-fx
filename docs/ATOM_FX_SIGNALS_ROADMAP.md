@@ -252,33 +252,57 @@ about whether it's worth doing.
 
 ---
 
-## 5. Phase 4 — Bollinger Band touch + reversal alerts
+## 5. Phase 4 — Bollinger Band touch alert + Watchlist
+
+**Superseded 2026-09-09 (Pieter's own redesign)** — the original plan below this line described
+an auto-confirming design (touch → wait → the *midline retest* is the actual signal, fired
+automatically). Pieter's own instinct, after thinking through what actually makes a BB touch a
+real reversal vs. a pause-before-continuation, was different: he doesn't yet know which
+thresholds separate a good touch from a bad one, and would rather not hardcode an unvalidated
+gate. The touch itself is the notification; judging whether a reversal is actually developing is
+a manual review process, supported by a new **Watchlist** surface — not something the scanner
+auto-confirms.
 
 The one genuinely different *signal class* missing from the app — everything in the current
 Six-Factor engine is trend-following; this is mean-reversion.
 
-- **Data source:** none new — 20-period SMA ± 2σ on existing OHLCV, exactly
-  `fx_technical/scanner/bb.py`'s `compute_bb()`.
-- **New module:** `scanner/extend/bb_signal.py`, porting the band-touch detection and the
-  midline-retest reversal-quality scoring from `bb.py`. Read that file in full first — it
-  already distinguishes "touched the band" (Message 1) from "retraced to the 20-SMA after a
-  touch" (Message 2, the actual reversal confirmation), which is the part worth keeping; a
-  touch alone is not a signal, the *retest* is.
-- **State:** needs its own small persisted state file (`data/bb_state.json` in the original —
-  same pattern as `level_ema_alerts.py`'s existing state file) to track "already touched,
-  waiting for midline retest" across scans.
-- **New key:** a `bb_signal` block per pair, or fold into `pairs.<PAIR>` — decide at
-  implementation time based on how `structure` is already shaped there.
-- **Push:** `type: "reversal_setup"`, fires on the midline-retest confirmation, not the raw
-  touch (raw touches are frequent and not yet actionable).
-- **New UI surface:** worth a small badge/callout, likely alongside Structure on the pair
-  sheet's Breakdown tab, since it's the same "what does price action say" register — but this
-  is a genuinely new concept for the app's visual language (a *setup forming* state, not a
-  pass/fail factor), so treat the UI as its own design pass, not an assumed reuse of an existing
-  pattern.
-- **Settings toggle:** "Reversal alerts."
+- **Timeframe: D1 only** (Pieter's call — H4 can follow later once D1 proves out).
+- **Bands: 12-period SMA ± 2σ** — not the original `fx_technical/scanner/bb.py` port's
+  20-period default. Pieter specified 12-period explicitly; this is a deliberate parameter
+  choice, not an oversight.
+- **Trigger:** a wick touch (high >= upper band, or low <= lower band) on the current
+  (possibly still-forming) D1 candle — checked every hourly scan for fastest latency, not
+  gated on candle close. Edge-triggered per this doc's own §1 rule: fires once on the
+  none -> touching transition, not every hour the touch remains true.
+- **No auto-confirmation, no retest logic, no `bb_state.json`.** The touch alone is the whole
+  signal; there's no second "did it confirm" stage for the scanner to track.
+- **Band-width trend (new, first-pass approximation):** current band width vs. band width
+  N bars ago (tune N once real data exists) — expanding/converging/flat. This is the one
+  genuinely new piece of math in this phase; nothing existing computes a width *trajectory*
+  (ATR Percentile is a snapshot, not a trend). Pieter's own framing: a touch arriving via
+  *expanding* bands (a breakout candle) argues against fading it; a touch on *narrow/converging*
+  bands is a better reversal candidate.
+- **New key:** `pairs.<PAIR>.bb_d1: {touching: "upper"|"lower"|"none", sma, upper, lower,
+  width_pct, width_trend: "expanding"|"converging"|"flat"}`.
+- **Push:** `type: "bb_touch"`, deeplinks to the pair sheet. The notification body includes a
+  compact snapshot of the confirmation context (ADX, D1/H4/H1 pill alignment, Reset Score in
+  the touch direction, band-width trend) — informational, never gates whether it fires.
+- **Settings — reference, not a gate:** a new Library entry documents the full checklist
+  Pieter wants to check by hand (ADX trend/range read, the pair's own D1/H4/H1 pill alignment
+  — a pullback-in-trend signature, not the macro Risk regime — Reset Score, band-width trend,
+  Structure/CHoCH confirmation) so the criteria are never forgotten even though they're not
+  hardcoded into the alert itself.
+- **New feature: Watchlist.** A pair added from its sheet (a toggle button on `PairHeader`)
+  appears on a new Watchlist screen, reached via a new icon in the header next to the
+  calendar/gear (Pieter's call — not a new bottom tab, not a bottom sheet). Each card shows a
+  compact snapshot (touch direction + how long ago, ADX, pill alignment, Reset Score,
+  band-width trend, Structure) and taps through to the full pair sheet. Storage: same
+  `SharedPreferences` + JSON + hot `StateFlow` pattern `NotificationHistoryStore` already
+  uses — no new dependency. No auto-expiry in v1 — Pieter manages the list by hand; add one
+  later if the list gets noisy in practice.
 - **Rule #1 tier:** EXTEND.
-- **Effort:** M–L.
+- **Effort:** L (touch detection is small; the Watchlist is a genuinely new screen + storage +
+  nav entry + pair-sheet control, not a quick addition).
 
 ---
 

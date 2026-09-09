@@ -422,6 +422,7 @@ def main():
         from scanner.extend import csm_delta       as _csm_delta
         from scanner.extend import breadth         as _breadth
         from scanner.extend import structure_expose as _structure_expose
+        from scanner.extend import bb_touch         as _bb_touch
         from scanner.extend import spark           as _spark
         from scanner.extend import potential       as _potential
         from scanner.extend import macro_regime    as _macro_regime
@@ -433,6 +434,7 @@ def main():
         out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
         out["breadth"]       = _breadth.compute_breadth(ohlcv)
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
+        _bb_touch.attach_bb_d1(out["pairs"], ohlcv)                     # pairs.<PAIR>.bb_d1
         out["spark"]         = _spark.compute_spark(ohlcv)
         out["potential"]     = _potential.compute_potential(
             out, out["csm_delta"], out["breadth"],

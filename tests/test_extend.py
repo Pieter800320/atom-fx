@@ -18,8 +18,10 @@ from scanner.extend import potential_config as cfg
 from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendation
 from scanner.extend import state_alerts
 from scanner.extend import conviction
+from scanner.extend import bb_touch
 from scanner import scan_h1
 from scanner import csm
+import pandas as pd
 
 
 # ── helpers ─────────────────────────────────────────────────────────────────────
@@ -246,6 +248,69 @@ def test_breadth_contributions_match_csm_raw():
         actual = _contributions(ohlcv, tf)
         for c in EXPECTED_APPEARANCES:
             assert actual.get(c, []) == expected.get(c, []), (tf, c, actual.get(c), expected.get(c))
+
+
+def _synthetic_d1(closes, highs=None, lows=None):
+    closes = pd.Series(closes, dtype=float)
+    highs = pd.Series(highs, dtype=float) if highs is not None else closes + 0.0005
+    lows = pd.Series(lows, dtype=float) if lows is not None else closes - 0.0005
+    return pd.DataFrame({"high": highs, "low": lows, "close": closes})
+
+
+_TIGHT_D1 = [1.1000, 1.1005, 1.0995, 1.1003, 1.0997, 1.1002, 1.0998, 1.1004, 1.0996,
+             1.1001, 1.0999, 1.1002, 1.0998, 1.1003, 1.0997, 1.1001, 1.0999]
+
+
+def test_bb_touch_none_when_calm():
+    # Small explicit wicks (+-0.0001) that stay well inside this series' own ~0.0005-wide
+    # 2-sigma band (verified: sma~1.1000, band ~1.09950-1.10050).
+    closes = pd.Series(_TIGHT_D1, dtype=float)
+    df = pd.DataFrame({"high": closes + 0.0001, "low": closes - 0.0001, "close": closes})
+    r = bb_touch.compute_bb_d1(df)
+    assert r is not None and r["touching"] == "none"
+
+
+def test_bb_touch_detects_upper_wick():
+    df = _synthetic_d1(_TIGHT_D1)
+    # Blow the LAST bar's high far above any plausible 2-sigma band on this tight series --
+    # a wick touch, not a close beyond the band (Pieter: "a candle wick touch is fine").
+    df.loc[df.index[-1], "high"] = 1.20
+    assert bb_touch.compute_bb_d1(df)["touching"] == "upper"
+
+
+def test_bb_touch_detects_lower_wick():
+    df = _synthetic_d1(_TIGHT_D1)
+    df.loc[df.index[-1], "low"] = 1.00
+    assert bb_touch.compute_bb_d1(df)["touching"] == "lower"
+
+
+def test_bb_touch_width_trend_expanding():
+    # Flat for the lookback window, then a volatility burst in the most recent bars.
+    tight = _TIGHT_D1[:12]
+    burst = [1.1050, 1.0950, 1.1080, 1.0920, 1.1100]
+    r = bb_touch.compute_bb_d1(_synthetic_d1(tight + burst))
+    assert r["width_trend"] == "expanding"
+
+
+def test_bb_touch_none_when_insufficient_history():
+    assert bb_touch.compute_bb_d1(_synthetic_d1([1.1000] * 5)) is None
+
+
+def test_bb_touch_alert_edge_triggered():
+    out = {"pairs": {"EURUSD": {
+        "bb_d1": {"touching": "upper", "width_trend": "flat"},
+        "adx": 25.0, "reset_score": 70,
+        "pills": {"d1": "bear", "h4": "bear", "h1": "bear"},
+    }}}
+    prev_none = {"pairs": {"EURUSD": {"bb_d1": {"touching": "none"}}}}
+    alerts = state_alerts._bb_touch_alerts(out, prev_none)
+    assert len(alerts) == 1 and alerts[0]["type"] == "bb_touch"
+    assert alerts[0]["direction"] == "bear"
+    assert alerts[0]["deeplink"] == "atomfx://pair/EURUSD"
+
+    # Already touching upper last scan too -> no repeat fire.
+    prev_same = {"pairs": {"EURUSD": {"bb_d1": {"touching": "upper"}}}}
+    assert state_alerts._bb_touch_alerts(out, prev_same) == []
 
 
 def test_spark_shape():

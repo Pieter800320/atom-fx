@@ -399,6 +399,13 @@ private fun NotificationsGroup(
     SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
     })
+    // Signals Roadmap §5 (Phase 4, 2026-09-09) — the bb_touch alert. No confirmation gate, the
+    // touch alone fires; the Library entry (LibraryContent.kt, id "bb_reversal_criteria")
+    // documents what to check by hand — see that entry's own doc comment for why it's a
+    // reference, not an enforced threshold.
+    SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
+    })
     SettingsActionButton(
         label = "Send test",
         colors = colors,

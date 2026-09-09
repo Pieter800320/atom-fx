@@ -113,6 +113,22 @@ data class PairBlock(
     // gate; now also written to signals.json so EntrySheet can show real numbers.
     @SerialName("reset_score") val resetScore: Int? = null,
     @SerialName("atr_pct") val atrPct: Int? = null,
+    // Signals Roadmap §5 (2026-09-09) — D1 12-period/2-sigma Bollinger touch state. Null
+    // (whole object, matching bb_touch.py's own "not enough history yet" convention) rather
+    // than a null-fielded object, so ignoreUnknownKeys/defaults never need to fight a partial
+    // shape — same lesson as csm_dispersion_history's own on-device parse crash this session:
+    // match the backend's actual shape exactly, including its null cases.
+    @SerialName("bb_d1") val bbD1: BbD1? = null,
+)
+
+@Serializable
+data class BbD1(
+    val touching: String? = null,
+    val sma: Double? = null,
+    val upper: Double? = null,
+    val lower: Double? = null,
+    @SerialName("width_pct") val widthPct: Double? = null,
+    @SerialName("width_trend") val widthTrend: String? = null,
 )
 
 @Serializable

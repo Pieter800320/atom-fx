@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -20,16 +22,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.data.WatchlistStore
 import com.pieter.atomfx.data.model.PairBlock
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.chart.LineChart
 import com.pieter.atomfx.ui.components.EvidenceDot
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
@@ -161,11 +172,30 @@ private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomCol
     val rank = allNodes.sortedByDescending { it.cont }.indexOfFirst { it.pair == node.pair } + 1
     // Pieter, 2026-09-03 — dropped the small "EUR / JPY" line; the big pair-code heading already
     // says it, just without the slash.
-    Text(
-        text = node.pair,
-        style = AtomType.Display.copy(color = colors.textPrimary),
-        modifier = Modifier.padding(bottom = 4.dp),
-    )
+    val context = LocalContext.current
+    val watchlistStore = remember { WatchlistStore(context.applicationContext) }
+    val watchlistItems by watchlistStore.state.collectAsState()
+    val watched = watchlistItems.any { it.pair == node.pair }
+    val haptics = LocalHapticFeedback.current
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = node.pair, style = AtomType.Display.copy(color = colors.textPrimary))
+        // Signals Roadmap §5 (2026-09-09, Pieter's own design) — add/remove this pair from the
+        // Watchlist. Filled when watched, outline-only when not, same visual language as any
+        // other toggle in the app.
+        BookmarkGlyph(
+            watched = watched,
+            colors = colors,
+            modifier = Modifier.pressWash {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                watchlistStore.toggle(node.pair)
+            },
+        )
+    }
     Text(
         text = "${setupWord(node.cont)} · ${directionWord(node.direction)}",
         style = AtomType.Caption.copy(color = directionColorFor(node.direction, colors)),
@@ -175,6 +205,36 @@ private fun PairHeader(node: PairNode, allNodes: List<PairNode>, colors: AtomCol
         style = AtomType.Caption.copy(color = colors.textSecondary),
         modifier = Modifier.padding(bottom = 12.dp),
     )
+}
+
+private val BOOKMARK_GLYPH_SIZE = 22.dp
+
+// Same hand-drawn Canvas recipe as MainActivity's header glyphs (small local copy, not shared —
+// this codebase's established house style). Outline when not watched, filled when watched.
+@Composable
+private fun BookmarkGlyph(watched: Boolean, colors: AtomColors, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(BOOKMARK_GLYPH_SIZE)) {
+        val stroke = size.minDimension * 0.11f
+        val left = size.width * 0.22f
+        val right = size.width * 0.78f
+        val top = size.height * 0.08f
+        val bottom = size.height * 0.92f
+        val notchDepth = (bottom - top) * 0.32f
+        val path = Path().apply {
+            moveTo(left, top)
+            lineTo(right, top)
+            lineTo(right, bottom)
+            lineTo((left + right) / 2f, bottom - notchDepth)
+            lineTo(left, bottom)
+            close()
+        }
+        val color = if (watched) colors.bull else colors.textSecondary
+        if (watched) {
+            drawPath(path = path, color = color)
+        } else {
+            drawPath(path = path, color = color, style = Stroke(width = stroke, join = StrokeJoin.Round, cap = StrokeCap.Round))
+        }
+    }
 }
 
 /** Continuation-Score bands, replacing the old Level/Potential state words (2026-09-05). Bands
