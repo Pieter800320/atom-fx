@@ -76,6 +76,7 @@ import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.reading.ReadingWindow
 import com.pieter.atomfx.ui.settings.SettingsScreen
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
+import com.pieter.atomfx.ui.sheets.CalendarSheet
 import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomFxTheme
@@ -216,11 +217,12 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
         // to Settings, reached from its own header icon, not nested inside Settings.
         var watchlistOpen by remember { mutableStateOf(false) }
         // Pieter, 2026-09-03 follow-up — the calendar affordance moved here from the Wheel-tab-
-        // only HeaderBar, next to the gear. BottomSheetHost handles SheetTarget.Calendar as a
-        // pure leaf (CalendarSheet(signals, colors), no onNavigate, wheelState unused for this
-        // branch) — reused directly rather than duplicating sheet-rendering logic, and it now
-        // opens correctly from any tab, matching the gear's own already-established "any tab"
-        // reach (Functional Spec §2/§3.1) instead of being silently Wheel-only.
+        // only HeaderBar, next to the gear, opening correctly from any tab (Functional Spec
+        // §2/§3.1). 2026-09-09 (Pieter's ask) — a sibling slide-in side panel now, same recipe
+        // as Settings/Watchlist, not routed through BottomSheetHost/SheetTarget any more (Design
+        // §12 always specified this as "the right edge panel"; it shipped as a bottom sheet like
+        // everything else, this puts it back in line with that).
+        var calendarOpen by remember { mutableStateOf(false) }
         var activeAppSheet by remember { mutableStateOf<SheetTarget?>(null) }
         // The Reading Window (2026-09-04, Pieter's own framing) — "sheets inspect data, a window
         // is for study and reading." Deliberately its own top-level state, not folded into
@@ -244,7 +246,7 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     updated = loaded?.signals?.updated,
                     isFresh = loaded?.freshness == Freshness.FRESH,
                     hasUnreadNotifications = hasUnreadNotifications,
-                    onCalendarClick = { activeAppSheet = SheetTarget.Calendar },
+                    onCalendarClick = { calendarOpen = true },
                     onWatchlistClick = { watchlistOpen = true },
                     onSettingsClick = { settingsOpen = true },
                 )
@@ -279,6 +281,15 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     onClose = { settingsOpen = false },
                     onNavigate = { activeAppSheet = it },
                     onOpenReading = { readingTarget = it },
+                )
+            }
+
+            if (calendarOpen && loaded != null) {
+                BackHandler { calendarOpen = false }
+                CalendarSheet(
+                    signals = loaded.signals,
+                    colors = colors,
+                    onClose = { calendarOpen = false },
                 )
             }
 

@@ -30,9 +30,6 @@ sealed interface SheetTarget {
     data class Ring(val factor: Factor) : SheetTarget
     data class Node(val pair: String) : SheetTarget
 
-    /** Design §12's right edge panel — summoned from the header, not a ring/node/nucleus tap. */
-    data object Calendar : SheetTarget
-
     /** Design §16 — long-press a node opens its 3-TF close-price chart (Phase 9). */
     data class Chart(val pair: String) : SheetTarget
 
@@ -110,7 +107,6 @@ fun BottomSheetHost(
                     if (node != null) PairSheet(node, wheelState.nodes, signals, colors)
                 }
 
-                SheetTarget.Calendar -> CalendarSheet(signals, colors)
                 is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
                 is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors, onPairClick = { onNavigate(SheetTarget.Node(it)) })
                 is SheetTarget.CrossAsset -> CrossAssetSheet(target.id, signals, colors)
