@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-08T22:15:07.768790+00:00",
+  "updated": "2026-09-09T02:29:42.996297+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -739,11 +739,11 @@
     "stable": true
   },
   "macro": {
-    "label": "Risk-On",
-    "signals": -3,
-    "total": 3,
-    "confidence": "High",
-    "stable": true
+    "label": "Risk-Off",
+    "signals": 1,
+    "total": 1,
+    "confidence": "Low",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
@@ -759,21 +759,21 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4400.8,
-      "delta_pct": -0.7,
-      "direction": "down",
+      "value": 4418.2,
+      "delta_pct": 0.6,
+      "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.836,
-      "delta_pct": -0.3,
-      "direction": "down",
+      "value": 98.788,
+      "delta_pct": -0.1,
+      "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7715,
-      "delta_pct": 2.6,
-      "direction": "up",
+      "value": 6.7625,
+      "delta_pct": 0.3,
+      "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
@@ -789,14 +789,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 94.34,
-      "delta_pct": 3.1,
+      "value": 94.41,
+      "delta_pct": 1.5,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78492.0,
-      "delta_pct": -0.8,
+      "value": 78816.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -820,17 +820,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -0.7,
+      "delta_pct": 1.6,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": -0.6,
+      "delta_pct": -0.9,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.7,
+      "delta_pct": 3.9,
       "label": "Copper"
     },
     "us10y": {
@@ -844,13 +844,13 @@
       "label": "US 3M"
     },
     "wti": {
-      "direction": "up",
-      "delta_pct": 10.0,
+      "direction": "flat",
+      "delta_pct": 4.6,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -3.4,
+      "delta_pct": -3.0,
       "label": "Bitcoin"
     },
     "curve": {
@@ -860,111 +860,111 @@
     }
   },
   "catalyst": {
-    "text": "NZDJPY SHORT invalidated: JPY strengthening on USD weakness and Fed hike delay reduces carry appeal.",
-    "updated": "2026-09-08T22:15:07.768790+00:00"
+    "text": "GBPJPY SHORT at risk: ECB tightening bets support euro, reducing GBP upside vs JPY strength.",
+    "updated": "2026-09-09T02:29:42.996297+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: S&P 500 falling confirms JPY strength, supports short.\n\nNZDUSD SHORT: Gold falling confirms USD bid, supports short.\n\nGBPJPY SHORT: S&P 500 falling confirms JPY strength, supports short.",
+    "text": "NZDJPY SHORT: Macro confirms setup, dual JPY bid from gold and equities.\n\nNZDUSD SHORT: Macro challenges setup, risk on environment supports NZD strength.\n\nGBPJPY SHORT: Macro confirms setup, falling equities drive safe haven JPY bid.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 8.32
+        "score": 8.53
       },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 7.17
+        "score": 6.98
       },
       {
         "pair": "GBPJPY",
         "direction": "bear",
-        "score": 6.65
+        "score": 6.85
       }
     ],
-    "updated": "2026-09-08T22:15:07.768790+00:00"
+    "updated": "2026-09-09T02:29:42.996297+00:00"
   },
   "calendar": {
     "events": [
       {
-        "day": "Thu",
-        "time": "13:15",
-        "iso": "2026-09-10T13:15:00+00:00",
+        "day": "Thursday",
+        "time": "08:30 ET",
+        "iso": "",
+        "currency": "USD",
+        "name": "Producer Price Index (PPI) m/m",
+        "forecast": "0.0%",
+        "previous": "0.0%",
+        "note": "August data release"
+      },
+      {
+        "day": "Friday",
+        "time": "08:30 ET",
+        "iso": "",
+        "currency": "USD",
+        "name": "Consumer Price Index (CPI) m/m",
+        "forecast": "0.4%",
+        "previous": "0.1%",
+        "note": "August data release"
+      },
+      {
+        "day": "Wednesday",
+        "time": "14:15 CET",
+        "iso": "",
         "currency": "EUR",
-        "name": "ECB Rate Decision",
-        "forecast": "Hold",
-        "previous": "2.40%",
-        "note": "Major EUR directional driver high volatility"
+        "name": "ECB Interest Rate Decision",
+        "forecast": "+0.25%",
+        "previous": "2.25%",
+        "note": "Expected quarter-point hike; press conference at 14:45 CET"
       },
       {
-        "day": "Wed",
-        "time": "02:00",
-        "iso": "2026-09-09T02:00:00+00:00",
+        "day": "Thursday",
+        "time": "11:00 GMT",
+        "iso": "",
+        "currency": "GBP",
+        "name": "BoE Interest Rate Decision",
+        "forecast": "No change",
+        "previous": "5.00%",
+        "note": "MPC meeting Sept 9-10"
+      },
+      {
+        "day": "Thursday",
+        "time": "13:00 GMT",
+        "iso": "",
+        "currency": "CAD",
+        "name": "BoC Key Policy Interest Rate",
+        "forecast": "No change",
+        "previous": "2.75%",
+        "note": "Bank of Canada decision"
+      },
+      {
+        "day": "Wednesday",
+        "time": "21:00 GMT",
+        "iso": "",
         "currency": "NZD",
-        "name": "RBNZ Rate Decision",
-        "forecast": "Hike 25bps",
+        "name": "RBNZ Official Cash Rate (OCR)",
+        "forecast": "2.75%",
         "previous": "2.50%",
-        "note": "NZD strength expected hawkish bias"
-      },
-      {
-        "day": "Thu",
-        "time": "12:30",
-        "iso": "2026-09-10T12:30:00+00:00",
-        "currency": "USD",
-        "name": "PPI (Producer Prices)",
-        "forecast": "0.1% m/m",
-        "previous": "0.1% m/m",
-        "note": "Inflation indicator USD direction tight"
-      },
-      {
-        "day": "Fri",
-        "time": "12:30",
-        "iso": "2026-09-11T12:30:00+00:00",
-        "currency": "USD",
-        "name": "CPI (Consumer Prices)",
-        "forecast": "3.2% y/y",
-        "previous": "3.4% y/y",
-        "note": "High impact inflation data USD major driver"
-      },
-      {
-        "day": "Fri",
-        "time": "12:30",
-        "iso": "2026-09-11T12:30:00+00:00",
-        "currency": "USD",
-        "name": "Core CPI",
-        "forecast": "2.4% y/y",
-        "previous": "2.5% y/y",
-        "note": "Fed preferred inflation gauge strong volatility"
-      },
-      {
-        "day": "Thu",
-        "time": "12:30",
-        "iso": "2026-09-10T12:30:00+00:00",
-        "currency": "USD",
-        "name": "Unemployment Claims Weekly",
-        "forecast": "235K",
-        "previous": "228K",
-        "note": "Labor market health USD sensitive"
+        "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-08T22:15:07.768790+00:00"
+    "updated": "2026-09-09T02:29:42.996297+00:00"
   },
   "deep_analysis": {
-    "text": "Markets show mixed signals despite equities and VIX pointing to a cautious tone: stocks softer and volatility up, yet gold is barely higher, the dollar index is slipping, and Bitcoin is down modestly\u2014an inconsistent risk-off picture. Commodity-linked currencies get some support from firmer oil and a sharp copper rally, hinting at underlying demand resilience even as headline sentiment stays defensive. News flow centers on diverging central bank paths, with Fed hike bets resurfacing against ECB tightening chatter, keeping the dollar narrative in focus. The next major risk is the",
-    "generated_at": "2026-09-08T14:03:28.501272+00:00"
+    "text": "Cross-asset signals are pulling in different directions today. Equities are softer and volatility is rising, consistent with a cautious tone, yet gold's mild gain sits alongside a slightly weaker dollar index and firmer yields, muddying the risk-off read. Bitcoin's small pullback adds a touch of caution without confirming a broad flight to safety. Oil's rise offers some support to commodity-linked currencies. Headlines center on diverging central bank paths, with Fed hike expectations firming as the ECB decision looms. The next major risk is the ECB rate decision at 13:15 UTC, along",
+    "generated_at": "2026-09-09T02:30:45.891191+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as ECB tightening supports euro strength",
-      "USD tests new lows against Japanese yen; JPY strengthens",
-      "Strong jobs data revives Fed hike bets; yields rise"
+      "Fed hike bets rise; ECB tightening supports euro strength",
+      "USD tests new lows against Japanese yen; JPY strength",
+      "Strong jobs data revives Fed hike bets; ECB decision looms"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-08T22:15:07.768790+00:00"
+    "updated": "2026-09-09T02:29:42.996297+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
