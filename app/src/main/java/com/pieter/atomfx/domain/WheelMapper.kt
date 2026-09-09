@@ -49,11 +49,17 @@ object WheelMapper {
         val volatilityScore = pairBlock?.atrPct ?: 0
         val contScore = pairBlock?.cont ?: 0
         val trendDir = mapPillDirection(pairBlock?.pills?.h4)
+        // 2026-09-09 bug fix — was entry.direction (signals.potential[pair], the older, demoted
+        // six-factor gate), which the wheel's Overall wing used to TINT while filling from `cont`
+        // (a different subsystem's own direction basis) — the two could disagree, or entry could
+        // be entirely absent, forcing a neutral/grey tint regardless of cont's real direction.
+        // pairBlock.direction is the SAME value compute_cont() itself used for THIS number.
+        val overallDir = mapDirection(pairBlock?.direction)
 
         val entry = signals.potential[pair]
         if (entry == null) {
             return PairNode(
-                pair, index, Direction.NEUTRAL, 0, PotentialState.LOW, 0, emptySet(), null,
+                pair, index, overallDir, 0, PotentialState.LOW, 0, emptySet(), null,
                 momentum = momentumScore, adx = adxScore, volatility = volatilityScore, cont = contScore,
                 trendDirection = trendDir,
             )
@@ -61,7 +67,7 @@ object WheelMapper {
         return PairNode(
             pair = pair,
             index = index,
-            direction = mapDirection(entry.direction),
+            direction = overallDir,
             level = entry.level ?: 0,
             state = mapState(entry.state),
             potential = entry.score ?: 0,

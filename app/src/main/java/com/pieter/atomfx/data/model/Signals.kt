@@ -113,6 +113,12 @@ data class PairBlock(
     // gate; now also written to signals.json so EntrySheet can show real numbers.
     @SerialName("reset_score") val resetScore: Int? = null,
     @SerialName("atr_pct") val atrPct: Int? = null,
+    // 2026-09-09 — the SAME direction (D1-else-H4 pill fallback, cont_score.pill_direction)
+    // compute_cont() itself used to decide whether/how to score this pair, exposed so the app
+    // can tint the wheel's Overall wing off the basis its own displayed number actually used
+    // (was reading signals.potential[pair].direction, an unrelated, demoted subsystem — see
+    // WheelMapper.kt's own doc comment for the bug this replaces). "bull" | "bear" | null.
+    val direction: String? = null,
     // Signals Roadmap §5 (2026-09-09) — D1 12-period/2-sigma Bollinger touch state. Null
     // (whole object, matching bb_touch.py's own "not enough history yet" convention) rather
     // than a null-fielded object, so ignoreUnknownKeys/defaults never need to fight a partial

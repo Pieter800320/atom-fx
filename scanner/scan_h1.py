@@ -39,7 +39,7 @@ from scanner.pills      import classify_full
 from scanner.mom1212    import compute_all as compute_mom
 from scanner.csm        import compute_csm, STRENGTH_PAIRS
 from scanner.regime     import classify_regime
-from scanner.cont_score import compute_cont
+from scanner.cont_score import compute_cont, pill_direction
 from scanner.correlate  import compute_correlation
 from scanner.score              import compute_reset_score, atr_percentile
 from scanner.level_ema_alerts   import check_levels, check_ema_touches
@@ -323,6 +323,15 @@ def main():
             # instead of "Not available yet". No calculation changed, no existing key touched.
             "reset_score": pair_reset.get(key),
             "atr_pct":     pair_atr_pct.get(key),
+            # 2026-09-09 (Pieter's ask) — found live: the wheel's Overall wing filled by `cont`
+            # (this pair's own D1-else-H4 direction, via pill_direction — exactly what compute_cont
+            # itself used above to decide whether to score at all) but tinted by
+            # signals.potential[pair].direction, a DIFFERENT field from the older, demoted
+            # six-factor gate, which could disagree with cont's own basis or be entirely absent
+            # (forcing a neutral/grey tint regardless of what cont's own direction actually was).
+            # Exposing the SAME value compute_cont already used, so the app can tint Overall off
+            # the number it's actually displaying instead of an unrelated subsystem.
+            "direction":   pill_direction(pills),
         }
         print(f"  {key}: cont={cont}%")
 

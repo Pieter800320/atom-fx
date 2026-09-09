@@ -469,7 +469,12 @@ private fun DrawScope.drawCornerButtons(
     val borderColor = wedgeBorderColor(isDark, colors)
 
     listOf(
-        CornerButtonSpec("OVERALL", g.TOGGLE_OVERALL_CENTER_DEG, mode == WheelMode.OVERALL, "wing:overall"),
+        // 2026-09-09 (Pieter's ask) — label only, "SETUP" instead of "OVERALL": confirms what
+        // this wing actually shows (the Continuation Score, the same number PairSheet's own
+        // "STRONG SETUP"/"A+ SETUP" bands read). WheelMode.OVERALL the enum/internal identifier
+        // is untouched — every other reference (WheelScreen's default mode, hit-testing below,
+        // Library entry id "potential") stays as-is; only the on-wheel text changed.
+        CornerButtonSpec("SETUP", g.TOGGLE_OVERALL_CENTER_DEG, mode == WheelMode.OVERALL, "wing:overall"),
         CornerButtonSpec("TREND", g.TOGGLE_TREND_CENTER_DEG, mode == WheelMode.TREND, "wing:trend"),
         CornerButtonSpec("MOMENTUM", g.TOGGLE_MOMENTUM_CENTER_DEG, mode == WheelMode.MOMENTUM, "wing:momentum"),
         CornerButtonSpec("VOLATILITY", g.TOGGLE_VOLATILITY_CENTER_DEG, mode == WheelMode.VOLATILITY, "wing:volatility"),
