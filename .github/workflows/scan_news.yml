@@ -1,14 +1,14 @@
 name: "News Scan"
 on:
-  schedule:
-    - cron: '0 */2 * * *'
-    - cron: '0 21 * * 0'
   workflow_dispatch:
 permissions:
   contents: write
-# Queue overlapping triggers instead of racing on the "Commit data" step's git push
-# (native schedule + the external Apps Script scheduler + a manual dispatch can now
-# all land close together) -- cancel-in-progress: false, never kill a scan mid-write.
+# 2026-09-09 (Pieter's ask) — native `schedule:` cron removed; see scan_h1.yml's own comment for
+# why (same duplicate-dispatch mechanism against the Apps Script scheduler, same fix here).
+# Apps Script is now the sole scheduler; workflow_dispatch stays for it and for manual runs.
+# Queue overlapping triggers instead of racing on the "Commit data" step's git push (a manual
+# dispatch landing mid-scan is still possible) -- cancel-in-progress: false, never kill a scan
+# mid-write.
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false

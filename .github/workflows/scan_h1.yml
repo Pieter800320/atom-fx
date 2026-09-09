@@ -1,13 +1,19 @@
 name: "Hourly Scan"
 on:
-  schedule:
-    - cron: '5 5,7,9,11,13,15,17,19 * * 1-5'
   workflow_dispatch:
 permissions:
   contents: write
-# Queue overlapping triggers instead of racing on the "Commit data" step's git push
-# (native schedule + the external Apps Script scheduler + a manual dispatch can now
-# all land close together) -- cancel-in-progress: false, never kill a scan mid-write.
+# 2026-09-09 (Pieter's ask) — native `schedule:` cron removed. It targeted the exact same hours
+# as the external Apps Script scheduler (see the script's own header comment), so every scheduled
+# slot double-dispatched this workflow: the native cron and the Apps Script hourly trigger both
+# fired for the same UTC hour, queuing two full 18-call TwelveData fetch cycles back-to-back
+# instead of ~2h apart. That queueing (not true concurrency, thanks to the block below) is what
+# let the scanner's own 6/min self-throttle blow past Twelvedata's account-wide 8-credit/min cap
+# so fast: run 2 started fetching within seconds of run 1's last call, no cooldown between them.
+# Apps Script is now the sole scheduler; workflow_dispatch stays for it and for manual runs.
+# Queue overlapping triggers instead of racing on the "Commit data" step's git push (a manual
+# dispatch landing mid-scan is still possible) -- cancel-in-progress: false, never kill a scan
+# mid-write.
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
