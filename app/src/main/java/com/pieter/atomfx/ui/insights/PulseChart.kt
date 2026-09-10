@@ -34,7 +34,7 @@ fun PulseChart(pulse: PulseBlock?, colors: AtomColors, modifier: Modifier = Modi
     val history = pulse?.history.orEmpty()
     if (pulse?.score == null || history.isEmpty()) {
         Box(modifier = modifier.fillMaxWidth().height(140.dp), contentAlignment = Alignment.Center) {
-            Text(text = "Not available yet — building history", style = AtomType.Body.copy(color = colors.textMuted))
+            Text(text = "Not available yet", style = AtomType.Body.copy(color = colors.textMuted))
         }
         return
     }

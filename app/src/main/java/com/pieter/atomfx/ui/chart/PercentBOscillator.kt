@@ -41,7 +41,7 @@ fun PercentBOscillator(
 ) {
     if (line.size < 2) {
         Box(modifier = modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
-            Text(text = "Not available yet — building history", style = AtomType.Body.copy(color = colors.textMuted))
+            Text(text = "Not available yet", style = AtomType.Body.copy(color = colors.textMuted))
         }
         return
     }
