@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-10T15:38:27.014131+00:00",
+  "updated": "2026-09-10T16:38:34.686671+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -2288,7 +2288,7 @@
     "score": 5.0,
     "signals": 0,
     "total": 2,
-    "stable": false
+    "stable": true
   },
   "macro": {
     "label": "Risk-Off",
@@ -2299,62 +2299,62 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 17.53,
-      "delta_pct": 6.5,
+      "value": 17.69,
+      "delta_pct": 7.5,
       "direction": "up",
       "label": "VIX"
     },
     "spx": {
-      "value": 7608.34,
-      "delta_pct": -0.4,
-      "direction": "flat",
+      "value": 7594.25,
+      "delta_pct": -0.6,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4410.2,
-      "delta_pct": -0.1,
+      "value": 4404.5,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 98.945,
+      "value": 98.936,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.5655,
-      "delta_pct": -3.5,
+      "value": 6.5425,
+      "delta_pct": -3.8,
       "direction": "down",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.91,
-      "delta_bp": 7.3,
+      "value": 4.924,
+      "delta_bp": 8.7,
       "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.84,
-      "delta_bp": 3.5,
+      "value": 3.843,
+      "delta_bp": 3.8,
       "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 99.01,
-      "delta_pct": 3.1,
+      "value": 101.68,
+      "delta_pct": 5.9,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77265.0,
-      "delta_pct": -1.3,
+      "value": 76937.0,
+      "delta_pct": -1.7,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 107.0,
-      "delta_bp": 3.8,
+      "value": 108.1,
+      "delta_bp": 4.9,
       "direction": "up",
       "label": "10Y-3M"
     }
@@ -2362,17 +2362,17 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "up",
-      "delta_pct": 22.4,
+      "delta_pct": 23.5,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": -0.8,
+      "delta_pct": -0.9,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.0,
+      "delta_pct": 0.9,
       "label": "Gold"
     },
     "dxy": {
@@ -2382,59 +2382,59 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": 1.0,
+      "delta_pct": 0.6,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 11.4,
+      "delta_bp": 12.8,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 6.8,
+      "delta_bp": 7.1,
       "label": "US 3M"
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 8.8,
+      "delta_pct": 11.7,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -3.2,
+      "delta_pct": -3.6,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": 4.6,
+      "delta_bp": 5.7,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "NZDUSD SHORT accelerated: USD weakness vs JPY suggests broad dollar selloff momentum continues.",
-    "updated": "2026-09-10T14:38:18.330358+00:00"
+    "text": "AUDJPY SHORT at risk. USD weakness and ECB hawkishness support JPY strength, but stronger-than-expected US inflation supports USD, conflicting directionally.",
+    "updated": "2026-09-10T16:38:34.686671+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Macro confirms via dual USD bid drivers, VIX and yields.\n\nNZDJPY SHORT: Macro confirms via JPY safe haven bid, VIX rising.\n\nAUDJPY SHORT: Macro confirms via JPY bid and copper weakness pressuring AUD.",
+    "text": "NZDUSD SHORT: VIX and 10Y rises confirm USD bid strength decisively.\n\nNZDJPY SHORT: VIX rise and equity weakness confirm JPY safe haven flow.\n\nAUDJPY SHORT: VIX strength, copper weakness, and risk-off all confirm AUD weakness.",
     "top": [
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 8.07
+        "score": 8.93
       },
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.33
+        "score": 8.72
       },
       {
         "pair": "AUDJPY",
         "direction": "bear",
-        "score": 6.53
+        "score": 7.53
       }
     ],
-    "updated": "2026-09-10T14:38:18.330358+00:00"
+    "updated": "2026-09-10T16:38:34.686671+00:00"
   },
   "calendar": {
     "events": [
@@ -2499,7 +2499,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-10T14:38:18.330358+00:00"
+    "updated": "2026-09-10T16:38:34.686671+00:00"
   },
   "deep_analysis": {
     "text": "Equities are softer and volatility is climbing while gold edges higher and Bitcoin slips, a mixed backdrop that leans cautious rather than a clean risk-off sweep since the dollar index sits flat and yields tick only marginally higher. Gold's neutral signal alongside a stalled DXY suggests the safe-haven bid is tentative, not confirmed across the board, leaving risk-sensitive currencies vulnerable but without strong conviction either way. Headlines center on diverging central bank paths, firmer US jobs data reviving Fed hike bets against ECB tightening chatter. The next major risk is US CPI and PPI data within hours, alongside back-to-back ECB, BoE, BoC and RBNZ decisions that could reshape rate-differential dynamics quickly.",
@@ -2507,16 +2507,16 @@
   },
   "breaking": {
     "headlines": [
-      "US Dollar Tests New Lows Against Japanese Yen Amid Dovish Sentiment Shift",
-      "ECB Rate Hikes: Markets Pricing More Tightening Than Economists Expect Currently",
-      "US August PPI 5.4% Beats 5.3% Forecast, Inflation Pressures Persist"
+      "USD tests new lows against JPY as bond market dynamics shift lower",
+      "ECB rate hikes loom; markets pricing more tightening than economists expect",
+      "US August PPI 5.4% beats 5.3% forecast, reviving Fed tightening bets"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-10T14:38:18.330358+00:00"
+    "updated": "2026-09-10T16:38:34.686671+00:00"
   },
   "last_alert": "2026-09-01T19:51:18.106667+00:00",
   "gold_signal": {
