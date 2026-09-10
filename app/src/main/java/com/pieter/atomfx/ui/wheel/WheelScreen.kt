@@ -302,10 +302,7 @@ fun WheelScreen(
 
 private fun WheelTapTarget.toSheetTarget(): SheetTarget = when (this) {
     is WheelTapTarget.Nucleus -> SheetTarget.Nucleus
-    is WheelTapTarget.Ring -> SheetTarget.Ring(factor)
     is WheelTapTarget.Node -> SheetTarget.Node(pair)
-    is WheelTapTarget.Currency -> SheetTarget.Currency(code)
-    is WheelTapTarget.CrossAsset -> SheetTarget.CrossAsset(id)
     is WheelTapTarget.ModeToggle -> error("ModeToggle is handled by WheelArea before reaching toSheetTarget()")
 }
 

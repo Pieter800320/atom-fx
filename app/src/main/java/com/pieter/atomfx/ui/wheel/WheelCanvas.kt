@@ -42,16 +42,18 @@ import com.pieter.atomfx.ui.theme.AtomType
 import kotlin.math.min
 import kotlinx.coroutines.launch
 
-/** What a tap on the dial resolved to. */
+/**
+ * What a tap on the dial resolved to. Only ever produced by [hitTest] below — `Currency`,
+ * `CrossAsset`, and `Ring` were removed 2026-09-10 (dead-code cleanup): none of the three were
+ * ever actually reachable through this type (Currency taps go through CsmBarStrip's own
+ * `onCurrencyClick` straight to `SheetTarget.Currency`, cross-asset taps through MacroScreen's own
+ * cards straight to `SheetTarget.CrossAsset`, and the wheel's old factor-pill row that used to
+ * produce `Ring` was removed years before this cleanup even happened) — real hit-testing on the
+ * dial itself only ever needs these three.
+ */
 sealed interface WheelTapTarget {
     data object Nucleus : WheelTapTarget
     data class Node(val pair: String) : WheelTapTarget          // a pair wedge
-    data class Currency(val code: String) : WheelTapTarget      // reachable via CsmBarStrip, not the dial itself
-    // 2026-09-06 — the outer-ring wedge this used to come from is gone (see WheelCanvas's own doc
-    // comment); reachable via MacroScreen's cross-asset cards instead, not the dial itself, same
-    // shape as Currency above.
-    data class CrossAsset(val id: String) : WheelTapTarget
-    data class Ring(val factor: Factor) : WheelTapTarget         // emitted by the factor pills, not the dial
     // 2026-09-04 — the 4 corner wings, one per WheelMode, each a direct selector (not a 2-way
     // toggle) now that D1/H4/H1 moved off the wheel entirely into WheelScreen's own bottom row.
     data class ModeToggle(val mode: WheelMode) : WheelTapTarget
@@ -193,9 +195,6 @@ fun WheelCanvas(
 private fun keyOf(t: WheelTapTarget): String = when (t) {
     is WheelTapTarget.Nucleus -> "hub"
     is WheelTapTarget.Node -> "pair:${t.pair}"
-    is WheelTapTarget.Currency -> "ccy:${t.code}"
-    is WheelTapTarget.CrossAsset -> "xa:${t.id}"
-    is WheelTapTarget.Ring -> "ring"
     is WheelTapTarget.ModeToggle -> "wing:${t.mode.name.lowercase()}"
 }
 

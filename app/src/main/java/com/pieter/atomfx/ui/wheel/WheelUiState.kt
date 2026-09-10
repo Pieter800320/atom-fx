@@ -59,11 +59,14 @@ data class PairNode(
     // 2026-09-05 — level/state/potential/factorsPassed/blockedAt are the old six-factor gate's
     // output (`potential.py`, still frozen-adjacent EXTEND, not yet retired backend-side). No
     // longer read by the wheel itself (see WheelMode below). `factorsPassed` (Factor.REGIME only)
-    // is still read by the pair sheet's Overview row and by StatusStrip's own Recommendation card
-    // (both want the same "does the regime already agree" flag) — the rest of this group
-    // (level/state/potential/blockedAt) has no UI reader left as of 2026-09-06, when the Summary
-    // cascade's `topPair()` (its last one) was retired along with it. Don't wire new behaviour to
-    // any of these; use `cont` instead.
+    // is still read by StatusStrip's own recommendation-glyph dots (`regimeDotColor`) — 2026-09-10,
+    // checked directly: PairSheet's own Overview Regime row does NOT read this any more (it moved
+    // to `signals.regimeD1` directly on 2026-09-09), despite that function's own comment still
+    // claiming the two match. Worth a decision later, not fixed here. The rest of this group
+    // (level/state/potential/blockedAt) has no UI reader left — the Summary cascade's `topPair()`,
+    // its last one, was retired 2026-09-06 and the function itself removed 2026-09-10 (dead code,
+    // its one remaining caller was itself unreachable). Don't wire new behaviour to any of these;
+    // use `cont` instead.
     val level: Int, // 0..6
     val state: PotentialState,
     val potential: Int, // 0..100
@@ -141,18 +144,9 @@ data class WheelUiState(
     val currenciesH1: List<CurrencySeg> = emptyList(), // size 8, H1 (CURRENCIES mode, H1 toggle)
 )
 
-/**
- * The pair a factor-pill tap defaults to for pair-shaped sheets (Momentum/Structure/Entry):
- * highest potential among tradeable-tier nodes, falling back to highest overall. Display choice.
- */
 /** The currency list for whichever timeframe is currently toggled (Currencies mode). */
 fun WheelUiState.currenciesFor(timeframe: Timeframe): List<CurrencySeg> = when (timeframe) {
     Timeframe.D1 -> currenciesD1
     Timeframe.H4 -> currencies
     Timeframe.H1 -> currenciesH1
 }
-
-fun WheelUiState.topPair(): PairNode =
-    nodes.filter { it.state == PotentialState.TRADEABLE || it.state == PotentialState.APLUS }
-        .maxByOrNull { it.potential }
-        ?: nodes.maxBy { it.potential }

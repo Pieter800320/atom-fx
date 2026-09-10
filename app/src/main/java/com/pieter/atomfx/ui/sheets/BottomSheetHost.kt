@@ -17,35 +17,32 @@ import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.DarkColors
 import com.pieter.atomfx.ui.theme.DarkenSystemBarsForDialog
-import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.WheelUiState
-import com.pieter.atomfx.ui.wheel.topPair
 
 // A sheet never covers more than this fraction of the screen — enough room that the scrim above
 // it still reads as "there's a screen behind this," same reasoning Material's own bottom-sheet
 // guidance gives for not going edge-to-edge; content past this scrolls inside the sheet instead.
 private const val MAX_SHEET_HEIGHT_FRACTION = 0.8f
 
-/** Design §13.1 routing: tap a ring → factor sheet, tap the nucleus → regime sheet, tap a node → pair sheet. */
+/** Design §13.1 routing: tap the nucleus → regime sheet, tap a node → pair sheet. */
 sealed interface SheetTarget {
     data object Nucleus : SheetTarget
-    data class Ring(val factor: Factor) : SheetTarget
     data class Node(val pair: String) : SheetTarget
 
     /** Design §16 — long-press a node opens its 3-TF close-price chart (Phase 9). */
     data class Chart(val pair: String) : SheetTarget
 
-    /** A single currency's CSM detail (Phase 9) — distinct from the market-wide Flow ring sheet. */
+    /** A single currency's CSM detail (Phase 9) — reached from the CSM bar strip below the wheel. */
     data class Currency(val code: String) : SheetTarget
 
-    /** Wheel v2: tap an outer cross-asset wedge → the full list, that asset pinned on top. */
+    /** The full cross-asset list, one asset pinned on top — reached from the Macro screen (the
+     *  wheel's own cross-asset ring was retired 2026-09-06). */
     data class CrossAsset(val id: String) : SheetTarget
 }
 
 /**
  * Wraps Material3's `ModalBottomSheet` and routes to the sheet Design §14 specifies for each tap
- * target. Momentum/Structure/Entry rings default to the wheel's current top pair, since that
- * content is inherently pair-shaped rather than market-wide (see `PairSheet`'s doc comment).
+ * target.
  *
  * Superseded 2026-09-03 (Pieter, direct in-session ask) — Design §13's original three-detent
  * model (collapsed peek, half ~48% with the wheel visible behind, expanded ~92%) is dropped for a
@@ -88,25 +85,6 @@ fun BottomSheetHost(
         ) {
             when (target) {
                 SheetTarget.Nucleus -> RegimeSheet(signals, colors, onOpenReading)
-                // 2026-09-06 — `SheetTarget.Ring`/`WheelTapTarget.Ring` is unreachable from any
-                // real tap (the "factor pill row" this routed from was already removed from the
-                // wheel itself, and `WheelCanvas.hitTest` never emits `.Ring`) — confirmed while
-                // retiring `CurrencyFlowSheet` (Factor.FLOW's target), whose only real entry point
-                // was the just-removed Summary cascade. Left as an empty case rather than a
-                // guessed replacement; the whole `is SheetTarget.Ring` arm (and BreadthSheet,
-                // Factor.MOMENTUM/STRUCTURE/ENTRY's `topPair()` picks below) is dead code worth a
-                // dedicated cleanup pass, not bundled into this one.
-                is SheetTarget.Ring -> when (target.factor) {
-                    Factor.REGIME -> RegimeSheet(signals, colors, onOpenReading)
-                    Factor.FLOW -> {}
-                    Factor.BREADTH -> BreadthSheet(signals, colors)
-                    // PairSheet's tabs collapsed to [Overview, Breakdown] (2026-09-03) — Momentum/
-                    // Structure/Entry all now live in the single Breakdown tab (index 1).
-                    Factor.MOMENTUM -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
-                    Factor.STRUCTURE -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
-                    Factor.ENTRY -> PairSheet(wheelState.topPair(), wheelState.nodes, signals, colors, initialTab = 1)
-                }
-
                 is SheetTarget.Node -> {
                     val node = wheelState.nodes.firstOrNull { it.pair == target.pair }
                     if (node != null) PairSheet(node, wheelState.nodes, signals, colors)
