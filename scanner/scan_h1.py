@@ -482,6 +482,11 @@ def main():
             out.get("macro_assets", {}),
             prev_regime=prev.get("macro_regime"),
             updated=now.isoformat(),
+            # 2026-09-10 (Pieter's ask) — same "colour, not input" `themes` scan_news.py's own
+            # tag_theme() already produces, now actually fed back in (see macro_regime.py's own
+            # _news_corroboration doc comment). `out["breaking"]` is already `prev`'s copy by
+            # this point on hours scan_news.py doesn't itself run (PRESERVED_KEYS, above).
+            news_themes=(out.get("breaking") or {}).get("themes"),
         )
         if mr:
             out["macro_regime"] = mr

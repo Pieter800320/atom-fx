@@ -161,8 +161,8 @@ def risk_off():
     delta={"USD":6,"EUR":-3,"GBP":-4,"JPY":11,"CHF":7,"AUD":-9,"CAD":-2,"NZD":-8}
     flow={"leader":"JPY","leader_delta":11,"laggard":"AUD","laggard_delta":-9,
           "absolute_leader":"JPY","absolute_laggard":"NZD","driver_spread":20,"tf":"h4"}
-    mr={"primary":{"code":"D","name":"Recession shock","confidence":"High","distinct_axes":3},
-        "secondary":{"code":"J","name":"Crowded carry unwind","confidence":"Medium"},
+    mr={"primary":{"code":"D","name":"Growth-scare risk-off","confidence":"High","distinct_axes":3},
+        "secondary":{"code":"J","name":"Carry unwind","confidence":"Medium"},
         "gold_overlay":"defensive","usd_regime":"global_risk_off",
         "currency_bias":{"strong":["JPY","CHF","USD"],"weak":["AUD","NZD","CAD"]},
         "evidence":[{"axis":"risk","read":"SPX↓ VIX↑ Copper↓","supports":True,"confirms_today":"confirming"},
@@ -218,8 +218,8 @@ def liquidity_shock():
     delta={"USD":12,"EUR":-6,"GBP":-7,"JPY":15,"CHF":9,"AUD":-14,"CAD":-4,"NZD":-11}
     flow={"leader":"JPY","leader_delta":15,"laggard":"AUD","laggard_delta":-14,
           "absolute_leader":"JPY","absolute_laggard":"AUD","driver_spread":29,"tf":"h4"}
-    mr={"primary":{"code":"E","name":"Liquidity shock","confidence":"Low","distinct_axes":2},
-        "secondary":{"code":"D","name":"Recession shock","confidence":"Low"},
+    mr={"primary":{"code":"E","name":"Liquidity stress","confidence":"Low","distinct_axes":2},
+        "secondary":{"code":"D","name":"Growth-scare risk-off","confidence":"Low"},
         "gold_overlay":"defensive","usd_regime":"global_risk_off",
         "currency_bias":{"strong":["USD","JPY","CHF"],"weak":["AUD","NZD","CAD","EUR","GBP"]},
         "evidence":[{"axis":"risk","read":"VIX spikes, SPX↓ hard","supports":True,"confirms_today":"confirming"},

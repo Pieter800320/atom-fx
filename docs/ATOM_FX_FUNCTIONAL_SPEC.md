@@ -199,20 +199,30 @@ This is the home for cross-assets and the new **named macro regime**. Reached by
 
 **6.2 The engine (EXTEND — `scanner/extend/macro_regime.py`).** Deterministic classifier + AI narration. Reads only `macro_assets` (already fetched) and outputs a `macro_regime` object. It never changes the frozen macro calcs; it *interprets* them.
 
-**Regime library (from Handbook Part IX §30 + §12 + §14):**
+**Regime library (from Handbook Part IX §30 + §12 + §14).** The `Code` column and each
+regime's underlying signature/bias come straight from the handbook; the `Name` column is
+the app's own vocabulary, **renamed 2026-09-10 (Pieter's ask, diverging deliberately from
+the handbook's own A-J names)** — see `scanner/extend/macro_regime.py`'s `REGIME_LIB` doc
+comment for the full rationale. Short version: the handbook's own names (kept here in the
+"Handbook name" column for cross-reference) assert a specific real-world cause — "Oil supply
+shock," "European energy shock" — that a 5-day cross-asset price-direction read alone cannot
+verify; five of the ten also used "shock" language for patterns that, unlike E/J, don't
+require an actual same-day volatility spike to fire, overstating how rare/violent the
+underlying condition is. The app's own names describe the observed PATTERN instead, which is
+true by construction even when the inferred cause turns out to be wrong.
 
-| Code | Name | Signature (cross-asset directions) | Currency bias |
-|---|---|---|---|
-| A | Growth-positive risk-on | SPX↑ VIX↓ Copper↑ | + AUD NZD CAD · − JPY CHF |
-| B | US rate dominance | US3M/US10Y↑ (front-end↑), VIX stable | + USD · − EUR GBP AUD (vs USD); USDJPY↑ |
-| C | Disinflationary easing | US3M↓ US10Y↓, VIX stable, SPX resilient | − USD · + AUD NZD EUR GBP |
-| D | Recession shock | SPX↓ VIX↑ Copper↓ yields↓ | + JPY CHF (USD maybe) · − AUD NZD CAD |
-| E | Liquidity shock | VIX spikes, correlations unstable, funding stress | + USD JPY CHF · − everything; **confidence capped low** |
-| F | Inflation shock | US10Y↑ Commodities↑ WTI↑ | + USD; commodity ccys may initially benefit |
-| G | Oil supply shock | WTI↑ VIX↑ SPX↓ | CAD ambiguous (terms-of-trade vs risk); + USD JPY CHF |
-| H | China / industrial slowdown | Copper↓ (industrial) | − AUD NZD CAD · + JPY CHF |
-| I | European energy shock | (EUR-specific; DXY↑, energy) | − EUR · + USD CHF; GBP may outperform EUR |
-| J | Crowded carry unwind | VIX spike + JPY appreciation + leverage | + JPY CHF · − AUD NZD & carry crosses; positioning = multiplier |
+| Code | Name (app) | Handbook name | Signature (cross-asset directions) | Currency bias |
+|---|---|---|---|---|
+| A | Growth-positive risk-on | Growth-positive risk-on | SPX↑ VIX↓ Copper↑ | + AUD NZD CAD · − JPY CHF |
+| B | US rate dominance | US rate dominance | US3M/US10Y↑ (front-end↑), VIX stable | + USD · − EUR GBP AUD (vs USD); USDJPY↑ |
+| C | Disinflationary easing | Disinflationary easing | US3M↓ US10Y↓, VIX stable, SPX resilient | − USD · + AUD NZD EUR GBP |
+| D | Growth-scare risk-off | Recession shock | SPX↓ VIX↑ Copper↓ yields↓ | + JPY CHF (USD maybe) · − AUD NZD CAD |
+| E | Liquidity stress | Liquidity shock | VIX spikes, correlations unstable, funding stress | + USD JPY CHF · − everything; **confidence capped low** |
+| F | Inflation repricing | Inflation shock | US10Y↑ Commodities↑ WTI↑ | + USD; commodity ccys may initially benefit |
+| G | Commodity-led risk-off | Oil supply shock | WTI↑ VIX↑ SPX↓ | CAD ambiguous (terms-of-trade vs risk); + USD JPY CHF |
+| H | Industrial-demand risk-off | China / industrial slowdown | Copper↓ (industrial) | − AUD NZD CAD · + JPY CHF |
+| I | Energy-cost dollar bid | European energy shock | (EUR-specific; DXY↑, energy) | − EUR · + USD CHF; GBP may outperform EUR |
+| J | Carry unwind | Crowded carry unwind | VIX spike + JPY appreciation + leverage | + JPY CHF · − AUD NZD & carry crosses; positioning = multiplier |
 
 **Confidence via distinct axes (the handbook's key discipline).** Each instrument maps to an axis; a regime is confirmed by *distinct axes*, not correlated indicators:
 

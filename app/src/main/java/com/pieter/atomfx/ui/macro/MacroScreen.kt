@@ -127,8 +127,13 @@ private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (R
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         if (regime?.primary != null) {
-            MacroBannerCard(regime, colors, onOpenReading)
+            // 2026-09-10 (Pieter's ask, "the name should accurately reflect reality") —
+            // Evidence now leads the page, the archetype card follows. Evidence is purely
+            // descriptive (what's actually moving) and true by construction; the archetype
+            // name is an INFERRED cause a 5-axis price read can't fully verify — reordering
+            // so the page states what it knows before what it's guessing at, not after.
             EvidenceAxes(regime.evidence, colors)
+            MacroBannerCard(regime, signals.csm["h4"].orEmpty(), colors, onOpenReading)
             SheetDivider(colors)
         } else {
             // No archetype read yet — same card position/shape as the real banner, so the layout
@@ -156,8 +161,19 @@ private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (R
     }
 }
 
-/** The archetype banner — mockup's `.mbanner`: code, name, chips (confidence/USD/gold), the
- *  narrative, and the strong/weak bias baskets, all on one standard card.
+/** The archetype card — mockup's `.mbanner`, restyled 2026-09-10 (Pieter's ask): "the name
+ *  should accurately reflect reality, and the conclusion should be actionable." Three changes
+ *  from the original banner, all addressing the same root complaint (a 5-axis price-direction
+ *  read was presented with more certainty than it can support):
+ *   1. The name is no longer the page's Title-weight hero (Evidence, above, has that job now)
+ *      — it's framed "Best match: {name}", Body weight, an inferred label, not a headline.
+ *   2. When confidence was capped Low because the primary tied its own runner-up on distinct
+ *      axes (`macro_regime.py`'s own margin-aware `_confidence`), that ambiguity is named
+ *      explicitly instead of just showing a bare "Low" pill — the ACTUAL two candidates the
+ *      data couldn't separate.
+ *   3. `news_corroboration` (scan_news.py's `tag_theme()` output, fed back in) gets its own
+ *      line — a price pattern isn't the same claim as a price pattern the headlines are
+ *      talking about, and until now the page couldn't tell you which one this was.
  *
  *  2026-09-04 (Pieter's "living handbook" vision) — the "REGIME {code}" kicker row carries a
  *  book+ icon, right-aligned, that opens the Reading Window with the handbook's own theory for
@@ -165,15 +181,23 @@ private fun MacroContent(signals: Signals, colors: AtomColors, onOpenReading: (R
  *  now (`buildRegimeExplanation`), not a static reference. Superseded the original inline-expand
  *  block the same day — see ReadingWindow.kt's doc comment for why. */
 @Composable
-private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
+private fun MacroBannerCard(regime: MacroRegimeBlock, csmH4: Map<String, Double>, colors: AtomColors, onOpenReading: (ReadingTarget) -> Unit) {
     val haptics = LocalHapticFeedback.current
     val primary = regime.primary
+    val secondary = regime.secondary
     val bias = regime.currencyBias
     val explanation = buildRegimeExplanation(
         primary?.code,
         regime.evidence.filter { it.supports }.mapNotNull { it.axis },
         regime.conflicts,
     )
+    // A tie is the only way primary confidence reads Low despite 2+ distinct axes — see
+    // macro_regime.py's `_confidence` margin logic. Genuinely ambiguous only when BOTH
+    // conditions hold; a Low read from a single weak axis (or Regime E's own force-cap)
+    // isn't a tie and shouldn't claim to name a runner-up that didn't actually tie it.
+    val isAmbiguousTie = primary?.confidence == "Low" &&
+        secondary != null && primary.distinctAxes != null && primary.distinctAxes == secondary.distinctAxes &&
+        (primary.distinctAxes ?: 0) >= 2
 
     Column(modifier = Modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
         Row(
@@ -193,8 +217,8 @@ private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors, onOpen
             }
         }
         Text(
-            text = primary?.name ?: "—",
-            style = AtomType.Title.copy(color = colors.textPrimary),
+            text = "Best match: ${primary?.name ?: "—"}",
+            style = AtomType.Body.copy(color = colors.textPrimary),
             modifier = Modifier.padding(top = 3.dp, bottom = 8.dp),
         )
         ScrollingPills(
@@ -206,13 +230,39 @@ private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors, onOpen
             colors = colors,
             modifier = Modifier.padding(bottom = 10.dp),
         )
+        if (isAmbiguousTie) {
+            Text(
+                text = "Tied with \"${secondary?.name}\" on distinct axes — the data doesn't clearly prefer one story over the other right now.",
+                style = AtomType.Caption.copy(color = colors.watch),
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+        }
+        newsCorroborationLabel(regime.newsCorroboration)?.let { label ->
+            Text(
+                text = label,
+                style = AtomType.Caption.copy(color = newsCorroborationColor(regime.newsCorroboration, colors)),
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+        }
         if (!regime.narrative.isNullOrBlank()) {
             Text(text = regime.narrative, style = AtomType.Body.copy(color = colors.textSecondary))
         }
         if (bias != null && (bias.strong.isNotEmpty() || bias.weak.isNotEmpty())) {
-            BiasBaskets(bias, colors, modifier = Modifier.padding(top = 10.dp))
+            BiasBaskets(bias, csmH4, colors, modifier = Modifier.padding(top = 10.dp))
         }
     }
+}
+
+private fun newsCorroborationLabel(tag: String?): String? = when (tag) {
+    "confirmed" -> "Confirmed by recent headlines"
+    "price_only" -> "Price pattern only — no recent headline confirms this"
+    else -> null   // "unknown" (or absent, pre-schema-bump data): nothing to say either way
+}
+
+private fun newsCorroborationColor(tag: String?, colors: AtomColors): Color = when (tag) {
+    "confirmed" -> colors.bull
+    "price_only" -> colors.watch
+    else -> colors.textMuted
 }
 
 /** Strong/weak currency baskets, side by side inside the banner card — a nested grouping, not a
@@ -223,25 +273,58 @@ private fun MacroBannerCard(regime: MacroRegimeBlock, colors: AtomColors, onOpen
  *  whichever side wraps to more lines used to stretch the row unevenly. `IntrinsicSize.Max` on the
  *  Row + `fillMaxHeight()` on each box makes both stretch to match whichever is taller. */
 @Composable
-private fun BiasBaskets(bias: CurrencyBias, colors: AtomColors, modifier: Modifier = Modifier) {
+private fun BiasBaskets(bias: CurrencyBias, csmH4: Map<String, Double>, colors: AtomColors, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth().height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        BiasBox("STRONG", bias.strong, colors.bull, colors, Modifier.weight(1f).fillMaxHeight())
-        BiasBox("WEAK", bias.weak, colors.bear, colors, Modifier.weight(1f).fillMaxHeight())
+        BiasBox("STRONG", bias.strong, expectStrong = true, csmH4, colors.bull, colors, Modifier.weight(1f).fillMaxHeight())
+        BiasBox("WEAK", bias.weak, expectStrong = false, csmH4, colors.bear, colors, Modifier.weight(1f).fillMaxHeight())
     }
 }
 
+// 2026-09-10 (Pieter's ask, "the conclusion should be actionable") — CSM=50 as the confirm/
+// not-confirm split, the same midpoint Rotation's own quadrant axes already use for "strong vs
+// weak" on this exact 0-100 scale — not a new threshold invented for this one card.
+private const val CSM_CONFIRM_MIDPOINT = 50.0
+
 @Composable
-private fun BiasBox(label: String, currencies: List<String>, labelColor: Color, colors: AtomColors, modifier: Modifier = Modifier) {
+private fun BiasBox(
+    label: String,
+    currencies: List<String>,
+    expectStrong: Boolean,
+    csmH4: Map<String, Double>,
+    labelColor: Color,
+    colors: AtomColors,
+    modifier: Modifier = Modifier,
+) {
     if (currencies.isEmpty()) return
     // Pieter, 2026-09-03 — a cutout, not a raised nested box: `ground`, not `surfaceRaised` (which
     // was, in dark theme, the exact same colour as the banner's own `cardSurface` behind it —
     // invisible). Matching the page background reads as a hole punched through the card instead.
     Column(modifier = modifier.background(colors.ground, RoundedCornerShape(10.dp)).padding(9.dp)) {
         Text(text = label, style = AtomType.Caption.copy(color = labelColor), modifier = Modifier.padding(bottom = 4.dp))
-        Text(text = currencies.joinToString(" · "), style = AtomType.Body.copy(color = colors.textPrimary))
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            currencies.forEach { currency ->
+                val csmValue = csmH4[currency]
+                // 2026-09-10 (Pieter's ask) — the macro story and the live technical read are two
+                // independent calculations; showing them agree (or not) right on the basket is the
+                // actionability test itself, not just colour. Null CSM (currency missing from the
+                // map — shouldn't happen for the 8 CSM currencies, but the feed is EXTEND-tier data
+                // that can be absent) reads as unconfirmed rather than silently dropped.
+                val confirmed = csmValue != null &&
+                    (if (expectStrong) csmValue >= CSM_CONFIRM_MIDPOINT else csmValue < CSM_CONFIRM_MIDPOINT)
+                val suffix = when {
+                    confirmed -> ""
+                    csmValue == null -> " — CSM unavailable"
+                    else -> " — CSM disagrees"
+                }
+                Text(
+                    text = "$currency$suffix",
+                    style = AtomType.Body.copy(color = if (confirmed) colors.textPrimary else colors.textMuted),
+                )
+            }
+        }
     }
 }
 

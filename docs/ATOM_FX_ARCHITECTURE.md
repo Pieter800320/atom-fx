@@ -203,7 +203,23 @@ potential          {PAIR: {direction, level, state, score, factors{6}, setup_ran
 recommendation     {headline, bias, action, primary_pair, direction,
                     confidence, rationale, invalidation, next_catalyst, generated_at}  (§6)
 macro_regime       {primary, secondary, gold_overlay, usd_regime, currency_bias,
-                    evidence[], conflicts[], narrative, updated}  (Functional Spec §6 — the archetype engine)
+                    evidence[], conflicts[], narrative, updated, news_corroboration}
+                    (Functional Spec §6 — the archetype engine). `primary`/`secondary` are both
+                    {code, name, confidence, distinct_axes} — `secondary` gained `distinct_axes`
+                    (2026-09-10, 6th) so the app can tell a clear win from a near-tie without
+                    re-deriving it. `confidence` (primary only) is now margin-aware: a tie with
+                    `secondary` on `distinct_axes` force-caps it to Low regardless of the
+                    absolute count — the same field, but a Low here can now mean "genuinely
+                    ambiguous between two candidates," not just "few axes support this one." Its
+                    own display `name` deliberately diverges from the FX Macro Flow Handbook's
+                    A-J vocabulary (`macro_regime.py`'s `REGIME_LIB` doc comment, Functional Spec
+                    §6's regime table) — describes the observed cross-asset PATTERN, not an
+                    inferred cause the classifier's price-only inputs can't verify.
+                    `news_corroboration` (2026-09-10, 6th) — "confirmed"/"price_only"/"unknown",
+                    whether `scan_news.py`'s own `tag_theme()` axis-tagged recent headlines
+                    (`breaking.themes`) touch any of `primary`'s own supporting axes; coarse
+                    (axis-level, not narrative-level) but closes the gap between "the price
+                    pattern is real" and "the price pattern is what the news is actually about."
 spark              {PAIR: {d1:[…closes], h4:[…], h1:[…]}}  — compact recent closes for the native line chart (Functional Spec §8)
 news_themes        {headlines:[{text, axis, sentiment}], updated}  — optional theme-tagging (Functional Spec §7)
 conviction         {currencies:{CCY:{conviction,direction,components{6},raw,cot_available}},

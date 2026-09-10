@@ -9,7 +9,7 @@ produces a `macro_regime` object.
 The handbook's key discipline (anti double-counting): a regime is confirmed by
 DISTINCT evidence AXES, not by correlated indicators. Confidence = number of
 distinct axes whose net read supports the chosen regime (High>=3, Medium=2,
-Low<=1). Liquidity shock (E) is force-capped to Low (correlations unstable).
+Low<=1). Liquidity stress (E) is force-capped to Low (correlations unstable).
 
 Rule #1: this reads the inputs of the frozen macro/regime/gold calcs and produces
 a NEW interpretive object. It never alters a frozen calculation.
@@ -50,17 +50,35 @@ persistence — a single ordinary day's wobble could swap "Recession Shock" for
 """
 
 # code -> (name, strong currencies, weak currencies)
+#
+# 2026-09-10 (Pieter's ask) — renamed from the FX Macro Flow Handbook's own A-J vocabulary
+# ("Oil supply shock", "Recession shock", etc.) to names that don't overclaim what a 5-day
+# cross-asset price-direction read can actually establish. Two problems, addressed separately:
+#   1. "Shock" implies a rare, violent, discrete event. D/F/G/H/I fire off garden-variety
+#      multi-day directional leans (nothing about the classifier's inputs distinguishes a
+#      genuine dislocation from routine positioning) — renamed to drop that overclaim. E/J are
+#      different: both require an actual same-day VIX spike to fire at all (see
+#      `_regime_axes` below), which genuinely is the signature of a fast, violent dislocation
+#      (the handbook's own August 2024 carry-unwind case study) — crisis language is earned
+#      there, so "shock"/"unwind" language stays, just tightened.
+#   2. A name like "Oil supply shock" or "China / industrial slowdown" asserts a SPECIFIC
+#      real-world cause the inputs cannot verify (WTI direction + a risk flag says nothing
+#      about WHY oil moved; copper direction is a proxy, not a China-specific read; nothing in
+#      the inputs is Europe-specific at all). Renamed to describe the observed PATTERN instead
+#      of an inferred cause — a pattern name is true by construction; a causal name can be
+#      wrong even when the axis reads are accurate. See `docs/ATOM_FX_FUNCTIONAL_SPEC.md` §6
+#      for the full rationale and the handbook-code cross-reference.
 REGIME_LIB = {
-    "A": ("Growth-positive risk-on",   ["AUD", "NZD", "CAD"], ["JPY", "CHF"]),
-    "B": ("US rate dominance",         ["USD"],               ["EUR", "GBP", "AUD"]),
-    "C": ("Disinflationary easing",    ["AUD", "NZD", "EUR", "GBP"], ["USD"]),
-    "D": ("Recession shock",           ["JPY", "CHF"],        ["AUD", "NZD", "CAD"]),
-    "E": ("Liquidity shock",           ["USD", "JPY", "CHF"], ["AUD", "NZD", "CAD", "EUR", "GBP"]),
-    "F": ("Inflation shock",           ["USD", "CAD"],        ["JPY"]),
-    "G": ("Oil supply shock",          ["USD", "JPY", "CHF"], ["EUR"]),
-    "H": ("China / industrial slowdown", ["JPY", "CHF"],      ["AUD", "NZD", "CAD"]),
-    "I": ("European energy shock",     ["USD", "CHF"],        ["EUR"]),
-    "J": ("Crowded carry unwind",      ["JPY", "CHF"],        ["AUD", "NZD"]),
+    "A": ("Growth-positive risk-on",    ["AUD", "NZD", "CAD"], ["JPY", "CHF"]),
+    "B": ("US rate dominance",          ["USD"],               ["EUR", "GBP", "AUD"]),
+    "C": ("Disinflationary easing",     ["AUD", "NZD", "EUR", "GBP"], ["USD"]),
+    "D": ("Growth-scare risk-off",      ["JPY", "CHF"],        ["AUD", "NZD", "CAD"]),
+    "E": ("Liquidity stress",           ["USD", "JPY", "CHF"], ["AUD", "NZD", "CAD", "EUR", "GBP"]),
+    "F": ("Inflation repricing",        ["USD", "CAD"],        ["JPY"]),
+    "G": ("Commodity-led risk-off",     ["USD", "JPY", "CHF"], ["EUR"]),
+    "H": ("Industrial-demand risk-off", ["JPY", "CHF"],        ["AUD", "NZD", "CAD"]),
+    "I": ("Energy-cost dollar bid",     ["USD", "CHF"],        ["EUR"]),
+    "J": ("Carry unwind",               ["JPY", "CHF"],        ["AUD", "NZD"]),
 }
 
 VIX_SPIKE_PCT = 8.0   # |delta_pct| above which VIX counts as a "spike" (regime E/G/J) — stays
@@ -202,37 +220,68 @@ def _regime_axes(code: str, ax: dict, ma: dict, vix_spike: bool) -> set:
         if rates == "down": s.add("rates")
         if risk == "risk_on": s.add("risk")
         if usd == "down": s.add("usd")
-    elif code == "D": # Recession shock
+    elif code == "D": # Growth-scare risk-off (handbook: Recession shock)
         if risk == "risk_off": s.add("risk")
         if rates == "down": s.add("rates")
         if comm == "down": s.add("commodity")
         if sh == "up": s.add("safe_haven")
-    elif code == "E": # Liquidity shock
+    elif code == "E": # Liquidity stress (handbook: Liquidity shock)
         if vix_spike: s.add("risk")
         if usd == "up": s.add("usd")
         if sh == "up": s.add("safe_haven")
-    elif code == "F": # Inflation shock
+    elif code == "F": # Inflation repricing (handbook: Inflation shock)
         if rates == "up": s.add("rates")
         if comm == "up": s.add("commodity")
-    elif code == "G": # Oil supply shock
+    elif code == "G": # Commodity-led risk-off (handbook: Oil supply shock)
         if _dir(ma, "wti") == "up": s.add("commodity")
         if risk == "risk_off" or vix_spike: s.add("risk")
-    elif code == "H": # China / industrial slowdown
+    elif code == "H": # Industrial-demand risk-off (handbook: China / industrial slowdown)
         if _dir(ma, "copper") == "down": s.add("commodity")
         if risk == "risk_off": s.add("risk")
-    elif code == "I": # European energy shock
+    elif code == "I": # Energy-cost dollar bid (handbook: European energy shock)
         if usd == "up": s.add("usd")
         if _dir(ma, "wti") == "up": s.add("commodity")
-    elif code == "J": # Crowded carry unwind
+    elif code == "J": # Carry unwind (handbook: Crowded carry unwind)
         if vix_spike: s.add("risk")
         if sh == "up": s.add("safe_haven")
     return s
 
 
-def _confidence(n_axes: int, code: str) -> str:
+def _confidence(n_axes: int, code: str, margin: int = 1) -> str:
+    """2026-09-10 (Pieter's ask, "the conclusion should be actionable") — `margin` is the
+    winning code's axis-count lead over the runner-up (`top_n - sec_n` in
+    `classify_macro_regime`). A margin of 0 means the primary regime only tied the runner-up
+    on distinct axes — the raw axis count alone used to be presented with the same confidence
+    whether it won clearly or by a coin-flip against an equally-well-evidenced alternative.
+    Force-capped to Low regardless of the absolute axis count: a tie IS the genuinely
+    ambiguous case, not a weaker version of a clear win. Only the PRIMARY call site passes a
+    real margin; secondary's own confidence keeps the old n-axes-only read (no tertiary
+    candidate is computed to compare it against)."""
     if code == "E":
-        return "Low"   # liquidity shock: correlations unstable, force-cap
+        return "Low"   # liquidity stress: correlations unstable, force-cap
+    if margin <= 0:
+        return "Low"
     return "High" if n_axes >= 3 else ("Medium" if n_axes == 2 else "Low")
+
+
+def _news_corroboration(supporting_axes: set, news_themes: list[str] | None) -> str:
+    """2026-09-10 (Pieter's ask, "the name should accurately reflect reality") — coarse,
+    axis-level corroboration against `scan_news.py`'s own `tag_theme()` output
+    (`signals.breaking.themes`), which already tags recent headlines onto this exact same
+    five-axis vocabulary but — per that function's own doc comment — "never feeds back into
+    macro_regime's own axis-confirmation logic... a tagged headline is colour, not a new
+    quantitative input." This closes that gap, deliberately as a SEPARATE field, not folded
+    into `confidence`: axis confidence and news corroboration are different kinds of evidence,
+    and conflating them would hide which one is actually missing. Coarse on purpose — a
+    "commodity" theme tag doesn't know if the headline was about oil or copper specifically —
+    but a regime whose defining axis has NO recent matching-theme headline at all is a
+    materially weaker claim than one the headlines are actively talking about, regardless.
+    Returns "confirmed" (a supporting axis has a same-theme headline), "price_only" (no
+    matching headline), or "unknown" (no `news_themes` to check against, e.g. a scan_news.py
+    outage — fails quiet rather than asserting either way)."""
+    if not news_themes or not supporting_axes:
+        return "unknown"
+    return "confirmed" if supporting_axes & set(news_themes) else "price_only"
 
 
 def _confirmation(axis: str, ax_w1: dict, ax_daily: dict) -> str:
@@ -290,6 +339,7 @@ def classify_macro_regime(
     macro_assets_daily: dict | None = None,
     prev_regime: dict | None = None,
     updated: str = None,
+    news_themes: list[str] | None = None,
 ) -> dict:
     """Returns the `macro_regime` object, or {} if there's no W1 read yet to classify from."""
     ma_w1 = macro_assets_w1 or {}
@@ -321,17 +371,19 @@ def classify_macro_regime(
             top_code, top_n = prev_code, prev_n
 
     sec_n, sec_code = next(t for t in scored if t[1] != top_code)
+    margin = top_n - sec_n  # primary's axis-count lead over the runner-up — see _confidence()
 
     name, strong, weak = REGIME_LIB[top_code]
     bias = {"strong": strong, "weak": weak}
     primary = {
         "code": top_code, "name": name,
-        "confidence": _confidence(top_n, top_code),
+        "confidence": _confidence(top_n, top_code, margin),
         "distinct_axes": top_n,
     }
     sec_name = REGIME_LIB[sec_code][0]
     secondary = {"code": sec_code, "name": sec_name,
-                 "confidence": _confidence(sec_n, sec_code)}
+                 "confidence": _confidence(sec_n, sec_code),
+                 "distinct_axes": sec_n}
 
     supporting = _regime_axes(top_code, ax, ma_w1, vix_spike)
     evidence = [
@@ -353,6 +405,7 @@ def classify_macro_regime(
         "evidence": evidence,
         "conflicts": _conflicts(ax),
         "narrative": _narrative(name, bias),
+        "news_corroboration": _news_corroboration(supporting, news_themes),
     }
     if updated:
         out["updated"] = updated

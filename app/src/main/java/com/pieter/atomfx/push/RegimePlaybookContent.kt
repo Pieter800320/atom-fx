@@ -21,6 +21,16 @@ package com.pieter.atomfx.push
  * fragments and conflict fragments actually get assembled depends on the LIVE
  * `macro_regime` object's own `evidence`/`conflicts` fields, not a static lookup —
  * two firings of the same regime code with different confirming axes read differently.
+ *
+ * 2026-09-10 (Pieter's ask) — `name` fields renamed to match `macro_regime.py`'s own
+ * REGIME_LIB (see that file's doc comment for the full rationale: names now describe the
+ * observed cross-asset PATTERN, not an inferred cause the classifier's price-only inputs
+ * can't actually verify). D/F/G/H/I's `coreStory` opening line was retuned the same way —
+ * "is consistent with" rather than a flat "is happening because of". The `historicalNote`
+ * entries are untouched: those describe specific, independently-documented PAST episodes
+ * (2022 European energy crisis, COVID 2020, August 2024 carry unwind) where the cause really
+ * was confirmed by real-world reporting — a different epistemic claim than what today's live
+ * classifier, working from price direction alone, can assert about the CURRENT reading.
  */
 data class RegimePlaybookEntry(
     val code: String,
@@ -99,8 +109,8 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         ),
     ),
     RegimePlaybookEntry(
-        code = "D", name = "Recession shock",
-        coreStory = "This is the handbook's single most important \"apparent contradiction\": yields are falling because the market expects the Fed to cut in response to a growth scare, but the dollar can still strengthen, because the safe-haven bid for USD, JPY and CHF overwhelms the yield-differential effect. Don't read falling US yields as automatically USD-negative — check whether equities are falling WITH the yield. If they are, this is Regime D, not Regime C.",
+        code = "D", name = "Growth-scare risk-off",
+        coreStory = "This pattern is consistent with the handbook's single most important \"apparent contradiction\": yields falling because the market expects the Fed to cut in response to a growth scare, while the dollar still strengthens because the safe-haven bid for USD, JPY and CHF overwhelms the yield-differential effect. Don't read falling US yields as automatically USD-negative — check whether equities are falling WITH the yield. If they are, that's this pattern, not Regime C's.",
         confirmingAxes = listOf("risk", "rates", "commodity", "safe_haven"),
         confidenceNote = "Can reach High confidence (4 confirmable axes) — the richest-evidenced regime in the library, alongside C.",
         biasMechanism = "JPY/CHF strengthen on defensive flows and carry-trade unwinding; AUD/NZD/CAD weaken because they're the currencies most exposed to a growth slowdown via commodity demand and risk appetite simultaneously.",
@@ -112,7 +122,7 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         historicalNote = "The clearest real-world version of this exact mechanism (safe-haven USD strength despite falling yields) was the 2020 COVID shock — see Regime E, a close sibling of this one, for that case.",
     ),
     RegimePlaybookEntry(
-        code = "E", name = "Liquidity shock",
+        code = "E", name = "Liquidity stress",
         coreStory = "A genuine liquidity/deleveraging event — not just risk-off, but a scramble for cash and funding that can briefly break normal cross-asset relationships altogether. VIX spikes hard (this regime specifically requires a large jump, not just a directional move), and USD, JPY and CHF can all strengthen together purely on funding demand, regardless of what yields or growth expectations are doing.",
         confirmingAxes = listOf("risk", "usd", "safe_haven"),
         confidenceNote = "Force-capped to Low confidence, always — regardless of how many axes light up, because correlations are least reliable exactly when this regime is real. The August 2024 case study below shows a macro trigger that was, by itself, modest, turning violent because of how much leveraged positioning had to unwind. Check Conviction (Currency Detail sheet) directly — a currency showing extreme, one-sided positioning right before a liquidity event is the clearest warning sign available.",
@@ -125,8 +135,8 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         historicalNote = "2020 COVID is the textbook case: extreme VIX, collapsing growth expectations, severe commodity weakness and unusual USD strength despite collapsing yields, because liquidity and capital preservation dominated every other consideration.",
     ),
     RegimePlaybookEntry(
-        code = "F", name = "Inflation shock",
-        coreStory = "Inflation expectations and commodity prices are rising together while the Fed is expected to stay restrictive — a genuinely mixed regime, because commodity currencies can get an initial terms-of-trade lift from the same prices that are also driving the inflation story, even as the broader restrictive-policy backdrop eventually weighs on risk assets. USD often benefits from the \"higher for longer\" rate story even while the inflation itself is the underlying problem.",
+        code = "F", name = "Inflation repricing",
+        coreStory = "Inflation expectations and commodity prices rising together while the Fed is expected to stay restrictive is a genuinely mixed pattern, because commodity currencies can get an initial terms-of-trade lift from the same prices that are also driving the inflation story, even as the broader restrictive-policy backdrop eventually weighs on risk assets. USD often benefits from the \"higher for longer\" rate story even while the inflation itself is the underlying problem.",
         confirmingAxes = listOf("rates", "commodity"),
         confidenceNote = "Structural Medium ceiling (2 axes: Rates, Commodity).",
         biasMechanism = "USD and CAD both benefit initially — USD from the restrictive-policy expectation, CAD from oil specifically — while JPY weakens as the rate differential against a still-low BOJ widens.",
@@ -138,8 +148,8 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         historicalNote = "2022 is the clearest real precedent: US inflation surged, the Fed tightened aggressively, and — per the IMF — the dollar had appreciated 22% against JPY and 13% against EUR by October, an unusual episode specifically because USD strengthened while commodity prices also rose, breaking the more typical inverse USD/commodity relationship (see Regime B's 2014-15 case for the more typical version).",
     ),
     RegimePlaybookEntry(
-        code = "G", name = "Oil supply shock",
-        coreStory = "Oil rises specifically because of a supply disruption, not a demand/growth story — the critical distinction for CAD. If broader risk appetite and growth expectations hold steady, CAD gets a clean terms-of-trade benefit. But if the same shock also triggers a risk-off reaction, CAD's oil benefit can be entirely overwhelmed by risk-off pressure hitting it from the other direction — the same commodity move can help or hurt CAD depending on what else is happening at the same moment.",
+        code = "G", name = "Commodity-led risk-off",
+        coreStory = "WTI rising alongside a risk-off tape is consistent with (among other things) an oil supply disruption, but the price data alone can't confirm that specific cause — it takes an independent check (news, OPEC decisions, Copper's own direction) to know whether this is a supply story or something else entirely. If it is a supply shock: the critical distinction is for CAD. Steady broader risk appetite gives CAD a clean terms-of-trade benefit; a risk-off reaction on top of the same shock can overwhelm that benefit from the other direction — the same commodity move can help or hurt CAD depending on what else is happening at the same moment.",
         confirmingAxes = listOf("commodity", "risk"),
         confidenceNote = "Structural Medium ceiling (2 axes).",
         biasMechanism = "USD/JPY/CHF are the \"weak growth, rising uncertainty\" side of a supply shock; the CAD side is genuinely ambiguous and depends entirely on whether Risk is confirming this regime or fighting it.",
@@ -150,8 +160,8 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         ),
     ),
     RegimePlaybookEntry(
-        code = "H", name = "China / industrial slowdown",
-        coreStory = "Copper falling is the cleanest single tell here — it's the metal most directly tied to Chinese and global industrial demand, so a genuine slowdown shows up there before almost anywhere else in this data set. AUD is the handbook's own preferred proxy for this regime specifically because Australia's export base is so concentrated in exactly the commodities (iron ore, coal) a Chinese industrial slowdown hits hardest.",
+        code = "H", name = "Industrial-demand risk-off",
+        coreStory = "Copper falling is the cleanest single tell here — it's the metal most directly tied to global industrial demand, so a genuine slowdown shows up there before almost anywhere else in this data set. Copper alone can't say WHERE the slowdown is coming from, though (China is the handbook's own default read given Australia's export concentration in exactly the commodities — iron ore, coal — a Chinese industrial slowdown hits hardest, but the price data itself is agnostic to geography).",
         confirmingAxes = listOf("commodity", "risk"),
         confidenceNote = "Structural Medium ceiling (2 axes).",
         biasMechanism = "AUD/NZD/CAD weaken on the terms-of-trade damage from falling industrial-commodity demand; JPY/CHF strengthen as the accompanying risk-off flows into the two classic funding/safe-haven currencies.",
@@ -163,8 +173,8 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         historicalNote = "The RBA's own 2015 analysis, cited directly in the handbook, attributed that year's substantial AUD decline to a convergence of falling commodity prices, uncertainty about China's outlook and shifting US monetary-policy expectations — a genuine multi-factor episode, not a single-cause one.",
     ),
     RegimePlaybookEntry(
-        code = "I", name = "European energy shock",
-        coreStory = "European energy prices spike, European growth expectations deteriorate, and the shock is specific enough to Europe that it shows up as EUR weakness and USD/CHF strength rather than a broad global risk-off move. This is a regional-shock regime, not a global one — the tell is that the damage concentrates in EUR (and secondarily GBP) rather than spreading evenly across every risk-sensitive currency.",
+        code = "I", name = "Energy-cost dollar bid",
+        coreStory = "USD/CHF strength alongside rising energy prices, concentrated in EUR weakness rather than spreading evenly across every risk-sensitive currency, is consistent with a European-specific energy shock — but nothing in this app's own inputs is actually Europe-specific (there's no European instrument at all here; the read is inferred entirely from EUR being the currency taking the damage). Treat \"European\" as the handbook's own best-fit story for this pattern, not something the data confirms directly.",
         confirmingAxes = listOf("usd", "commodity"),
         confidenceNote = "Structural Medium ceiling (2 axes).",
         biasMechanism = "USD/CHF strengthen partly on safe-haven grounds and partly because they're simply not exposed to Europe's specific energy-import vulnerability; EUR weakens directly on its own terms-of-trade and growth damage.",
@@ -176,7 +186,7 @@ val REGIME_PLAYBOOK: Map<String, RegimePlaybookEntry> = listOf(
         historicalNote = "The 2022 European energy crisis is the textbook example — the combination of the Ukraine war, Europe's energy-import dependence, surging inflation and a widening Fed/ECB policy divergence placed sustained, concentrated pressure on EUR specifically, distinct from the broader global inflation-shock story unfolding at the same time (see Regime F).",
     ),
     RegimePlaybookEntry(
-        code = "J", name = "Crowded carry unwind",
+        code = "J", name = "Carry unwind",
         coreStory = "This regime is about positioning, not fundamentals: a market can move far more violently than the initial macro news justifies, because positioning and leverage amplify the move. JPY is the classic carry-funding currency — borrow JPY cheaply, buy a higher-yielding currency, profit from the differential. The trade works only as long as volatility stays low and the funding currency stays weak. When VIX spikes and JPY starts to strengthen, the trade goes underwater fast, forcing leveraged unwinds that push JPY higher still — a self-reinforcing loop that has nothing to do with any new information about the Japanese economy.",
         confirmingAxes = listOf("risk", "safe_haven"),
         confidenceNote = "Structural Medium ceiling (2 axes) — and, like Regime E, the confidence label understates how violent the move can be, since the amplification comes from positioning the axis-based classifier can't see. Carry trades are a compensated risk premium, not a free lunch: carry traders are paid, on average, to bear exactly this crash risk. This regime is that risk showing up.",

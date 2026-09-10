@@ -10,9 +10,9 @@ output and the frozen calculations are never involved in producing them.
 | File | State it exercises |
 |---|---|
 | `state_risk_on.json` | The happy path — Growth-positive risk-on (regime A). 3 tradeable pairs, EUR leading. |
-| `state_risk_off.json` | Recession-shock risk-off (regime D). Havens bid, dollar-bloc sold, 4 tradeable shorts. |
+| `state_risk_off.json` | Growth-scare risk-off (regime D). Havens bid, dollar-bloc sold, 4 tradeable shorts. |
 | `state_ranging_no_setups.json` | **No dominant regime, 0 tradeable pairs** — the "NO A+ SETUPS" empty state; nodes near the nucleus. |
-| `state_liquidity_shock.json` | Liquidity shock (regime E) — VIX spiking, confidence forced LOW, recommendation = STAND ASIDE. |
+| `state_liquidity_shock.json` | Liquidity stress (regime E) — VIX spiking, confidence forced LOW, recommendation = STAND ASIDE. |
 
 Regenerate with:
 

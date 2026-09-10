@@ -601,6 +601,45 @@ def test_macro_regime_hysteresis_sticky_on_tie():
     sticky = macro_regime.classify_macro_regime(ma_tie, prev_regime=prev_c, updated="2026-08-28T00:00:00+00:00")
     assert sticky["primary"]["code"] == "C"  # tie keeps the standing regime, not the tie-break's A
 
+    # 2026-09-10 (Pieter's ask) — a genuine tie on distinct axes is the ambiguous case, not a
+    # weaker version of a clear win: both `no_prev` (A, 2 axes) and `sticky` (C, 2 axes) are
+    # tied against their own runner-up here, so BOTH should read Low confidence even though
+    # 2 axes alone would normally mean Medium. Same underlying tie, whichever code wins it.
+    assert no_prev["primary"]["confidence"] == "Low"
+    assert sticky["primary"]["confidence"] == "Low"
+    assert fresh["primary"]["confidence"] == "High"  # NOT tied (3 vs A's 2) — margin=1, unaffected
+
+
+def test_macro_regime_news_corroboration():
+    """2026-09-10 (Pieter's ask) — scan_news.py's own tag_theme() axis tags, fed back in as
+    `news_themes`, should corroborate or flag a regime whose defining axes have no recent
+    matching headline at all. Reuses test_macro_regime_risk_on's own inputs (regime A,
+    confirming axes {risk, commodity})."""
+    ma_w1 = {
+        "spx":    {"direction": "up",   "delta_pct": 3.5},
+        "vix":    {"direction": "down", "delta_pct": -18.0},
+        "copper": {"direction": "up",   "delta_pct": 2.5},
+        "dxy":    {"direction": "flat", "delta_pct": 0.0},
+        "us10y":  {"direction": "up",   "delta_bp": 5.0},
+        "us3m":   {"direction": "flat", "delta_bp": 0.0},
+        "wti":    {"direction": "flat", "delta_pct": 0.0},
+        "gold":   {"direction": "up",   "delta_pct": 4.5},
+        "curve":  {"direction": "up",   "delta_bp": 16.0},
+        "btc":    {"direction": "up",   "delta_pct": 16.0},
+    }
+    # No news_themes at all (e.g. a scan_news.py outage) -> fails quiet, doesn't assert either way.
+    no_news = macro_regime.classify_macro_regime(ma_w1, updated="2026-08-28T00:00:00+00:00")
+    assert no_news["news_corroboration"] == "unknown"
+
+    # Recent headlines exist, but none touch this regime's own supporting axes (risk, commodity)
+    # -> price-only, a materially weaker claim than one the headlines are actively talking about.
+    unrelated = macro_regime.classify_macro_regime(ma_w1, updated="2026-08-28T00:00:00+00:00", news_themes=["rates", "safe_haven"])
+    assert unrelated["news_corroboration"] == "price_only"
+
+    # A headline tagged onto one of the actually-supporting axes -> confirmed.
+    confirmed = macro_regime.classify_macro_regime(ma_w1, updated="2026-08-28T00:00:00+00:00", news_themes=["rates", "commodity"])
+    assert confirmed["news_corroboration"] == "confirmed"
+
 
 def test_build_macro_assets_w1_basic():
     macro = {

@@ -84,7 +84,7 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 6        # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 7        # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).
@@ -95,3 +95,9 @@ SCHEMA_VERSION = 6        # bump whenever a key is added or a shape changes
 # 2026-09-10 (5th): +percent_b_currency (all additive) — currency-normalized %B, base/quote
 # sign-corrected (Pieter's own catch: percent_b_board mixes pairs with no regard for which side
 # of the pair is base vs. quote, so it isn't a clean read of any one currency's stretch).
+# 2026-09-10 (6th): Macro Archetype rework (Pieter's ask, "the name should accurately reflect
+# reality, and the conclusion should be actionable") — REGIME_LIB's 10 display names changed
+# (still additive to the schema itself — same code letters, same shape); +macro_regime.
+# news_corroboration, +macro_regime.secondary.distinct_axes (both additive); primary's own
+# `confidence` can now read Low on a tied axis-count where it previously read Medium/High —
+# same field, materially different meaning in the tied case, flag if anything caches/diffs it.

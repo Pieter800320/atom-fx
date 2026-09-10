@@ -575,7 +575,44 @@ A restrained close-price line: 1.5px stroke in the pair's direction colour, a so
 
 ### 19.2 Macro screen
 
-The archetype **banner** is the hero: the regime name in Title weight, a confidence chip, and a one-line narrative. Below it, the two **currency-bias baskets** (STRONG green / WEAK red chip rows), then the **evidence axes** as a short list of labelled rows (Risk · Rates · USD · Commodity · Safe-haven) each with its read and a ✓/✗ support glyph — this visualises the handbook's anti-double-counting discipline. The **cross-asset dashboard** is the Appendix-A table (Factor · Variable · Value · Dir · Δ · Zone · Impact) in an `overflow-x:auto` container; tap a row for its zone context. Gold-overlay and USD-regime are chips near the banner.
+**Rebuilt 2026-09-10 (Pieter's ask)**: "the page reads 'Oil supply shock'... but there is no oil
+supply shock. The name should accurately reflect reality, and the conclusion should be
+actionable." The classifier (`macro_regime.py`) only ever sees 5 axes of price direction — it
+can name the observed cross-asset PATTERN, but it cannot verify a specific real-world CAUSE.
+The old layout led with the archetype name at Title weight, which read as a confident, settled
+claim about reality that a 5-axis price read can't actually support. Four changes, described in
+full in `macro_regime.py`'s own doc comments:
+
+- **Evidence now leads the page**, not the archetype. The evidence axes (Risk · Rates · USD ·
+  Commodity · Safe-haven) are purely descriptive — literal instrument moves, true by
+  construction — so the page states what it knows before what it's inferring. Each axis is a
+  standard card (not the old plain divided list): a lit/muted `EvidenceDot`, the axis label, its
+  literal read (e.g. "SPX↓ VIX↑"), and — since the 2026-09-06 two-clock rework — a
+  `confirmsToday` line ("Today confirms this trend" / "is fighting" / "No fresh move today").
+- **The archetype card follows**, demoted from a Title-weight hero to `"Best match: {name}"` at
+  Body weight — an inferred label, not a headline. Same confidence/USD/gold pill row as before.
+  Its own display `name` deliberately diverges from the FX Macro Flow Handbook's own A-J
+  vocabulary (`REGIME_LIB`'s doc comment, Functional Spec §6's regime table for the full
+  cross-reference) — describes the pattern, not an inferred cause.
+- **An explicit ambiguity callout** when `primary.confidence` reads Low because it tied
+  `secondary` on distinct axes (not just a weak absolute count): names the actual runner-up
+  story the data couldn't separate it from, rather than showing a bare "Low" pill and leaving the
+  reader to guess why.
+- **A news-corroboration line** — "Confirmed by recent headlines" or "Price pattern only — no
+  recent headline confirms this" (`macro_regime.newsCorroboration`, from `scan_news.py`'s own
+  `tag_theme()` axis-tagged headlines, now actually fed back into the classifier instead of
+  sitting unused). Silent when there's nothing to check against ("unknown").
+- **The currency-bias baskets are now accountable to live CSM**, not shown as flat, unconditional
+  fact: each currency in the STRONG/WEAK boxes is checked against its own H4 CSM value (CSM=50
+  as the confirm/not split — the same midpoint Rotation's own quadrant axes use, not a new
+  threshold) and reads muted with "— CSM disagrees" (or "— CSM unavailable") when the live
+  technical read doesn't back the macro story. This is the actionability test: a macro story the
+  technicals don't support yet is a very different thing to trade than one they do.
+
+The **cross-asset dashboard** (Appendix-A table: instrument, value, direction/Δ, a `confirms`
+tag against the primary regime's own supporting axes) sits last, sorted moving-instruments-first.
+No `✓/✗` glyphs anywhere — support is a tinted card fill (`EVIDENCE_LIT_AMOUNT` lerp toward
+`bull`), consistent with the rest of the app's "colour encodes state" convention (§2).
 
 ### 19.3 Settings
 

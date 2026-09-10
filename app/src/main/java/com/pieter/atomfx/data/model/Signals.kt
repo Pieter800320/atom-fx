@@ -331,6 +331,10 @@ data class MacroRegimeBlock(
     val conflicts: List<String> = emptyList(),
     val narrative: String? = null,
     val updated: String? = null,
+    // 2026-09-10 (Pieter's ask) — "confirmed" (a supporting axis has a same-theme recent
+    // headline, scan_news.py's own tag_theme() output), "price_only" (no matching headline),
+    // or "unknown" (nothing to check against). See macro_regime.py's `_news_corroboration`.
+    @SerialName("news_corroboration") val newsCorroboration: String? = null,
 )
 
 @Serializable

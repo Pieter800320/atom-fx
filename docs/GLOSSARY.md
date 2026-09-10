@@ -91,9 +91,18 @@ Terms kept here for anyone chasing old references:
 ## Macro
 
 - **Macro archetype / named regime** — one of the ten handbook regimes A–J (e.g. *Growth-positive
-  risk-on*, *Recession shock*, *Liquidity shock*). Produced by `macro_regime.py`.
+  risk-on*, *Growth-scare risk-off*, *Liquidity stress*). Produced by `macro_regime.py`. App
+  names (2026-09-10) deliberately diverge from the handbook's own A-J vocabulary — see
+  Functional Spec §6's regime table for the full name-for-name cross-reference and rationale.
 - **Evidence axis** — a group of correlated indicators counted as ONE piece of evidence
   (Risk · Rates · USD · Commodity · Safe-haven). Confidence = how many distinct axes agree.
+  2026-09-10: also margin-aware now — a tie with the runner-up archetype on distinct axes
+  force-caps confidence to Low, regardless of the absolute count (a tie is the ambiguous case,
+  not a weaker clear win). Surfaced on the Macro screen as a named callout, not just a pill.
+- **News corroboration** — `macro_regime.news_corroboration` (2026-09-10), "confirmed" /
+  "price_only" / "unknown". Whether `scan_news.py`'s own `tag_theme()` headline-axis tags touch
+  any of the primary archetype's own supporting axes — closes the gap between "the price
+  pattern is real" and "the price pattern is what the news is actually about."
 - **Gold overlay** — *defensive gold* vs *diversification gold*.
 - **USD regime** — rate dominance · growth dominance · global risk-off · confidence shock.
 
