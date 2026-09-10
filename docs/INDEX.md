@@ -41,4 +41,11 @@ what changed in a short line here:
 
 - v1.0 — initial architecture, design, functional spec, setup, runbook, fixtures, Rule #1 test.
 - 2026-09-04 — added ATOM_FX_SIGNALS_ROADMAP.md v1.0 (phased plan for new signals/notifications, from a full audit of the frozen scanner against both upstream zips).
-- 2026-09-10 — ATOM_FX_DESIGN.md bumped to v1.1 (§17/§19/§20 resynced to the shipped Wheel v2 + Simplification Rework: Setup Bands vocabulary, the retired Tradeable Now card, the fixed D1/H4 wing consensus). ATOM_FX_BUILD_STATUS.md fully refreshed against current source (was last audited 2026-09-02). `ATOM_FX_WHEEL_V2_SPEC.md` §11 and the Functional Spec's pair-sheet tab list are still known-stale — not yet resynced, flagged for a follow-up pass.
+- 2026-09-10 — ATOM_FX_DESIGN.md bumped to v1.1 (§17/§19/§20 resynced to the shipped Wheel v2 + Simplification Rework: Setup Bands vocabulary, the retired Tradeable Now card, the fixed D1/H4 wing consensus). ATOM_FX_BUILD_STATUS.md fully refreshed against current source (was last audited 2026-09-02) — first pass missed the Bollinger Band D1 touch alert, Watchlist screen, and Regime/Alert Playbook, corrected same day. `ATOM_FX_WHEEL_V2_SPEC.md` gained a §12 addendum: the dial is pairs-only now (no Currencies mode, no on-dial ticker), the 4 corner buttons are wing selectors not a mode/timeframe toggle, and there's no rim-glow treatment — §11's own bullets on those points are marked superseded rather than rewritten, to preserve the historical reasoning. The Functional Spec's pair-sheet tab list, and `ATOM_FX_DESIGN.md` §14.2 (still describes a
+Currency Flow sheet deleted outright 2026-09-06) and §6/§6A generally (the pre-Wheel-v2 wheel
+body — already understood to be superseded by `ATOM_FX_WHEEL_V2_SPEC.md` per this file's own
+table, not audited line-by-line) are still known-stale — flagged for a follow-up pass, not
+resynced today. Also found and fixed in this pass: two places (`CLAUDE.md` §3, this doc-sync's own
+earlier same-day `ATOM_FX_DESIGN.md` edit) had repeated §11's stale on-dial-ticker/Currencies-toggle
+claims without checking the code first — a reminder that a doc citing another doc's addendum still
+needs its own verification, not just a citation.

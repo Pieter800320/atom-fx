@@ -207,38 +207,72 @@ over §0–10 where they conflict.
   edge (`TOGGLE_INNER_SPAN_DEG`), narrower at the tip (`TOGGLE_OUTER_SPAN_DEG`), curved top/bottom
   edges (arcs at r0/r1, following the dial's own curvature — not flat chords), only the two outer
   (narrow-end) corners rounded. Sits just outside the XA ring, ~75% thicker than it
-  (`TOGGLE_R0/R1_FRAC`). Straight (non-curved) labels, full words — `CURRENCIES`/`PAIRS`/`D1`/`H4`,
-  never abbreviated. Hit-tested and drawn inside `WheelCanvas` itself, not a Compose overlay — it
-  costs the layout nothing, which is most of why the wheel could grow at all.
-  - **Bottom corners** (135°/225°): the Currencies/Pairs mode toggle — Currencies bottom-right
-    (thumb zone in portrait grip), Pairs bottom-left.
-  - **Top corners** (45°/315°): the Currencies-mode **D1/H4 timeframe toggle** — H4 top-right, D1
-    top-left. `csm`/`csm_delta` are genuinely per-timeframe in `signals.json`, so this changes real
-    data (`WheelUiState.currencies` = H4, `.currenciesD1` = D1, both mapped by `WheelMapper`).
-    `breadth` has no D1 variant in the data contract — always reads h4 regardless of the toggle.
-    Pair `potential` is **not** per-timeframe (already a single cross-timeframe verdict), so this
-    toggle has nothing to change in Pairs mode — it stays visible but drawn at reduced alpha
-    (`tfInert` in `drawCornerButtons`) rather than disappearing.
-- **On-wheel numeric currency values were added, then removed** (Pieter: keep the wheel clean —
-  radius already carries the strength value; a number is redundant next to it). Currencies mode
-  shows just the code (`NZD`), no value, on the dial itself.
-- **The Currency Flow ticker is always on, both modes** — `EUR 83 +22  •  JPY 59 +6  •  …`,
-  strongest first at the selected timeframe, auto-scrolling (`Modifier.basicMarquee()`), spring
-  "bump and settle" entrance once on first load. Flow is relevant context even in Pairs mode (it's
-  *why* pairs are moving), so it no longer hides/shows with the mode toggle — same spot, always on.
-  This is *the* glanceable home for currency strength + flow (replacing both the old on-wheel
-  numbers and the old Flow pill). Tapping it opens the full Currency Flow sheet (§14.2).
-- **Currency Flow sheet dropped "Absolute leader/laggard."** One number per currency now (flow
-  leader/laggard only). The backend field still exists in `signals.json`
-  (`currency_flow.absolute_leader/absolute_laggard`) — see Glossary. Don't resurface it in the UI
-  without checking with Pieter first.
-- **Depth/motion pass:** currency wedges fill with a radial gradient (muted near the hub → full
-  accent at the rim); pair-ring bands get the same treatment *per band* (each of the 6 bands is
-  its own muted→full gradient, preserving the visible boundary between levels — pair level is
-  discrete data, unlike continuous currency strength, so it doesn't get one smooth gradient across
-  all 6). Tradeable/A+ pair rims get a real blurred glow (`BlurMaskFilter`, not just an opaque
-  stroke) that **flashes and settles** — snaps to ~2.4× brightness/size the moment a pair earns the
-  rim, springs back to steady state (`rimFlash` in `WheelCanvas`). The hub has a soft blurred
-  ambient shadow. This is a first cut, not a final "3D" treatment — expect another pass.
+  (`TOGGLE_R0/R1_FRAC`). Hit-tested and drawn inside `WheelCanvas` itself, not a Compose overlay —
+  it costs the layout nothing, which is most of why the wheel could grow at all. This geometry is
+  still exactly what's shipped — only *what the four corners mean* has changed since, twice; see
+  §12 below for current truth (they're wing selectors now, not a mode/timeframe toggle) and don't
+  trust the rest of this bullet's own content (labels, bottom/top corner assignment) as current.
+- ~~On-wheel numeric currency values were added, then removed~~ — moot: see §12, there is no
+  currency display on the dial at all any more (2026-09-04).
+- ~~The Currency Flow ticker is always on, both modes~~ — retired 2026-09-04 ("get rid of the
+  ticker entirely"), see §12.
+- ~~Currency Flow sheet dropped "Absolute leader/laggard."~~ — moot: the whole sheet was deleted
+  2026-09-06, see §12.
+- ~~Depth/motion pass: currency wedges fill with a radial gradient… pair-ring bands… per band (6
+  bands)… Tradeable/A+ pair rims get a real blurred glow… flashes and settles (`rimFlash`)~~ —
+  **none of this reflects shipped code any more**, see §12: no currency wedges exist on the dial,
+  pair wedges are a single continuous fill (not 6 discrete bands), and there is no rim-glow/flash
+  treatment (`WheelCanvas.kt`'s own comment: "indicated by its fill/border alone — no separate rim
+  glow treatment"). The hub's soft blurred ambient shadow is the one part of this bullet still true.
 - **Haptics on every interactive control** — see `ATOM_FX_DESIGN.md` §16. Applies wheel-wide, not
-  just to the dial.
+  just to the dial. Still accurate, unchanged.
+
+---
+
+## 12. Second addendum (2026-09-10) — current truth over §11 where they conflict
+
+§11 above was written 2026-09-02 and describes the wheel's *second* design, already superseded
+twice since (the Simplification Rework, 2026-09-05/06/09, and the ticker/ring retirement,
+2026-09-04, which actually landed first but wasn't folded into §11 at the time). Rather than
+rewrite §11's own bullets in place and lose the historical reasoning, this section states what's
+actually live, verified directly against `WheelCanvas.kt`/`WheelScreen.kt`/`WheelUiState.kt` on
+2026-09-10 (part of the same doc-sync pass as `ATOM_FX_DESIGN.md` v1.1 and
+`ATOM_FX_BUILD_STATUS.md` — see `CLAUDE.md` §5's doc-upkeep rule).
+
+- **The middle ring is pairs-only now, always.** `WheelUiState.kt`'s own `WheelMode` doc comment:
+  "The ring is exclusively pair-shaped, always — CSM/currency strength has its own permanent strip
+  below." There is no Currencies-mode dial display any more, no Currencies/Pairs toggle anywhere
+  on the wheel, and nothing currency-related drawn on the dial itself. (`WheelUiState`'s own
+  top-of-file doc comment — "the middle ring toggles between PAIRS and CURRENCIES" — is itself now
+  stale, contradicted by the more specific comment 20 lines below it; don't trust it either.)
+- **The four corner buttons are the four wing selectors** — `SETUP` (labelled this way on-wheel
+  since 2026-09-09, was `OVERALL`; internal `WheelMode.OVERALL` enum name unchanged), `TREND`,
+  `MOMENTUM`, `VOLATILITY` (`WheelCanvas.drawCornerButtons`). Exactly one is always selected (the
+  wheel is always in one of its 4 modes). Labels are **curved**, not straight (`curvedLabel`,
+  2026-09-03 — this itself superseded this same file's original "reinforcing that it's chrome"
+  straight-label call, before the wings even existed).
+- **Currency strength moved off the dial entirely, into `CsmBarStrip`** — a permanent row below
+  the wheel (not a ring, not a mode), 8 currencies in a fixed order (`WheelGeometry.CCY_ORDER`,
+  never re-sorted by strength — leader/laggard is read by comparing bar heights, not position or
+  a sorted list), with its own **Strength/Flow display toggle** (`CsmDisplayMode`): Strength shows
+  a plain height=strength bar per currency; Flow shows a diverging chart off a zero-line
+  (`csm_delta`-driven, up/down from the midline). Below that, a separate `TimeframeButtons` row
+  (D1/H4/H1) drives the CSM strip only — it does **not** touch the wheel's own wings, which are a
+  deliberately fixed timeframe consensus (D1 Regime/H4 Trend/H4 Momentum/D1 Volatility, see
+  `ATOM_FX_BUILD_STATUS.md` Section B).
+- **The hub draws only "REGIME" + the regime name.** `WheelCanvas.drawHub` — confirmed by reading
+  the function directly. `WheelMapper.mapNucleus` still computes `strengthWord`, `confidence`,
+  `flowLine` ("X leading · Y weakening"), and `archetypeLine` onto `NucleusState`, but **none of
+  those four fields are rendered anywhere** — grepped the whole `ui/` tree for each, zero render
+  sites outside `WheelMapper.kt`/`WheelUiState.kt` themselves. **Flag, not just a doc correction**:
+  this means the landing screen currently has no on-screen sentence naming the regime's own
+  strength/confidence, and no on-screen sentence naming the currency leader/laggard by name —
+  leader/laggard is only inferable by comparing `CsmBarStrip` bar heights. Worth Pieter's own call
+  on whether that's sufficient for the §20 acceptance test's "strong or weak" / "leading /
+  weakening currency" questions, or whether `flowLine` (already computed, just unrendered) should
+  actually be surfaced somewhere on the landing view. Not resolved as part of this doc-sync pass —
+  a design decision, not a doc-accuracy one.
+- **`StatusStrip` is the ranked-pairs recommendation glyph row**, not a mode/data toggle of any
+  kind — see `ATOM_FX_DESIGN.md` §19 and `ATOM_FX_BUILD_STATUS.md` Section B for its own history
+  (9-button cascade → single card → per-pair glyph row). Out of scope for this wheel-geometry
+  section beyond noting it sits directly above the dial.
