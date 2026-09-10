@@ -239,6 +239,28 @@ percent_b_board    {line:[float,…], signal:[float,…], dates:[str,…]}  — 
                     borrowed from whichever pair's own `pctb_dates` is longest (all 12 pairs'
                     D1 bars cover the same trailing **NY-session** trading days, see below),
                     trimmed to `line`'s own final length.
+                    **Not currency-direction aware** — it averages every pair's raw %B with no
+                    regard for which side is base vs. quote, so a falling reading can mean
+                    opposite things pair to pair (EUR/USD falling = USD strong; USD/CAD falling
+                    = USD weak). See `percent_b_currency` below for the corrected version.
+percent_b_currency {"<CUR>": {line:[float,…], signal:[float,…], dates:[str,…]}, … for all 8
+                    CURRENCIES}  (2026-09-10, 5th, Pieter's own catch) — the currency-direction-
+                    corrected sibling to `percent_b_board`. Built the same way `csm.py`'s own
+                    `compute_csm_d1` corrects currency STRENGTH from a mixed pair set
+                    (`raw[base].append(combined); raw[quote].append(-combined)`), except %B is a
+                    0-100 *position* (not a signed return), so the quote-side correction mirrors
+                    around the midpoint (`100 - value`) instead of negating. Every contributing
+                    pair feeds exactly one currency as base (direct) and one as quote (mirrored).
+                    Uses `csm.py`'s own `STRENGTH_PAIRS` (18 pairs, not just the wheel's 12) for
+                    the same per-currency coverage CSM itself relies on — the wheel's 12 alone
+                    leave CHF with only one contributing pair (USD/CHF); `STRENGTH_PAIRS` adds
+                    EUR/CHF and GBP/CHF too. Computed independently from `raw_ohlcv` (own
+                    `_d1_ny_close` + `compute_bb_d1` calls per `STRENGTH_PAIRS` pair) rather than
+                    reading `pairs.<PAIR>.bb_d1`, since several `STRENGTH_PAIRS` pairs aren't
+                    wheel pairs and have no `pairs.<PAIR>` entry to read from. A currency with no
+                    contributing pair (shouldn't happen with the full 18-pair set, but fails
+                    quiet like every other lookback metric here) gets empty `line`/`signal`/
+                    `dates`.
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 

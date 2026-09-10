@@ -20,6 +20,9 @@ Rule #1: reads frozen OHLCV only, never modifies it. Pure function, no state, no
 """
 import pandas as pd
 
+from scanner.config import CURRENCIES
+from scanner.csm import STRENGTH_PAIRS
+
 BB_PERIOD = 12
 BB_SIGMA = 2.0
 WIDTH_LOOKBACK = 5           # D1 bars back to compare band width against
@@ -146,11 +149,26 @@ def compute_bb_d1(d1_df, dates: list[str] | None = None) -> dict | None:
     }
 
 
+def _pointwise_mean(series_list: list[list[float]]) -> list[float]:
+    """Shared by compute_board_percent_b and compute_currency_percent_b below — trims every
+    series to the shortest common length (right-aligned, most recent bars) so an average across
+    series of different length stays aligned, then averages point by point."""
+    if not series_list:
+        return []
+    n = min(len(s) for s in series_list)
+    trimmed = [s[-n:] for s in series_list]
+    return [round(sum(vals) / len(vals), 2) for vals in zip(*trimmed)]
+
+
 def compute_board_percent_b(pairs_out: dict) -> dict:
     """
     Market-wide %B (2026-09-10) — the pointwise mean of every pair's own %B / %B-signal line,
     across whichever pairs currently have a bb_d1 read. Reads what attach_bb_d1() already wrote
     onto pairs_out; no new band math, single source of truth stays compute_bb_d1() above.
+
+    Deliberately NOT currency-direction aware — see compute_currency_percent_b()'s own doc
+    comment for why that matters and what this one actually measures instead (a raw pairwise
+    average, blind to which currency is base/quote on each pair).
 
     Pairs' lines can differ in length (different D1 history depth); trimmed to the shortest
     common length (right-aligned — most recent bars) so the average stays aligned across pairs.
@@ -161,13 +179,6 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
     signals = [b["pctb_sma"] for b in bb_blocks if b and b.get("pctb_sma")]
     date_lists = [b["pctb_dates"] for b in bb_blocks if b and b.get("pctb_dates")]
 
-    def _pointwise_mean(series_list: list[list[float]]) -> list[float]:
-        if not series_list:
-            return []
-        n = min(len(s) for s in series_list)
-        trimmed = [s[-n:] for s in series_list]
-        return [round(sum(vals) / len(vals), 2) for vals in zip(*trimmed)]
-
     line = _pointwise_mean(lines)
     signal = _pointwise_mean(signals)
     # All 12 pairs' D1 bars cover the same trailing NY-session trading days (_d1_ny_close, same
@@ -177,6 +188,75 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
     dates = max(date_lists, key=len)[-len(line):] if date_lists and line else []
 
     return {"line": line, "signal": signal, "dates": dates}
+
+
+def compute_currency_percent_b(raw_ohlcv: dict) -> dict:
+    """
+    Per-currency %B (2026-09-10, Pieter's own catch) — compute_board_percent_b() above averages
+    every pair's raw %B with no regard for which side of the pair is base vs. quote. That's fine
+    while a pair's %B stays inside one pair's own story, but it breaks down the moment you average
+    ACROSS pairs: EUR/USD falling means EUR weak / USD strong, while USD/CAD falling means USD
+    weak / CAD strong — opposite USD stories producing the same "%B went down." Board %B mixes
+    both without correction, so it isn't a clean read of any one currency's stretch.
+
+    This fixes that the same way csm.py's own compute_csm_d1 already does for currency STRENGTH
+    (raw[base].append(combined); raw[quote].append(-combined)) — except %B lives on a 0-100
+    *position* scale, not a signed return, so the quote-side correction is a mirror around the
+    midpoint (100 - value) rather than a sign flip: a pair sitting at %B=80 means the BASE
+    currency is near its own upper band (stretched high); from the QUOTE currency's own
+    perspective that's the mirror-image reading, %B=20 (stretched low). Every pair contributes
+    exactly once, to both of its currencies, in whichever direction is correct for each.
+
+    Uses `csm.py`'s own STRENGTH_PAIRS (18 pairs, not just the wheel's 12) for the same reason
+    CSM itself does — better per-currency coverage, especially CHF (only USD/CHF touches CHF in
+    the wheel's own 12 pairs; STRENGTH_PAIRS adds EUR/CHF and GBP/CHF too). Independently builds
+    each pair's D1 (via `_d1_ny_close`, same NY-session convention `compute_bb_d1` elsewhere in
+    this file uses) straight from `raw_ohlcv` rather than reading `pairs_out` — STRENGTH_PAIRS
+    reaches beyond the wheel's 12 pairs, which don't all have a `pairs_out` entry to read from.
+
+    Returns {currency: {"line": [...], "signal": [...], "dates": [...]}} for all 8 CURRENCIES —
+    a currency with no history yet (or too little) gets empty lists, same "no read yet" fail-quiet
+    convention every other lookback metric in this codebase uses.
+    """
+    base_lines: dict[str, list[list[float]]] = {c: [] for c in CURRENCIES}
+    base_signals: dict[str, list[list[float]]] = {c: [] for c in CURRENCIES}
+    quote_lines: dict[str, list[list[float]]] = {c: [] for c in CURRENCIES}
+    quote_signals: dict[str, list[list[float]]] = {c: [] for c in CURRENCIES}
+    date_lists: list[list[str]] = []
+
+    for pair in STRENGTH_PAIRS:
+        key = pair.replace("/", "")
+        base, quote = pair.split("/")
+        h1_df = raw_ohlcv.get(key)
+        if h1_df is None:
+            continue
+
+        d1_ny = _d1_ny_close(h1_df)
+        dates = d1_ny["date"].astype(str).tolist()
+        bb = compute_bb_d1(d1_ny, dates)
+        if bb is None:
+            continue
+
+        date_lists.append(bb["pctb_dates"])
+        if base in base_lines:
+            base_lines[base].append(bb["pctb"])
+            base_signals[base].append(bb["pctb_sma"])
+        if quote in quote_lines:
+            quote_lines[quote].append([round(100 - v, 2) for v in bb["pctb"]])
+            quote_signals[quote].append([round(100 - v, 2) for v in bb["pctb_sma"]])
+
+    longest_dates = max(date_lists, key=len) if date_lists else []
+
+    result: dict[str, dict] = {}
+    for currency in CURRENCIES:
+        line = _pointwise_mean(base_lines[currency] + quote_lines[currency])
+        signal = _pointwise_mean(base_signals[currency] + quote_signals[currency])
+        result[currency] = {
+            "line": line,
+            "signal": signal,
+            "dates": longest_dates[-len(line):] if line else [],
+        }
+    return result
 
 
 def attach_bb_d1(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:

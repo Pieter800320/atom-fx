@@ -422,6 +422,74 @@ def test_compute_bb_d1_dates_length_mismatch_falls_back_to_empty():
     assert r["pctb_dates"] == []
 
 
+def _synthetic_h1(seed: int, base: float, n: int = 1300) -> pd.DataFrame:
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    steps = rng.normal(0, base * 0.0015, n).cumsum()
+    close = np.abs(base + steps) + base * 0.05
+    openp = np.empty(n); openp[0] = close[0]; openp[1:] = close[:-1]
+    wick = np.abs(rng.normal(0, base * 0.0008, n))
+    high = np.maximum(openp, close) + wick
+    low = np.minimum(openp, close) - wick
+    ts = pd.date_range("2024-01-01", periods=n, freq="1h", tz="UTC")
+    return pd.DataFrame({
+        "datetime": ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "open": openp, "high": high, "low": low, "close": close,
+    })
+
+
+def test_compute_currency_percent_b_base_quote_correctly_signed():
+    # EURUSD: EUR is base, USD is quote. USDCAD: USD is base, CAD is quote. USD therefore
+    # gets TWO contributions here in different roles — a mirrored one from EURUSD, a direct
+    # one from USDCAD — the exact mixing this function exists to get right.
+    raw_ohlcv = {
+        "EURUSD": _synthetic_h1(seed=1, base=1.2),
+        "USDCAD": _synthetic_h1(seed=2, base=1.35),
+    }
+    result = bb_touch.compute_currency_percent_b(raw_ohlcv)
+
+    eurusd_bb = bb_touch.compute_bb_d1(
+        bb_touch._d1_ny_close(raw_ohlcv["EURUSD"]),
+        bb_touch._d1_ny_close(raw_ohlcv["EURUSD"])["date"].astype(str).tolist(),
+    )
+    usdcad_bb = bb_touch.compute_bb_d1(
+        bb_touch._d1_ny_close(raw_ohlcv["USDCAD"]),
+        bb_touch._d1_ny_close(raw_ohlcv["USDCAD"])["date"].astype(str).tolist(),
+    )
+
+    # EUR: base-only, one contributor -> exactly EURUSD's own pctb.
+    assert result["EUR"]["line"] == eurusd_bb["pctb"]
+    # CAD: quote-only, one contributor -> exactly the 100-mirror of USDCAD's own pctb.
+    assert result["CAD"]["line"] == [round(100 - v, 2) for v in usdcad_bb["pctb"]]
+    # USD: quote in EURUSD (mirrored) + base in USDCAD (direct) -> pointwise mean of both,
+    # right-aligned to the shorter of the two.
+    mirrored_eurusd = [round(100 - v, 2) for v in eurusd_bb["pctb"]]
+    n = min(len(mirrored_eurusd), len(usdcad_bb["pctb"]))
+    expected_usd = [
+        round((a + b) / 2, 2)
+        for a, b in zip(mirrored_eurusd[-n:], usdcad_bb["pctb"][-n:])
+    ]
+    assert result["USD"]["line"] == expected_usd
+    # a currency with zero contributing pairs in this restricted raw_ohlcv gets an empty read.
+    assert result["JPY"] == {"line": [], "signal": [], "dates": []}
+
+
+def test_compute_currency_percent_b_shape_all_currencies():
+    from scanner.csm import STRENGTH_PAIRS
+    raw_ohlcv = {
+        pair.replace("/", ""): _synthetic_h1(seed=100 + i, base=100.0 if "JPY" in pair else 1.2)
+        for i, pair in enumerate(STRENGTH_PAIRS)
+    }
+    result = bb_touch.compute_currency_percent_b(raw_ohlcv)
+    assert set(result) == set(bb_touch.CURRENCIES)
+    for currency, block in result.items():
+        # dates is sized to match "line" specifically (the raw %B series); "signal" (the
+        # smoothed series) is naturally shorter by its own rolling window — same asymmetry
+        # compute_board_percent_b's own line/signal already have, nothing new here.
+        assert len(block["dates"]) == len(block["line"]), currency
+        assert len(block["line"]) > 0 and len(block["signal"]) > 0, currency
+
+
 def test_spark_shape():
     ohlcv, _ = _fixture()
     s = spark.compute_spark(ohlcv)

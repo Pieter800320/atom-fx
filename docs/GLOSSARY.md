@@ -24,7 +24,15 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, long-press a wheel node (ChartSheet) — moved off the pair
   sheet's Breakdown tab 2026-09-10.
 - **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
-  `percent_b_board`, Insights tab's Market Indicators card.
+  `percent_b_board`, Insights tab's Market Indicators card. **Not currency-direction aware** — it
+  averages every pair's raw %B with no regard for which side is base vs. quote, so a falling
+  reading can mean opposite things pair to pair (EUR/USD falling = USD strong; USD/CAD falling =
+  USD weak). See Currency %B below.
+- **Currency %B** — the currency-direction-corrected sibling to Board %B (2026-09-10, Pieter's own
+  catch), one line+signal per currency (same 8 as CSM). Built the same way CSM's own
+  `compute_csm_d1` corrects currency strength from a mixed pair set, mirrored around 100 instead
+  of negated (since %B is a 0-100 position, not a signed return). `signals.json` key
+  `percent_b_currency`, backend only so far — no UI surface yet.
 
 ## The wheels
 

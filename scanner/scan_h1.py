@@ -447,6 +447,7 @@ def main():
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
         _bb_touch.attach_bb_d1(out["pairs"], ohlcv, raw_ohlcv)          # pairs.<PAIR>.bb_d1
         out["percent_b_board"] = _bb_touch.compute_board_percent_b(out["pairs"])
+        out["percent_b_currency"] = _bb_touch.compute_currency_percent_b(raw_ohlcv)
         out["spark"]         = _spark.compute_spark(ohlcv)
 
         # Rotation / Pulse / Thrust (2026-09-10) — all pure aggregation of values

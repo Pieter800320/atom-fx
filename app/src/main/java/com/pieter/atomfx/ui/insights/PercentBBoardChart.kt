@@ -31,7 +31,7 @@ fun PercentBBoardChart(board: PercentBBoardBlock?, colors: AtomColors) {
         LegendItem("Signal (SMA 12)", colors.watch, colors)
     }
     Text(
-        text = "The whole board's average %B — how stretched are pairs against their own D1 Bollinger bands, on average?",
+        text = "The whole board's average %B — how stretched are pairs against their own D1 Bollinger bands, on average? Blind to which side of each pair is base vs. quote, so it isn't any one currency's own read — see Currency %B for that.",
         style = AtomType.Caption.copy(color = colors.textMuted),
         modifier = Modifier.padding(top = 8.dp),
     )

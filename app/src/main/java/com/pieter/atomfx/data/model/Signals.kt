@@ -45,6 +45,14 @@ data class Signals(
     // 2026-09-10 (2nd) — the market-wide average of every pair's own %B/signal line (bb_d1.pctb/
     // pctbSma above), a 4th "whole board" read alongside rotation/pulse/breadthThrust.
     @SerialName("percent_b_board") val percentBBoard: PercentBBoardBlock? = null,
+    // 2026-09-10 (5th, Pieter's own catch) — percentBBoard mixes every pair's raw %B with no
+    // regard for which side of the pair is base vs. quote (EURUSD falling = USD strong, USDCAD
+    // falling = USD weak — opposite USD stories averaged together unfixed). This is the
+    // currency-direction-corrected version instead: one entry per currency code (same 8 as CSM),
+    // each shaped exactly like percentBBoard. See `bb_touch.py`'s `compute_currency_percent_b`
+    // for the base/quote mirroring (100 - value on the quote side, since %B is a 0-100 position,
+    // not a signed return CSM's own base/quote split can just negate).
+    @SerialName("percent_b_currency") val percentBCurrency: Map<String, PercentBBoardBlock> = emptyMap(),
     @SerialName("schema_version") val schemaVersion: Int? = null,
 )
 
@@ -428,7 +436,8 @@ data class ThrustBlock(
 )
 
 /** 2026-09-10 (2nd) — pointwise mean of every pair's `bb_d1.pctb`/`pctbSma`, oldest-first. See
- *  `bb_touch.py`'s `compute_board_percent_b` for the exact aggregation. */
+ *  `bb_touch.py`'s `compute_board_percent_b` for the exact aggregation. Same shape reused
+ *  (2026-09-10, 5th) as each value in `Signals.percentBCurrency`'s per-currency map. */
 @Serializable
 data class PercentBBoardBlock(
     val line: List<Double> = emptyList(),

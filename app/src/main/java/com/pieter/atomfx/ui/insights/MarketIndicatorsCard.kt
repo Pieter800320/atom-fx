@@ -58,7 +58,10 @@ private val PANEL_EASING = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
 // no real external name — it's genuinely bespoke — "Confidence Index" names what it measures
 // without claiming a pedigree it doesn't have. Fixed now, not user-renameable (the on-device
 // rename feature this superseded is removed — see UserPreferences.kt's own git history).
-private val INDICATOR_NAMES = listOf("Relative Rotation", "Confidence Index", "Breadth Thrust", "%B")
+// 2026-09-10 (2nd) — "%B" renamed "Board %B" once "Currency %B" joined it as a 5th item, so the
+// picker button itself makes clear which of the two you're looking at (Pieter's ask: put them
+// side by side so the currency-direction fix can be compared against the original).
+private val INDICATOR_NAMES = listOf("Relative Rotation", "Confidence Index", "Breadth Thrust", "Board %B", "Currency %B")
 
 /**
  * 2026-09-10 — four concept indicators tried live so Pieter can decide which earns a permanent
@@ -113,7 +116,8 @@ fun MarketIndicatorsCard(signals: Signals, colors: AtomColors, modifier: Modifie
                 0 -> RotationTab(signals, colors)
                 1 -> PulseTab(signals, colors)
                 2 -> ThrustTab(signals, colors)
-                else -> PercentBBoardChart(signals.percentBBoard, colors)
+                3 -> PercentBBoardChart(signals.percentBBoard, colors)
+                else -> CurrencyPercentBChart(signals, colors)
             }
         }
     }
