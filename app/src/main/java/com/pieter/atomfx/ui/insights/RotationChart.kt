@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
@@ -51,10 +52,19 @@ fun RotationChart(rotation: RotationBlock?, colors: AtomColors, modifier: Modifi
         val plotW = size.width - padLeft - padRight
         val plotH = size.height - padTop - padBottom
 
+        // CSM Delta (y) is the difference between two independently 0-100 min-max-normalised
+        // snapshots, so it's mathematically bounded to +-100, same span as CSM (x) itself — NOT
+        // the +-60 this chart shipped with, which was a guess that real data promptly broke (a
+        // single H4 scan produced deltas past +-90). Clip below is belt-and-suspenders on top of
+        // this, not a substitute for it — Canvas draws are not clipped to their own bounds by
+        // default, so an out-of-range point would otherwise bleed into whatever sits outside this
+        // composable (confirmed live: a CAD dot rendered on top of the THRUST tab label above it).
         val xMin = 0.0; val xMax = 100.0
-        val yMin = -60.0; val yMax = 60.0
+        val yMin = -100.0; val yMax = 100.0
         fun px(x: Double): Float = (padLeft + ((x - xMin) / (xMax - xMin) * plotW)).toFloat()
         fun py(y: Double): Float = (padTop + (1.0 - (y - yMin) / (yMax - yMin)) * plotH).toFloat()
+
+        clipRect(0f, 0f, size.width, size.height) {
 
         val midX = px(50.0)
         val midY = py(0.0)
@@ -108,6 +118,8 @@ fun RotationChart(rotation: RotationBlock?, colors: AtomColors, modifier: Modifi
                 textAlign = Paint.Align.LEFT
             }
             nativeCanvas.drawText(ccy, center.x + 10f, center.y + 4f, labelPaintBold)
+        }
+
         }
     }
 }
