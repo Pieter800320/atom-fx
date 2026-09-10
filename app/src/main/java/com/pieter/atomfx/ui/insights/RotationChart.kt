@@ -115,9 +115,18 @@ fun RotationChart(rotation: RotationBlock?, colors: AtomColors, modifier: Modifi
                 textSize = 12.dp.toPx()
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 color = colors.textPrimary.toArgb()
-                textAlign = Paint.Align.LEFT
             }
-            nativeCanvas.drawText(ccy, center.x + 10f, center.y + 4f, labelPaintBold)
+            // Default label placement is to the dot's right — flips to the left for a dot close
+            // enough to the right edge (a strong currency, the most common real case) that the
+            // label would otherwise run past the chart bounds and get clipped invisible.
+            val labelWidth = labelPaintBold.measureText(ccy)
+            if (center.x + 10f + labelWidth <= padLeft + plotW) {
+                labelPaintBold.textAlign = Paint.Align.LEFT
+                nativeCanvas.drawText(ccy, center.x + 10f, center.y + 4f, labelPaintBold)
+            } else {
+                labelPaintBold.textAlign = Paint.Align.RIGHT
+                nativeCanvas.drawText(ccy, center.x - 10f, center.y + 4f, labelPaintBold)
+            }
         }
 
         }
