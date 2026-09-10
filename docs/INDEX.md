@@ -41,3 +41,4 @@ what changed in a short line here:
 
 - v1.0 — initial architecture, design, functional spec, setup, runbook, fixtures, Rule #1 test.
 - 2026-09-04 — added ATOM_FX_SIGNALS_ROADMAP.md v1.0 (phased plan for new signals/notifications, from a full audit of the frozen scanner against both upstream zips).
+- 2026-09-10 — ATOM_FX_DESIGN.md bumped to v1.1 (§17/§19/§20 resynced to the shipped Wheel v2 + Simplification Rework: Setup Bands vocabulary, the retired Tradeable Now card, the fixed D1/H4 wing consensus). ATOM_FX_BUILD_STATUS.md fully refreshed against current source (was last audited 2026-09-02). `ATOM_FX_WHEEL_V2_SPEC.md` §11 and the Functional Spec's pair-sheet tab list are still known-stale — not yet resynced, flagged for a follow-up pass.

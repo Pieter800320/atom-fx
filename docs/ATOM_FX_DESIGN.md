@@ -1,6 +1,6 @@
 # ATOM FX — Design Document
 
-**Version:** 1.0 · **Status:** Specification (hand to Claude Code as an anti-drift contract)
+**Version:** 1.1 (2026-09-10: §17/§19/§20 synced to the shipped Wheel v2 + Simplification Rework — see `docs/ATOM_FX_BUILD_STATUS.md`) · **Status:** Specification (hand to Claude Code as an anti-drift contract)
 **Companion to:** `ATOM_FX_ARCHITECTURE.md` · **Platform:** Android (Jetpack Compose, Material 3)
 
 ---
@@ -504,7 +504,8 @@ A reusable horizontally-scrollable, snap-friendly pill row used for: Tradeable N
 
 ## 17. Responsive & Android specifics (spec §43)
 
-- **Phone (primary):** wheel dominates; status strip above; Tradeable Now below; no permanent side panels (edge panels are summoned). Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
+- **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. No permanent side panels (edge panels are summoned). Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
+- **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, capped at 3, tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Overall wing (all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
 - **Tablet / landscape:** wheel ~60–65% width; a compact market summary on one side; factor summary on the other; sheets still available.
 - The wheel is always a centred square sized to `min(width, height − chrome)`.
 
@@ -521,24 +522,30 @@ A reusable horizontally-scrollable, snap-friendly pill row used for: Tradeable N
 
 ## 19. Component checklist (what Claude Code builds)
 
+Updated 2026-09-10 to match what's actually shipped post Wheel v2 + the Simplification Rework
+(2026-09-05/06/09) — the version below superseded the original brief's list, which described a
+4-tab nav, a separate currency wheel, and a six-factor WHY checklist that no longer exist.
+
 ```
-AppScaffold         bottom nav (4 tabs) + HorizontalPager (swipe between tabs)
-WheelCanvas         pair wheel: rings, nodes, radial paths, factor markers, nucleus, halo, animation
-CurrencyWheel       8-currency strength wheel: two blocs, radius=strength, Δ chevrons
-NucleusView         regime state + flow line + recommendation line (in-canvas or overlay)
-StatusStrip         5 micro-cells
-HeaderBar           wordmark, regime, flow line, freshness, updated, gear
-TradeableNow        scrolling pills + NO-A+ empty state + Watch row
+AppScaffold         bottom nav (3 tabs: Wheel · Macro · Insights) + HorizontalPager (swipe between tabs)
+WheelCanvas         pair wheel (12 pairs, 4 selectable wings: Overall/Trend/Momentum/Volatility) +
+                     currency wheel (merged in via the same dial's Currencies/Pairs corner toggle,
+                     not a separate component) + Currency Flow ticker + D1/H4 corner toggle, nucleus
+StatusStrip         ranked-pairs recommendation glyph row (signals.ranked.top, ≤3), tap-to-reflow panel
+HeaderBar           wordmark, freshness, updated, gear (regime/flow line now live on the wheel's hub)
+CsmBarStrip         always-on Currency Strength Meter below the wheel, Strength/Flow toggle
+TimeframeButtons    D1/H4/H1 row below the CSM strip (drives the CSM strip only, not the wheel wings)
 MacroScreen         archetype banner + bias baskets + evidence axes + cross-asset dashboard
 InsightsScreen      recommendation card + theme-tagged news + calendar + brief
 BottomSheetHost     draggable sheet host (rises above any tab)
-CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs
-FactorSheets        Regime, Flow, Breadth, Momentum, Structure, Entry
-PairSheet           header + WHY checklist + pill tabs (Overview…Correlation)
-ScrollingPills      shared pill row
+CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a currency wedge tap)
+RegimeSheet         hub tap — D1 regime detail
+PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Overview (5 consensus
+                     rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
+ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
-MacroScreen         archetype banner + currency-bias baskets + evidence axes + cross-asset dashboard
-SettingsScreen      theme · notifications · data source · optional PAT · about/legend
+SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
+                     (price-level alerts, disabled placeholder) · about/legend
 FreshnessBadge      fresh / stale / unavailable
 Skeletons           wheel + sheet skeletons
 ```
@@ -559,14 +566,27 @@ Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented c
 
 ## 20. Acceptance test (spec §69) — the design is done when…
 
-**Landing view, no panel open, answers:**
-1. What is the current regime? 2. Strong or weak? 3. Which currency is leading? 4. Which is weakening? 5. Which pairs have the greatest potential? 6. Which are merely developing? 7. Which should be ignored?
+> Rewritten 2026-09-10 against the Simplification Rework's current vocabulary (Setup Bands, the
+> fixed D1/H4 wing consensus) — the previous wording used the retired Level/Potential/six-factor
+> vocabulary and a "tap a ring" gesture that's been dead code since before that rework. Same
+> twelve questions, same intent (spec §69); only what answers them changed.
+
+**Landing view, no sheet open, answers:**
+1. What is the current regime? — the wheel hub's regime label (D1 Regime).
+2. Strong or weak? — the hub's strength word and confidence.
+3. Which currency is leading? 4. Which is weakening? — the hub's flow line (Currency Flow leader/laggard), echoed on the always-on CSM strip and the on-dial Currency Flow ticker.
+5. Which pairs have the greatest potential? — the A+ SETUP / STRONG SETUP band: the biggest, most saturated wedges on the wheel's Overall wing, and (for whichever pairs clear the ranking gate, at most 3) their glyphs in the status strip above the wheel.
+6. Which are merely developing? — the DEVELOPING band: mid-size Overall wedges.
+7. Which should be ignored? — the LOW SETUP band: the smallest, most muted Overall wedges.
 
 **One tap on a pair answers:**
-8. Why is this pair attractive? 9. Which factors support it? 10. Which factor blocks further advancement? 11. Is the entry location good?
+8. Why is this pair attractive? — the pair sheet header (Setup Band word, Continuation Score, rank).
+9. Which factors support it? — the Overview tab's Regime/Trend/Momentum/Volatility/Structure rows, each bull/bear-tinted on its own real read.
+10. Which factor blocks further advancement? — whichever Overview row reads watch/bear (or a live Structure CHoCH) against an otherwise-supportive picture.
+11. Is the entry location good? — the Volatility row (ATR percentile sane band) together with the Structure row (a recent BOS/CHoCH), the two Overview rows that speak to entry timing since the old dedicated Entry tab was folded into them.
 
-**One tap on a ring answers:**
-12. What exactly is happening at this analytical layer?
+**One tap on the hub, a currency, or a pair node answers:**
+12. What exactly is happening at this analytical layer? — the hub opens RegimeSheet, a currency wedge opens CurrencyDetailSheet (CSM 3-TF, breadth, drivers, expressing pairs), a pair node opens its PairSheet — each a full breakdown of that one layer.
 
 If the UI answers all twelve elegantly — restrained, precise, information-dense, no arcade — the redesign succeeds. Do not sacrifice analytical accuracy for visual simplicity; the wheel makes the existing system *easier to understand*, not simpler (spec §70).
 
