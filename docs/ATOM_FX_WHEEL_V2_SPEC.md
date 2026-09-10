@@ -260,18 +260,15 @@ actually live, verified directly against `WheelCanvas.kt`/`WheelScreen.kt`/`Whee
   (D1/H4/H1) drives the CSM strip only — it does **not** touch the wheel's own wings, which are a
   deliberately fixed timeframe consensus (D1 Regime/H4 Trend/H4 Momentum/D1 Volatility, see
   `ATOM_FX_BUILD_STATUS.md` Section B).
-- **The hub draws only "REGIME" + the regime name.** `WheelCanvas.drawHub` — confirmed by reading
-  the function directly. `WheelMapper.mapNucleus` still computes `strengthWord`, `confidence`,
-  `flowLine` ("X leading · Y weakening"), and `archetypeLine` onto `NucleusState`, but **none of
-  those four fields are rendered anywhere** — grepped the whole `ui/` tree for each, zero render
-  sites outside `WheelMapper.kt`/`WheelUiState.kt` themselves. **Flag, not just a doc correction**:
-  this means the landing screen currently has no on-screen sentence naming the regime's own
-  strength/confidence, and no on-screen sentence naming the currency leader/laggard by name —
-  leader/laggard is only inferable by comparing `CsmBarStrip` bar heights. Worth Pieter's own call
-  on whether that's sufficient for the §20 acceptance test's "strong or weak" / "leading /
-  weakening currency" questions, or whether `flowLine` (already computed, just unrendered) should
-  actually be surfaced somewhere on the landing view. Not resolved as part of this doc-sync pass —
-  a design decision, not a doc-accuracy one.
+- **The hub draws only "REGIME" + the regime name — deliberate, Pieter's own call.** He removed
+  the strength word and flow line lines himself in an earlier session ("I thought they added
+  clutter"), not an oversight. `WheelMapper.mapNucleus` still computes `strengthWord`, `confidence`,
+  `flowLine`, and `archetypeLine` onto `NucleusState` — harmless dead output, kept because other
+  call sites of the same mapper function may still want them, not a bug to fix. `WheelCanvas.drawHub`
+  intentionally only draws the regime name. Per this decision, "strong or weak" (§20 item 2) and
+  naming the currency leader/laggard (§20 items 3-4) are answered visually now, not by a sentence:
+  regime conviction has no on-screen proxy at all (accepted), and leader/laggard is read by
+  comparing `CsmBarStrip` bar heights.
 - **`StatusStrip` is the ranked-pairs recommendation glyph row**, not a mode/data toggle of any
   kind — see `ATOM_FX_DESIGN.md` §19 and `ATOM_FX_BUILD_STATUS.md` Section B for its own history
   (9-button cascade → single card → per-pair glyph row). Out of scope for this wheel-geometry

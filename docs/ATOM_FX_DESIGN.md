@@ -534,8 +534,8 @@ WheelCanvas         pair wheel, pairs-only (12 pairs, 4 corner buttons select th
                      ticker any more — all retired 2026-09-04, see `ATOM_FX_WHEEL_V2_SPEC.md` §12
 StatusStrip         ranked-pairs recommendation glyph row (signals.ranked.top, ≤3), tap-to-reflow panel
 HeaderBar           wordmark, freshness, updated, gear (regime name lives on the wheel's hub;
-                     the hub's own strength-word/flow-line fields are computed but not currently
-                     rendered anywhere — see §20 item 2/3-4)
+                     its strength-word/flow-line lines were deliberately removed as clutter —
+                     see §20 item 2/3-4)
 CsmBarStrip         always-on Currency Strength Meter below the wheel, Strength/Flow toggle
 TimeframeButtons    D1/H4/H1 row below the CSM strip (drives the CSM strip only, not the wheel wings)
 MacroScreen         archetype banner + bias baskets + evidence axes + cross-asset dashboard
@@ -576,8 +576,8 @@ Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented c
 
 **Landing view, no sheet open, answers:**
 1. What is the current regime? — the wheel hub's regime label (D1 Regime).
-2. Strong or weak? — **currently ungrounded, flagged 2026-09-10.** `WheelMapper.mapNucleus` computes a `strengthWord`/`confidence`, but `WheelCanvas.drawHub` only ever draws "REGIME" + the regime name — the strength word is never actually rendered anywhere in the app. Needs Pieter's call: surface it on the hub, or answer this differently.
-3. Which currency is leading? 4. Which is weakening? — **not a labelled sentence any more; inferred visually.** `NucleusState.flowLine` ("X leading · Y weakening") is likewise computed but never rendered (checked 2026-09-10, same as above). The real answer today is comparing bar heights on the always-on CSM strip — it holds currencies in a fixed order, not sorted by strength, so this is a visual comparison, not a read. Same open question as #2: worth deciding whether `flowLine` should be surfaced as text somewhere on the landing view.
+2. Strong or weak? — no on-screen proxy (Pieter's deliberate call: the hub's old strength-word line read as clutter, removed). `WheelMapper.mapNucleus` still computes `strengthWord`/`confidence` onto `NucleusState` — harmless dead output, not a bug — but `WheelCanvas.drawHub` only draws "REGIME" + the regime name by design.
+3. Which currency is leading? 4. Which is weakening? — answered visually, not by a sentence: compare bar heights on the always-on CSM strip (fixed currency order, not sorted by strength). The old `flowLine` text ("X leading · Y weakening") was removed for the same declutter reason as #2 — `NucleusState.flowLine` is still computed, just unused.
 5. Which pairs have the greatest potential? — the A+ SETUP / STRONG SETUP band: the biggest, most saturated wedges on the wheel's Setup wing (labelled "SETUP," was "OVERALL"), and (for whichever pairs clear the ranking gate, at most 3) their glyphs in the status strip above the wheel.
 6. Which are merely developing? — the DEVELOPING band: mid-size Overall wedges.
 7. Which should be ignored? — the LOW SETUP band: the smallest, most muted Overall wedges.
