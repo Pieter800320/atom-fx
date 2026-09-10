@@ -94,7 +94,14 @@ val DarkColors = AtomColors(
     wheelBull = Color(0xFF2FBF71),
     wheelBear = Color(0xFFE5484D),
     wheelWatch = Color(0xFFE7AE3A),
-    wheelNeutral = Color(0xFF61707E),
+    // 2026-09-10 (Pieter's ask) — was grey (= [neutral], the plain blue-grey chrome tone).
+    // Setup/Trend/Momentum's "neutral" wedge reading is now a real 3rd state alongside
+    // bull/bear (not "no signal," but "checked, and it's genuinely flat"), so it gets its own
+    // real hue instead of borrowing chrome grey — same treatment bull/bear/watch already get.
+    // Only this wheel-scoped token changes; [neutral] itself (CMP's dead-zone colour, pill
+    // neutral states, PairSheet's Overview NEUTRAL tint) is deliberately untouched — those stay
+    // grey, this was scoped to the wheel's own colour system only.
+    wheelNeutral = Color(0xFF3B9EFF),
     // Dark theme: no visible change requested — same fill an active pill already had.
     controlSurfaceActive = Color(0xFF212C38),
 )
@@ -129,12 +136,14 @@ val LightColors = AtomColors(
     // Unchanged from plain `surface` — Pieter: light theme's Tradeable Now card is already fine.
     cardSurface = Color(0xFFFFFFFF),
     // Light theme: each raw status colour lerped 35% toward white — softer, still fully opaque
-    // (see the field doc comment above). Neutral is already a cool, muted grey with nothing to
-    // soften, so it's reused as-is.
+    // (see the field doc comment above).
     wheelBull = lerp(Color(0xFF159E5B), Color.White, 0.35f),
     wheelBear = lerp(Color(0xFFD0383D), Color.White, 0.35f),
     wheelWatch = lerp(Color(0xFFB27A16), Color.White, 0.35f),
-    wheelNeutral = Color(0xFF93A0AD),
+    // 2026-09-10 — was the plain [neutral] grey reused as-is (no darker "base" blue existed to
+    // lerp from). Now a real blue, same lerp-toward-white-by-35% treatment as bull/bear/watch
+    // above, off a mid-strong blue base consistent with their saturation/depth.
+    wheelNeutral = lerp(Color(0xFF1971C2), Color.White, 0.35f),
     // = surface — the recommendation glyph's own fill (surfaceRaised→surface radial gradient)
     // is whitest at its edge, which IS `surface` in light theme (pure white); an active TF pill
     // matches that exactly.

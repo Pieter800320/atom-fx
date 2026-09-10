@@ -548,32 +548,40 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
 }
 
 /**
- * Which hue fills a pair's wedge under the current [mode]. Momentum (H4, since 2026-09-09 — was
- * D1) is the same 0..100/50-neutral shape CSM strength already used on the old currency ring, so
- * it gets the same >=50 rule. Overall is a direction-agnostic read on its own (setup quality doesn't carry a sign) —
- * it takes its colour from the pair's own overall `direction` instead. Trend colours from
- * [PairNode.trendDirection] (the H4 pill), NOT `direction` — ADX is computed on H4, so its
- * direction read has to match that timeframe; a pair can show real H4 trend strength while its
- * overall D1-derived `direction` nets neutral, and tinting off the wrong one drew a grey wedge
- * next to a strong ADX reading, an internal contradiction (Pieter's own catch, 2026-09-06). When
- * ADX is genuinely trending (>=25) but H4 itself reads neutral, that mismatch is worth flagging
- * on its own — watch-tinted, same register Volatility already uses for "outside the norm."
- * Volatility is different again: it isn't bullish or bearish at all, so direction-tinting it would
- * be meaningless — instead it uses the same 20-70 "sane band" language already established in the
- * Library (`atr-percentile` entry): inside the band reads as calm/tradeable (grey/neutral-tinted —
- * 2026-09-09, was bull-tinted; green read as "bullish" on every other wing but "normal conditions"
- * here, the same colour carrying two unrelated meanings, so it's neutral now, matching the Overview
- * VOLATILITY row's own fix), outside it (too quiet OR too extended, both flagged the same way, one
- * isn't worse than the other) reads as a caution (watch-tinted).
+ * Which hue fills a pair's wedge under the current [mode]. 2026-09-10 (Pieter's ask) — a
+ * deliberate 4-colour system, one meaning per colour everywhere it's used: green/red/blue is a
+ * genuine 3-state traffic-light for Setup/Trend/Momentum (bull/bear/neutral — "checked, and it's
+ * genuinely flat," not "no signal"), amber is reserved exclusively for Volatility's "outside the
+ * sane band" caution. `wheelNeutral` itself moved from grey to blue in `Color.kt` for this reason
+ * — grey already means something else app-wide (chrome/muted), blue reads as "a real, current
+ * reading that just isn't directional."
+ *
+ * Overall/Setup takes its colour from the pair's own `direction` (setup quality doesn't carry a
+ * sign of its own). Trend colours from [PairNode.trendDirection] (the H4 pill, not the pair's
+ * overall D1-derived `direction` — ADX is computed on H4, so its direction read has to match that
+ * timeframe; tinting off the wrong one drew a contradiction, Pieter's own catch, 2026-09-06). The
+ * former "ADX >=25 but H4 pill neutral" mismatch got its own amber flag before this change; it's
+ * folded into plain neutral now — same 3-state rule as the other two wings, no separate callout
+ * (Pieter's own call, weighed against the traffic-light system being worth the simplicity).
+ *
+ * Momentum (H4, since 2026-09-09) is the same 0..100/50-neutral shape CMP already uses
+ * (`MomentumSheet.kt::cmpColor`) — matches its exact thresholds now: `>=60` bull, `<=40` bear,
+ * 41-59 a real neutral dead zone (was a hard >=50 split with no neutral state at all).
+ *
+ * Volatility is different again: it isn't bullish or bearish, so direction-tinting is meaningless
+ * — the same 20-70 "sane band" the `atr-percentile` Library entry describes reads neutral-blue
+ * inside the band (calm/tradeable — "sane" IS the same "nothing notable" meaning blue carries on
+ * every other wing, not a coincidence), amber outside it either way (too quiet OR too extended,
+ * neither worse than the other).
  */
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
     WheelMode.OVERALL -> tintForDir(node.direction, colors)
-    WheelMode.MOMENTUM -> if (node.momentum >= 50) colors.wheelBull else colors.wheelBear
-    WheelMode.TREND -> if (node.adx >= 25 && node.trendDirection == Direction.NEUTRAL) {
-        colors.wheelWatch
-    } else {
-        tintForDir(node.trendDirection, colors)
+    WheelMode.MOMENTUM -> when {
+        node.momentum >= 60 -> colors.wheelBull
+        node.momentum <= 40 -> colors.wheelBear
+        else -> colors.wheelNeutral
     }
+    WheelMode.TREND -> tintForDir(node.trendDirection, colors)
     WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelNeutral else colors.wheelWatch
 }
 
