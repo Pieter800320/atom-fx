@@ -84,7 +84,11 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 4        # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 5        # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).
+# 2026-09-10 (4th): pairs.<PAIR>.bb_d1 (and percent_b_board) now built from an NY 17:00-close D1,
+# not the frozen aggregator's UTC-midnight D1 — same keys, but the underlying numbers shift
+# (confirmed against a live LiteFinance USDJPY %B read that didn't match the old UTC-midnight
+# convention). Not additive — flag if anything on-device caches/diffs old vs new bb_d1 values.

@@ -26,8 +26,8 @@ import com.pieter.atomfx.ui.theme.AtomType
  * `bbD1.pctb`/`pctbSma`, which `bb_touch.py` now computes fresh every scan — no on-device math.
  */
 @Composable
-fun PercentBChart(bbD1: BbD1?, colors: AtomColors) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         if (bbD1 == null) {
             NotAvailableRow("Bollinger %B", colors)
             return@Column

@@ -210,10 +210,10 @@ private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
         BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }
         SheetDivider(colors)
         Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
+        // 2026-09-10 — Bollinger %B moved out of Breakdown, onto long-press → ChartSheet.kt
+        // instead (Pieter's ask: it's a chart-shaped read, a better fit for the wheel's own
+        // "long-press for the technical view" gesture than three-taps-deep-and-scroll here).
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
-        SheetDivider(colors)
-        Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
-        BreakdownSection("BOLLINGER %B", colors) { PercentBChart(pairBlock?.bbD1, colors) }
     }
 }
 

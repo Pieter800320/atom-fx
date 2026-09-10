@@ -237,8 +237,8 @@ percent_b_board    {line:[float,…], signal:[float,…], dates:[str,…]}  — 
                     (`bb_touch.py` already holds the full rolling series each run, not just
                     today's snapshot). `dates` (2026-09-10, 2nd) — one ISO date per `line` point;
                     borrowed from whichever pair's own `pctb_dates` is longest (all 12 pairs'
-                    D1 bars cover the same trailing UTC calendar days), trimmed to `line`'s own
-                    final length.
+                    D1 bars cover the same trailing **NY-session** trading days, see below),
+                    trimmed to `line`'s own final length.
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 
@@ -253,11 +253,22 @@ alongside its existing `touching`/`sma`/`upper`/`lower`/`width_pct`/`width_trend
 `pctb`/`pctb_sma`, the %B oscillator line and its 12-period signal line, oldest-first, up to 56
 recent D1 bars — not clamped to 0-100 (a real close outside the bands legitimately pierces past
 0/100; only the chart that draws it clamps for display). `pctb_dates` (2026-09-10, 2nd) — one ISO
-date per `pctb` point, same order/length; `scanner/aggregator.py` (frozen) discards D1 bar dates
-by design (integer-indexed output), so `bb_touch.py`'s own `_d1_dates()` independently re-derives
-them from `scan_h1.py`'s pre-aggregation `raw_ohlcv` fetch, mirroring the frozen aggregator's
-exact resample parameters. Empty (never partially populated) if that row-count alignment check
-fails.
+date per `pctb` point, same order/length.
+
+**The whole `bb_d1` block's underlying D1 bars changed convention (2026-09-10, 4th, schema v5)**:
+`scanner/aggregator.py` (frozen) builds D1 bars on the UTC-midnight boundary, and says so in its
+own docstring — "the small session-boundary difference is acceptable for trend/momentum signals."
+True for a coarse bull/bear pill; not true for %B/touch, which reads the exact daily high/low/
+close, and where the up-to-7h gap against a broker's 17:00-New-York D1 close can flip whether a
+band was actually touched during a fast move (confirmed live against LiteFinance's own USDJPY
+%B, which didn't match). So `bb_touch.py`'s `attach_bb_d1` no longer reads the frozen aggregator's
+D1 for this feature — it independently re-buckets `scan_h1.py`'s pre-aggregation `raw_ohlcv` fetch
+itself, via `_d1_ny_close()` (17:00 NY -> next 17:00 NY per bar, DST-correct via `tz_convert`,
+never a fixed offset), Rule #1 safe throughout (reads frozen OHLCV only, never modifies it, never
+edits the frozen aggregator). `pctb_dates` now comes from that same call, so it's aligned with
+`pctb` by construction — no separate length-mismatch guard needed for this path (still present as
+a defensive fallback: `attach_bb_d1` reverts to the frozen UTC-midnight D1 with no dates only when
+`raw_ohlcv` is unavailable to a caller, which doesn't happen in production).
 
 > **Contract invariants Claude Code must honour:**
 > 1. New keys are **added**; no frozen key is renamed, removed, or repurposed.

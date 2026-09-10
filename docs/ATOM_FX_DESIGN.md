@@ -555,11 +555,13 @@ BottomSheetHost     draggable sheet host (rises above any tab)
 CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a currency wedge tap)
 RegimeSheet         hub tap — D1 regime detail
 PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Overview (5 consensus
-                     rows) · Breakdown (Momentum, Structure, Alignment, %B) · Correlation
+                     rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
+ChartSheet          long-press a wheel node: per-pair %B oscillator + value/touch-state header
+                     (§19.4a) — no D1/H4/H1 switcher, %B is D1-only
 PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by both PercentBChart (per-pair,
-                     Breakdown) and PercentBBoardChart (market-wide, Insights)
+                     ChartSheet) and PercentBBoardChart (market-wide, Insights)
 MarketIndicatorsCard Insights-tab card: Relative Rotation/Confidence Index/Breadth Thrust/%B
                      behind a "+ <current>" fan-out picker, not tabs (§19.4)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
@@ -639,10 +641,21 @@ against the real button width before choosing — superseded once he settled on 
 above; the rename plumbing (`UserPreferences.IndicatorLabels` and its 4 setters) was removed
 rather than left dead.
 
-### 19.4a %B (Bollinger), per-pair (Pair sheet → Breakdown, 2026-09-10)
+### 19.4a %B (Bollinger), per-pair (long-press → ChartSheet, moved 2026-09-10)
 
-A 4th `BreakdownSection` alongside ALIGNMENT/MOMENTUM/STRUCTURE (`PairSheet.kt`), same narrowed-
-field composable convention as its siblings (`PercentBChart(bbD1: BbD1?, colors)`). Same
+Lives on `ChartSheet.kt`, opened by a long-press on a wheel node — not a `PairSheet.kt` Breakdown
+section any more (it started there earlier the same day, then Pieter's own follow-up ask moved
+it: "the best place for the pair %B is actually under the long press function on the wheel...
+put the %B in its place" of the sheet's old D1/H4/H1 close-price `LineChart`). That price chart
+was a genuine duplicate of the pair-sheet header's own always-visible `Spark3Row` sparklines, so
+nothing was lost removing it; %B was three taps deep (tap pair → Breakdown tab → scroll) and is a
+chart-shaped read, a better fit for "long-press for the technical view."
+
+No D1/H4/H1 switcher — %B is D1-only by design (`bb_touch.py`'s 12-period config), unlike price,
+and a switcher pointing at nothing would be worse than none. In its place, a small header row
+above the chart: `%B <value>` (left) and, when `bb_d1.touching` is `"upper"`/`"lower"`, "Still
+touching upper/lower" (right, `bear`/`bull` token — upper reads bear since it signals a stretched-
+up reversion risk, lower bull for the opposite) — blank when not touching either band. Same
 `PercentBOscillator` drawing as Board %B above, reading `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`/
 `.pctbDates` directly — no on-device Bollinger/SMA math or date derivation (Architecture §8.3),
 the series and its dates are both backend-computed (see Architecture §4.2's `pctb_dates` entry

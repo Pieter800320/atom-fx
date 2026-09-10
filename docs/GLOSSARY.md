@@ -18,7 +18,11 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
 - **Breadth** — how many of a currency's relationships agree with its move (broad vs narrow).
 - **%B** — 0–100, where price sits inside its own 12-period D1 Bollinger Bands (50 = middle band,
   0/100 = the outer bands; can read past 0 or 100, a real "walk along the band"). A 12-period SMA
-  of %B itself is its signal line. `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, Breakdown tab.
+  of %B itself is its signal line. This D1 closes 17:00 New York (retail-platform convention),
+  **not** the UTC-midnight D1 every other signal in the app uses — `bb_touch.py`'s own
+  `_d1_ny_close()`, added 2026-09-10 after a live mismatch against LiteFinance's own %B reading.
+  `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, long-press a wheel node (ChartSheet) — moved off the pair
+  sheet's Breakdown tab 2026-09-10.
 - **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
   `percent_b_board`, Insights tab's Market Indicators card.
 

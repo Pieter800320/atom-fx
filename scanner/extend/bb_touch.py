@@ -35,30 +35,50 @@ PCTB_SIGNAL_PERIOD = 12
 PCTB_LINE_BARS = 56          # matches potential_config.SPARK_BARS's own convention
 
 
-def _d1_dates(h1_df) -> list[str]:
+def _d1_ny_close(h1_df) -> "pd.DataFrame":
     """
-    2026-09-10 (Pieter's ask, dates on the %B charts) — `scanner/aggregator.py` (frozen, never
-    edited) returns D1 bars integer-indexed with the real dates stripped by design (its own
-    docstring: "Integer-indexed (0..n), oldest first"). This independently mirrors its
-    `aggregate_d1()` exact resample parameters (D, closed=left, label=left, dropna on open/close)
-    against the SAME raw H1 fetch scan_h1.py already has (`raw_ohlcv`), to recover the dates —
-    computes no price/indicator value itself, pure date-bucketing, Rule #1 safe. Row count/order
-    must match the frozen d1_df exactly for `compute_bb_d1`'s own alignment check below to pass.
+    2026-09-10 (%B/touch precision fix) — an independent D1 aggregation, %B/touch only, using
+    the retail-platform convention: a daily candle runs 17:00 New York -> next 17:00 New York,
+    not UTC midnight. `scanner/aggregator.py` (frozen, never edited) deliberately uses UTC
+    midnight instead, and says so in its own docstring: "the small session-boundary difference
+    is acceptable for trend/momentum signals" — true for a coarse bull/bear pill, not true for
+    %B/touch, which reads the exact daily high/low/close. During a fast one-directional move
+    (confirmed 2026-09-10: USDJPY's news-driven plunge, our %B vs. live LiteFinance read didn't
+    match) the up-to-7h boundary gap means our "today" bar and a broker's "today" bar cover
+    different hours, which is enough to disagree on whether a band was actually touched.
+
+    Same "independently re-bucket the SAME raw H1 fetch scan_h1.py already has" pattern this
+    file used for dates alone before (`_d1_dates`, now folded into this function) — Rule #1
+    safe, reads frozen OHLCV only, never modifies it, never touches the frozen aggregator.
+    Returns a D1-shaped frame (open/high/low/close, oldest first) plus a `date` column (the NY
+    session's own start date) — dates and bars now come from one call, so they're aligned by
+    construction; no separate length-mismatch guard needed for this path any more.
+
+    NY local time via `tz_convert` (not a fixed UTC offset) so the 17:00 boundary is correct
+    across the EDT/EST transition, not just whichever offset happened to apply when this was
+    written.
     """
     df = h1_df.copy()
     df["dt"] = pd.to_datetime(df["datetime"], utc=True)
     df = df.sort_values("dt").set_index("dt")
-    for col in ("open", "close"):
+    for col in ("open", "high", "low", "close"):
         df[col] = pd.to_numeric(df[col], errors="coerce")
-    d1 = df.resample("D", closed="left", label="left").agg(open=("open", "first"), close=("close", "last"))
-    d1 = d1.dropna(subset=["open", "close"])
-    return [ts.strftime("%Y-%m-%d") for ts in d1.index]
+
+    ny = df.index.tz_convert("America/New_York")
+    session_date = (ny - pd.Timedelta(hours=17)).date
+
+    d1 = df.groupby(session_date).agg(
+        open=("open", "first"), high=("high", "max"), low=("low", "min"), close=("close", "last"),
+    ).dropna(subset=["open", "close"])
+    d1.index.name = "date"
+    return d1.reset_index()
 
 
 def compute_bb_d1(d1_df, dates: list[str] | None = None) -> dict | None:
     """
-    d1_df : a pair's D1 OHLC dataframe (frozen aggregator output — needs high/low/close).
-    dates : optional, from _d1_dates() — one date per d1_df row, same order. Only attached to
+    d1_df : a pair's D1 OHLC dataframe (needs high/low/close) — the frozen aggregator's own D1,
+            or (2026-09-10) `_d1_ny_close()`'s NY-session D1, per the caller.
+    dates : optional, one date per d1_df row, same order. Only attached to
             pctb/pctb_sma if its length matches d1_df exactly (fail-quiet to no dates rather than
             risk a silently misaligned one).
     Returns None if there isn't enough history yet (< BB_PERIOD + WIDTH_LOOKBACK bars) — same
@@ -150,9 +170,10 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
 
     line = _pointwise_mean(lines)
     signal = _pointwise_mean(signals)
-    # All 12 pairs' D1 bars cover the same trailing UTC calendar days — the longest available
-    # per-pair date list, trimmed to the board line's own final length, stands in for all of them
-    # rather than re-deriving a separate board-wide date series from scratch.
+    # All 12 pairs' D1 bars cover the same trailing NY-session trading days (_d1_ny_close, same
+    # 17:00 NY boundary for every pair) — the longest available per-pair date list, trimmed to
+    # the board line's own final length, stands in for all of them rather than re-deriving a
+    # separate board-wide date series from scratch.
     dates = max(date_lists, key=len)[-len(line):] if date_lists and line else []
 
     return {"line": line, "signal": signal, "dates": dates}
@@ -160,10 +181,20 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
 
 def attach_bb_d1(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:
     """Mutate pairs_out in place, adding a 'bb_d1' sub-key to each pair block — same pattern
-    structure_expose.py's attach_structure() already uses. raw_ohlcv (optional, scan_h1.py's own
-    pre-aggregation H1 fetch — see _d1_dates()'s own doc comment) lets compute_bb_d1 attach real
-    D1 bar dates alongside pctb; omitted, bb_d1 still computes, just without pctb_dates."""
+    structure_expose.py's attach_structure() already uses.
+
+    2026-09-10 (%B/touch precision fix) — when raw_ohlcv is available (scan_h1.py always passes
+    it), bb_d1 is now built from `_d1_ny_close(raw_ohlcv[key])`, NOT the frozen `ohlcv[key]["d1"]`
+    (UTC-midnight boundary) — see that function's own doc comment for why. dates come from the
+    same call, always exactly aligned. Falls back to the frozen UTC-midnight `ohlcv[key]["d1"]`
+    with no dates only when raw_ohlcv is unavailable (kept for callers/tests that don't have H1
+    data on hand) — production always has raw_ohlcv, so this fallback shouldn't fire in practice.
+    """
     for key, block in pairs_out.items():
-        d1_df = (ohlcv.get(key) or {}).get("d1")
-        dates = _d1_dates(raw_ohlcv[key]) if raw_ohlcv and key in raw_ohlcv else None
-        block["bb_d1"] = compute_bb_d1(d1_df, dates)
+        if raw_ohlcv and key in raw_ohlcv:
+            d1_ny = _d1_ny_close(raw_ohlcv[key])
+            dates = d1_ny["date"].astype(str).tolist()
+            block["bb_d1"] = compute_bb_d1(d1_ny, dates)
+        else:
+            d1_df = (ohlcv.get(key) or {}).get("d1")
+            block["bb_d1"] = compute_bb_d1(d1_df, None)

@@ -144,7 +144,8 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         summary = "Where price sits inside its own D1 Bollinger Bands, on a 0–100 scale — 50 is the middle band, 0 and 100 are the outer bands.",
         howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, using the same 12-period ±2σ D1 bands the Bollinger touch alert reads. A second line — a 12-period average of %B itself — smooths it out, the same way a signal line smooths any oscillator.\n" +
             "Can read below 0 or above 100: that means price closed outside its own bands, a real and meaningful reading, not an error.\n" +
-            "Shown against a pair's own chart, on the Breakdown tab.",
+            "D1 here closes at 17:00 New York, matching most retail charting platforms — not UTC midnight like the app's other D1 signals — so this reads truer against a live broker chart during a fast move.\n" +
+            "Shown long-press a wheel node: the pair chart sheet's header gives the current %B value and, when price is touching a band, a \"still touching upper/lower\" read.",
         whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
     ),
     LibraryEntry(
@@ -394,7 +395,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         term = "BB Reversal Touch (D1)",
         category = "Alerts & Recommendation",
         summary = "A D1 candle wicks a 12-period, 2-sigma Bollinger Band — the touch alone is the whole alert, on purpose.",
-        howItWorks = "Every hourly scan, each pair's current (possibly still-forming) D1 candle is checked against a 12-period SMA ±2 standard deviations. A wick touch counts even if the candle closes back inside — the alert fires once, the moment a pair transitions from not-touching to touching either band, and won't fire again for the same ongoing touch. Band-width trend (expanding/converging/flat, vs. ~5 D1 bars ago) rides along in the notification for context.\n\n$BB_REVERSAL_HOW_TO_READ",
+        howItWorks = "Every hourly scan, each pair's current (possibly still-forming) D1 candle is checked against a 12-period SMA ±2 standard deviations — this D1 candle closes 17:00 New York, matching most retail charting platforms, not UTC midnight like the app's other D1 signals. A wick touch counts even if the candle closes back inside — the alert fires once, the moment a pair transitions from not-touching to touching either band, and won't fire again for the same ongoing touch. Band-width trend (expanding/converging/flat, vs. ~5 D1 bars ago) rides along in the notification for context.\n\n$BB_REVERSAL_HOW_TO_READ",
         whyItMatters = "$BB_REVERSAL_WHY_IT_MATTERS",
     ),
 )

@@ -374,29 +374,21 @@ def test_compute_board_percent_b_empty_when_no_pairs_ready():
     assert bb_touch.compute_board_percent_b({"EURUSD": {"bb_d1": None}}) == {"line": [], "signal": [], "dates": []}
 
 
-def test_d1_dates_matches_frozen_aggregate_d1_row_count():
-    import numpy as np
-    from scanner.aggregator import aggregate_d1
-
-    rng = pd.date_range("2026-06-01", periods=30 * 24, freq="h", tz="UTC")
-    rng = rng[~rng.dayofweek.isin([5, 6])]  # drop weekends, like real FX feeds
-    closes = 1.1000 + np.cumsum(np.random.default_rng(0).normal(0, 0.0005, len(rng)))
+def test_d1_ny_close_boundary_at_17_ny_edt():
+    # 2026-09-10 is EDT (UTC-4): 17:00 NY == 21:00 UTC. The H1 bar starting 20:00 UTC (16:00-17:00
+    # EDT, before the boundary) belongs to the SESSION LABELED THE PREVIOUS calendar date (it
+    # covers Sep-09 17:00 EDT -> Sep-10 17:00 EDT); the bar starting 21:00 UTC (right at 17:00 EDT)
+    # starts the next session, labeled Sep-10.
     h1_df = pd.DataFrame({
-        "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
-        "open": closes, "high": closes + 0.0003, "low": closes - 0.0003, "close": closes,
+        "datetime": ["2026-09-10 20:00:00", "2026-09-10 21:00:00"],
+        "open": [1.1, 1.2], "high": [1.1, 1.2], "low": [1.1, 1.2], "close": [1.1, 1.2],
     })
-
-    d1_frozen = aggregate_d1(h1_df)
-    dates = bb_touch._d1_dates(h1_df)
-    assert len(dates) == len(d1_frozen)
-    # weekend gap: consecutive trading dates, no Sat/Sun in the derived list
-    from datetime import date
-    assert all(date.fromisoformat(d).weekday() < 5 for d in dates)
+    d1 = bb_touch._d1_ny_close(h1_df)
+    assert d1["date"].astype(str).tolist() == ["2026-09-09", "2026-09-10"]
 
 
-def test_compute_bb_d1_attaches_dates_aligned_with_pctb():
+def test_attach_bb_d1_uses_ny_close_dates_when_raw_ohlcv_given():
     import numpy as np
-    from scanner.aggregator import aggregate_d1
 
     rng = pd.date_range("2026-06-01", periods=40 * 24, freq="h", tz="UTC")
     rng = rng[~rng.dayofweek.isin([5, 6])]
@@ -405,12 +397,23 @@ def test_compute_bb_d1_attaches_dates_aligned_with_pctb():
         "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
         "open": closes, "high": closes + 0.0003, "low": closes - 0.0003, "close": closes,
     })
-    d1_frozen = aggregate_d1(h1_df)
-    dates = bb_touch._d1_dates(h1_df)
-    r = bb_touch.compute_bb_d1(d1_frozen, dates)
+    pairs_out = {"EURUSD": {}}
+    bb_touch.attach_bb_d1(pairs_out, {}, {"EURUSD": h1_df})
+    r = pairs_out["EURUSD"]["bb_d1"]
     assert len(r["pctb_dates"]) == len(r["pctb"])
-    # the last pctb_date must be the D1 frame's own last (most recent) derived date
-    assert r["pctb_dates"][-1] == dates[-1]
+    # the last pctb_date must be _d1_ny_close's own last (most recent) session date, not the
+    # frozen UTC-midnight aggregator's
+    d1_ny = bb_touch._d1_ny_close(h1_df)
+    assert r["pctb_dates"][-1] == d1_ny["date"].astype(str).tolist()[-1]
+
+
+def test_attach_bb_d1_falls_back_to_frozen_d1_without_raw_ohlcv():
+    pairs_out = {"EURUSD": {}}
+    ohlcv = {"EURUSD": {"d1": _synthetic_d1(_TIGHT_D1)}}
+    bb_touch.attach_bb_d1(pairs_out, ohlcv, raw_ohlcv=None)
+    r = pairs_out["EURUSD"]["bb_d1"]
+    assert r is not None
+    assert r["pctb_dates"] == []
 
 
 def test_compute_bb_d1_dates_length_mismatch_falls_back_to_empty():
