@@ -1,20 +1,20 @@
 package com.pieter.atomfx.ui.sheets
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,6 +58,23 @@ private val TABS = listOf("Overview", "Breakdown", "Correlation")
 // `surfaceRaised` reliably differs from `surface` in both themes — see SheetTabs' own active-tab
 // fill for the existing precedent.
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
+
+// 2026-09-10 (Pieter's ask) — Breakdown and Correlation's gap under the tab row was reading
+// different from each other: Breakdown used Arrangement.SpaceEvenly (pads the top/bottom edges
+// too, not just between children) while Correlation used SpaceBetween (edges flush) — two
+// different edge behaviours meant the two tabs' top gap could never reliably match, since it
+// depended on each tab's own leftover-height math rather than a shared, deterministic value. Both
+// now use this one fixed top padding plus SpaceBetween (internal gaps only, no edge padding from
+// Arrangement) — the top gap is identical by construction, not by coincidence.
+private val TAB_CONTENT_TOP_GAP = 16.dp
+
+// 2026-09-10 (Pieter's ask, follow-up) — a guaranteed floor on the gap around Breakdown's own
+// ALIGNMENT/MOMENTUM/STRUCTURE dividers, same reasoning as TAB_CONTENT_TOP_GAP: SpaceBetween
+// alone only distributes whatever height happens to be left over after content, which could be
+// small-to-nothing depending on the pair's own data (a long Structure CHoCH line, etc.) — an
+// explicit Spacer on top of SheetDivider's own 8dp+8dp margin guarantees real separation
+// regardless of how much (if any) extra height SpaceBetween has to work with.
+private val BREAKDOWN_SECTION_GAP = 16.dp
 
 /**
  * Design §14.7 — the most important surface. Overview (default, never hidden behind a tab) is
@@ -106,16 +123,27 @@ private val CARD_SHAPE = RoundedCornerShape(14.dp)
  * element and were never part of the "looks like a button" complaint (see that composable's own
  * doc comment on why they're header material, not tab content).
  *
- * 2026-09-09 (Pieter's ask) — all three tabs now open at the same height: Breakdown's own natural
- * height. Overview's five chunky checklist cards are the tallest content; Breakdown (three compact
- * sections) is a reasonable middle ground that keeps the sheet from either towering over lighter
- * tabs or leaving Correlation's 11 rows with a lot of dead space below. Measured live via
- * `SubcomposeLayout` (`PairSheetTabContent`) rather than a guessed fixed dp — content height
- * varies per pair (the Structure CHoCH warning line, direction-word lengths), so a hardcoded
- * number would drift wrong for edge-case pairs. Whichever tab is shorter/taller than that measured
- * height gets its own internal scroll rather than clipping or resizing the sheet — same-direction
- * nested scrolling cooperates with the outer ModalBottomSheet's own scroll (BottomSheetHost.kt)
- * automatically, no custom gesture handling needed.
+ * 2026-09-09 (Pieter's ask) — all three tabs opened at the same height: Breakdown's own natural
+ * height, measured live via `SubcomposeLayout` rather than a guessed fixed dp (content height
+ * varies per pair — the Structure CHoCH warning line, direction-word lengths). Whichever tab was
+ * shorter/taller than that measured height got its own internal `verticalScroll`.
+ *
+ * 2026-09-10 (Pieter's ask, real bug found live) — that inner scroll fought the sheet's own
+ * flick-to-dismiss: `BottomSheetHost.kt` already wraps every sheet's content in one outer
+ * `verticalScroll` (its own 80%-of-screen safety cap), so Overview/Breakdown/Correlation each
+ * scrolling *again* internally meant two nested vertical-scroll containers stacked under
+ * `ModalBottomSheet`'s own drag-to-dismiss gesture — a real, known-bad Compose pattern (gesture
+ * consumption becomes ambiguous across three cooperating-but-competing scroll owners). Fix: only
+ * one scroll container now, ever — the outer one in `BottomSheetHost.kt`. The per-tab probe
+ * target flipped from Breakdown to **Overview** (Overview is the tab that's actually open by
+ * default, `initialTab = 0`, so "the sheet opens at Overview's height" falls out of that rather
+ * than needing its own rule), and the fixed `.height(...)` became `.heightIn(min = ...)` — never
+ * clips a genuinely taller tab (that rare case now just grows the sheet a bit and leans on the
+ * outer scroll, exactly like before 2026-09-09 ever added the uniform-height idea), only ever
+ * pads a shorter one out. `BreakdownContent`/`CorrelationTabContent` gained `fillMaxHeight()` +
+ * `Arrangement.SpaceBetween` so a shorter tab actually uses that padded-out height (spreading its
+ * own sections/rows with real gaps) instead of top-packing and leaving one dead zone at the
+ * bottom — Pieter's own framing, "separate the items to fill whatever gaps are left."
  */
 @Composable
 fun PairSheet(node: PairNode, allNodes: List<PairNode>, signals: Signals, colors: AtomColors, initialTab: Int = 0) {
@@ -138,21 +166,19 @@ private fun PairSheetTabContent(
     pairBlock: PairBlock?,
     colors: AtomColors,
 ) {
-    val scrollState = remember(selectedTab, node.pair) { ScrollState(0) }
     SubcomposeLayout(modifier = Modifier.fillMaxWidth()) { constraints ->
         val looseConstraints = constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
-        val breakdownHeightPx = subcompose("breakdown-probe") { BreakdownContent(pairBlock, colors) }
+        val overviewHeightPx = subcompose("overview-probe") { OverviewChecklist(node, signals, pairBlock, colors) }
             .first()
             .measure(looseConstraints)
             .height
-        val breakdownHeightDp = breakdownHeightPx.toDp()
+        val overviewHeightDp = overviewHeightPx.toDp()
 
         val placeable = subcompose("visible") {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(breakdownHeightDp)
-                    .verticalScroll(scrollState),
+                    .heightIn(min = overviewHeightDp),
             ) {
                 when (selectedTab) {
                     0 -> OverviewChecklist(node, signals, pairBlock, colors)
@@ -166,16 +192,24 @@ private fun PairSheetTabContent(
     }
 }
 
+// 2026-09-10 (Pieter's ask) — `fillMaxHeight()` + a fixed top gap + `SpaceBetween` instead of a
+// small fixed top Spacer: Breakdown is only 3 sections against Overview's 5 cards, so once the
+// sheet opens at Overview's (taller) height, top-packing this tab left one dead zone at the
+// bottom. Spreading the leftover height *between* the sections uses it instead of wasting it —
+// see TAB_CONTENT_TOP_GAP's own doc comment for why the top edge itself is a fixed value, not
+// part of the Arrangement.
 @Composable
 private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Pieter, 2026-09-09 — more room than SheetTabs' own 16dp bottom padding gives: the tab
-        // row and this first section were reading too close together.
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(
+        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(top = TAB_CONTENT_TOP_GAP),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
         BreakdownSection("ALIGNMENT", colors) { TfAlignmentStrip(pairBlock?.pills, colors) }
         SheetDivider(colors)
+        Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
         BreakdownSection("MOMENTUM", colors) { MomentumTabContent(pairBlock?.mom, colors) }
         SheetDivider(colors)
+        Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
     }
 }
@@ -557,7 +591,14 @@ private fun CorrelationTabContent(pair: String, signals: Signals, colors: AtomCo
         .mapNotNull { i -> corr.pairs.getOrNull(i)?.let { p -> row.getOrNull(i)?.let { v -> p to v } } }
         .sortedByDescending { kotlin.math.abs(it.second) }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    // 2026-09-10 (Pieter's ask) — fillMaxHeight() + fixed top gap + SpaceBetween, same reasoning
+    // and same TAB_CONTENT_TOP_GAP as BreakdownContent (see its own doc comment): uses whatever
+    // height Overview's tab established instead of top-packing and leaving a gap below, and the
+    // top gap under the tab row now matches Breakdown's exactly, by construction.
+    Column(
+        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(top = TAB_CONTENT_TOP_GAP),
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
         rows.forEach { (otherPair, value) -> CorrelationLollipopRow(otherPair, value, colors) }
     }
 }
