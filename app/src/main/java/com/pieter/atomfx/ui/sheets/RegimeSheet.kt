@@ -1,6 +1,5 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,12 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -127,32 +123,21 @@ private fun regimeTint(regime: String?): Tint = when (regime) {
     else -> Tint.NEUTRAL
 }
 
-// Matches ScrollingPills' ELECTRIC_PILL_SHAPE — same squircle MomentumSheet's MOM_BAR_SHAPE uses.
-private val REGIME_TF_SHAPE = RoundedCornerShape(11.dp)
-private val REGIME_TF_HEIGHT = 52.dp
-// Same evidence-style lerp as MomentumSheet's MOM_LIT_AMOUNT — one wash formula, reused.
-private const val REGIME_TF_LIT_AMOUNT = 0.08f
-
 /**
  * 2026-09-03 (Pieter's direct ask) — "same pattern as Momentum": D1/H4/H1 label above a
  * regime-tinted square, the regime word centred inside. Replaces the plain combined text row.
+ *
+ * 2026-09-10 (Pieter's ask) — migrated onto the shared `SmallPillCell` (SheetComponents.kt)
+ * instead of its own near-duplicate implementation (a taller opaque-lerp square that had never
+ * actually been brought in line with Momentum's own later move to the alpha-wash squircle, despite
+ * this composable's own doc comment claiming they already matched). Now genuinely one shape/
+ * height/wash definition for every "non-scrolling pill" in the app, Regime included.
  */
 @Composable
 private fun RegimeTfSquare(label: String, regime: String?, colors: AtomColors, modifier: Modifier = Modifier) {
     val hue = tintColor(regimeTint(regime), colors)
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Spacer(modifier = Modifier.height(4.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(REGIME_TF_HEIGHT)
-                .background(lerp(colors.surfaceRaised, hue, REGIME_TF_LIT_AMOUNT), REGIME_TF_SHAPE),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = tfRegimeWord(regime), style = AtomType.Body.copy(color = hue))
-        }
+    SmallPillCell(label, hue, colors, modifier) {
+        Text(text = tfRegimeWord(regime), style = AtomType.Body.copy(color = hue))
     }
 }
 

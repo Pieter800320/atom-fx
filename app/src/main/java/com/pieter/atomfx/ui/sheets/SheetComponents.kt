@@ -106,8 +106,21 @@ fun NotAvailableRow(label: String, colors: AtomColors) {
 // shows one value and MOM shows a value plus a differently-coloured delta inline beside it — only
 // the shape/size/wash needed to match, not the text itself ("keep the text like MOM's pills are
 // now" — MOM's own value/delta styling is untouched, just laid out inside this shared shell).
+//
+// 2026-09-10 (Pieter's ask) — this is now the app's one standard "non-scrolling pill" shape,
+// corner radius nudged from 11dp to 8dp (slightly squarer, still clearly rounded). Every caller —
+// MomentumSheet's D1/H4/H1/CMP bars, TfAlignmentStrip, CurrencyDetailSheet's CcyTfSquare, and
+// RegimeSheet's own D1/H4/H1 squares (migrated onto this shared cell the same day, see
+// RegimeSheet.kt's own note) — picks this up automatically from the one definition here.
+//
+// Same day, text-colour convention (Pieter's ask, after seeing RegimeSheet's pills and liking the
+// look): a pill's main/headline text adopts the wash's own `tint` colour directly (no lighten,
+// no textPrimary) — RegimeSheet already did this from the start, and it's now the rule for every
+// caller above too. A pill with a secondary delta number (Momentum, Currency strength) is the one
+// exception spelled out per-caller — the delta keeps its own separate delta-sign colour, since it
+// answers a different question ("strengthening/weakening") than the headline value does.
 private val SMALL_PILL_HEIGHT = 26.dp
-private val SMALL_PILL_SHAPE = RoundedCornerShape(11.dp)
+private val SMALL_PILL_SHAPE = RoundedCornerShape(8.dp)
 
 @Composable
 fun SmallPillCell(
@@ -170,12 +183,12 @@ fun ControlButtonRow(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel) — was
-                    // AtomType.Caption; labels here (D1/H4/H1) are already all-caps, so
+                    // 2026-09-10 — the standard button style (AtomType.Button's own doc comment)
+                    // — was AtomType.Caption; labels here (D1/H4/H1) are already all-caps, so
                     // .uppercase() is a harmless no-op, kept for consistency with every other
                     // call site of this style.
                     text = label.uppercase(),
-                    style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    style = AtomType.Button.copy(color = if (active) colors.textPrimary else colors.textMuted),
                 )
             }
         }
@@ -217,11 +230,10 @@ fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own doc
-                    // comment) — was AtomType.Body ("Overview"); now matches the wheel's wing
-                    // buttons exactly, including the all-caps convention.
+                    // 2026-09-10 — the standard button style (AtomType.Button's own doc comment)
+                    // — was AtomType.Body ("Overview").
                     text = tab.uppercase(),
-                    style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    style = AtomType.Button.copy(color = if (active) colors.textPrimary else colors.textMuted),
                     maxLines = 1,
                 )
             }

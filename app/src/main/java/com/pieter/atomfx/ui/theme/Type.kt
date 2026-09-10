@@ -62,18 +62,24 @@ object AtomType {
         fontFeatureSettings = TABULAR_FIGURES,
     )
 
-    // 2026-09-10 (Pieter's ask, explicitly experimental — "I might revert this") — matches the
-    // wheel's own 4 wing labels (SETUP/TREND/MOMENTUM/VOLATILITY) exactly: `WheelCanvas.curvedLabel`
-    // draws them on a raw Canvas `Paint` with `Typeface.create(Typeface.DEFAULT, NORMAL)` at 11sp,
-    // never through AtomType/Inter at all (a Canvas Paint needs a real `android.graphics.Typeface`,
-    // not a Compose `FontFamily`, so it never got folded into the 2026-09-03 Inter pass above).
-    // FontFamily.Default is Compose's own equivalent of Typeface.DEFAULT — the system sans, not
-    // Inter — so using this style anywhere puts a second, different typeface into the app,
-    // deliberately, on purpose, as a preview. Every call site pairs this with `.uppercase()` on the
-    // text itself (Compose has no CSS-style text-transform) — the wing labels are already typed as
-    // literal uppercase strings ("SETUP", not "Setup"), so matching that convention needs the
-    // transform applied explicitly wherever the source text isn't already all-caps.
-    val WingLabel = TextStyle(
+    // 2026-09-10 (Pieter's ask) — the standard style for every button/pill label in the app
+    // (tabs, timeframe/mode toggles, Settings controls, action buttons). Shipped first as an
+    // explicit preview ("I might revert this"), confirmed on-device, then kept permanently the
+    // same day — "this will be the standard button styling from now on."
+    //
+    // Matches the wheel's own 4 wing labels (SETUP/TREND/MOMENTUM/VOLATILITY) exactly, which is
+    // where this originates: `WheelCanvas.curvedLabel` draws them on a raw Canvas `Paint` with
+    // `Typeface.create(Typeface.DEFAULT, NORMAL)` at 11sp, never through AtomType/Inter at all (a
+    // Canvas Paint needs a real `android.graphics.Typeface`, not a Compose `FontFamily`, so it
+    // never got folded into the 2026-09-03 Inter pass above). `FontFamily.Default` is Compose's
+    // own equivalent of `Typeface.DEFAULT` — the system sans, not Inter — so this is a second,
+    // different typeface living in the app on purpose, not an oversight: buttons/pills read in the
+    // system sans, everything else (body text, card values, sheet content) stays Inter. Every call
+    // site pairs this with `.uppercase()` on the text itself (Compose has no CSS-style
+    // text-transform) — the wing labels are already typed as literal uppercase strings ("SETUP",
+    // not "Setup"), so matching that convention needs the transform applied explicitly wherever
+    // the source text isn't already all-caps.
+    val Button = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,

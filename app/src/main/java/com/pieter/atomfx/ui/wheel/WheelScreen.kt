@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.Text
@@ -527,6 +528,11 @@ private val CSM_MODE_HEIGHT = 40.dp
  * does not support intrinsic measurement through a `SubcomposeLayout` — crashed at app launch the
  * instant this sat inside `EvenlySpacedColumn` (which measures its children's intrinsic height to
  * distribute leftover space). Fixed height instead (`CSM_MODE_HEIGHT`) — no intrinsics involved.
+ *
+ * 2026-09-10 (Pieter's ask) — "STRENGTH" reads cramped at an even 50/50 split ("FLOW" is half the
+ * width). Segments are now proportional to each label's own measured text width instead of a flat
+ * half each — the indicator (and the tap target under it) is a genuinely different size on each
+ * side, animating both its width and its x-offset when it slides, not just the offset like before.
  */
 @Composable
 private fun CsmModeToggle(
@@ -537,6 +543,11 @@ private fun CsmModeToggle(
 ) {
     val haptics = LocalHapticFeedback.current
     val gap = 3.dp
+    val textMeasurer = rememberTextMeasurer()
+    // Raw measured pixel widths, used only as a dimensionless ratio below — no density conversion
+    // needed, "how much wider is STRENGTH than FLOW" is scale-independent.
+    val strengthTextWidth = remember(textMeasurer) { textMeasurer.measure("STRENGTH", AtomType.Button).size.width }
+    val flowTextWidth = remember(textMeasurer) { textMeasurer.measure("FLOW", AtomType.Button).size.width }
     BoxWithConstraints(
         modifier = modifier
             .height(CSM_MODE_HEIGHT)
@@ -544,21 +555,31 @@ private fun CsmModeToggle(
             .border(1.dp, colors.controlBorder, CSM_MODE_SHAPE)
             .padding(3.dp),
     ) {
-        val segmentWidth = (maxWidth - gap) / 2
-        val indicatorOffset by animateDpAsState(
-            targetValue = if (mode == CsmDisplayMode.STRENGTH) 0.dp else segmentWidth + gap,
+        val totalWidth = maxWidth - gap
+        val strengthWidth = totalWidth * (strengthTextWidth.toFloat() / (strengthTextWidth + flowTextWidth))
+        val flowWidth = totalWidth - strengthWidth
+        val indicatorWidth by animateDpAsState(
+            targetValue = if (mode == CsmDisplayMode.STRENGTH) strengthWidth else flowWidth,
             animationSpec = CSM_MODE_INDICATOR_SPRING,
-            label = "csmModeIndicator",
+            label = "csmModeIndicatorWidth",
+        )
+        val indicatorOffset by animateDpAsState(
+            targetValue = if (mode == CsmDisplayMode.STRENGTH) 0.dp else strengthWidth + gap,
+            animationSpec = CSM_MODE_INDICATOR_SPRING,
+            label = "csmModeIndicatorOffset",
         )
         Box(
             modifier = Modifier
                 .offset(x = indicatorOffset)
-                .width(segmentWidth)
+                .width(indicatorWidth)
                 .fillMaxHeight()
                 .background(colors.surface, CSM_MODE_CHIP_SHAPE),
         )
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
-            listOf(CsmDisplayMode.STRENGTH to "Strength", CsmDisplayMode.FLOW to "Flow").forEach { (m, label) ->
+            listOf(
+                Triple(CsmDisplayMode.STRENGTH, "Strength", strengthWidth),
+                Triple(CsmDisplayMode.FLOW, "Flow", flowWidth),
+            ).forEach { (m, label, segmentWidth) ->
                 val active = m == mode
                 // 2026-09-06 (Pieter's ask) — no press wash here: a plain `clickable` with
                 // `indication = null` instead of this app's usual `pressWash`. The sliding
@@ -566,7 +587,7 @@ private fun CsmModeToggle(
                 // on top of that read as one animation fighting another.
                 Row(
                     modifier = Modifier
-                        .weight(1f)
+                        .width(segmentWidth)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -580,10 +601,10 @@ private fun CsmModeToggle(
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own
-                        // doc comment) — was AtomType.Caption ("Strength"/"Flow").
+                        // 2026-09-10 — the standard button style (AtomType.Button's own doc
+                        // comment) — was AtomType.Caption ("Strength"/"Flow").
                         text = label.uppercase(),
-                        style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                        style = AtomType.Button.copy(color = if (active) colors.textPrimary else colors.textMuted),
                     )
                 }
             }
