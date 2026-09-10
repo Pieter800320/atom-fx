@@ -290,6 +290,17 @@ No spinning, bouncing, flashing, or particle effects (spec §56). Glow alpha cei
 - **`signals.json` unavailable:** nucleus reads `DATA UNAVAILABLE`; nodes rest at nucleus, muted.
 - **Stale (`updated` older than scan interval):** keep the last-good visual but stamp `DATA STALE` in the header and dim the freshness dot to `bear`. Never present old data as current (spec §58).
 - **No qualifying setups:** Tradeable Now shows `NO A+ SETUPS` + `Closest: EURUSD — Level 5/6` (spec §32). The system is comfortable saying **NO TRADE**; never populate the outer ring artificially.
+- **Empty lists** (Watchlist, Notification History, Library search, a chart with no history yet) —
+  **terse, plain, no instructional copy**: state what's missing and stop. `"Watchlist empty"`,
+  `"No notifications yet"`, `"Not available yet"` — not a sentence explaining what the screen is
+  for or how to fill it. Standard empty-state UX guidance (an illustration, an explanation, a
+  call-to-action button) is written for consumer *onboarding* empty states — first launch, nothing
+  set up yet. This app doesn't have that kind; every empty state here is a *utility* one (a list
+  that currently has zero items in an otherwise fully-populated, data-dense tool), and the terse
+  form already matches the app's own restrained/no-arcade voice (§20's acceptance test language).
+  Pieter's rule, 2026-09-10, after `WatchlistScreen.kt`'s own empty state ("Nothing watched yet —
+  tap the bookmark on a pair sheet to add one, usually right after a BB touch alert.") was the one
+  place in the app that had drifted from what every other empty string already did correctly.
 
 ---
 

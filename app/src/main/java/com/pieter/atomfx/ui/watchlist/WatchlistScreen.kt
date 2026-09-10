@@ -147,7 +147,7 @@ private fun WatchlistContent(
 
         if (items.isEmpty()) {
             Text(
-                text = "Nothing watched yet — tap the bookmark on a pair sheet to add one, usually right after a BB touch alert.",
+                text = "Watchlist empty",
                 style = AtomType.Body.copy(color = colors.textMuted),
             )
             return@Column
