@@ -17,6 +17,7 @@ cross-references by section number. **Claude Code should read this file first.**
 | **[ATOM_FX_WHEEL_V2_SPEC.md](ATOM_FX_WHEEL_V2_SPEC.md)** | The radial-dial wheel redesign — supersedes `ATOM_FX_DESIGN.md` §6/§6A's wheel specifics where they conflict. §11 is a running addendum of what actually shipped vs the original brief. | Any wheel/dial work. |
 | **[mockups/atom-fx-wheel-preview.html](mockups/atom-fx-wheel-preview.html)** | Interactive reference render of the Wheel v2 dial (dark/light × currencies/pairs). Open in a browser. | Any wheel/dial work. |
 | **[ATOM_FX_SIGNALS_ROADMAP.md](ATOM_FX_SIGNALS_ROADMAP.md)** | Phased plan for new signals/notifications (state-transition alerts, COT conviction, Bollinger reversals, rate differential), from a full audit of the frozen scanner against both upstream zips. | Implementing any new signal or push notification. |
+| **[ATOM_FX_LIBRARY_STYLE.md](ATOM_FX_LIBRARY_STYLE.md)** | Prose rules for every Library and Playbook entry — no developer narration, lead with the answer, lists for list-shaped things. | Writing or editing any `LibraryContent.kt`/`*PlaybookContent.kt` entry. |
 
 ## The safety net & test data
 
@@ -49,3 +50,7 @@ resynced today. Also found and fixed in this pass: two places (`CLAUDE.md` §3, 
 earlier same-day `ATOM_FX_DESIGN.md` edit) had repeated §11's stale on-dial-ticker/Currencies-toggle
 claims without checking the code first — a reminder that a doc citing another doc's addendum still
 needs its own verification, not just a citation.
+- 2026-09-10 — added ATOM_FX_LIBRARY_STYLE.md v1.0 (Pieter's ask, after noticing Library/Playbook
+  prose had drifted into commit-message-style developer narration — "Pieter's own catch," change
+  dates, bug-fix history — instead of plain trading explanation). Full Library and Playbook
+  rewrite to match, same day.
