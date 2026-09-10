@@ -32,7 +32,11 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   catch), one line+signal per currency (same 8 as CSM). Built the same way CSM's own
   `compute_csm_d1` corrects currency strength from a mixed pair set, mirrored around 100 instead
   of negated (since %B is a 0-100 position, not a signed return). `signals.json` key
-  `percent_b_currency`, backend only so far — no UI surface yet.
+  `percent_b_currency`. Two surfaces: Insights tab's Market Indicators card (own 8-currency picker,
+  compares against Board %B directly), and — long-press a wheel node (ChartSheet), 2026-09-10 (2nd)
+  — the pair's own two currencies (base + quote), right alongside that pair's own %B, so a
+  currency-level "USD looks fragile" read can be checked against whether the pair's OTHER leg
+  agrees before treating it as a trade candidate.
 
 ## The wheels
 

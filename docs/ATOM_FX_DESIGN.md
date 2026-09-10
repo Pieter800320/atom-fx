@@ -661,6 +661,19 @@ up reversion risk, lower bull for the opposite) — blank when not touching eith
 the series and its dates are both backend-computed (see Architecture §4.2's `pctb_dates` entry
 for how the backend recovers dates the frozen aggregator itself discards).
 
+Below the pair's own %B card, two more (2026-09-10, 2nd, Pieter's ask, talked through first) —
+the pair's own base and quote currencies' `percent_b_currency` reads, one small card each
+(`CurrencyPercentBCard`, `ChartSheet.kt`), same `PercentBOscillator` drawing again. The workflow
+behind this: a currency-level "USD looks fragile" read (Currency %B rolling over + CSM weakening,
+read together on the Insights card) only becomes an actual pair-level candidate once you check
+whether the OTHER leg of a specific pair agrees — so both currencies sit right on the pair sheet
+next to the pair's own %B, where that comparison happens. Deliberately three separate small
+charts, not one merged one — pair %B (price position within THIS pair's own bands) and currency
+%B (each currency's own stretch across ALL its pairs) are related but different reads; overlaying
+up to 6 lines onto one chart would cost the "did it cross its own signal" readability that makes
+any of this useful. `base`/`quote` come from the plain 6-char pair code (`pair.take(3)`/
+`.takeLast(3)`) — no new parsing.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…
