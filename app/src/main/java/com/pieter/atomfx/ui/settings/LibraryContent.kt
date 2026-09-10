@@ -172,8 +172,42 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         howItWorks = "Each currency appears in a different number of the 18 CSM pairs: USD 7, JPY 6, AUD 5, GBP 5, EUR 4, CHF/CAD/NZD 3 each. Breadth is how many of those relationships point the same way as the currency's own net direction, divided by how many it appears in at all — always a percentage, never a raw count, since the totals differ per currency.\n" +
             "70% or above: strong.\n" +
             "50–69%: moderate.\n" +
-            "Below 50%: weak.",
-        whyItMatters = "The difference between \"EUR is strong\" — broad, real — and \"EUR is strong against JPY\" — one relationship, which could be a JPY story, not a EUR one.",
+            "Below 50%: weak.\n" +
+            "This is a confidence read, not a direction read — it says how unanimous the agreement is, not which way. A currency can be strong-and-weakening just as easily as strong-and-strengthening; the app shows the actual direction as its own word (strengthening/weakening/flat) alongside the confidence band, not instead of it.",
+        whyItMatters = "The difference between \"EUR is strong\" — broad, real — and \"EUR is strong against JPY\" — one relationship, which could be a JPY story, not a EUR one. Also the difference between \"broadly agreed\" and \"broadly agreed to be rising\" — a currency's pairs can unanimously confirm it's weakening just as easily as strengthening.",
+    ),
+    LibraryEntry(
+        id = "rotation",
+        term = "Rotation",
+        category = "Currency Strength",
+        summary = "A quadrant map of every currency's strength against the momentum of that strength — who's leading, who's fading.",
+        howItWorks = "Each currency is plotted by H4 CSM (strength, left to right) against H4 CSM Delta (momentum of that strength, bottom to top).\n" +
+            "Leading: strong and still gaining.\n" +
+            "Weakening: strong but losing ground.\n" +
+            "Lagging: weak and still losing.\n" +
+            "Improving: weak but gaining ground.\n" +
+            "A short trail behind each dot shows its last few readings.",
+        whyItMatters = "Strength alone doesn't say which way things are heading. A currency can be the strongest on the board and already fading (Weakening), or the weakest and turning the corner (Improving) — Rotation is on the Insights tab.",
+    ),
+    LibraryEntry(
+        id = "pulse",
+        term = "Pulse",
+        category = "Regime & Macro",
+        summary = "0–100. Is today's market broad and confirmed enough to trust a signal, or thin and contradictory?",
+        howItWorks = "An average of up to four reads: how many currencies agree with their own direction (Breadth), how many evidence axes support the current regime (Regime), whether today's currency-strength spread is unusually wide (Separation), and how much of the market is in an expanding volatility phase.\n" +
+            "70 or above: confirmed.\n" +
+            "50–69: mixed.\n" +
+            "Below 50: noise.\n" +
+            "Needs at least two of the four reads available, or it shows nothing rather than a misleading single-input score.",
+        whyItMatters = "A high setup score in a noise market is a weaker bet than the same score in a confirmed one — Pulse is the market-wide context, on the Insights tab.",
+    ),
+    LibraryEntry(
+        id = "thrust",
+        term = "Thrust",
+        category = "Currency Strength",
+        summary = "How many currencies are breadth-strong minus how many are breadth-weak, from -8 to +8 — is the market splitting into winners and losers, or staying flat?",
+        howItWorks = "Counts each of the 8 currencies' own breadth direction: +1 for strong, -1 for weak, 0 for flat, summed.",
+        whyItMatters = "A run of readings near zero says the market is undecided even if individual pairs look busy; a run moving toward +8 or -8 says conviction is building broadly, not just in one pair — Thrust is on the Insights tab.",
     ),
     LibraryEntry(
         id = "setup-rank",

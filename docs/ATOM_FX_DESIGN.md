@@ -547,6 +547,7 @@ PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Over
                      rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
+MarketIndicatorsCard Insights-tab card: Rotation/Pulse/Thrust behind a 3-tab switcher (§19.4)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 FreshnessBadge      fresh / stale / unavailable
@@ -564,6 +565,27 @@ The archetype **banner** is the hero: the regime name in Title weight, a confide
 ### 19.3 Settings
 
 Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented control (System / Dark / Light); a **notifications** group with a "Send test" button; a **data** group (source URL, refresh cadence, last-updated, force-refresh); an **optional** collapsed "Price-level alerts" group that reveals a GitHub-PAT field only when enabled; and an **About / legend** entry that opens the ⓘ guide. No API-key fields for market data or AI — state plainly that those live server-side.
+
+### 19.4 Market indicators (Insights tab, 2026-09-10)
+
+Three concept indicators, tried live so Pieter could compare them before any one earns a
+permanent home (research/mockup process, not a spec-first build) — a card on `InsightsScreen`
+(chosen over the Wheel landing screen, which has zero idle vertical budget under §17), title +
+a `SheetTabs` 3-way switcher (Rotation/Pulse/Thrust), one chart + a short caption per tab.
+
+- **Rotation** — a quadrant scatter (new chart grammar, no existing precedent): axes at
+  CSM=50/Delta=0, 4 soft quadrant fills, one dot + short comet trail per currency. Colour reuses
+  the 4 existing status tokens as-is (Leading=bull, Weakening=watch, Lagging=bear,
+  Improving=neutral) — **a deliberate choice, Pieter's own call, not a 5th chromatic token** —
+  per §2's "colour encodes market state, never variety."
+- **Pulse** — a direct extension of §19.1's `LineChart` idiom (1.5dp stroke, soft area fill,
+  emphasised endpoint) onto a bounded 0-100 range, with two dashed threshold lines at 50/70.
+  Colour comes from `pulse.band`, not the series' own start/end like `LineChart` does.
+- **Thrust** — a centered-zero histogram (new shape): one bar per recent scan either side of a
+  zero baseline, bull/bear/neutral by sign, today's bar outlined.
+
+All three are pure consumers of `rotation`/`pulse`/`breadth_thrust` (Architecture §4.2) — no
+value is computed in Kotlin.
 
 ---
 

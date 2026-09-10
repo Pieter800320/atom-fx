@@ -438,6 +438,8 @@ def main():
         from scanner.extend import recommendation  as _recommendation
         from scanner.extend import potential_config as _xcfg
         from scanner.extend import state_alerts    as _state_alerts
+        from scanner.extend import rotation        as _rotation
+        from scanner.extend import market_pulse    as _market_pulse
 
         out["csm_delta"]     = _csm_delta.compute_csm_delta(ohlcv, csm)
         out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
@@ -445,6 +447,23 @@ def main():
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
         _bb_touch.attach_bb_d1(out["pairs"], ohlcv)                     # pairs.<PAIR>.bb_d1
         out["spark"]         = _spark.compute_spark(ohlcv)
+
+        # Rotation / Pulse / Thrust (2026-09-10) — all pure aggregation of values
+        # already computed above this scan (csm, csm_delta, breadth, bb_d1) plus
+        # the macro_regime block assembled just below. History round-trips through
+        # signals.json the same way csm_dispersion_history already does.
+        out["rotation"] = _rotation.compute_rotation(
+            csm.get("h4", {}), out["csm_delta"].get("h4", {}),
+            (prev.get("rotation") or {}).get("history"),
+        )
+        out["breadth_thrust"] = _breadth.compute_thrust(
+            out["breadth"]["h4"], (prev.get("breadth_thrust") or {}).get("history"),
+        )
+        # csm_dispersion_pct was already computed in step 5 (ahead of frozen regime
+        # classification) but never exposed to signals.json — exposing it now, only
+        # as the input Pulse needs; see its own computation above for why it isn't
+        # nested inside "csm" and stays top-level.
+        out["csm_dispersion_pct"] = csm_dispersion_pct
         out["potential"]     = _potential.compute_potential(
             out, out["csm_delta"], out["breadth"],
             reset=pair_reset, atr_pct=pair_atr_pct,
@@ -464,6 +483,12 @@ def main():
         )
         if mr:
             out["macro_regime"] = mr
+
+        out["pulse"] = _market_pulse.compute_pulse(
+            out["breadth"]["h4"], out.get("macro_regime"),
+            csm_dispersion_pct.get("h4"), out.get("pairs", {}),
+            (prev.get("pulse") or {}).get("history"),
+        )
 
         # v1 recommendation: deterministic seed + deterministic framing (no hourly
         # API cost). Phase 7 swaps in the AI-narrated version on the 12h cadence in

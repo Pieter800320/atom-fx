@@ -47,11 +47,24 @@ import com.pieter.atomfx.ui.theme.lighten
 fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, onPairClick: (String) -> Unit = {}) {
     val h4Delta = signals.csmDelta["h4"]?.get(currency)
     val breadth = signals.breadth.h4[currency]
-    val bandColor = when (breadth?.band?.lowercase()) {
+    // 2026-09-10 (Pieter's own catch, found via a real live-data audit) — was coloured by `band`
+    // (how unanimous the currency's pairs agree — direction-blind), which meant a currency
+    // unanimously WEAKENING rendered the exact same green "strong" badge as one unanimously
+    // strengthening. Colour now reads `dir` (the actual net direction) instead — see
+    // BreadthEntry's own doc comment in Signals.kt for why these two fields are easy to conflate.
+    val breadthDirColor = when (breadth?.dir?.lowercase()) {
         "strong" -> colors.bull
-        "moderate" -> colors.watch
         "weak" -> colors.bear
         else -> colors.textMuted
+    }
+    // Plain English, deliberately not "strong"/"weak" (`band`'s own vocabulary) — showing both
+    // words side by side ("strong · weak") would read as contradictory even once correctly
+    // coloured, when what's actually being said is "highly confident, and weakening."
+    val breadthDirWord = when (breadth?.dir?.lowercase()) {
+        "strong" -> "strengthening"
+        "weak" -> "weakening"
+        "flat" -> "flat"
+        else -> null
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -59,10 +72,10 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
         Text(
             text = listOfNotNull(
                 CCY_NAMES[currency],
-                breadth?.band,
+                breadthDirWord,
                 h4Delta?.let { "flow ${deltaText(it)}" },
             ).joinToString(" · "),
-            style = AtomType.Caption.copy(color = bandColor),
+            style = AtomType.Caption.copy(color = breadthDirColor),
             modifier = Modifier.padding(top = 2.dp, bottom = 12.dp),
         )
 
@@ -74,10 +87,11 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
 
         SheetDivider(colors)
         if (breadth?.pct != null) {
-            SheetRow("Breadth (H4)", "${breadth.support}/${breadth.total} · ${breadth.band ?: "—"}", colors, bandColor)
+            val bandLabel = listOfNotNull("${breadth.support}/${breadth.total}", breadth.band, breadthDirWord).joinToString(" · ")
+            SheetRow("Breadth (H4)", bandLabel, colors, breadthDirColor)
             BarMeter(
                 fraction = breadth.pct.toFloat(),
-                color = bandColor,
+                color = breadthDirColor,
                 colors = colors,
                 modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
             )

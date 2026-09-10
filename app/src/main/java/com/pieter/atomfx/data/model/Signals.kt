@@ -36,6 +36,12 @@ data class Signals(
     @SerialName("macro_regime") val macroRegime: MacroRegimeBlock? = null,
     val spark: Map<String, SparkEntry> = emptyMap(),
     val conviction: ConvictionBlock? = null,
+    // 2026-09-10 — Rotation/Pulse/Thrust, three new market-state indicators (Insights tab). All
+    // three are pure aggregation of values already in this same document (csm/csm_delta/breadth/
+    // macro_regime/pairs.bb_d1) — see each block's own doc comment.
+    val rotation: RotationBlock? = null,
+    val pulse: PulseBlock? = null,
+    @SerialName("breadth_thrust") val breadthThrust: ThrustBlock? = null,
     @SerialName("schema_version") val schemaVersion: Int? = null,
 )
 
@@ -78,12 +84,22 @@ data class CurrencyFlow(
     @SerialName("driver_spread") val driverSpread: Double? = null,
 )
 
+// 2026-09-10 — `dir`/`net` were already computed by `breadth.py` (`compute_breadth`) but never
+// declared here, so kotlinx.serialization silently dropped them on every parse. `band` and `dir`
+// are two different axes that happen to share confusingly overlapping vocabulary ("strong"/"weak"
+// on both) — `band` is how UNANIMOUS the currency's pairs agree (support/total, direction-blind);
+// `dir` is the actual direction of that agreed-on net move (`strong`=net positive, `weak`=net
+// negative, `flat`=net zero). A currency can be `band: strong` (near-unanimous) while `dir: weak`
+// (that unanimous move is a weakening one) — CurrencyDetailSheet.kt's own colour bug was
+// conflating the two. Never read `band` as a stand-in for direction; use `dir`.
 @Serializable
 data class BreadthEntry(
     val support: Int? = null,
     val total: Int? = null,
     val pct: Double? = null,
     val band: String? = null,
+    val net: Double? = null,
+    val dir: String? = null,
 )
 
 /**
@@ -348,4 +364,50 @@ data class SparkEntry(
     val d1: List<Double> = emptyList(),
     val h4: List<Double> = emptyList(),
     val h1: List<Double> = emptyList(),
+)
+
+/** 2026-09-10 — currency strength (x, CSM h4) plotted against momentum-of-strength (y, CSM Delta
+ *  h4), quadrant-classified. `history` is a short oldest-first comet trail per currency, each
+ *  entry `[x, y]`. See `rotation.py`'s own doc comment for the quadrant convention. */
+@Serializable
+data class RotationBlock(
+    val tf: String? = null,
+    val points: Map<String, RotationPoint> = emptyMap(),
+    val history: Map<String, List<List<Double>>> = emptyMap(),
+)
+
+@Serializable
+data class RotationPoint(
+    val x: Double? = null,
+    val y: Double? = null,
+    val quadrant: String? = null,
+)
+
+/** 2026-09-10 — "is this a market where today's signals can be trusted, or is it noise?" A 0-100
+ *  composite of unanimity/regime-clarity/separation/volatility-phase; `score`/`band` are null
+ *  when fewer than 2 of the 4 axes are available (see `market_pulse.py`'s own doc comment).
+ *  `history` is oldest-first, one score per scan it was computable. */
+@Serializable
+data class PulseBlock(
+    val score: Double? = null,
+    val band: String? = null,
+    val axes: PulseAxes = PulseAxes(),
+    val history: List<Double> = emptyList(),
+)
+
+@Serializable
+data class PulseAxes(
+    val unanimity: Double? = null,
+    @SerialName("regime_clarity") val regimeClarity: Double? = null,
+    val separation: Double? = null,
+    @SerialName("volatility_phase") val volatilityPhase: Double? = null,
+)
+
+/** 2026-09-10 — the FX advance/decline line: count of currencies with breadth `dir == "strong"`
+ *  minus `dir == "weak"`, range -8..+8. `history` is oldest-first. See `breadth.py`'s
+ *  `compute_thrust` for the exact aggregation. */
+@Serializable
+data class ThrustBlock(
+    val h4: Int? = null,
+    val history: List<Int> = emptyList(),
 )

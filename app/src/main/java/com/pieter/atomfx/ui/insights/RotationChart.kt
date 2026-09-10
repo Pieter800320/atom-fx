@@ -1,0 +1,113 @@
+package com.pieter.atomfx.ui.insights
+
+import android.graphics.Paint
+import android.graphics.Typeface
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.data.model.RotationBlock
+import com.pieter.atomfx.ui.theme.AtomColors
+import com.pieter.atomfx.ui.theme.AtomType
+
+/**
+ * Concept 01 (2026-09-10) — a quadrant scatter of currency strength (x, CSM h4) against the
+ * momentum of that strength (y, CSM Delta h4): the same real-world Relative Rotation Graph
+ * convention `rotation.py`'s own doc comment describes. Quadrant colour reuses the 4 existing
+ * status tokens as-is (Pieter's call, 2026-09-10) — Leading=bull, Weakening=watch, Lagging=bear,
+ * Improving=neutral — rather than a 5th chromatic token, per Design §2's "colour encodes market
+ * state, never variety."
+ */
+@Composable
+fun RotationChart(rotation: RotationBlock?, colors: AtomColors, modifier: Modifier = Modifier) {
+    if (rotation == null || rotation.points.isEmpty()) {
+        Box(modifier = modifier.fillMaxWidth().height(260.dp), contentAlignment = Alignment.Center) {
+            Text(text = "Not available yet", style = AtomType.Body.copy(color = colors.textMuted))
+        }
+        return
+    }
+
+    fun quadrantColor(quadrant: String?): Color = when (quadrant) {
+        "leading" -> colors.bull
+        "weakening" -> colors.watch
+        "lagging" -> colors.bear
+        else -> colors.neutral // "improving", or unknown
+    }
+
+    Canvas(modifier = modifier.fillMaxWidth().height(260.dp)) {
+        val padLeft = 44f
+        val padRight = 16f
+        val padTop = 16f
+        val padBottom = 28f
+        val plotW = size.width - padLeft - padRight
+        val plotH = size.height - padTop - padBottom
+
+        val xMin = 0.0; val xMax = 100.0
+        val yMin = -60.0; val yMax = 60.0
+        fun px(x: Double): Float = (padLeft + ((x - xMin) / (xMax - xMin) * plotW)).toFloat()
+        fun py(y: Double): Float = (padTop + (1.0 - (y - yMin) / (yMax - yMin)) * plotH).toFloat()
+
+        val midX = px(50.0)
+        val midY = py(0.0)
+
+        drawRect(colors.bullSoft, topLeft = Offset(midX, padTop), size = androidx.compose.ui.geometry.Size(padLeft + plotW - midX, midY - padTop))
+        drawRect(colors.watchSoft, topLeft = Offset(midX, midY), size = androidx.compose.ui.geometry.Size(padLeft + plotW - midX, padTop + plotH - midY))
+        drawRect(colors.bearSoft, topLeft = Offset(padLeft, midY), size = androidx.compose.ui.geometry.Size(midX - padLeft, padTop + plotH - midY))
+        drawRect(colors.neutral.copy(alpha = 0.10f), topLeft = Offset(padLeft, padTop), size = androidx.compose.ui.geometry.Size(midX - padLeft, midY - padTop))
+
+        drawLine(colors.hairlineStrong, Offset(midX, padTop), Offset(midX, padTop + plotH), strokeWidth = 1.dp.toPx())
+        drawLine(colors.hairlineStrong, Offset(padLeft, midY), Offset(padLeft + plotW, midY), strokeWidth = 1.dp.toPx())
+
+        val labelPaint = Paint().apply {
+            isAntiAlias = true
+            textSize = 10.dp.toPx()
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+            color = colors.textMuted.toArgb()
+        }
+        val nativeCanvas = drawContext.canvas.nativeCanvas
+        nativeCanvas.drawText("CSM →", padLeft + plotW, padTop + plotH + 20f, labelPaint.apply { textAlign = Paint.Align.RIGHT })
+
+        rotation.points.forEach { (ccy, pt) ->
+            val x = pt.x; val y = pt.y
+            if (x == null || y == null) return@forEach
+            val dotColor = quadrantColor(pt.quadrant)
+            val center = Offset(px(x), py(y))
+
+            val trail = rotation.history[ccy].orEmpty()
+            if (trail.size > 1) {
+                for (i in 0 until trail.size - 1) {
+                    val a = trail[i]; val b = trail[i + 1]
+                    if (a.size < 2 || b.size < 2) continue
+                    val alpha = 0.08f + (i.toFloat() / trail.size) * 0.24f
+                    drawLine(
+                        color = dotColor.copy(alpha = alpha),
+                        start = Offset(px(a[0]), py(a[1])),
+                        end = Offset(px(b[0]), py(b[1])),
+                        strokeWidth = 2.dp.toPx(),
+                    )
+                }
+            }
+
+            drawCircle(color = dotColor, radius = 6.dp.toPx(), center = center)
+            drawCircle(color = colors.surface, radius = 6.dp.toPx(), center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx()))
+
+            val labelPaintBold = Paint().apply {
+                isAntiAlias = true
+                textSize = 12.dp.toPx()
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                color = colors.textPrimary.toArgb()
+                textAlign = Paint.Align.LEFT
+            }
+            nativeCanvas.drawText(ccy, center.x + 10f, center.y + 4f, labelPaintBold)
+        }
+    }
+}

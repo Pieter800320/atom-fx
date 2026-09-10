@@ -215,6 +215,21 @@ conviction         {currencies:{CCY:{conviction,direction,components{6},raw,cot_
                     structural support, negative = bearish. `cot_available` false means the
                     COT-derived components (`cot_position`,`cot_oi`,`cot_disagg`) are zeroed
                     but the CSM/extension/breadth components still contributed.
+rotation           {tf, points:{CCY:{x,y,quadrant}}, history:{CCY:[[x,y],…]}}  — currency
+                    strength (x, CSM h4) vs. momentum of that strength (y, CSM Delta h4),
+                    quadrant-classified (2026-09-10). Pure aggregation, no new calculation —
+                    reads `csm`/`csm_delta` only. `history` round-trips through `signals.json`
+                    the same way `csm_dispersion_history` does (no separate state file).
+breadth_thrust     {h4: int (-8..+8), history:[int,…]}  — count of currencies with
+                    `breadth.h4[*].dir == "strong"` minus `== "weak"` (2026-09-10). The FX
+                    analogue of a stock-market advance/decline line.
+pulse              {score: float|null, band: string|null,
+                    axes:{unanimity,regime_clarity,separation,volatility_phase},
+                    history:[float,…]}  — a 0-100 composite of breadth unanimity, macro_regime
+                    evidence-axis clarity, CSM dispersion percentile, and BB width-expansion
+                    share (2026-09-10). `score`/`band` are null when fewer than 2 of the 4 axes
+                    are available. Deliberately excludes Conviction (COT) — weekly cadence would
+                    make a daily composite sticky.
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 

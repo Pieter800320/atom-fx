@@ -134,3 +134,24 @@ def compute_breadth(ohlcv: dict) -> dict:
     per_tf = {tf: _breadth_for_tf(ohlcv, tf) for tf in cfg.BREADTH_TFS}
     per_tf["pairs"] = {tf: _pair_breadth_for_tf(currencies) for tf, currencies in per_tf.items()}
     return per_tf
+
+
+def compute_thrust(breadth_h4: dict, prev_history: list | None) -> dict:
+    """
+    ATOM FX — Breadth Thrust (EXTEND, 2026-09-10). The FX analogue of the classic
+    stock-market advance/decline line: count currencies whose breadth direction
+    (`dir`, not `band` — see BreadthEntry's own note on the two) reads "strong"
+    minus the ones reading "weak". Pure aggregation of `compute_breadth`'s own
+    output, no new calculation — is the whole market polarising into clear
+    winners/losers, or is everyone flat/mixed?
+
+    Returns {"h4": int (-8..+8), "history": [ints...]} (oldest first, capped at
+    cfg.THRUST_HISTORY_LEN).
+    """
+    dirs = [e.get("dir") for e in breadth_h4.values() if e]
+    value = sum(1 for d in dirs if d == "strong") - sum(1 for d in dirs if d == "weak")
+
+    history = list(prev_history or []) + [value]
+    history = history[-cfg.THRUST_HISTORY_LEN:]
+
+    return {"h4": value, "history": history}

@@ -65,5 +65,24 @@ APLUS_RANK          = 8.5  # level 6 AND setup_rank >= this -> aplus
 SPARK_BARS = 56           # recent closes per pair per TF (~48-64 range)
 SPARK_DP   = 6            # rounding (matches frozen prev_close rounding)
 
+# ── Rotation (2026-09-10) ──────────────────────────────────────────────────────
+# Comet-trail length — how many recent (x,y) scans each currency's rotation.py
+# history keeps. 6 gives a short, readable trail without the chart getting busy.
+ROTATION_HISTORY_LEN = 6
+
+# ── Market Pulse (2026-09-10) ──────────────────────────────────────────────────
+# Window length for the plotted history line — matches csm_dispersion.py's own
+# WINDOW so both "how unusual is today" style series cover the same span.
+PULSE_HISTORY_LEN = 60
+# Band thresholds deliberately reuse BREADTH_STRONG/BREADTH_MODERATE's own 0.70/
+# 0.50 split (as percentages) rather than inventing a third arbitrary number —
+# one consistent "how confident is 'strong'" threshold across the app.
+PULSE_HIGH     = BREADTH_STRONG * 100     # >= this -> "confirmed"
+PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
+
+# ── Breadth Thrust (2026-09-10) ─────────────────────────────────────────────────
+THRUST_HISTORY_LEN = 30
+
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 1        # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 2        # bump whenever a key is added or a shape changes
+# 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).

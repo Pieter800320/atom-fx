@@ -44,6 +44,18 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   the UI (2026-09-02) to keep the Currency Flow sheet and ticker to one clear number per
   currency — flow leader/laggard only. Don't resurface it without checking with him first.
 
+## Market indicators (Insights tab)
+
+- **Rotation** — a quadrant map of every currency's CSM (h4) against its CSM Delta (h4):
+  **Leading** (strong, gaining) · **Weakening** (strong, losing) · **Lagging** (weak, losing) ·
+  **Improving** (weak, gaining). `signals.json` key `rotation`.
+- **Pulse** — a 0–100 composite of Breadth unanimity, Regime evidence-axis clarity, CSM
+  dispersion percentile, and BB width expansion: is today's market broad/confirmed enough to
+  trust a signal, or thin/contradictory? Bands: **confirmed** (≥70) · **mixed** (50–69) ·
+  **noise** (<50). Null until at least 2 of its 4 inputs are available. `signals.json` key `pulse`.
+- **Thrust** — count of currencies with breadth `dir == "strong"` minus `dir == "weak"`, -8..+8:
+  the FX analogue of a stock-market advance/decline line. `signals.json` key `breadth_thrust`.
+
 ## Macro
 
 - **Macro archetype / named regime** — one of the ten handbook regimes A–J (e.g. *Growth-positive

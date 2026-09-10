@@ -19,6 +19,7 @@ from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendati
 from scanner.extend import state_alerts
 from scanner.extend import conviction
 from scanner.extend import bb_touch
+from scanner.extend import rotation, market_pulse
 from scanner import scan_h1
 from scanner import csm
 import pandas as pd
@@ -660,6 +661,104 @@ def test_conviction_survives_hourly_rebuild():
 
 
 # ── script runner ─────────────────────────────────────────────────────────────────
+# ── Rotation / Pulse / Thrust (2026-09-10) ────────────────────────────────────────
+def test_rotation_shape():
+    ohlcv, csm_now = _fixture()
+    d = csm_delta.compute_csm_delta(ohlcv, csm_now)
+    r = rotation.compute_rotation(csm_now["h4"], d["h4"], None)
+    assert r["tf"] == "h4"
+    assert set(r["points"]) == set(EXPECTED_APPEARANCES)
+    for ccy, pt in r["points"].items():
+        assert 0.0 <= pt["x"] <= 100.0, (ccy, pt)
+        assert pt["quadrant"] in ("leading", "weakening", "lagging", "improving")
+        assert r["history"][ccy] == [[pt["x"], pt["y"]]]
+
+
+def test_rotation_quadrant_boundaries():
+    # x==50/y==0 land on the "strong, still gaining" side by convention (>=, not >).
+    cases = [
+        ((50.0, 0.0), "leading"),
+        ((100.0, 5.0), "leading"),
+        ((50.0, -0.01), "weakening"),
+        ((80.0, -10.0), "weakening"),
+        ((49.99, -0.01), "lagging"),
+        ((0.0, -20.0), "lagging"),
+        ((49.99, 0.0), "improving"),
+        ((10.0, 30.0), "improving"),
+    ]
+    for (x, y), expected in cases:
+        r = rotation.compute_rotation({"EUR": x}, {"EUR": y}, None)
+        assert r["points"]["EUR"]["quadrant"] == expected, (x, y, r["points"]["EUR"])
+
+
+def test_rotation_history_caps_and_orders():
+    history = None
+    for i in range(cfg.ROTATION_HISTORY_LEN + 4):
+        r = rotation.compute_rotation({"EUR": float(i)}, {"EUR": 0.0}, history)
+        history = r["history"]
+    assert len(history["EUR"]) == cfg.ROTATION_HISTORY_LEN
+    # oldest-first: the last entry must be the most recent scan appended.
+    assert history["EUR"][-1] == [float(cfg.ROTATION_HISTORY_LEN + 3), 0.0]
+
+
+def test_thrust_matches_manual_count():
+    breadth_h4 = {
+        "EUR": {"dir": "strong"}, "USD": {"dir": "strong"}, "GBP": {"dir": "strong"},
+        "AUD": {"dir": "weak"}, "NZD": {"dir": "weak"},
+        "CAD": {"dir": "flat"}, "CHF": {"dir": "flat"}, "JPY": {"dir": "strong"},
+    }
+    t = breadth.compute_thrust(breadth_h4, None)
+    assert t["h4"] == 4 - 2  # 4 strong, 2 weak, 2 flat -> +2
+    assert -8 <= t["h4"] <= 8
+    assert t["history"] == [2]
+
+
+def test_thrust_history_caps():
+    history = None
+    for _ in range(cfg.THRUST_HISTORY_LEN + 5):
+        t = breadth.compute_thrust({"EUR": {"dir": "strong"}}, history)
+        history = t["history"]
+    assert len(history) == cfg.THRUST_HISTORY_LEN
+
+
+def test_pulse_null_when_fewer_than_two_axes():
+    p = market_pulse.compute_pulse({}, None, 55.0, {}, None)
+    assert p["score"] is None
+    assert p["band"] is None
+    assert p["history"] == []  # a None score is never appended
+
+
+def test_pulse_band_thresholds():
+    breadth_h4 = {c: {"pct": 1.0} for c in ("EUR", "USD", "GBP", "AUD")}  # unanimity=100
+    macro_regime = {"primary": {"distinct_axes": 5}}                     # regime_clarity=100
+    p_high = market_pulse.compute_pulse(breadth_h4, macro_regime, 100.0, {}, None)
+    assert p_high["score"] == 100.0
+    assert p_high["band"] == "confirmed"
+
+    macro_regime_low = {"primary": {"distinct_axes": 0}}                 # regime_clarity=0
+    p_low = market_pulse.compute_pulse({c: {"pct": 0.0} for c in ("EUR", "USD")},
+                                        macro_regime_low, 0.0, {}, None)
+    assert p_low["score"] == 0.0
+    assert p_low["band"] == "noise"
+
+
+def test_pulse_history_caps():
+    history = None
+    for _ in range(cfg.PULSE_HISTORY_LEN + 5):
+        p = market_pulse.compute_pulse({"EUR": {"pct": 1.0}}, {"primary": {"distinct_axes": 3}},
+                                        None, {}, history)
+        history = p["history"]
+    assert len(history) == cfg.PULSE_HISTORY_LEN
+
+
+def test_pulse_skips_unscoreable_scans_in_history():
+    history = None
+    for _ in range(3):
+        p = market_pulse.compute_pulse({}, None, None, {}, history)  # 0 axes available -> None
+        history = p["history"]
+    assert history == []
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
