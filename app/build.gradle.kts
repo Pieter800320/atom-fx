@@ -14,8 +14,15 @@ android {
         applicationId = "com.pieter.atomfx"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1"
+        // 2026-09-10 (Pieter's ask, version hygiene) — first bump since project start, despite
+        // many shipped phases since (Wheel v2, the Simplification Rework, the Signals Roadmap
+        // phases, this whole session's polish pass). versionCode/Name have no enforced meaning in
+        // this project (no Play Store release, no semver policy defined) — bump versionCode by 1
+        // per notable build/install milestone going forward, judgment call on when. versionName
+        // "0.2" is a conservative next-increment, not a claim that a "1.0" bar has been defined or
+        // met — that's a real decision for later, not implied by this bump.
+        versionCode = 2
+        versionName = "0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
