@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
@@ -265,21 +262,19 @@ private fun newsCorroborationColor(tag: String?, colors: AtomColors): Color = wh
     else -> colors.textMuted
 }
 
-/** Strong/weak currency baskets, side by side inside the banner card — a nested grouping, not a
- *  card of its own, so `surfaceRaised` (not `cardSurface`) and no border.
+/** Strong/weak currency baskets, stacked inside the banner card — a nested grouping, not a card
+ *  of its own, so `surfaceRaised` (not `cardSurface`) and no border.
  *
- *  2026-09-04 (Pieter's ask) — always the same size as each other, not just the same width. The
- *  archetype table lets STRONG hold up to 4 currencies (regime C) and WEAK up to 5 (regime E), so
- *  whichever side wraps to more lines used to stretch the row unevenly. `IntrinsicSize.Max` on the
- *  Row + `fillMaxHeight()` on each box makes both stretch to match whichever is taller. */
+ *  2026-09-10 (Pieter's ask) — was side by side (`Row`, `IntrinsicSize.Max`/`fillMaxHeight()` to
+ *  keep both boxes the same height regardless of which had more lines); switched to stacked,
+ *  STRONG above WEAK, once the CSM-confirmation suffix ("— CSM disagrees") made each currency's
+ *  own line long enough that two half-width columns read cramped. Full card width per box, each
+ *  wrapping to its own natural height — no more height-matching needed with only one column. */
 @Composable
 private fun BiasBaskets(bias: CurrencyBias, csmH4: Map<String, Double>, colors: AtomColors, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Max),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        BiasBox("STRONG", bias.strong, expectStrong = true, csmH4, colors.bull, colors, Modifier.weight(1f).fillMaxHeight())
-        BiasBox("WEAK", bias.weak, expectStrong = false, csmH4, colors.bear, colors, Modifier.weight(1f).fillMaxHeight())
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        BiasBox("STRONG", bias.strong, expectStrong = true, csmH4, colors.bull, colors, Modifier.fillMaxWidth())
+        BiasBox("WEAK", bias.weak, expectStrong = false, csmH4, colors.bear, colors, Modifier.fillMaxWidth())
     }
 }
 
