@@ -1,20 +1,16 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.ConvictionEntry
 import com.pieter.atomfx.data.model.Signals
@@ -22,6 +18,8 @@ import com.pieter.atomfx.ui.components.Pill
 import com.pieter.atomfx.ui.components.ScrollingPills
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.DarkColors
+import com.pieter.atomfx.ui.theme.lighten
 
 /**
  * Design's `CurrencyDetailSheet`: CSM 3-TF + breadth + drivers + expressing pairs. Reached by
@@ -149,33 +147,27 @@ private val CCY_DRIVERS = mapOf(
     "NZD" to "RBNZ policy · dairy/commodity prices · China growth linkage · risk sentiment.",
 )
 
-// Same squircle/height/wash formula as MomentumSheet's MomBar — this is the general "3 tinted
-// readouts in a row" pattern (also used by RegimeSheet's D1/H4/H1), duplicated locally rather
-// than shared since each caller's data shape (value+delta here, vs a single word in Regime)
-// differs enough that a shared composable would need its own awkward parameterisation.
-private val CCY_TF_SHAPE = RoundedCornerShape(11.dp)
-private val CCY_TF_HEIGHT = 52.dp
-private const val CCY_TF_LIT_AMOUNT = 0.08f
-
+// 2026-09-10 (Pieter's ask) — was its own local squircle recipe (a taller opaque-lerp square,
+// value/delta stacked). Now built on the exact same `SmallPillCell` (SheetComponents.kt) as
+// MomentumSheet's own MomBar — same shape/height/alpha-wash/fonts, value and delta inline instead
+// of stacked, and the same dark-mode `lighten()` contrast fix on the delta number (it now sits on
+// a translucent wash rather than the old opaque fill, which didn't need the extra contrast boost).
+// Deliberately NOT changed: the headline hue stays delta-sign-based here, unlike Momentum's own
+// value-based fix (`MomentumSheet`'s "should it be red if the value is 58?" catch) — CSM strength
+// is a min-max-rescaled RANK among the 8 currencies each scan, not a bipolar oscillator with a
+// real neutral anchor at 50 the way Momentum's 0–100 reading is, so "value >= 50 = bullish" isn't
+// a meaningful rule here. This was a visual/typography match only, not a colour-logic one — flag
+// if that's not what was wanted.
 @Composable
 private fun CcyTfSquare(label: String, value: Double?, delta: Double?, colors: AtomColors, modifier: Modifier = Modifier) {
     val hue = directionHue(delta, colors)
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Spacer(modifier = Modifier.height(4.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(CCY_TF_HEIGHT)
-                .background(lerp(colors.surfaceRaised, hue, CCY_TF_LIT_AMOUNT), CCY_TF_SHAPE)
-                .padding(horizontal = 6.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = value?.let { it.toInt().toString() } ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
-            if (delta != null) {
-                Text(text = deltaText(delta), style = AtomType.Caption.copy(color = hue))
-            }
+    val isDark = colors == DarkColors
+    val deltaColor = if (isDark) lighten(hue, 0.45f) else hue
+    SmallPillCell(label, hue, colors, modifier) {
+        Text(text = value?.let { it.toInt().toString() } ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
+        if (delta != null) {
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = deltaText(delta), style = AtomType.Caption.copy(color = deltaColor))
         }
     }
 }
