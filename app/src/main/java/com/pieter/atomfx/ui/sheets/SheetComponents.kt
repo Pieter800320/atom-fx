@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -171,11 +170,12 @@ fun ControlButtonRow(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = label,
-                    style = AtomType.Caption.copy(
-                        color = if (active) colors.textPrimary else colors.textMuted,
-                        fontWeight = FontWeight.Normal,
-                    ),
+                    // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel) — was
+                    // AtomType.Caption; labels here (D1/H4/H1) are already all-caps, so
+                    // .uppercase() is a harmless no-op, kept for consistency with every other
+                    // call site of this style.
+                    text = label.uppercase(),
+                    style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
                 )
             }
         }
@@ -217,8 +217,11 @@ fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = tab,
-                    style = AtomType.Body.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own doc
+                    // comment) — was AtomType.Body ("Overview"); now matches the wheel's wing
+                    // buttons exactly, including the all-caps convention.
+                    text = tab.uppercase(),
+                    style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
                     maxLines = 1,
                 )
             }

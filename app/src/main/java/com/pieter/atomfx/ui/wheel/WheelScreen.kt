@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -581,11 +580,10 @@ private fun CsmModeToggle(
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = label,
-                        style = AtomType.Caption.copy(
-                            color = if (active) colors.textPrimary else colors.textMuted,
-                            fontWeight = FontWeight.Normal,
-                        ),
+                        // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own
+                        // doc comment) — was AtomType.Caption ("Strength"/"Flow").
+                        text = label.uppercase(),
+                        style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
                     )
                 }
             }

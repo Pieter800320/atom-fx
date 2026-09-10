@@ -367,8 +367,12 @@ private fun ThemeControl(mode: ThemeMode, colors: AtomColors, onSelect: (ThemeMo
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = option.name,
-                    style = AtomType.Body.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                    // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own doc
+                    // comment) — was AtomType.Body. `option.name` (the enum constant, already
+                    // "SYSTEM"/"DARK"/"LIGHT") was already all-caps, so .uppercase() is a no-op,
+                    // kept for consistency with every other call site of this style.
+                    text = option.name.uppercase(),
+                    style = AtomType.WingLabel.copy(color = if (active) colors.textPrimary else colors.textMuted),
                     maxLines = 1,
                 )
             }
@@ -497,8 +501,10 @@ private fun SettingsActionButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = label,
-            style = AtomType.Body.copy(color = if (enabled) colors.textPrimary else colors.textMuted),
+            // 2026-09-10 (Pieter's ask, experimental — see AtomType.WingLabel's own doc comment)
+            // — was AtomType.Body ("Send test" / "Force refresh").
+            text = label.uppercase(),
+            style = AtomType.WingLabel.copy(color = if (enabled) colors.textPrimary else colors.textMuted),
         )
     }
 }
