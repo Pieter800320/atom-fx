@@ -42,16 +42,24 @@ import androidx.compose.ui.unit.dp
  * is 1.4.0+. `rememberRipple` is hard-deprecated (error level) in the resolved material-ripple
  * 1.8.3, not removed; it still renders correctly, so suppressing is the pragmatic call over
  * bumping material3 app-wide just for this. Revisit once the BOM moves past material3 1.4.
+ *
+ * [interactionSource] (2026-09-10 addition, backward-compatible — defaults to null, every
+ * existing call site unaffected) — pass one in when the caller also wants to read press state
+ * itself (e.g. `collectIsPressedAsState()` driving a scale-bump animation on the same tap that
+ * fires this ripple), instead of the internally-`remember`ed one that's otherwise opaque to the
+ * caller.
  */
 @Suppress("DEPRECATION", "DEPRECATION_ERROR")
 fun Modifier.pressWash(
     shape: Shape = RoundedCornerShape(4.dp),
     enabled: Boolean = true,
+    interactionSource: MutableInteractionSource? = null,
     onClick: () -> Unit,
 ): Modifier = composed {
     val colors = AtomTheme.colors
+    val source = interactionSource ?: remember { MutableInteractionSource() }
     this.clip(shape).clickable(
-        interactionSource = remember { MutableInteractionSource() },
+        interactionSource = source,
         indication = rememberRipple(color = colors.textPrimary),
         enabled = enabled,
         onClick = onClick,

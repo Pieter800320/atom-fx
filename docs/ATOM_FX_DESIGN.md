@@ -560,7 +560,8 @@ ScrollingPills      shared pill row (recommendation glyphs, calendar chips, shee
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
 PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by both PercentBChart (per-pair,
                      Breakdown) and PercentBBoardChart (market-wide, Insights)
-MarketIndicatorsCard Insights-tab card: Rotation/Pulse/Thrust/%B behind a 4-tab switcher (§19.4)
+MarketIndicatorsCard Insights-tab card: Relative Rotation/Confidence Index/Breadth Thrust/%B
+                     behind a "+ <current>" fan-out picker, not tabs (§19.4)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 FreshnessBadge      fresh / stale / unavailable
@@ -579,28 +580,38 @@ The archetype **banner** is the hero: the regime name in Title weight, a confide
 
 Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented control (System / Dark / Light); a **notifications** group with a "Send test" button; a **data** group (source URL, refresh cadence, last-updated, force-refresh); an **optional** collapsed "Price-level alerts" group that reveals a GitHub-PAT field only when enabled; and an **About / legend** entry that opens the ⓘ guide. No API-key fields for market data or AI — state plainly that those live server-side.
 
-### 19.4 Market indicators (Insights tab, 2026-09-10)
+### 19.4 Whole Market Indicators (Insights tab, 2026-09-10)
 
 Four concept indicators, tried live so Pieter could compare them before any one earns a
 permanent home (research/mockup process, not a spec-first build) — a card on `InsightsScreen`
-(chosen over the Wheel landing screen, which has zero idle vertical budget under §17), title +
-a `SheetTabs` 4-way switcher (Rotation/Pulse/Thrust/%B), one chart + a short caption per tab.
+(chosen over the Wheel landing screen, which has zero idle vertical budget under §17). Working
+titles Rotation/Pulse/Thrust were renamed to real technical terms same day (see each bullet); the
+switcher itself was also restyled same day, from a `SheetTabs` 4-way row to a single "+ &lt;current&gt;"
+picker button (`PickerButton`) that fans out into a tap-to-select list (`PickerRow` × 4, Item
+Library #3's reflow mechanic — `AnimatedVisibility`/`expandVertically`+`fadeIn`, 260ms,
+`CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)`, the same recipe `StatusStrip.kt` already proved).
+The picker button itself gets a "bump and settle" press animation — `scale` animates to 0.94 on
+press via `spring(dampingRatio = Spring.DampingRatioMediumBouncy)` reading
+`collectIsPressedAsState()` off the same `InteractionSource` driving its `pressWash` ripple
+(`PressWash.kt` gained an optional `interactionSource` param for this, backward-compatible with
+every existing call site). One chart + a short caption renders below, for whichever is selected.
 
-- **Rotation** — a quadrant scatter (new chart grammar, no existing precedent): axes at
-  CSM=50/Delta=0, 4 soft quadrant fills, one squircle marker + short comet trail per currency.
-  The marker is `SmallPillCell`'s own wash (tint at 18% alpha, 8dp corners) with the currency
-  code set inside it, small/non-bold, text coloured to the tint — the technical-pill treatment
-  (`TfAlignmentStrip`), not a dot with an external label (2026-09-10 follow-up: a plain dot's
-  label needed its own edge-flip logic to avoid running off the chart; the marker containing its
-  own text sidesteps that, and clamps to stay fully inside the plot at an axis extreme). Colour
-  reuses the 4 existing status tokens as-is (Leading=bull, Weakening=watch, Lagging=bear,
-  Improving=neutral) — **a deliberate choice, Pieter's own call, not a 5th chromatic token** —
-  per §2's "colour encodes market state, never variety."
-- **Pulse** — a direct extension of §19.1's `LineChart` idiom (1.5dp stroke, soft area fill,
-  emphasised endpoint) onto a bounded 0-100 range, with two dashed threshold lines at 50/70.
-  Colour comes from `pulse.band`, not the series' own start/end like `LineChart` does.
-- **Thrust** — a centered-zero histogram (new shape): one bar per recent scan either side of a
-  zero baseline, bull/bear/neutral by sign, today's bar outlined.
+- **Relative Rotation** (was "Rotation") — a quadrant scatter (new chart grammar, no existing
+  precedent): axes at CSM=50/Delta=0, 4 soft quadrant fills, one squircle marker + short comet
+  trail per currency. The marker is `SmallPillCell`'s own wash (tint at 18% alpha, 8dp corners)
+  with the currency code set inside it, small/non-bold, text coloured to the tint — the
+  technical-pill treatment (`TfAlignmentStrip`), not a dot with an external label (2026-09-10
+  follow-up: a plain dot's label needed its own edge-flip logic to avoid running off the chart;
+  the marker containing its own text sidesteps that, and clamps to stay fully inside the plot at
+  an axis extreme). Colour reuses the 4 existing status tokens as-is (Leading=bull,
+  Weakening=watch, Lagging=bear, Improving=neutral) — **a deliberate choice, Pieter's own call,
+  not a 5th chromatic token** — per §2's "colour encodes market state, never variety."
+- **Confidence Index** (was "Pulse") — a direct extension of §19.1's `LineChart` idiom (1.5dp
+  stroke, soft area fill, emphasised endpoint) onto a bounded 0-100 range, with two dashed
+  threshold lines at 50/70. Colour comes from `pulse.band`, not the series' own start/end like
+  `LineChart` does.
+- **Breadth Thrust** (was "Thrust") — a centered-zero histogram (new shape): one bar per recent
+  scan either side of a zero baseline, bull/bear/neutral by sign, today's bar outlined.
 - **%B ("Board %B")** — a real technical oscillator (Bollinger %B + its own 12-period SMA signal
   line, D1), not a bespoke concept like the other three. Drawn by the shared
   `ui/chart/PercentBOscillator.kt` primitive (also used by the per-pair chart below — one drawing,
@@ -614,6 +625,12 @@ a `SheetTabs` 4-way switcher (Rotation/Pulse/Thrust/%B), one chart + a short cap
 
 All four are pure consumers of `rotation`/`pulse`/`breadth_thrust`/`percent_b_board`
 (Architecture §4.2) — no value is computed in Kotlin.
+
+An earlier same-day iteration added an on-device rename panel (Item Library #3 again, a "+" glyph
+fanning out 4 editable text fields, persisted via `UserPreferences`) so Pieter could try names
+against the real button width before choosing — superseded once he settled on the real names
+above; the rename plumbing (`UserPreferences.IndicatorLabels` and its 4 setters) was removed
+rather than left dead.
 
 ### 19.4a %B (Bollinger), per-pair (Pair sheet → Breakdown, 2026-09-10)
 
