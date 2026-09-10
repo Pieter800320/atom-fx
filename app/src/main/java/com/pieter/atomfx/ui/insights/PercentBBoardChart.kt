@@ -25,7 +25,7 @@ import com.pieter.atomfx.ui.theme.AtomType
  */
 @Composable
 fun PercentBBoardChart(board: PercentBBoardBlock?, colors: AtomColors) {
-    PercentBOscillator(board?.line.orEmpty(), board?.signal.orEmpty(), colors)
+    PercentBOscillator(board?.line.orEmpty(), board?.signal.orEmpty(), colors, dates = board?.dates.orEmpty())
     Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         LegendItem("%B", colors.textSecondary, colors)
         LegendItem("Signal (SMA 12)", colors.watch, colors)

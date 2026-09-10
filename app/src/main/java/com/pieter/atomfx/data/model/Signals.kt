@@ -162,6 +162,10 @@ data class BbD1(
     // so unlike rotation/pulse/breadth_thrust this needs no scan-to-scan history round-trip.
     val pctb: List<Double> = emptyList(),
     @SerialName("pctb_sma") val pctbSma: List<Double> = emptyList(),
+    // 2026-09-10 (2nd) — one ISO date ("YYYY-MM-DD") per pctb point, same order/length. Empty
+    // when the backend's own alignment check against the frozen D1 frame didn't match (see
+    // bb_touch.py's compute_bb_d1 doc comment) — never partially/mis-aligned, only all-or-nothing.
+    @SerialName("pctb_dates") val pctbDates: List<String> = emptyList(),
 )
 
 @Serializable
@@ -429,4 +433,5 @@ data class ThrustBlock(
 data class PercentBBoardBlock(
     val line: List<Double> = emptyList(),
     val signal: List<Double> = emptyList(),
+    val dates: List<String> = emptyList(),
 )

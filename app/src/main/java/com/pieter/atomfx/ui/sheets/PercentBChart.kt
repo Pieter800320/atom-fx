@@ -32,7 +32,7 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors) {
             NotAvailableRow("Bollinger %B", colors)
             return@Column
         }
-        PercentBOscillator(bbD1.pctb, bbD1.pctbSma, colors)
+        PercentBOscillator(bbD1.pctb, bbD1.pctbSma, colors, dates = bbD1.pctbDates)
         Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             LegendItem("%B", colors.textSecondary, colors)
             LegendItem("Signal (SMA 12)", colors.watch, colors)

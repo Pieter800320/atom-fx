@@ -78,7 +78,10 @@ fun MarketIndicatorsCard(signals: Signals, colors: AtomColors, modifier: Modifie
     Column(modifier = modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
         Text(
             text = "WHOLE MARKET INDICATORS",
-            style = AtomType.Title.copy(color = colors.textPrimary),
+            // 2026-09-10 (Pieter's ask) — matches InsightsScreen.kt's own section-header style
+            // ("BREAKING", "CATALYST CHECK", etc: AtomType.Caption/textSecondary), not a large
+            // Title — this card should read as one more section on the page, not a bigger one.
+            style = AtomType.Caption.copy(color = colors.textSecondary),
             modifier = Modifier.padding(bottom = 14.dp),
         )
 

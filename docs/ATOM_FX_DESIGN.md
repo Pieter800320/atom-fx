@@ -584,8 +584,12 @@ Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented c
 
 Four concept indicators, tried live so Pieter could compare them before any one earns a
 permanent home (research/mockup process, not a spec-first build) — a card on `InsightsScreen`
-(chosen over the Wheel landing screen, which has zero idle vertical budget under §17). Working
-titles Rotation/Pulse/Thrust were renamed to real technical terms same day (see each bullet); the
+(chosen over the Wheel landing screen, which has zero idle vertical budget under §17). The
+heading ("WHOLE MARKET INDICATORS") reads at `AtomType.Caption`/`textSecondary` — matching
+`InsightsScreen.kt`'s own other section headers ("BREAKING", "CATALYST CHECK") — not a large
+Title; this card is one more section on the page, not a bigger one (Pieter's follow-up correction
+from an initial `Title`-styled pass). Working titles Rotation/Pulse/Thrust were renamed to real
+technical terms same day (see each bullet); the
 switcher itself was also restyled same day, from a `SheetTabs` 4-way row to a single "+ &lt;current&gt;"
 picker button (`PickerButton`) that fans out into a tap-to-select list (`PickerRow` × 4, Item
 Library #3's reflow mechanic — `AnimatedVisibility`/`expandVertically`+`fadeIn`, 260ms,
@@ -620,8 +624,11 @@ every existing call site). One chart + a short caption renders below, for whiche
   keeps that true value, per Pieter's own "normalise to oscillate between 0-100" ask); a solid
   centre line at 50; two dashed threshold lines at 10/90 (display reference only, not a backend
   gate — Pieter is still watching real data to see which levels hold up); raw %B thin/quiet
-  (`textSecondary`), the signal line bolder in `watch` — a neutral accent, deliberately **not**
-  bull/bear-coded, since %B's extremes don't yet have a settled directional meaning.
+  (`textSecondary`, 1.5dp), the signal line also thin (`watch`, 1dp — Pieter's own follow-up ask,
+  was 2dp/bolder at first) — a neutral accent, deliberately **not** bull/bear-coded, since %B's
+  extremes don't yet have a settled directional meaning. Three sparse date labels (oldest/middle/
+  newest, `MMM d` format) print below the plot when `dates` is present and length-matches the
+  series — one axis label per app convention (RotationChart's own single "CSM →"), not one per bar.
 
 All four are pure consumers of `rotation`/`pulse`/`breadth_thrust`/`percent_b_board`
 (Architecture §4.2) — no value is computed in Kotlin.
@@ -636,8 +643,10 @@ rather than left dead.
 
 A 4th `BreakdownSection` alongside ALIGNMENT/MOMENTUM/STRUCTURE (`PairSheet.kt`), same narrowed-
 field composable convention as its siblings (`PercentBChart(bbD1: BbD1?, colors)`). Same
-`PercentBOscillator` drawing as Board %B above, reading `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`
-directly — no on-device Bollinger/SMA math (Architecture §8.3), the series is backend-computed.
+`PercentBOscillator` drawing as Board %B above, reading `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`/
+`.pctbDates` directly — no on-device Bollinger/SMA math or date derivation (Architecture §8.3),
+the series and its dates are both backend-computed (see Architecture §4.2's `pctb_dates` entry
+for how the backend recovers dates the frozen aggregator itself discards).
 
 ---
 

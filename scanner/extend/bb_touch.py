@@ -18,6 +18,7 @@ WIDTH_LOOKBACK/WIDTH_TREND_THRESHOLD are a first-pass approximation, tune once r
 
 Rule #1: reads frozen OHLCV only, never modifies it. Pure function, no state, no I/O.
 """
+import pandas as pd
 
 BB_PERIOD = 12
 BB_SIGMA = 2.0
@@ -34,9 +35,32 @@ PCTB_SIGNAL_PERIOD = 12
 PCTB_LINE_BARS = 56          # matches potential_config.SPARK_BARS's own convention
 
 
-def compute_bb_d1(d1_df) -> dict | None:
+def _d1_dates(h1_df) -> list[str]:
+    """
+    2026-09-10 (Pieter's ask, dates on the %B charts) — `scanner/aggregator.py` (frozen, never
+    edited) returns D1 bars integer-indexed with the real dates stripped by design (its own
+    docstring: "Integer-indexed (0..n), oldest first"). This independently mirrors its
+    `aggregate_d1()` exact resample parameters (D, closed=left, label=left, dropna on open/close)
+    against the SAME raw H1 fetch scan_h1.py already has (`raw_ohlcv`), to recover the dates —
+    computes no price/indicator value itself, pure date-bucketing, Rule #1 safe. Row count/order
+    must match the frozen d1_df exactly for `compute_bb_d1`'s own alignment check below to pass.
+    """
+    df = h1_df.copy()
+    df["dt"] = pd.to_datetime(df["datetime"], utc=True)
+    df = df.sort_values("dt").set_index("dt")
+    for col in ("open", "close"):
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    d1 = df.resample("D", closed="left", label="left").agg(open=("open", "first"), close=("close", "last"))
+    d1 = d1.dropna(subset=["open", "close"])
+    return [ts.strftime("%Y-%m-%d") for ts in d1.index]
+
+
+def compute_bb_d1(d1_df, dates: list[str] | None = None) -> dict | None:
     """
     d1_df : a pair's D1 OHLC dataframe (frozen aggregator output — needs high/low/close).
+    dates : optional, from _d1_dates() — one date per d1_df row, same order. Only attached to
+            pctb/pctb_sma if its length matches d1_df exactly (fail-quiet to no dates rather than
+            risk a silently misaligned one).
     Returns None if there isn't enough history yet (< BB_PERIOD + WIDTH_LOOKBACK bars) — same
     "no read yet" convention every other percentile/lookback metric in this codebase uses.
     """
@@ -82,6 +106,12 @@ def compute_bb_d1(d1_df) -> dict | None:
 
     pctb = (closes - lower) / (upper - lower) * 100
     pctb_sma = pctb.rolling(PCTB_SIGNAL_PERIOD).mean()
+    pctb_valid = pctb.dropna().tail(PCTB_LINE_BARS)
+    pctb_sma_valid = pctb_sma.dropna().tail(PCTB_LINE_BARS)
+
+    pctb_dates: list[str] = []
+    if dates is not None and len(dates) == len(closes):
+        pctb_dates = pd.Series(dates, index=closes.index).loc[pctb_valid.index].tolist()
 
     return {
         "touching": touching,
@@ -90,8 +120,9 @@ def compute_bb_d1(d1_df) -> dict | None:
         "lower": round(cur_lower, 6),
         "width_pct": width_pct,
         "width_trend": width_trend,
-        "pctb": [round(v, 2) for v in pctb.dropna().tail(PCTB_LINE_BARS)],
-        "pctb_sma": [round(v, 2) for v in pctb_sma.dropna().tail(PCTB_LINE_BARS)],
+        "pctb": [round(v, 2) for v in pctb_valid],
+        "pctb_sma": [round(v, 2) for v in pctb_sma_valid],
+        "pctb_dates": pctb_dates,
     }
 
 
@@ -105,8 +136,10 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
     common length (right-aligned — most recent bars) so the average stays aligned across pairs.
     Returns {"line": [...], "signal": [...]} (empty lists if no pair has a bb_d1 read yet).
     """
-    lines = [b["pctb"] for b in (block.get("bb_d1") for block in pairs_out.values()) if b and b.get("pctb")]
-    signals = [b["pctb_sma"] for b in (block.get("bb_d1") for block in pairs_out.values()) if b and b.get("pctb_sma")]
+    bb_blocks = [block.get("bb_d1") for block in pairs_out.values()]
+    lines = [b["pctb"] for b in bb_blocks if b and b.get("pctb")]
+    signals = [b["pctb_sma"] for b in bb_blocks if b and b.get("pctb_sma")]
+    date_lists = [b["pctb_dates"] for b in bb_blocks if b and b.get("pctb_dates")]
 
     def _pointwise_mean(series_list: list[list[float]]) -> list[float]:
         if not series_list:
@@ -115,12 +148,22 @@ def compute_board_percent_b(pairs_out: dict) -> dict:
         trimmed = [s[-n:] for s in series_list]
         return [round(sum(vals) / len(vals), 2) for vals in zip(*trimmed)]
 
-    return {"line": _pointwise_mean(lines), "signal": _pointwise_mean(signals)}
+    line = _pointwise_mean(lines)
+    signal = _pointwise_mean(signals)
+    # All 12 pairs' D1 bars cover the same trailing UTC calendar days — the longest available
+    # per-pair date list, trimmed to the board line's own final length, stands in for all of them
+    # rather than re-deriving a separate board-wide date series from scratch.
+    dates = max(date_lists, key=len)[-len(line):] if date_lists and line else []
+
+    return {"line": line, "signal": signal, "dates": dates}
 
 
-def attach_bb_d1(pairs_out: dict, ohlcv: dict) -> None:
+def attach_bb_d1(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:
     """Mutate pairs_out in place, adding a 'bb_d1' sub-key to each pair block — same pattern
-    structure_expose.py's attach_structure() already uses."""
+    structure_expose.py's attach_structure() already uses. raw_ohlcv (optional, scan_h1.py's own
+    pre-aggregation H1 fetch — see _d1_dates()'s own doc comment) lets compute_bb_d1 attach real
+    D1 bar dates alongside pctb; omitted, bb_d1 still computes, just without pctb_dates."""
     for key, block in pairs_out.items():
         d1_df = (ohlcv.get(key) or {}).get("d1")
-        block["bb_d1"] = compute_bb_d1(d1_df)
+        dates = _d1_dates(raw_ohlcv[key]) if raw_ohlcv and key in raw_ohlcv else None
+        block["bb_d1"] = compute_bb_d1(d1_df, dates)

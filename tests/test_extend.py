@@ -371,7 +371,52 @@ def test_compute_board_percent_b_pointwise_mean():
 
 
 def test_compute_board_percent_b_empty_when_no_pairs_ready():
-    assert bb_touch.compute_board_percent_b({"EURUSD": {"bb_d1": None}}) == {"line": [], "signal": []}
+    assert bb_touch.compute_board_percent_b({"EURUSD": {"bb_d1": None}}) == {"line": [], "signal": [], "dates": []}
+
+
+def test_d1_dates_matches_frozen_aggregate_d1_row_count():
+    import numpy as np
+    from scanner.aggregator import aggregate_d1
+
+    rng = pd.date_range("2026-06-01", periods=30 * 24, freq="h", tz="UTC")
+    rng = rng[~rng.dayofweek.isin([5, 6])]  # drop weekends, like real FX feeds
+    closes = 1.1000 + np.cumsum(np.random.default_rng(0).normal(0, 0.0005, len(rng)))
+    h1_df = pd.DataFrame({
+        "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
+        "open": closes, "high": closes + 0.0003, "low": closes - 0.0003, "close": closes,
+    })
+
+    d1_frozen = aggregate_d1(h1_df)
+    dates = bb_touch._d1_dates(h1_df)
+    assert len(dates) == len(d1_frozen)
+    # weekend gap: consecutive trading dates, no Sat/Sun in the derived list
+    from datetime import date
+    assert all(date.fromisoformat(d).weekday() < 5 for d in dates)
+
+
+def test_compute_bb_d1_attaches_dates_aligned_with_pctb():
+    import numpy as np
+    from scanner.aggregator import aggregate_d1
+
+    rng = pd.date_range("2026-06-01", periods=40 * 24, freq="h", tz="UTC")
+    rng = rng[~rng.dayofweek.isin([5, 6])]
+    closes = 1.1000 + np.cumsum(np.random.default_rng(1).normal(0, 0.0005, len(rng)))
+    h1_df = pd.DataFrame({
+        "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
+        "open": closes, "high": closes + 0.0003, "low": closes - 0.0003, "close": closes,
+    })
+    d1_frozen = aggregate_d1(h1_df)
+    dates = bb_touch._d1_dates(h1_df)
+    r = bb_touch.compute_bb_d1(d1_frozen, dates)
+    assert len(r["pctb_dates"]) == len(r["pctb"])
+    # the last pctb_date must be the D1 frame's own last (most recent) derived date
+    assert r["pctb_dates"][-1] == dates[-1]
+
+
+def test_compute_bb_d1_dates_length_mismatch_falls_back_to_empty():
+    df = _synthetic_d1(_TIGHT_D1)
+    r = bb_touch.compute_bb_d1(df, dates=["2026-01-01"])  # deliberately wrong length
+    assert r["pctb_dates"] == []
 
 
 def test_spark_shape():
