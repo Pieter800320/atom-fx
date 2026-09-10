@@ -585,8 +585,13 @@ permanent home (research/mockup process, not a spec-first build) — a card on `
 a `SheetTabs` 3-way switcher (Rotation/Pulse/Thrust), one chart + a short caption per tab.
 
 - **Rotation** — a quadrant scatter (new chart grammar, no existing precedent): axes at
-  CSM=50/Delta=0, 4 soft quadrant fills, one dot + short comet trail per currency. Colour reuses
-  the 4 existing status tokens as-is (Leading=bull, Weakening=watch, Lagging=bear,
+  CSM=50/Delta=0, 4 soft quadrant fills, one squircle marker + short comet trail per currency.
+  The marker is `SmallPillCell`'s own wash (tint at 18% alpha, 8dp corners) with the currency
+  code set inside it, small/non-bold, text coloured to the tint — the technical-pill treatment
+  (`TfAlignmentStrip`), not a dot with an external label (2026-09-10 follow-up: a plain dot's
+  label needed its own edge-flip logic to avoid running off the chart; the marker containing its
+  own text sidesteps that, and clamps to stay fully inside the plot at an axis extreme). Colour
+  reuses the 4 existing status tokens as-is (Leading=bull, Weakening=watch, Lagging=bear,
   Improving=neutral) — **a deliberate choice, Pieter's own call, not a 5th chromatic token** —
   per §2's "colour encodes market state, never variety."
 - **Pulse** — a direct extension of §19.1's `LineChart` idiom (1.5dp stroke, soft area fill,

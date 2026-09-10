@@ -10,7 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.nativeCanvas
@@ -107,26 +109,33 @@ fun RotationChart(rotation: RotationBlock?, colors: AtomColors, modifier: Modifi
                 }
             }
 
-            drawCircle(color = dotColor, radius = 6.dp.toPx(), center = center)
-            drawCircle(color = colors.surface, radius = 6.dp.toPx(), center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx()))
-
-            val labelPaintBold = Paint().apply {
+            // Squircle marker, name inside — SheetComponents.kt's SmallPillCell wash (tint at 18%
+            // alpha, 8dp corners) and text-adopts-tint convention (TfAlignmentStrip's technical
+            // pills, PairSheet), not a dot + separate external label (which needed its own
+            // edge-flip logic to avoid running off the chart — see this file's own prior history).
+            val namePaint = Paint().apply {
                 isAntiAlias = true
-                textSize = 12.dp.toPx()
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                color = colors.textPrimary.toArgb()
+                textSize = 10.dp.toPx()
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                color = dotColor.toArgb()
+                textAlign = Paint.Align.CENTER
             }
-            // Default label placement is to the dot's right — flips to the left for a dot close
-            // enough to the right edge (a strong currency, the most common real case) that the
-            // label would otherwise run past the chart bounds and get clipped invisible.
-            val labelWidth = labelPaintBold.measureText(ccy)
-            if (center.x + 10f + labelWidth <= padLeft + plotW) {
-                labelPaintBold.textAlign = Paint.Align.LEFT
-                nativeCanvas.drawText(ccy, center.x + 10f, center.y + 4f, labelPaintBold)
-            } else {
-                labelPaintBold.textAlign = Paint.Align.RIGHT
-                nativeCanvas.drawText(ccy, center.x - 10f, center.y + 4f, labelPaintBold)
-            }
+            val textWidth = namePaint.measureText(ccy)
+            val boxW = textWidth + 12.dp.toPx()
+            val boxH = 20.dp.toPx()
+            // Clamp so the squircle itself always stays fully inside the plot area, even for a
+            // point sitting right at an axis extreme (e.g. CSM=100) — the clipRect above is a
+            // last-resort safety net, this keeps the common case from ever needing it.
+            val cx = center.x.coerceIn(padLeft + boxW / 2f, padLeft + plotW - boxW / 2f)
+            val cy = center.y.coerceIn(padTop + boxH / 2f, padTop + plotH - boxH / 2f)
+
+            drawRoundRect(
+                color = dotColor.copy(alpha = 0.18f),
+                topLeft = Offset(cx - boxW / 2f, cy - boxH / 2f),
+                size = Size(boxW, boxH),
+                cornerRadius = CornerRadius(8.dp.toPx()),
+            )
+            nativeCanvas.drawText(ccy, cx, cy + namePaint.textSize / 3f, namePaint)
         }
 
         }
