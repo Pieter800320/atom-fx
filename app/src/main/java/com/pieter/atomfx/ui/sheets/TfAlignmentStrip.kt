@@ -27,9 +27,11 @@ import com.pieter.atomfx.ui.theme.AtomType
  * as tappable buttons (Pieter's own words) — indistinguishable from the sheet's real controls.
  *
  * Same day, follow-up (Pieter's ask) — the abbreviation text was tinted (lighten(tint, 0.45) in
- * dark theme) to carry the pill's own colour twice over; now plain `textPrimary`, matching MOM's
- * value-number colour exactly, not just its font style. The wash background alone carries the
- * tint — same split MomBar already uses (plain value, tinted wash + tinted delta).
+ * dark theme), then plain `textPrimary`, matching MOM's own value-number colour at the time —
+ * both superseded 2026-09-10, when the standard flipped the other way: every non-scrolling
+ * pill's main text now adopts the wash's own colour directly (no lighten), started on
+ * RegimeSheet's pills and rolled out everywhere, MOM's own value included. This pill matches
+ * that exactly again, just under a different rule than before.
  */
 @Composable
 fun TfAlignmentStrip(pills: Pills?, colors: AtomColors) {
@@ -49,18 +51,22 @@ private fun pillAbbrev(pill: String?): String = when (pill) {
     else -> "N"
 }
 
+// 2026-09-10 (Pieter's ask) — "bull" used to read fainter than "bull_strong" (bullSoft vs full
+// bull, same for bear/bear_strong) — now both members of a direction share one full-strength
+// colour; SB/B and S/SS are only distinguished by their own abbreviation text, not by a second,
+// fainter colour. Neutral (grey) is unchanged.
 private fun pillColor(pill: String?, colors: AtomColors): Color = when (pill) {
-    "bull_strong" -> colors.bull
-    "bull" -> colors.bullSoft
-    "bear" -> colors.bearSoft
-    "bear_strong" -> colors.bear
+    "bull_strong", "bull" -> colors.bull
+    "bear", "bear_strong" -> colors.bear
     else -> colors.neutral
 }
 
 @Composable
 private fun TfPill(label: String, pill: String?, colors: AtomColors, modifier: Modifier = Modifier) {
     val tint = pillColor(pill, colors)
+    // 2026-09-10 (Pieter's ask) — was plain textPrimary; now adopts the pill's own wash colour,
+    // matching RegimeSheet's pills (the standard now for every non-scrolling pill).
     SmallPillCell(label, tint, colors, modifier) {
-        Text(text = pillAbbrev(pill), style = AtomType.Body.copy(color = colors.textPrimary))
+        Text(text = pillAbbrev(pill), style = AtomType.Body.copy(color = tint))
     }
 }

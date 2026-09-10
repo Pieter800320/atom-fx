@@ -71,7 +71,10 @@ private fun MomBar(label: String, value: Int?, delta: Int?, colors: AtomColors, 
     val deltaHue = directionHue(delta, colors)
     val deltaColor = if (isDark) lighten(deltaHue, 0.45f) else deltaHue
     SmallPillCell(label, hue, colors, modifier) {
-        Text(text = value?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
+        // 2026-09-10 (Pieter's ask) — was plain textPrimary; now adopts the pill's own wash
+        // colour, matching RegimeSheet's pills (the standard now for every non-scrolling pill).
+        // The delta stays exactly as it was — its own separate delta-sign colour, untouched.
+        Text(text = value?.toString() ?: "—", style = AtomType.Body.copy(color = hue))
         if (delta != null) {
             Spacer(modifier = Modifier.width(4.dp))
             Text(text = deltaText(delta), style = AtomType.Caption.copy(color = deltaColor))
@@ -83,7 +86,8 @@ private fun MomBar(label: String, value: Int?, delta: Int?, colors: AtomColors, 
 private fun CmpBar(cmp: Int?, colors: AtomColors, modifier: Modifier = Modifier) {
     val hue = cmpColor(cmp, colors)
     SmallPillCell("CMP", hue, colors, modifier) {
-        Text(text = cmp?.toString() ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
+        // 2026-09-10 — was plain textPrimary; see MomBar's own note above.
+        Text(text = cmp?.toString() ?: "—", style = AtomType.Body.copy(color = hue))
     }
 }
 

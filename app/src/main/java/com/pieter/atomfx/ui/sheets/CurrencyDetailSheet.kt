@@ -165,8 +165,11 @@ private fun CcyTfSquare(label: String, value: Double?, delta: Double?, colors: A
     val hue = valueHue(value, colors)
     val isDark = colors == DarkColors
     val deltaColor = if (isDark) lighten(directionHue(delta, colors), 0.45f) else directionHue(delta, colors)
+    // 2026-09-10 (Pieter's ask) — value text was plain textPrimary; now adopts the pill's own
+    // wash colour, matching RegimeSheet's pills (the standard now for every non-scrolling pill).
+    // Delta stays exactly as it was — its own separate delta-sign colour, untouched.
     SmallPillCell(label, hue, colors, modifier) {
-        Text(text = value?.let { it.toInt().toString() } ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
+        Text(text = value?.let { it.toInt().toString() } ?: "—", style = AtomType.Body.copy(color = hue))
         if (delta != null) {
             Spacer(modifier = Modifier.width(4.dp))
             Text(text = deltaText(delta), style = AtomType.Caption.copy(color = deltaColor))
