@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -388,25 +389,28 @@ private fun NotificationsGroup(
     onOpenHistory: () -> Unit,
 ) {
     val context = LocalContext.current
-    val haptics = LocalHapticFeedback.current
     val notif = prefsState.notifications
 
-    // 2026-09-09 (Pieter's ask) — moved to the top of the group: it's where you actually go to
-    // check what fired, so it shouldn't sit below every toggle and the test button.
-    Text(
-        text = "Notification history",
-        style = AtomType.Body.copy(color = colors.textSecondary),
-        modifier = Modifier
-            .padding(bottom = 14.dp)
-            .pressWash {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onOpenHistory()
-            },
-    )
+    // 2026-09-10 (Pieter's ask) — general Settings rule from here on: heading, then buttons,
+    // then everything else. History (was a plain text link, labelled "Notification history" —
+    // shortened once stacking made the full label unnecessary) and Send test (was at the very
+    // bottom, below every toggle) both move up here as a pair of standard buttons. Side-by-side
+    // in a shared row first, then stacked (Pieter's own follow-up) once "Notification History"
+    // wrapped to two lines in half the row width and read taller than Send test next to it.
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SettingsActionButton(label = "History", colors = colors, modifier = Modifier.fillMaxWidth()) {
+            onOpenHistory()
+        }
+        SettingsActionButton(label = "Send test", colors = colors, enabled = notif.enabled, modifier = Modifier.fillMaxWidth()) {
+            sendTestNotification(context)
+        }
+    }
 
     // 2026-09-06 — was "Gold signals and level alerts" (the latter greyed out below now, see
     // that row's own comment); named a live example instead of one that can't fire yet.
-    SettingsRow("Push notifications", colors, "Gold signals and setup alerts, via FCM") {
+    // 2026-09-10 (Pieter's ask) — description removed, and a wider gap below sets it apart from
+    // the per-type toggles beneath it: this one's the master switch, not a ninth alert type.
+    SettingsRow("Push notifications", colors) {
         SettingsSwitch(notif.enabled, colors) { enabled ->
             preferences.setNotificationsEnabled(enabled)
             if (enabled) {
@@ -416,6 +420,7 @@ private fun NotificationsGroup(
             }
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
     SettingsRow("Gold signal alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.goldSignal, colors, enabled = notif.enabled) { preferences.setGoldSignalEnabled(it) }
     })
@@ -424,13 +429,9 @@ private fun NotificationsGroup(
     // untouched ("maybe in future we will use it"), but it can never actually fire today — it
     // depends on `data/level_alerts.json`, which needs a dashboard or on-device "set alert" flow
     // that doesn't exist yet (the exact same gap `PriceLevelAlertsGroup`'s own "Sync alerts to
-    // GitHub" row below already documents). Presenting it as a live switch next to seven alerts
-    // that really do fire was the actual bug — this makes the gap visible instead of silent.
-    SettingsRow(
-        "Level alerts",
-        colors,
-        "Not available yet — needs an on-device \"set alert\" row on the pair sheet (see \"Sync alerts to GitHub\" below); kept for when that ships.",
-    ) {
+    // GitHub" row below already documents). 2026-09-10 — description text removed (Pieter's
+    // ask); the row staying disabled is still the signal that it's not live yet.
+    SettingsRow("Level alerts", colors) {
         SettingsSwitch(checked = notif.levelAlerts, colors = colors, enabled = false) {}
     }
     // Signals Roadmap §2 (Phase 1) — five new state-transition alert toggles. Structure
@@ -462,14 +463,6 @@ private fun NotificationsGroup(
     SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
     })
-    SettingsActionButton(
-        label = "Send test",
-        colors = colors,
-        enabled = notif.enabled,
-        modifier = Modifier.padding(top = 8.dp),
-    ) {
-        sendTestNotification(context)
-    }
 }
 
 // Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,
@@ -602,13 +595,12 @@ private fun SettingsTextField(
     )
 }
 
+// 2026-09-10 (Pieter's ask) — description removed ("not available yet, needs an on-device
+// set-alert row on the pair sheet" — still true, just no longer spelled out here); the row
+// staying disabled is still the signal that it's not live yet.
 @Composable
 private fun PriceLevelAlertsGroup(colors: AtomColors) {
-    SettingsRow(
-        "Sync alerts to GitHub",
-        colors,
-        "Not available yet — needs an on-device \"set alert\" row on the pair sheet, tracked separately",
-    ) {
+    SettingsRow("Sync alerts to GitHub", colors) {
         SettingsSwitch(checked = false, colors = colors, enabled = false) {}
     }
 }
@@ -633,12 +625,14 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
     }
     val schema = loaded?.signals?.schemaVersion?.toString() ?: "—"
 
+    // 2026-09-10 (Pieter's ask) — general Settings rule: heading, then buttons, then the rest.
+    // Force refresh moves above the diagnostic rows instead of trailing below them.
+    SettingsActionButton(label = "Force refresh", colors = colors, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        onRefreshNow()
+    }
     DiagRow("Last updated", updated, colors)
     DiagRow("Status", freshnessWord, colors, if (loaded?.freshness == Freshness.STALE) colors.bear else colors.bull)
     DiagRow("Schema version", schema, colors)
-    SettingsActionButton(label = "Force refresh", colors = colors, modifier = Modifier.padding(top = 8.dp)) {
-        onRefreshNow()
-    }
 }
 
 @Composable
@@ -654,37 +648,23 @@ private fun DiagRow(label: String, value: String, colors: AtomColors, valueColor
  * explains every single element, calculation and item in the app," searchable, and grounded in
  * the actual frozen source rather than paraphrased. This group is now just the privacy note plus
  * the entry point into it.
+ *
+ * 2026-09-10 (Pieter's ask) — general Settings rule: heading, then buttons, then the rest.
+ * Library becomes a standard button (was its own two-line row with a description and a trailing
+ * arrow) and moves above the about text instead of below it. The about text itself was just the
+ * privacy note verbatim; rewritten to actually introduce the app first, privacy note folded in as
+ * its second half rather than standing alone as the entire "about."
  */
 @Composable
 private fun AboutGroup(colors: AtomColors, onOpenLibrary: () -> Unit) {
-    val haptics = LocalHapticFeedback.current
-    Text(
-        text = "No API keys live on this device. Market-data and AI keys stay server-side; " +
-            "the app only reads signals.json and receives push.",
-        style = AtomType.Caption.copy(color = colors.textMuted),
-        modifier = Modifier.padding(bottom = 14.dp),
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.controlSurface, RoundedCornerShape(10.dp))
-            .border(1.dp, colors.controlBorder, RoundedCornerShape(10.dp))
-            .pressWash(RoundedCornerShape(10.dp)) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onOpenLibrary()
-            }
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column {
-            Text(text = "Library", style = AtomType.Body.copy(color = colors.textPrimary))
-            Text(
-                text = "Every calculation in the app, explained and searchable",
-                style = AtomType.Caption.copy(color = colors.textSecondary),
-                modifier = Modifier.padding(top = 2.dp),
-            )
-        }
-        Text(text = "→", style = AtomType.Body.copy(color = colors.textSecondary))
+    SettingsActionButton(label = "Library", colors = colors, modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()) {
+        onOpenLibrary()
     }
+    Text(
+        text = "ATOM FX is a radial-dial view onto a frozen FX signal-scanning engine — regime, " +
+            "currency strength, and per-pair setup quality, computed the same way every scan, " +
+            "never re-derived on this device. The app only ever reads signals.json and receives " +
+            "push; no market-data or AI keys live here, those stay server-side.",
+        style = AtomType.Caption.copy(color = colors.textSecondary),
+    )
 }
