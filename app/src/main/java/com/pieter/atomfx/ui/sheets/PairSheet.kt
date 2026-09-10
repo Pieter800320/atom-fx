@@ -320,9 +320,13 @@ private val OVERVIEW_DOT_INDENT = 17.dp
  * six-factor gate is gone). Each row still colours by real signal — just never as "blocking"
  * anything: [OverviewTint.BULL]/[BEAR] are genuine reads (Structure's CHoCH still reads bear-red,
  * a live warning), [WATCH] flags "outside the sane band" (Volatility only), [NEUTRAL] is a plain
- * informational read with nothing notable either way.
+ * informational read with nothing notable either way (Regime/Trend/Momentum's neutral state — a
+ * real 3-colour traffic light with BULL/BEAR, not "no data"). [SANE] is Volatility's own in-band
+ * state — 2026-09-10 (Pieter's ask), deliberately its own colour rather than reusing NEUTRAL's
+ * grey, matching the wheel's own Volatility wing: Volatility is a separate blue/amber 2-colour
+ * system, not a shade of the traffic light.
  */
-private enum class OverviewTint { BULL, BEAR, WATCH, NEUTRAL }
+private enum class OverviewTint { BULL, BEAR, WATCH, NEUTRAL, SANE }
 
 @Composable
 private fun OverviewChecklist(node: PairNode, signals: Signals, pairBlock: PairBlock?, colors: AtomColors) {
@@ -332,6 +336,7 @@ private fun OverviewChecklist(node: PairNode, signals: Signals, pairBlock: PairB
                 OverviewTint.BULL -> colors.bull
                 OverviewTint.BEAR -> colors.bear
                 OverviewTint.WATCH -> colors.watch
+                OverviewTint.SANE -> colors.wheelSane
                 OverviewTint.NEUTRAL -> null
             }
             val fill = hue?.let { lerp(colors.surfaceRaised, it, OVERVIEW_LIT_AMOUNT) } ?: colors.surfaceRaised
@@ -452,14 +457,17 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     // 2026-09-09 (Pieter's ask) — was OverviewTint.BULL (green) in-band, which meant green read
     // as "bullish price direction" on every other row but "sane/normal conditions" here — the
     // same wedge colour carrying two unrelated meanings. Volatility isn't directional at all (see
-    // this row's own explanation), so green never belonged here; NEUTRAL (grey) in-band now
-    // matches CMP's own dead-zone fix (grey = nothing notable), leaving green exclusively
-    // "bullish" everywhere on the sheet. Out-of-band stays WATCH either side (too quiet or
-    // expanding are equally "outside normal," not one worse than the other — the explanation text
-    // below already says which and why, the colour doesn't need to double up on that distinction).
+    // this row's own explanation), so green never belonged here.
+    // 2026-09-10 (Pieter's ask) — in-band moved again, NEUTRAL (grey) -> SANE (blue). Grey now
+    // means "flat traffic-light reading" on Regime/Trend/Momentum specifically, a genuinely
+    // different thing from Volatility's own "sane" state; giving Volatility its own colour here
+    // matches the wheel's own wing, which made the same split the same day. Out-of-band stays
+    // WATCH either side (too quiet or expanding are equally "outside normal," not one worse than
+    // the other — the explanation text below already says which and why, the colour doesn't need
+    // to double up on that distinction).
     val volatilityRow = OverviewRow(
         label = "VOLATILITY (D1)",
-        tint = if (node.volatility in 20..70) OverviewTint.NEUTRAL else OverviewTint.WATCH,
+        tint = if (node.volatility in 20..70) OverviewTint.SANE else OverviewTint.WATCH,
         explanation = when {
             node.volatility < 20 -> "Compressed — too quiet to trust a breakout yet."
             node.volatility > 70 -> "Expanding fast — widen stops, or wait for it to settle."

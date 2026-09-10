@@ -47,6 +47,14 @@ data class AtomColors(
     val wheelBear: Color,
     val wheelWatch: Color,
     val wheelNeutral: Color,
+    // 2026-09-10 (Pieter's ask, second thought) — tried making [wheelNeutral] itself blue so
+    // Setup/Trend/Momentum's neutral state and Volatility's sane-band state shared one token;
+    // Pieter didn't like blue on the traffic-light three, but did like it on Volatility. Split
+    // into two tokens instead: [wheelNeutral] reverts to grey (Setup/Trend/Momentum's neutral —
+    // green/grey/red, a real 3-colour traffic light), [wheelSane] is the surviving blue, used
+    // only by Volatility's in-band state, which stays its own distinct 2-colour system (blue/
+    // amber) rather than sharing a hue with anything directional.
+    val wheelSane: Color,
     // 2026-09-06 (Pieter's ask, light theme only) — a tapped/active `ControlButtonRow` pill
     // (HOME's D1/H4/H1 row, also the Chart sheet's own TF row) gets this fill instead of the
     // plain [controlSurface] every pill uses at rest, matching [RecommendationGlyph]'s own fill
@@ -94,14 +102,10 @@ val DarkColors = AtomColors(
     wheelBull = Color(0xFF2FBF71),
     wheelBear = Color(0xFFE5484D),
     wheelWatch = Color(0xFFE7AE3A),
-    // 2026-09-10 (Pieter's ask) — was grey (= [neutral], the plain blue-grey chrome tone).
-    // Setup/Trend/Momentum's "neutral" wedge reading is now a real 3rd state alongside
-    // bull/bear (not "no signal," but "checked, and it's genuinely flat"), so it gets its own
-    // real hue instead of borrowing chrome grey — same treatment bull/bear/watch already get.
-    // Only this wheel-scoped token changes; [neutral] itself (CMP's dead-zone colour, pill
-    // neutral states, PairSheet's Overview NEUTRAL tint) is deliberately untouched — those stay
-    // grey, this was scoped to the wheel's own colour system only.
-    wheelNeutral = Color(0xFF3B9EFF),
+    // Back to grey (= [neutral]) — see the field doc comment above.
+    wheelNeutral = Color(0xFF61707E),
+    // Volatility's sane-band blue.
+    wheelSane = Color(0xFF3B9EFF),
     // Dark theme: no visible change requested — same fill an active pill already had.
     controlSurfaceActive = Color(0xFF212C38),
 )
@@ -140,10 +144,11 @@ val LightColors = AtomColors(
     wheelBull = lerp(Color(0xFF159E5B), Color.White, 0.35f),
     wheelBear = lerp(Color(0xFFD0383D), Color.White, 0.35f),
     wheelWatch = lerp(Color(0xFFB27A16), Color.White, 0.35f),
-    // 2026-09-10 — was the plain [neutral] grey reused as-is (no darker "base" blue existed to
-    // lerp from). Now a real blue, same lerp-toward-white-by-35% treatment as bull/bear/watch
+    // Back to the plain [neutral] grey reused as-is — see the field doc comment above.
+    wheelNeutral = Color(0xFF93A0AD),
+    // Volatility's sane-band blue — same lerp-toward-white-by-35% treatment as bull/bear/watch
     // above, off a mid-strong blue base consistent with their saturation/depth.
-    wheelNeutral = lerp(Color(0xFF1971C2), Color.White, 0.35f),
+    wheelSane = lerp(Color(0xFF1971C2), Color.White, 0.35f),
     // = surface — the recommendation glyph's own fill (surfaceRaised→surface radial gradient)
     // is whitest at its edge, which IS `surface` in light theme (pure white); an active TF pill
     // matches that exactly.

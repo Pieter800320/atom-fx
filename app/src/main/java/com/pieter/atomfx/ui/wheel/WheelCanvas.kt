@@ -548,13 +548,13 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
 }
 
 /**
- * Which hue fills a pair's wedge under the current [mode]. 2026-09-10 (Pieter's ask) — a
- * deliberate 4-colour system, one meaning per colour everywhere it's used: green/red/blue is a
- * genuine 3-state traffic-light for Setup/Trend/Momentum (bull/bear/neutral — "checked, and it's
- * genuinely flat," not "no signal"), amber is reserved exclusively for Volatility's "outside the
- * sane band" caution. `wheelNeutral` itself moved from grey to blue in `Color.kt` for this reason
- * — grey already means something else app-wide (chrome/muted), blue reads as "a real, current
- * reading that just isn't directional."
+ * Which hue fills a pair's wedge under the current [mode]. 2026-09-10 (Pieter's ask, settled
+ * after trying and backing off an all-blue-neutral version) — Setup/Trend/Momentum are a genuine
+ * 3-colour traffic light (green bull, red bear, **grey** neutral — "checked, and it's genuinely
+ * flat," not "no signal," but Pieter didn't want blue carrying that on the directional three).
+ * Volatility is its own separate 2-colour system, blue/amber, sharing no hue with the traffic
+ * light — `wheelSane` (blue) for its in-band state, `wheelWatch` (amber) outside it. Amber is
+ * reserved exclusively for Volatility now; nothing on Setup/Trend/Momentum uses it any more.
  *
  * Overall/Setup takes its colour from the pair's own `direction` (setup quality doesn't carry a
  * sign of its own). Trend colours from [PairNode.trendDirection] (the H4 pill, not the pair's
@@ -568,11 +568,11 @@ private fun modeFillFrac(node: PairNode, mode: WheelMode): Float = when (mode) {
  * (`MomentumSheet.kt::cmpColor`) — matches its exact thresholds now: `>=60` bull, `<=40` bear,
  * 41-59 a real neutral dead zone (was a hard >=50 split with no neutral state at all).
  *
- * Volatility is different again: it isn't bullish or bearish, so direction-tinting is meaningless
- * — the same 20-70 "sane band" the `atr-percentile` Library entry describes reads neutral-blue
- * inside the band (calm/tradeable — "sane" IS the same "nothing notable" meaning blue carries on
- * every other wing, not a coincidence), amber outside it either way (too quiet OR too extended,
- * neither worse than the other).
+ * Volatility isn't bullish or bearish, so direction-tinting (and the grey/red/green vocabulary)
+ * is meaningless here — the same 20-70 "sane band" the `atr-percentile` Library entry describes
+ * reads `wheelSane` inside the band (calm/tradeable, its own colour, not a shade of the traffic
+ * light's neutral grey), `wheelWatch` outside it either way (too quiet OR too extended, neither
+ * worse than the other).
  */
 private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color = when (mode) {
     WheelMode.OVERALL -> tintForDir(node.direction, colors)
@@ -582,7 +582,7 @@ private fun modeHue(node: PairNode, mode: WheelMode, colors: AtomColors): Color 
         else -> colors.wheelNeutral
     }
     WheelMode.TREND -> tintForDir(node.trendDirection, colors)
-    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelNeutral else colors.wheelWatch
+    WheelMode.VOLATILITY -> if (node.volatility in 20..70) colors.wheelSane else colors.wheelWatch
 }
 
 private fun DrawScope.drawPairRing(
