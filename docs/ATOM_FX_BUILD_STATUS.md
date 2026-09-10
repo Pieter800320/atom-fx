@@ -5,7 +5,14 @@ this time — read `WheelUiState.kt`, `WheelMapper.kt`, `PairSheet.kt`, `StatusS
 `WheelScreen.kt`, `MainActivity.kt`, `NotificationHistoryScreen.kt`, `.gitignore`, `build.gradle.kts`
 directly). Previous audit (2026-09-02) predated Wheel v2's wing rework, the Simplification Rework
 (2026-09-05/06/09), the Notification History screen, the COT/Conviction overlay, the CSM dispersion
-reliability gate, and the Rule #1 currency-strength/regime methodology fix — all folded in below.
+reliability gate, the Rule #1 currency-strength/regime methodology fix, and the Bollinger Band D1
+touch alert + Watchlist screen — all folded in below.
+**Correction, 2026-09-10 (same day, caught by Pieter):** the first pass of this refresh still
+missed the BB/Watchlist feature (`afd9a25`, 2026-09-09) entirely — it doesn't touch any of the
+files this refresh's own grep/read list covered, and it landed one commit before the session this
+list's source memory was compiled from, so neither the code search nor the memory caught it.
+Lesson: a doc-sync audit needs a `git log --stat` pass over the actual commit range since the last
+audit, not just targeted greps for symbols already known to exist.
 This is the **living tracker** the project was missing — the specs describe the whole destination;
 this maps how far it's built. Update the Status column as work lands.
 
@@ -34,6 +41,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | **CSM dispersion reliability gate** | ✅ | `scanner/extend/csm_dispersion.py` — caps CSM-derived votes/components to "unreliable" when a TF's dispersion ranks in the bottom 20% of its own rolling ~60-scan history. Needs ~2.5 days of live hourly scans to have accumulated enough history to ever actually trigger — worth checking back once it has |
 | **EXTEND layer full audit** | ✅ | All six modules read line-by-line (`csm_delta`, `breadth`, `macro_regime`, `conviction`, `potential`, `recommendation`); one doc-comment fix, two new cross-validation regression tests added, one real threshold bug found and fixed (Conviction Extreme's unreachable-under-COT-staleness ceiling, see above) |
 | **Rule #1 sign-off: currency-strength/regime FX methodology** | ✅ | `csm.py` `STRENGTH_PAIRS` 16→18 (added EURJPY/GBPJPY — pure data-completeness, zero new API cost); `regime.py` `classify_regime` Vote 3 rebuilt to measure the same narrow AUD+NZD+CAD-vs-havens concept Vote 1 already uses (was inconsistently mixing in GBP/EUR), Vote 2 gained CAD. Pieter's explicit sign-off after a full FX-methodology discussion, test/golden protocol followed exactly (`test_rule1_frozen` failed as expected, golden diffed and regenerated, `test_extend`'s appearance counts updated) — both suites green |
+| **Bollinger Band D1 touch detection** (Signals Roadmap §5) | ✅ | `scanner/extend/bb_touch.py` — 12-period SMA ±2σ on D1 closes (12-period per Pieter's own spec, not the original 20-period port default), checked every hourly scan against the current still-forming D1 candle, plus a band-width trend read (expanding/converging/flat vs ~5 D1 bars back). New `pairs.<PAIR>.bb_d1` key. No auto-scoring or confirmation gate by design — Pieter's own redesign of the original Phase 4 plan, "a wick touch IS the whole signal," judging a real reversal is a manual Watchlist review, not something this module scores. New edge-triggered `state_alerts.py` detector, type `bb_touch`. 6 new tests, 43/43 extend suite green |
 
 ---
 
@@ -41,15 +49,17 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 
 | Surface (spec ref) | Status | Where / what remains |
 |---|---|---|
-| Energy Wheel — pair mode (Design §6) | ✅ | `ui/wheel/*` (radial dial v2). 4 selectable wings, renamed 2026-09-05: **Overall** (Continuation Score, all TFs), **Trend** (ADX, fixed H4 — no D1/H1 ADX exists), **Momentum** (fixed H4, switched from D1 2026-09-09), **Volatility** (ATR percentile, fixed D1). Hub/nucleus moved H4→D1 Regime 2026-09-09 ("the H4 Regime changes too much") — Regime/Trend/Momentum/Volatility now form a deliberate fixed-timeframe consensus funnel, never a D1/H4/H1 toggle (tried twice, reverted both times, see `[[atom_fx_simplification_rework]]`) |
+| Energy Wheel — pair mode (Design §6) | ✅ | `ui/wheel/*` (radial dial v2). 4 selectable wings, renamed 2026-09-05: **Setup** (labelled "SETUP" on the wheel since 2026-09-09, was "OVERALL" — internal `WheelMode.OVERALL` enum name unchanged; Continuation Score, all TFs), **Trend** (ADX, fixed H4 — no D1/H1 ADX exists), **Momentum** (fixed H4, switched from D1 2026-09-09), **Volatility** (ATR percentile, fixed D1). Hub/nucleus moved H4→D1 Regime 2026-09-09 ("the H4 Regime changes too much") — Regime/Trend/Momentum/Volatility now form a deliberate fixed-timeframe consensus funnel, never a D1/H4/H1 toggle (tried twice, reverted both times, see `[[atom_fx_simplification_rework]]`) |
 | Currency strength on the wheel (§3A) | ✅ | Merged into the wheel's Currencies/Pairs corner toggle (wheel v2 decision); always-on `CsmBarStrip` below the dial too, with a Strength/Flow display toggle |
 | Cross-asset ring + sheet | ✅ | `WheelCanvas` outer ring + `ui/sheets/CrossAssetSheet.kt`, unchanged since last audit |
 | Pair sheet (Phase 4) | ✅ | `ui/sheets/PairSheet.kt` — reworked 2026-09-05/09 from a 6-factor pass/fail WHY checklist to 3 tabs: **Overview** (5 informational rows — Regime D1/Trend H4/Momentum H4/Volatility D1/Structure H4, real bull/bear/watch tints, no gate glyphs), **Breakdown** (Momentum, Structure, Alignment), **Correlation**. `FlowSheet`/`BreadthSheet` (as a real tap target)/`EntrySheet`/`RecommendationSheet`/`CurrencyFlowSheet` are all gone — deleted outright or orphaned. `BreadthSheet.kt` still exists as a file but is unreachable dead code (`SheetTarget.Ring` is never produced by `WheelCanvas.hitTest`) — flagged, not yet cleaned up |
-| Status strip / ranked-pairs glyph row (Phase 5) | ✅ | `ui/components/StatusStrip.kt` — was a 9-button cascade, then a single "Summary→Recommendation" card, now (2026-09-06) one small glyph per pair in `signals.ranked.top` (≤3, whichever clear the ranking gate) above the wheel; tap reflows open a full-width panel with that pair's Regime/Trend/Momentum/Volatility/Structure consensus + rank. There is **no separate "Tradeable Now" card any more** — that job is now this glyph row plus the wheel's own Overall wing (all 12 pairs, wedge size = Continuation Score) |
+| Status strip / ranked-pairs glyph row (Phase 5) | ✅ | `ui/components/StatusStrip.kt` — was a 9-button cascade, then a single "Summary→Recommendation" card, now (2026-09-06) one small glyph per pair in `signals.ranked.top` (≤3, whichever clear the ranking gate) above the wheel; tap reflows open a full-width panel with that pair's Regime/Trend/Momentum/Volatility/Structure consensus + rank. There is **no separate "Tradeable Now" card any more** — that job is now this glyph row plus the wheel's own Setup wing (all 12 pairs, wedge size = Continuation Score) |
 | Line chart, 3-TF, no candles (Phase 9) | ✅ | `ui/chart/LineChart.kt` + `ChartSheet`, unchanged |
 | Macro screen (Phase 9) | ✅ | `ui/macro/MacroScreen.kt` (archetype, bias, evidence, cross-asset table). A reframe was raised and explicitly deferred 2026-09-05 ("the archetypes do not describe what one sees happening… evidence bars look nice but aren't evidence of anything") — open design question, not a defect in what's shipped |
 | Push client (Phase 6) | ✅ | `push/AtomFxMessagingService.kt` + `DeepLink.kt`. Message format changed 2026-09-0x: `send_push.py` now sends **data-only** FCM (was combined notification+data, which the system tray auto-displayed when backgrounded/killed — bypassing the app's own `onMessageReceived` and the new Notification History hook entirely) |
 | **Notification History screen** (new since last audit) | ✅ | `ui/settings/NotificationHistoryScreen.kt` (Settings → Notifications → "Notification history") — every push the app builds is recorded on-device, flat reverse-chronological list, per-alert-type label chip (GOLD SIGNAL/LEVEL ALERT/SETUP/STRUCTURE/REGIME/MACRO ARCHETYPE/VOLATILITY/ALIGNMENT/POSITIONING), each with a static "what to consider" line + "Learn more" deep-link into the matching Library entry, unread dot on the header gear. **Correction to an earlier memory**: this is a flat list, not grouped under REGIME/TREND/VOLATILITY/STRUCTURE/OTHER section headers — that description was of a screen this one superseded |
+| **Regime/Alert Playbook + Reading Window** (new since last audit) | ✅ | `ui/sheets/TechnicalRegimePlaybookDetail.kt` + `AlertPlaybookDetail.kt` — Pieter's "living handbook" vision: contextual explanations grounded in the actual live regime/archetype/alert mechanics (real vote composition, real evidence axes), not static copy, wired first to `archetype_change` then extended to 5 more alert types. A book+ icon at heading level opens a dedicated full-screen **Reading Window**, deliberately separate from the sheet system ("sheets inspect data, a [Reading Window] teaches") |
+| **Watchlist** (new since last audit, Signals Roadmap §5) | ✅ | `ui/watchlist/WatchlistScreen.kt` + `data/WatchlistStore.kt` (SharedPreferences + JSON + hot `StateFlow`, no new dependency) — reached via a new header bookmark icon (sibling slide-in panel to Settings, not nested/not a bottom sheet). Add/remove a pair from its own pair-sheet header; each Watchlist card shows live ADX/pills/Reset/band-width plus a shared five-point BB-reversal checklist (ADX regime, D1/H4/H1 pill alignment, Reset Score, band-width trend, Structure/CHoCH) behind a "+/-" reveal — the same two prose constants the BB Library entry uses, so the two surfaces can't drift apart — with tap-through to the full pair sheet |
 | Theme tokens, dual light/dark (Design §2) | ✅ | `ui/theme/*`, unchanged |
 | Animations & polish (Phase 8) | 🟡 | Wheel has motion (mode cross-fade, rim flash on a pair earning A+, glyph-panel reflow), verified on-device per the Simplification Rework follow-ups. One acknowledged gap: the `CsmBarStrip` is still plain bars, not yet the "echoes the wheel" visual pass (`WheelScreen.kt`'s own doc comment) |
 | **3-tab bottom nav + swipe (HorizontalPager)** | ✅ | `MainActivity.kt` — `Wheel · Macro · Insights` via `HorizontalPager` + Material 3 `NavigationBar`, synced both ways |
@@ -71,7 +81,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 2. ~~**Insights screen**~~ — ✅ done. Aggregates recommendation + breaking headlines + catalyst check + calendar + daily brief + week ahead (Functional Spec §7).
 3. ~~**Settings screen + header gear**~~ — ✅ done, since extended with a Notification History screen (2026-09-0x).
 4. ~~**Turn on the AI narration (Phase 7 full)**~~ — ✅ done.
-5. ~~**Wheel v2 wing rework + Simplification Rework**~~ — ✅ done (2026-09-05/06/09, not tracked in this file until now). 4 wings renamed to Overall/Trend/Momentum/Volatility, hub moved to D1 Regime, pair sheet reduced to 3 tabs, status strip became the ranked-pairs glyph row, the standalone Tradeable Now card retired. See Section B above and `ATOM_FX_DESIGN.md` §17/§19/§20 (synced today).
+5. ~~**Wheel v2 wing rework + Simplification Rework**~~ — ✅ done (2026-09-05/06/09, not tracked in this file until now). 4 wings — Setup (labelled "SETUP" since 2026-09-09, was "OVERALL")/Trend/Momentum/Volatility — hub moved to D1 Regime, pair sheet reduced to 3 tabs, status strip became the ranked-pairs glyph row, the standalone Tradeable Now card retired. See Section B above and `ATOM_FX_DESIGN.md` §17/§19/§20 (synced today).
+5b. ~~**Bollinger Band D1 touch alert + Watchlist**~~ (Signals Roadmap §5) — ✅ done (`afd9a25`, 2026-09-09). **Missed in this file's first 2026-09-10 pass** — caught by Pieter, see the correction note at the top of this file. See Section B below for what shipped.
+5c. ~~**Regime/Alert Playbook + Reading Window**~~ ("living handbook" — contextual explanations wired to `archetype_change` then extended to 5 more alert types, plus a dedicated full-screen Reading Window destination) — ✅ done (`cb02e06`, `205264e`, `08689aa`). Also not previously tracked in this file — see Section B.
 6. **Push end-to-end verification — still open.** No evidence yet of a real gold-signal/level-alert push landing on a physical device from the live backend; the FCM message format changed to data-only since this was last informally touched (see Section B), which makes it worth doing deliberately now rather than assuming the old informal confidence still applies.
 
 **Polish / optional:**
@@ -79,7 +91,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 7. Price-level alerts UI + PAT sync (Functional Spec §9) — still parked (Pieter, 2026-09-03), Settings row present but disabled.
 8. ~~`news_themes` tagging~~ — ✅ done.
 9. ~~Animation re-verify after wheel v2~~ — ✅ done, on-device (Simplification Rework follow-ups). One open item: `CsmBarStrip` visual polish pass (still plain bars).
-10. Bollinger Band touch/reversal alerts (Signals Roadmap Phase 4) — not started.
+10. ~~Bollinger Band touch/reversal alerts~~ (Signals Roadmap §5) — ✅ done, see item 5b above. **This file previously said "not started" — that was wrong, checked and corrected 2026-09-10.**
 11. `BreadthSheet.kt` / `SheetTarget.Ring` dead-code cleanup — `WheelCanvas.hitTest` never produces a `.Ring` target, so this sheet (and the `Factor.MOMENTUM/STRUCTURE/ENTRY` branches routing to it) is unreachable. Flagged in-code, not yet removed.
 12. Minor hygiene: `versionCode`/`versionName` still stuck at `1`/`"0.1"`; no signed release build exists (every install has been a debug APK). **Correction**: `.idea/` *is* already in `.gitignore` — an earlier backlog note claiming otherwise was checked against the repo today and is wrong, don't re-flag it.
 
@@ -116,7 +128,7 @@ Each step must read `CLAUDE.md` first, then the cited spec section, and ship bui
 4. ~~**AI narration on**~~ — ✅ done.
 5. ~~**Wheel v2 + Simplification Rework**~~ — ✅ done.
 6. **Push end-to-end test** — next up, deliberately trigger a real backend push and confirm it arrives on the device.
-7. Price-level alerts UI (§9), if wanted, then Bollinger Band alerts (Signals Roadmap Phase 4).
+7. Price-level alerts UI (§9), if wanted.
 8. Journal when you're ready for post-v1.
 
 > Keep this file current: when Claude Code finishes an item, it should flip the Status here in the

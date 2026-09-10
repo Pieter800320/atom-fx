@@ -505,7 +505,7 @@ A reusable horizontally-scrollable, snap-friendly pill row used for: Tradeable N
 ## 17. Responsive & Android specifics (spec §43)
 
 - **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. No permanent side panels (edge panels are summoned). Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
-- **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, capped at 3, tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Overall wing (all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
+- **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, capped at 3, tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Setup wing (labelled "SETUP" on the wheel since 2026-09-09, internally still `WheelMode.OVERALL`; all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
 - **Tablet / landscape:** wheel ~60–65% width; a compact market summary on one side; factor summary on the other; sheets still available.
 - The wheel is always a centred square sized to `min(width, height − chrome)`.
 
@@ -528,7 +528,7 @@ Updated 2026-09-10 to match what's actually shipped post Wheel v2 + the Simplifi
 
 ```
 AppScaffold         bottom nav (3 tabs: Wheel · Macro · Insights) + HorizontalPager (swipe between tabs)
-WheelCanvas         pair wheel (12 pairs, 4 selectable wings: Overall/Trend/Momentum/Volatility) +
+WheelCanvas         pair wheel (12 pairs, 4 selectable wings: Setup/Trend/Momentum/Volatility, labelled "SETUP" since 2026-09-09, was "OVERALL") +
                      currency wheel (merged in via the same dial's Currencies/Pairs corner toggle,
                      not a separate component) + Currency Flow ticker + D1/H4 corner toggle, nucleus
 StatusStrip         ranked-pairs recommendation glyph row (signals.ranked.top, ≤3), tap-to-reflow panel
@@ -575,7 +575,7 @@ Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented c
 1. What is the current regime? — the wheel hub's regime label (D1 Regime).
 2. Strong or weak? — the hub's strength word and confidence.
 3. Which currency is leading? 4. Which is weakening? — the hub's flow line (Currency Flow leader/laggard), echoed on the always-on CSM strip and the on-dial Currency Flow ticker.
-5. Which pairs have the greatest potential? — the A+ SETUP / STRONG SETUP band: the biggest, most saturated wedges on the wheel's Overall wing, and (for whichever pairs clear the ranking gate, at most 3) their glyphs in the status strip above the wheel.
+5. Which pairs have the greatest potential? — the A+ SETUP / STRONG SETUP band: the biggest, most saturated wedges on the wheel's Setup wing (labelled "SETUP," was "OVERALL"), and (for whichever pairs clear the ranking gate, at most 3) their glyphs in the status strip above the wheel.
 6. Which are merely developing? — the DEVELOPING band: mid-size Overall wedges.
 7. Which should be ignored? — the LOW SETUP band: the smallest, most muted Overall wedges.
 
