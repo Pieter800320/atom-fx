@@ -3,6 +3,7 @@ package com.pieter.atomfx.ui.watchlist
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.WatchlistItem
 import com.pieter.atomfx.data.WatchlistStore
@@ -48,6 +50,7 @@ import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 
 private val WL_CARD_SHAPE = RoundedCornerShape(14.dp)
+private val WL_BUTTON_SHAPE = RoundedCornerShape(10.dp)
 
 // Item Library #05 — same slide-in side panel recipe SettingsScreen.kt's own
 // PANEL_WIDTH_FRACTION/entrance Animatable use, duplicated rather than shared (this codebase's
@@ -192,20 +195,30 @@ private fun WatchlistCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(text = item.pair, style = AtomType.Body.copy(color = colors.textPrimary))
-                Text(text = timeAgo(item.addedAt), style = AtomType.Caption.copy(color = colors.textMuted))
-            }
-            val touching = block?.bbD1?.touching
-            if (touching == "upper" || touching == "lower") {
-                val dir = if (touching == "upper") "bear" else "bull"
-                Text(
-                    text = if (touching == "upper") "STILL TOUCHING UPPER" else "STILL TOUCHING LOWER",
-                    style = AtomType.Caption.copy(color = directionColor(dir, colors)),
-                )
+                // 2026-09-10 (Pieter's ask) — pair name + "Added…" inline on one line, freeing
+                // the touching badge to move onto its own line below instead of fighting Remove
+                // for horizontal room in the same row (see this file's earlier fix for what that
+                // squeeze did).
+                Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = item.pair, style = AtomType.Body.copy(color = colors.textPrimary))
+                    Text(text = timeAgo(item.addedAt), style = AtomType.Caption.copy(color = colors.textMuted))
+                }
+                val touching = block?.bbD1?.touching
+                if (touching == "upper" || touching == "lower") {
+                    val dir = if (touching == "upper") "bear" else "bull"
+                    Text(
+                        text = if (touching == "upper") "STILL TOUCHING UPPER" else "STILL TOUCHING LOWER",
+                        style = AtomType.Caption.copy(color = directionColor(dir, colors)),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 3.dp),
+                    )
+                }
             }
             Text(
                 text = "Remove",
                 style = AtomType.Caption.copy(color = colors.textMuted),
+                maxLines = 1,
                 modifier = Modifier.pressWash {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onRemove()
@@ -213,29 +226,38 @@ private fun WatchlistCard(
             )
         }
 
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            MetricCell("ADX", block?.adx?.let { "%.1f".format(java.util.Locale.US, it) } ?: "—", colors)
-            MetricCell("RESET", block?.resetScore?.toString() ?: "—", colors)
-            MetricCell("BANDS", block?.bbD1?.widthTrend?.replaceFirstChar { it.uppercase() } ?: "—", colors)
+        // 2026-09-10 (Pieter's ask) — each cell now takes an equal Modifier.weight(1f) share of
+        // the row instead of packing left with a fixed gap, so the metrics spread across the
+        // card's full width (there was dead space on the right at the old fixed-spacing size).
+        // Values read at AtomType.Caption — the same size as their own label above them, per
+        // Pieter's ask — not AtomType.Body; still colour-distinguished (textPrimary vs textMuted).
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
+            MetricCell("ADX", block?.adx?.let { "%.1f".format(java.util.Locale.US, it) } ?: "—", colors, Modifier.weight(1f))
+            MetricCell("RESET", block?.resetScore?.toString() ?: "—", colors, Modifier.weight(1f))
+            MetricCell("BANDS", block?.bbD1?.widthTrend?.replaceFirstChar { it.uppercase() } ?: "—", colors, Modifier.weight(1f))
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            MetricCell("D1", pillWord(block?.pills?.d1), colors)
-            MetricCell("H4", pillWord(block?.pills?.h4), colors)
-            MetricCell("H1", pillWord(block?.pills?.h1), colors)
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            MetricCell("D1", pillWord(block?.pills?.d1), colors, Modifier.weight(1f))
+            MetricCell("H4", pillWord(block?.pills?.h4), colors, Modifier.weight(1f))
+            MetricCell("H1", pillWord(block?.pills?.h1), colors, Modifier.weight(1f))
         }
 
+        // 2026-09-10 (Pieter's ask) — a real button (ControlButtonRow's own controlSurface/
+        // controlBorder/AtomType.Button recipe), not a plain label+"+"/"−" row.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
-                .pressWash {
+                .background(colors.controlSurface, WL_BUTTON_SHAPE)
+                .border(1.dp, colors.controlBorder, WL_BUTTON_SHAPE)
+                .pressWash(WL_BUTTON_SHAPE) {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     expanded = !expanded
-                },
-            horizontalArrangement = Arrangement.SpaceBetween,
+                }
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
         ) {
-            Text(text = "WHAT TO LOOK FOR", style = AtomType.Caption.copy(color = colors.textMuted))
-            Text(text = if (expanded) "−" else "+", style = AtomType.Body.copy(color = colors.textMuted))
+            Text(text = "WHAT TO LOOK FOR", style = AtomType.Button.copy(color = colors.textPrimary))
         }
         if (expanded) {
             Text(
@@ -253,10 +275,12 @@ private fun WatchlistCard(
 }
 
 @Composable
-private fun MetricCell(label: String, value: String, colors: AtomColors) {
-    Column {
+private fun MetricCell(label: String, value: String, colors: AtomColors, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
-        Text(text = value, style = AtomType.Body.copy(color = colors.textPrimary))
+        // 2026-09-10 (Pieter's ask) — same size as the label above it (AtomType.Caption, not
+        // Body); still reads as "the value" via colour (textPrimary vs the label's textMuted).
+        Text(text = value, style = AtomType.Caption.copy(color = colors.textPrimary))
     }
 }
 
