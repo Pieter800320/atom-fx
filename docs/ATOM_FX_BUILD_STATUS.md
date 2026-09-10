@@ -68,7 +68,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 | **Header gear + Insights icon (§3.1)** | ✅ | Persistent gear strip above the `HorizontalPager` on all 3 tabs → opens `SettingsScreen` full-screen. Regime name moved onto the wheel's own hub (no longer in the header); recommendation now lives in the status-strip glyph row, not the header either. The hub's `strengthWord`/`flowLine` fields (`WheelMapper.mapNucleus`) are computed but deliberately not rendered — Pieter's own earlier call, decluttering `WheelCanvas.drawHub` down to just the regime name |
 | **Notification per-type filtering** | ✅ | `AtomFxMessagingService` checks `UserPreferences` before showing a notification — the only enforcement point, since the backend still sends everything to one shared topic |
 | **Price-level alerts UI (optional, §9/§12)** | 🟡 | Server *fires* level alerts already (`send_push_level_alert`). Settings has a disabled placeholder row; the on-device "set alert" row on the pair sheet + PAT sync to `data/level_alerts.json` is still not built |
-| Firebase Android registration end-to-end | 🟡 | **Still not confirmed** — `app/google-services.json` present, but no evidence in git history of a real gold-signal/level-alert push actually landing on the device (only local `NotificationHistoryStore` records seeded directly, and CI-level FCM send tests). Worth re-checking now specifically, since the FCM message format itself changed (data-only) since the last time this was even informally exercised |
+| Firebase Android registration end-to-end | ✅ | **Confirmed 2026-09-10** — manually triggered `test_push.yml` (`python -m push.send_push`, a real Firebase Admin SDK call) and watched the device: the real notification arrived and was correctly recorded at the top of Notification History. Full path verified — GitHub Actions → Firebase → FCM → device → `onMessageReceived` → posted → recorded. History's own list also already had real Setup/Regime/Structure alerts from live scans, independent evidence the pipeline works for real signals too |
 | **Journal / trade-thesis worksheet (§12)** | 🅿️ | Post-v1 (Phase 10+). Pre/post-trade forms from handbook Appendices C/D |
 
 ---
@@ -84,7 +84,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 5. ~~**Wheel v2 wing rework + Simplification Rework**~~ — ✅ done (2026-09-05/06/09, not tracked in this file until now). 4 wings — Setup (labelled "SETUP" since 2026-09-09, was "OVERALL")/Trend/Momentum/Volatility — hub moved to D1 Regime, pair sheet reduced to 3 tabs, status strip became the ranked-pairs glyph row, the standalone Tradeable Now card retired. See Section B above and `ATOM_FX_DESIGN.md` §17/§19/§20 (synced today).
 5b. ~~**Bollinger Band D1 touch alert + Watchlist**~~ (Signals Roadmap §5) — ✅ done (`afd9a25`, 2026-09-09). **Missed in this file's first 2026-09-10 pass** — caught by Pieter, see the correction note at the top of this file. See Section B below for what shipped.
 5c. ~~**Regime/Alert Playbook + Reading Window**~~ ("living handbook" — contextual explanations wired to `archetype_change` then extended to 5 more alert types, plus a dedicated full-screen Reading Window destination) — ✅ done (`cb02e06`, `205264e`, `08689aa`). Also not previously tracked in this file — see Section B.
-6. **Push end-to-end verification — still open.** No evidence yet of a real gold-signal/level-alert push landing on a physical device from the live backend; the FCM message format changed to data-only since this was last informally touched (see Section B), which makes it worth doing deliberately now rather than assuming the old informal confidence still applies.
+6. ~~Push end-to-end verification~~ — ✅ done, 2026-09-10 (see Section B above).
 
 **Polish / optional:**
 
@@ -127,8 +127,8 @@ Each step must read `CLAUDE.md` first, then the cited spec section, and ship bui
 3. ~~**Settings screen + header gear + theme override**~~ — ✅ done.
 4. ~~**AI narration on**~~ — ✅ done.
 5. ~~**Wheel v2 + Simplification Rework**~~ — ✅ done.
-6. **Push end-to-end test** — next up, deliberately trigger a real backend push and confirm it arrives on the device.
-7. Price-level alerts UI (§9), if wanted.
+6. ~~Push end-to-end test~~ — ✅ done.
+7. Price-level alerts UI (§9), if wanted — next up.
 8. Journal when you're ready for post-v1.
 
 > Keep this file current: when Claude Code finishes an item, it should flip the Status here in the
