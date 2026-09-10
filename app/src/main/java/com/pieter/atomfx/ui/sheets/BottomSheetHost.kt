@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.theme.AtomColors
+import com.pieter.atomfx.ui.theme.DarkColors
+import com.pieter.atomfx.ui.theme.DarkenSystemBarsForDialog
 import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.WheelUiState
 import com.pieter.atomfx.ui.wheel.topPair
@@ -75,6 +77,9 @@ fun BottomSheetHost(
         containerColor = colors.surface,
         contentColor = colors.textPrimary,
     ) {
+        // 2026-09-10 (Pieter's ask, fixed properly on the second pass — see
+        // DialogSystemBars.kt's own doc comment for why the first attempt here wasn't enough).
+        DarkenSystemBarsForDialog(isDark = colors == DarkColors)
         Box(
             modifier = Modifier
                 .heightIn(max = maxSheetHeight)

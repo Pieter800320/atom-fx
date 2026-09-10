@@ -26,6 +26,8 @@ import com.pieter.atomfx.ui.sheets.SheetDivider
 import com.pieter.atomfx.ui.sheets.TechnicalRegimePlaybookDetail
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.DarkColors
+import com.pieter.atomfx.ui.theme.DarkenSystemBarsForDialog
 import com.pieter.atomfx.ui.theme.pressWash
 
 /**
@@ -44,6 +46,11 @@ import com.pieter.atomfx.ui.theme.pressWash
 @Composable
 fun ReadingWindow(target: ReadingTarget, colors: AtomColors, onClose: () -> Unit) {
     val haptics = LocalHapticFeedback.current
+    // 2026-09-10 (Pieter's ask, fixed properly on the second pass — see DialogSystemBars.kt's own
+    // doc comment for why the first attempt here wasn't enough). This window is its own `Dialog`
+    // (MainActivity.kt, hosted above everything else so it always wins), a separate window from
+    // the Activity's — MainActivity's own system-bar fix never reached it.
+    DarkenSystemBarsForDialog(isDark = colors == DarkColors)
     Box(
         modifier = Modifier
             .fillMaxSize()
