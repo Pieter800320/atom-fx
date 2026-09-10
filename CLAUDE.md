@@ -97,3 +97,13 @@ violated:
   signal, a new sheet element, a changed calculation, a renamed term. It claims to explain "every
   single element, calculation and item in the app," so it goes stale the moment a shipped change
   isn't reflected there. Update it in the same session the change ships, not deferred to later.
+- **Every change updates whichever doc(s) describe it, in the same session it ships** — not just
+  the Library. A new signal or wing updates `docs/ATOM_FX_BUILD_STATUS.md`'s status table and,
+  where relevant, `ATOM_FX_DESIGN.md`/`ATOM_FX_ARCHITECTURE.md`/`ATOM_FX_FUNCTIONAL_SPEC.md`/
+  `ATOM_FX_WHEEL_V2_SPEC.md`/`ATOM_FX_SIGNALS_ROADMAP.md` (whichever section the change actually
+  touches); a renamed on-screen label or retired UI element updates every doc that still names the
+  old one. This is what went wrong 2026-09-09→10: the Bollinger Band D1 touch alert + Watchlist
+  screen shipped without a `BUILD_STATUS.md` update, then a whole "doc sync" session still missed
+  it because the sync itself only grepped for symbols already known to exist instead of scanning
+  what had actually shipped. Don't let a doc update become its own deferred task — do it as part
+  of the change, not as cleanup afterward.
