@@ -56,11 +56,13 @@ These are stated in `docs/ATOM_FX_DESIGN.md` — read them there, but the ones m
 violated:
 
 - **§17 — the landing screen never scrolls.** The wheel is a centred square sized to
-  `min(width, height − chrome)`. Header, status strip, the wheel (Currencies/Pairs toggle and
-  Currency Flow ticker live *on*/*under* the dial itself, not separate rows — see
-  `ATOM_FX_WHEEL_V2_SPEC.md` §11), and Tradeable Now are **all visible at once, no vertical or
-  horizontal scroll.** Never use `requiredSize()` / `verticalScroll()` to force the wheel bigger
-  than fits — the wheel shrinks to fit, the layout does not scroll.
+  `min(width, height − chrome)`. Header, the status strip (the ranked-pairs recommendation glyph
+  row — this plus the wheel's own Overall wing are what "Tradeable Now" now is; there's no
+  standalone Tradeable Now card any more, retired 2026-09-04), the wheel (Currencies/Pairs toggle
+  and Currency Flow ticker live *on*/*under* the dial itself, not separate rows — see
+  `ATOM_FX_WHEEL_V2_SPEC.md` §11), and the always-on CSM strip below it are **all visible at once,
+  no vertical or horizontal scroll.** Never use `requiredSize()` / `verticalScroll()` to force the
+  wheel bigger than fits — the wheel shrinks to fit, the layout does not scroll.
 - **§20 — the acceptance test.** The finished landing view must answer, with no sheet open:
   current regime, strong/weak currencies, leading/weakening currency, highest-potential pairs,
   developing pairs, ignorable pairs. Verify against this before declaring a UI task done.
