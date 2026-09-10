@@ -1,9 +1,5 @@
 {
-<<<<<<< Updated upstream
   "updated": "2026-09-10T13:36:03.066171+00:00",
-=======
-  "updated": "2026-09-10T13:40:05.727461+00:00",
->>>>>>> Stashed changes
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -13,26 +9,17 @@
   "regime_h4": {
     "regime": "Risk-Off",
     "confidence": "Medium",
-<<<<<<< Updated upstream
     "score": 9.3,
-=======
-    "score": 9.4,
->>>>>>> Stashed changes
     "stable": true
   },
   "regime_h1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
-<<<<<<< Updated upstream
     "score": 9.2,
-=======
-    "score": 9.4,
->>>>>>> Stashed changes
     "stable": false
   },
   "csm": {
     "d1": {
-<<<<<<< Updated upstream
       "GBP": 60.5,
       "EUR": 70.6,
       "AUD": 54.8,
@@ -66,41 +53,6 @@
       "d1": 492.6208,
       "h4": 485.251,
       "h1": 717.7198
-=======
-      "GBP": 59.8,
-      "EUR": 71.0,
-      "AUD": 55.1,
-      "NZD": 0.0,
-      "CAD": 77.2,
-      "JPY": 63.3,
-      "CHF": 29.5,
-      "USD": 100.0
-    },
-    "h4": {
-      "GBP": 43.9,
-      "EUR": 55.9,
-      "AUD": 0.0,
-      "NZD": 17.9,
-      "CAD": 72.7,
-      "JPY": 49.8,
-      "CHF": 26.8,
-      "USD": 100.0
-    },
-    "h1": {
-      "GBP": 40.9,
-      "EUR": 48.7,
-      "AUD": 0.0,
-      "NZD": 3.9,
-      "CAD": 68.7,
-      "JPY": 45.5,
-      "CHF": 17.2,
-      "USD": 100.0
-    },
-    "dispersion": {
-      "d1": 488.5675,
-      "h4": 477.7345,
-      "h1": 703.5003
->>>>>>> Stashed changes
     }
   },
   "csm_dispersion_history": {
@@ -116,11 +68,7 @@
       316.8246,
       352.6446,
       367.3275,
-<<<<<<< Updated upstream
       492.6208
-=======
-      488.5675
->>>>>>> Stashed changes
     ],
     "h4": [
       128.68,
@@ -134,11 +82,7 @@
       124.2581,
       326.2511,
       248.1171,
-<<<<<<< Updated upstream
       485.251
-=======
-      477.7345
->>>>>>> Stashed changes
     ],
     "h1": [
       218.2496,
@@ -152,11 +96,7 @@
       125.8353,
       385.2723,
       593.7182,
-<<<<<<< Updated upstream
       717.7198
-=======
-      703.5003
->>>>>>> Stashed changes
     ]
   },
   "correlations": {
@@ -178,7 +118,6 @@
       [
         1.0,
         0.75,
-<<<<<<< Updated upstream
         -0.67,
         -0.76,
         0.76,
@@ -188,24 +127,12 @@
         -0.47,
         -0.24,
         -0.08,
-=======
-        -0.68,
-        -0.76,
-        0.75,
-        -0.51,
-        0.76,
-        -0.47,
-        -0.48,
-        -0.27,
-        -0.1,
->>>>>>> Stashed changes
         -0.5
       ],
       [
         0.75,
         1.0,
         -0.51,
-<<<<<<< Updated upstream
         -0.8,
         0.77,
         -0.53,
@@ -228,35 +155,10 @@
         0.94,
         0.78,
         0.68,
-=======
-        -0.79,
-        0.76,
-        -0.53,
-        0.71,
-        -0.36,
-        -0.2,
-        -0.05,
-        0.04,
-        -0.31
-      ],
-      [
-        -0.68,
-        -0.51,
-        1.0,
-        0.6,
-        -0.56,
-        0.35,
-        -0.49,
-        0.97,
-        0.94,
-        0.79,
-        0.67,
->>>>>>> Stashed changes
         0.91
       ],
       [
         -0.76,
-<<<<<<< Updated upstream
         -0.8,
         0.6,
         1.0,
@@ -282,33 +184,6 @@
         0.08,
         0.14,
         -0.31
-=======
-        -0.79,
-        0.6,
-        1.0,
-        -0.68,
-        0.57,
-        -0.69,
-        0.46,
-        0.38,
-        0.23,
-        0.08,
-        0.4
-      ],
-      [
-        0.75,
-        0.76,
-        -0.56,
-        -0.68,
-        1.0,
-        -0.65,
-        0.88,
-        -0.41,
-        -0.34,
-        0.07,
-        0.14,
-        -0.3
->>>>>>> Stashed changes
       ],
       [
         -0.51,
@@ -318,18 +193,13 @@
         -0.65,
         1.0,
         -0.54,
-<<<<<<< Updated upstream
         0.25,
-=======
-        0.26,
->>>>>>> Stashed changes
         0.2,
         -0.05,
         -0.07,
         -0.06
       ],
       [
-<<<<<<< Updated upstream
         0.77,
         0.71,
         -0.48,
@@ -351,29 +221,6 @@
         -0.4,
         0.25,
         -0.31,
-=======
-        0.76,
-        0.71,
-        -0.49,
-        -0.69,
-        0.88,
-        -0.54,
-        1.0,
-        -0.32,
-        -0.28,
-        0.06,
-        0.31,
-        -0.28
-      ],
-      [
-        -0.47,
-        -0.36,
-        0.97,
-        0.46,
-        -0.41,
-        0.26,
-        -0.32,
->>>>>>> Stashed changes
         1.0,
         0.96,
         0.86,
@@ -381,7 +228,6 @@
         0.92
       ],
       [
-<<<<<<< Updated upstream
         -0.47,
         -0.18,
         0.94,
@@ -389,15 +235,6 @@
         -0.33,
         0.2,
         -0.27,
-=======
-        -0.48,
-        -0.2,
-        0.94,
-        0.38,
-        -0.34,
-        0.2,
-        -0.28,
->>>>>>> Stashed changes
         0.96,
         1.0,
         0.88,
@@ -405,7 +242,6 @@
         0.92
       ],
       [
-<<<<<<< Updated upstream
         -0.24,
         -0.04,
         0.78,
@@ -413,20 +249,10 @@
         0.08,
         -0.05,
         0.08,
-=======
-        -0.27,
-        -0.05,
-        0.79,
-        0.23,
-        0.07,
-        -0.05,
-        0.06,
->>>>>>> Stashed changes
         0.86,
         0.88,
         1.0,
         0.91,
-<<<<<<< Updated upstream
         0.86
       ],
       [
@@ -437,49 +263,24 @@
         0.14,
         -0.07,
         0.32,
-=======
-        0.87
-      ],
-      [
-        -0.1,
-        0.04,
-        0.67,
-        0.08,
-        0.14,
-        -0.07,
-        0.31,
->>>>>>> Stashed changes
         0.78,
         0.79,
         0.91,
         1.0,
-<<<<<<< Updated upstream
         0.75
-=======
-        0.76
->>>>>>> Stashed changes
       ],
       [
         -0.5,
         -0.31,
         0.91,
         0.4,
-<<<<<<< Updated upstream
         -0.31,
-=======
-        -0.3,
->>>>>>> Stashed changes
         -0.06,
         -0.28,
         0.92,
         0.92,
-<<<<<<< Updated upstream
         0.86,
         0.75,
-=======
-        0.87,
-        0.76,
->>>>>>> Stashed changes
         1.0
       ]
     ]
@@ -504,32 +305,19 @@
         "dcmp12": -2
       },
       "adx": 32.3,
-<<<<<<< Updated upstream
       "d1_pct": -0.32,
       "d5_pct": -0.06,
       "prev_close": 1.16459,
       "prev5_close": 1.16159,
       "cont": 0,
       "reset_score": 38,
-=======
-      "d1_pct": -0.3,
-      "d5_pct": -0.05,
-      "prev_close": 1.16459,
-      "prev5_close": 1.16159,
-      "cont": 0,
-      "reset_score": 36,
->>>>>>> Stashed changes
       "atr_pct": 37,
       "direction": null,
       "structure": {
         "h4": {
           "direction": "bull",
           "event": "none",
-<<<<<<< Updated upstream
           "strength": 0.0,
-=======
-          "strength": 0.06,
->>>>>>> Stashed changes
           "multiplier": 1.0
         },
         "d1": {
@@ -541,15 +329,9 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 1.16095,
         "upper": 1.165973,
         "lower": 1.155927,
-=======
-        "sma": 1.160967,
-        "upper": 1.165989,
-        "lower": 1.155944,
->>>>>>> Stashed changes
         "width_pct": 0.865,
         "width_trend": "converging"
       }
@@ -563,13 +345,8 @@
       "mom": {
         "d1": 31,
         "dd1": -10,
-<<<<<<< Updated upstream
         "h4": 55,
         "dh4": -8,
-=======
-        "h4": 56,
-        "dh4": -7,
->>>>>>> Stashed changes
         "h1": 43,
         "dh1": -7,
         "cmp": 40,
@@ -578,32 +355,19 @@
         "dcmp12": -3
       },
       "adx": 25.4,
-<<<<<<< Updated upstream
       "d1_pct": -0.35,
       "d5_pct": -0.06,
       "prev_close": 1.35556,
       "prev5_close": 1.35161,
       "cont": 0,
       "reset_score": 30,
-=======
-      "d1_pct": -0.33,
-      "d5_pct": -0.04,
-      "prev_close": 1.35556,
-      "prev5_close": 1.35161,
-      "cont": 0,
-      "reset_score": 31,
->>>>>>> Stashed changes
       "atr_pct": 22,
       "direction": null,
       "structure": {
         "h4": {
           "direction": "bull",
           "event": "CHoCH",
-<<<<<<< Updated upstream
           "strength": 0.48,
-=======
-          "strength": 0.43,
->>>>>>> Stashed changes
           "multiplier": 1.0
         },
         "d1": {
@@ -615,17 +379,10 @@
       },
       "bb_d1": {
         "touching": "lower",
-<<<<<<< Updated upstream
         "sma": 1.352948,
         "upper": 1.356534,
         "lower": 1.349363,
         "width_pct": 0.53,
-=======
-        "sma": 1.352967,
-        "upper": 1.356508,
-        "lower": 1.349426,
-        "width_pct": 0.523,
->>>>>>> Stashed changes
         "width_trend": "converging"
       }
     },
@@ -640,34 +397,20 @@
         "dd1": -18,
         "h4": 31,
         "dh4": 21,
-<<<<<<< Updated upstream
         "h1": 59,
         "dh1": -3,
-=======
-        "h1": 60,
-        "dh1": -2,
->>>>>>> Stashed changes
         "cmp": 34,
         "dcmp4": 2,
         "dcmp8": 2,
         "dcmp12": 4
       },
       "adx": 55.8,
-<<<<<<< Updated upstream
       "d1_pct": 0.55,
       "d5_pct": -1.34,
       "prev_close": 153.31123,
       "prev5_close": 156.23679,
       "cont": 61,
       "reset_score": 41,
-=======
-      "d1_pct": 0.58,
-      "d5_pct": -1.31,
-      "prev_close": 153.31123,
-      "prev5_close": 156.23679,
-      "cont": 61,
-      "reset_score": 42,
->>>>>>> Stashed changes
       "atr_pct": 88,
       "direction": "bear",
       "structure": {
@@ -686,17 +429,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 156.528757,
         "upper": 161.516899,
         "lower": 151.540614,
         "width_pct": 6.373,
-=======
-        "sma": 156.532817,
-        "upper": 161.512579,
-        "lower": 151.553056,
-        "width_pct": 6.363,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -711,7 +447,6 @@
         "dd1": 12,
         "h4": 49,
         "dh4": 16,
-<<<<<<< Updated upstream
         "h1": 57,
         "dh1": 15,
         "cmp": 59,
@@ -726,22 +461,6 @@
       "prev5_close": 0.80979,
       "cont": 0,
       "reset_score": 42,
-=======
-        "h1": 56,
-        "dh1": 14,
-        "cmp": 58,
-        "dcmp4": 0,
-        "dcmp8": -2,
-        "dcmp12": -1
-      },
-      "adx": 15.7,
-      "d1_pct": 0.67,
-      "d5_pct": 0.34,
-      "prev_close": 0.80715,
-      "prev5_close": 0.80979,
-      "cont": 0,
-      "reset_score": 41,
->>>>>>> Stashed changes
       "atr_pct": 92,
       "direction": null,
       "structure": {
@@ -760,17 +479,10 @@
       },
       "bb_d1": {
         "touching": "upper",
-<<<<<<< Updated upstream
         "sma": 0.809357,
         "upper": 0.813001,
         "lower": 0.805714,
         "width_pct": 0.9,
-=======
-        "sma": 0.809337,
-        "upper": 0.812895,
-        "lower": 0.805778,
-        "width_pct": 0.879,
->>>>>>> Stashed changes
         "width_trend": "converging"
       }
     },
@@ -793,13 +505,8 @@
         "dcmp12": -4
       },
       "adx": 15.1,
-<<<<<<< Updated upstream
       "d1_pct": -0.89,
       "d5_pct": -0.56,
-=======
-      "d1_pct": -0.91,
-      "d5_pct": -0.58,
->>>>>>> Stashed changes
       "prev_close": 0.72272,
       "prev5_close": 0.7203,
       "cont": 0,
@@ -822,17 +529,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 0.719066,
         "upper": 0.724415,
         "lower": 0.713717,
         "width_pct": 1.488,
-=======
-        "sma": 0.719057,
-        "upper": 0.724427,
-        "lower": 0.713686,
-        "width_pct": 1.494,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -847,13 +547,8 @@
         "dd1": -3,
         "h4": 39,
         "dh4": 10,
-<<<<<<< Updated upstream
         "h1": 60,
         "dh1": 11,
-=======
-        "h1": 59,
-        "dh1": 10,
->>>>>>> Stashed changes
         "cmp": 50,
         "dcmp4": 0,
         "dcmp8": -3,
@@ -872,11 +567,7 @@
         "h4": {
           "direction": "bear",
           "event": "none",
-<<<<<<< Updated upstream
           "strength": 0.72,
-=======
-          "strength": 0.73,
->>>>>>> Stashed changes
           "multiplier": 1.0
         },
         "d1": {
@@ -888,15 +579,9 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 1.383862,
         "upper": 1.391727,
         "lower": 1.375997,
-=======
-        "sma": 1.383859,
-        "upper": 1.391726,
-        "lower": 1.375992,
->>>>>>> Stashed changes
         "width_pct": 1.137,
         "width_trend": "expanding"
       }
@@ -920,13 +605,8 @@
         "dcmp12": 2
       },
       "adx": 45.5,
-<<<<<<< Updated upstream
       "d1_pct": -0.93,
       "d5_pct": -1.35,
-=======
-      "d1_pct": -0.92,
-      "d5_pct": -1.34,
->>>>>>> Stashed changes
       "prev_close": 0.58552,
       "prev5_close": 0.58799,
       "cont": 83,
@@ -937,13 +617,8 @@
         "h4": {
           "direction": "bear",
           "event": "BOS",
-<<<<<<< Updated upstream
           "strength": 0.89,
           "multiplier": 1.267
-=======
-          "strength": 0.87,
-          "multiplier": 1.261
->>>>>>> Stashed changes
         },
         "d1": {
           "direction": "neutral",
@@ -954,17 +629,10 @@
       },
       "bb_d1": {
         "touching": "lower",
-<<<<<<< Updated upstream
         "sma": 0.587462,
         "upper": 0.594094,
         "lower": 0.580829,
         "width_pct": 2.258,
-=======
-        "sma": 0.587467,
-        "upper": 0.594075,
-        "lower": 0.580858,
-        "width_pct": 2.25,
->>>>>>> Stashed changes
         "width_trend": "converging"
       }
     },
@@ -987,21 +655,12 @@
         "dcmp12": 3
       },
       "adx": 61.0,
-<<<<<<< Updated upstream
       "d1_pct": 0.25,
       "d5_pct": -1.37,
       "prev_close": 178.5519,
       "prev5_close": 181.48454,
       "cont": 61,
       "reset_score": 42,
-=======
-      "d1_pct": 0.3,
-      "d5_pct": -1.32,
-      "prev_close": 178.5519,
-      "prev5_close": 181.48454,
-      "cont": 61,
-      "reset_score": 43,
->>>>>>> Stashed changes
       "atr_pct": 88,
       "direction": "bear",
       "structure": {
@@ -1020,17 +679,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 181.723954,
         "upper": 186.929113,
         "lower": 176.518795,
         "width_pct": 5.729,
-=======
-        "sma": 181.731252,
-        "upper": 186.919947,
-        "lower": 176.542557,
-        "width_pct": 5.71,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -1053,21 +705,12 @@
         "dcmp12": 2
       },
       "adx": 57.9,
-<<<<<<< Updated upstream
       "d1_pct": 0.21,
       "d5_pct": -1.37,
       "prev_close": 207.83362,
       "prev5_close": 211.17233,
       "cont": 64,
       "reset_score": 37,
-=======
-      "d1_pct": 0.26,
-      "d5_pct": -1.32,
-      "prev_close": 207.83362,
-      "prev5_close": 211.17233,
-      "cont": 67,
-      "reset_score": 39,
->>>>>>> Stashed changes
       "atr_pct": 82,
       "direction": "bear",
       "structure": {
@@ -1086,17 +729,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 211.780966,
         "upper": 218.55536,
         "lower": 205.006572,
         "width_pct": 6.398,
-=======
-        "sma": 211.789887,
-        "upper": 218.544399,
-        "lower": 205.035374,
-        "width_pct": 6.379,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -1113,7 +749,6 @@
         "dh4": 7,
         "h1": 45,
         "dh1": -8,
-<<<<<<< Updated upstream
         "cmp": 32,
         "dcmp4": 0,
         "dcmp8": -1,
@@ -1126,20 +761,6 @@
       "prev5_close": 112.53663,
       "cont": 70,
       "reset_score": 36,
-=======
-        "cmp": 33,
-        "dcmp4": 0,
-        "dcmp8": 0,
-        "dcmp12": 2
-      },
-      "adx": 58.9,
-      "d1_pct": -0.32,
-      "d5_pct": -1.86,
-      "prev_close": 110.80144,
-      "prev5_close": 112.53663,
-      "cont": 67,
-      "reset_score": 33,
->>>>>>> Stashed changes
       "atr_pct": 71,
       "direction": "bear",
       "structure": {
@@ -1158,17 +779,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 112.549071,
         "upper": 115.54023,
         "lower": 109.557912,
         "width_pct": 5.315,
-=======
-        "sma": 112.553811,
-        "upper": 115.530174,
-        "lower": 109.577448,
-        "width_pct": 5.289,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -1191,34 +805,20 @@
         "dcmp12": 4
       },
       "adx": 61.8,
-<<<<<<< Updated upstream
       "d1_pct": -0.37,
       "d5_pct": -2.65,
       "prev_close": 89.76541,
       "prev5_close": 91.86579,
       "cont": 71,
       "reset_score": 43,
-=======
-      "d1_pct": -0.35,
-      "d5_pct": -2.63,
-      "prev_close": 89.76541,
-      "prev5_close": 91.86579,
-      "cont": 71,
-      "reset_score": 42,
->>>>>>> Stashed changes
       "atr_pct": 86,
       "direction": "bear",
       "structure": {
         "h4": {
           "direction": "bear",
           "event": "BOS",
-<<<<<<< Updated upstream
           "strength": 0.21,
           "multiplier": 1.063
-=======
-          "strength": 0.18,
-          "multiplier": 1.054
->>>>>>> Stashed changes
         },
         "d1": {
           "direction": "neutral",
@@ -1229,17 +829,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 91.958652,
         "upper": 95.663412,
         "lower": 88.253891,
         "width_pct": 8.057,
-=======
-        "sma": 91.960262,
-        "upper": 95.660242,
-        "lower": 88.260281,
-        "width_pct": 8.047,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     },
@@ -1262,13 +855,8 @@
         "dcmp12": 5
       },
       "adx": 52.2,
-<<<<<<< Updated upstream
       "d1_pct": 0.32,
       "d5_pct": -1.23,
-=======
-      "d1_pct": 0.31,
-      "d5_pct": -1.24,
->>>>>>> Stashed changes
       "prev_close": 111.17242,
       "prev5_close": 112.92034,
       "cont": 59,
@@ -1291,17 +879,10 @@
       },
       "bb_d1": {
         "touching": "none",
-<<<<<<< Updated upstream
         "sma": 113.109686,
         "upper": 116.112689,
         "lower": 110.106683,
         "width_pct": 5.31,
-=======
-        "sma": 113.108579,
-        "upper": 116.11413,
-        "lower": 110.103028,
-        "width_pct": 5.314,
->>>>>>> Stashed changes
         "width_trend": "expanding"
       }
     }
@@ -1549,11 +1130,7 @@
     "h4_confirmed": false,
     "h4_confidence": "Medium",
     "h1_confirmed": false,
-<<<<<<< Updated upstream
     "updated": "2026-09-10T13:36:03.066171+00:00"
-=======
-    "updated": "2026-09-10T13:40:05.727461+00:00"
->>>>>>> Stashed changes
   },
   "recommendation": {
     "headline": "Stand Aside: NZDUSD bear",
@@ -1568,11 +1145,7 @@
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-<<<<<<< Updated upstream
     "generated_at": "2026-09-10T13:39:24.705762+00:00",
-=======
-    "generated_at": "2026-09-10T13:47:10.588970+00:00",
->>>>>>> Stashed changes
     "_narrated": false
   },
   "conviction": {
@@ -1710,7 +1283,6 @@
   },
   "csm_delta": {
     "d1": {
-<<<<<<< Updated upstream
       "GBP": 8.8,
       "EUR": 0.1,
       "AUD": -45.2,
@@ -1738,35 +1310,6 @@
       "CAD": 17.2,
       "JPY": -11.2,
       "CHF": 8.7,
-=======
-      "GBP": 8.1,
-      "EUR": 0.5,
-      "AUD": -44.9,
-      "NZD": 0.0,
-      "CAD": 4.1,
-      "JPY": -1.6,
-      "CHF": -41.9,
-      "USD": 37.3
-    },
-    "h4": {
-      "GBP": 30.1,
-      "EUR": -3.2,
-      "AUD": -49.3,
-      "NZD": 4.0,
-      "CAD": 72.7,
-      "JPY": 17.4,
-      "CHF": -73.2,
-      "USD": 91.8
-    },
-    "h1": {
-      "GBP": 1.0,
-      "EUR": -48.7,
-      "AUD": -43.2,
-      "NZD": 3.9,
-      "CAD": 16.9,
-      "JPY": -10.9,
-      "CHF": 14.7,
->>>>>>> Stashed changes
       "USD": 0.0
     }
   },
@@ -1774,17 +1317,10 @@
     "leader": "USD",
     "leader_delta": 91.8,
     "laggard": "CHF",
-<<<<<<< Updated upstream
     "laggard_delta": -77.8,
     "absolute_leader": "USD",
     "absolute_laggard": "AUD",
     "driver_spread": 169.6,
-=======
-    "laggard_delta": -73.2,
-    "absolute_leader": "USD",
-    "absolute_laggard": "AUD",
-    "driver_spread": 165.0,
->>>>>>> Stashed changes
     "tf": "h4"
   },
   "breadth": {
@@ -1794,11 +1330,7 @@
         "total": 5,
         "pct": 0.4,
         "band": "weak",
-<<<<<<< Updated upstream
         "net": -19.75,
-=======
-        "net": -28.57,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "EUR": {
@@ -1806,11 +1338,7 @@
         "total": 4,
         "pct": 0.75,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": 27.34,
-=======
-        "net": 29.01,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "AUD": {
@@ -1818,11 +1346,7 @@
         "total": 5,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": -240.43,
-=======
-        "net": -238.11,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "NZD": {
@@ -1830,11 +1354,7 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-<<<<<<< Updated upstream
         "net": -155.54,
-=======
-        "net": -152.43,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "CAD": {
@@ -1842,11 +1362,7 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-<<<<<<< Updated upstream
         "net": 114.1,
-=======
-        "net": 109.07,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "JPY": {
@@ -1854,11 +1370,7 @@
         "total": 6,
         "pct": 0.33,
         "band": "weak",
-<<<<<<< Updated upstream
         "net": 0.1,
-=======
-        "net": 0.01,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "CHF": {
@@ -1866,11 +1378,7 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": -132.83,
-=======
-        "net": -110.01,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "USD": {
@@ -1878,11 +1386,7 @@
         "total": 7,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": 244.82,
-=======
-        "net": 239.63,
->>>>>>> Stashed changes
         "dir": "strong"
       }
     },
@@ -1892,11 +1396,7 @@
         "total": 5,
         "pct": 0.6,
         "band": "moderate",
-<<<<<<< Updated upstream
         "net": -10.3,
-=======
-        "net": -14.09,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "EUR": {
@@ -1904,11 +1404,7 @@
         "total": 4,
         "pct": 0.5,
         "band": "moderate",
-<<<<<<< Updated upstream
         "net": 39.89,
-=======
-        "net": 40.33,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "AUD": {
@@ -1916,11 +1412,7 @@
         "total": 5,
         "pct": 0.8,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": -38.38,
-=======
-        "net": -37.43,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "NZD": {
@@ -1928,11 +1420,7 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": -308.13,
-=======
-        "net": -306.48,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "CAD": {
@@ -1940,11 +1428,7 @@
         "total": 3,
         "pct": 0.67,
         "band": "moderate",
-<<<<<<< Updated upstream
         "net": 73.42,
-=======
-        "net": 70.78,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "JPY": {
@@ -1952,11 +1436,7 @@
         "total": 6,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": 2.6,
-=======
-        "net": 2.56,
->>>>>>> Stashed changes
         "dir": "strong"
       },
       "CHF": {
@@ -1964,11 +1444,7 @@
         "total": 3,
         "pct": 1.0,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": -173.04,
-=======
-        "net": -162.2,
->>>>>>> Stashed changes
         "dir": "weak"
       },
       "USD": {
@@ -1976,11 +1452,7 @@
         "total": 7,
         "pct": 0.71,
         "band": "strong",
-<<<<<<< Updated upstream
         "net": 184.49,
-=======
-        "net": 182.09,
->>>>>>> Stashed changes
         "dir": "strong"
       }
     },
@@ -2073,11 +1545,7 @@
         1.16277,
         1.16218,
         1.16459,
-<<<<<<< Updated upstream
         1.16085
-=======
-        1.16105
->>>>>>> Stashed changes
       ],
       "h4": [
         1.15946,
@@ -2135,11 +1603,7 @@
         1.16391,
         1.16397,
         1.16342,
-<<<<<<< Updated upstream
         1.16085
-=======
-        1.16105
->>>>>>> Stashed changes
       ],
       "h1": [
         1.16219,
@@ -2197,11 +1661,7 @@
         1.16281,
         1.16158,
         1.16049,
-<<<<<<< Updated upstream
         1.16085
-=======
-        1.16105
->>>>>>> Stashed changes
       ]
     },
     "GBPUSD": {
@@ -2261,11 +1721,7 @@
         1.35375,
         1.35519,
         1.35556,
-<<<<<<< Updated upstream
         1.35085
-=======
-        1.35107
->>>>>>> Stashed changes
       ],
       "h4": [
         1.35417,
@@ -2323,11 +1779,7 @@
         1.35574,
         1.35584,
         1.35479,
-<<<<<<< Updated upstream
         1.35085
-=======
-        1.35107
->>>>>>> Stashed changes
       ],
       "h1": [
         1.35371,
@@ -2385,11 +1837,7 @@
         1.35399,
         1.35278,
         1.35076,
-<<<<<<< Updated upstream
         1.35085
-=======
-        1.35107
->>>>>>> Stashed changes
       ]
     },
     "USDJPY": {
@@ -2449,11 +1897,7 @@
         154.58533,
         153.87698,
         153.31123,
-<<<<<<< Updated upstream
         154.14907
-=======
-        154.1978
->>>>>>> Stashed changes
       ],
       "h4": [
         160.03338,
@@ -2511,11 +1955,7 @@
         153.56253,
         153.59565,
         153.70818,
-<<<<<<< Updated upstream
         154.14907
-=======
-        154.1978
->>>>>>> Stashed changes
       ],
       "h1": [
         153.76055,
@@ -2573,11 +2013,7 @@
         154.0971,
         154.16481,
         154.34091,
-<<<<<<< Updated upstream
         154.14907
-=======
-        154.1978
->>>>>>> Stashed changes
       ]
     },
     "USDCHF": {
@@ -2637,11 +2073,7 @@
         0.80901,
         0.8094,
         0.80715,
-<<<<<<< Updated upstream
         0.81283
-=======
-        0.81258
->>>>>>> Stashed changes
       ],
       "h4": [
         0.80974,
@@ -2699,11 +2131,7 @@
         0.80893,
         0.8087,
         0.81064,
-<<<<<<< Updated upstream
         0.81283
-=======
-        0.81258
->>>>>>> Stashed changes
       ],
       "h1": [
         0.81007,
@@ -2761,11 +2189,7 @@
         0.81114,
         0.81183,
         0.81305,
-<<<<<<< Updated upstream
         0.81283
-=======
-        0.81258
->>>>>>> Stashed changes
       ]
     },
     "AUDUSD": {
@@ -2825,11 +2249,7 @@
         0.72205,
         0.72246,
         0.72272,
-<<<<<<< Updated upstream
         0.71626
-=======
-        0.71615
->>>>>>> Stashed changes
       ],
       "h4": [
         0.71441,
@@ -2887,11 +2307,7 @@
         0.72178,
         0.72205,
         0.72109,
-<<<<<<< Updated upstream
         0.71626
-=======
-        0.71615
->>>>>>> Stashed changes
       ],
       "h1": [
         0.72107,
@@ -2949,11 +2365,7 @@
         0.72008,
         0.7191,
         0.71649,
-<<<<<<< Updated upstream
         0.71626
-=======
-        0.71615
->>>>>>> Stashed changes
       ]
     },
     "USDCAD": {
@@ -3013,11 +2425,7 @@
         1.38108,
         1.37874,
         1.37904,
-<<<<<<< Updated upstream
         1.38236
-=======
-        1.38233
->>>>>>> Stashed changes
       ],
       "h4": [
         1.38685,
@@ -3075,11 +2483,7 @@
         1.38064,
         1.38036,
         1.38099,
-<<<<<<< Updated upstream
         1.38236
-=======
-        1.38233
->>>>>>> Stashed changes
       ],
       "h1": [
         1.3797,
@@ -3137,11 +2541,7 @@
         1.38167,
         1.38191,
         1.38262,
-<<<<<<< Updated upstream
         1.38236
-=======
-        1.38233
->>>>>>> Stashed changes
       ]
     },
     "NZDUSD": {
@@ -3201,11 +2601,7 @@
         0.58823,
         0.58554,
         0.58552,
-<<<<<<< Updated upstream
         0.58007
-=======
-        0.58013
->>>>>>> Stashed changes
       ],
       "h4": [
         0.5896,
@@ -3263,11 +2659,7 @@
         0.58544,
         0.58542,
         0.58463,
-<<<<<<< Updated upstream
         0.58007
-=======
-        0.58013
->>>>>>> Stashed changes
       ],
       "h1": [
         0.58552,
@@ -3325,11 +2717,7 @@
         0.58375,
         0.58286,
         0.58038,
-<<<<<<< Updated upstream
         0.58007
-=======
-        0.58013
->>>>>>> Stashed changes
       ]
     },
     "EURJPY": {
@@ -3389,11 +2777,7 @@
         179.75579,
         178.8359,
         178.5519,
-<<<<<<< Updated upstream
         178.99681
-=======
-        179.08438
->>>>>>> Stashed changes
       ],
       "h4": [
         185.55107,
@@ -3451,11 +2835,7 @@
         178.71959,
         178.78457,
         178.83272,
-<<<<<<< Updated upstream
         178.99681
-=======
-        179.08438
->>>>>>> Stashed changes
       ],
       "h1": [
         178.69545,
@@ -3513,11 +2893,7 @@
         179.17632,
         179.07796,
         179.13389,
-<<<<<<< Updated upstream
         178.99681
-=======
-        179.08438
->>>>>>> Stashed changes
       ]
     },
     "GBPJPY": {
@@ -3577,11 +2953,7 @@
         209.25718,
         208.54823,
         207.83362,
-<<<<<<< Updated upstream
         208.2771
-=======
-        208.38415
->>>>>>> Stashed changes
       ],
       "h4": [
         216.70785,
@@ -3639,11 +3011,7 @@
         208.14512,
         208.2471,
         208.25224,
-<<<<<<< Updated upstream
         208.2771
-=======
-        208.38415
->>>>>>> Stashed changes
       ],
       "h1": [
         208.15717,
@@ -3701,11 +3069,7 @@
         208.63398,
         208.55738,
         208.50526,
-<<<<<<< Updated upstream
         208.2771
-=======
-        208.38415
->>>>>>> Stashed changes
       ]
     },
     "AUDJPY": {
@@ -3765,11 +3129,7 @@
         111.60854,
         111.1883,
         110.80144,
-<<<<<<< Updated upstream
         110.38855
-=======
-        110.44543
->>>>>>> Stashed changes
       ],
       "h4": [
         114.32271,
@@ -3827,11 +3187,7 @@
         110.80294,
         110.8987,
         110.84138,
-<<<<<<< Updated upstream
         110.38855
-=======
-        110.44543
->>>>>>> Stashed changes
       ],
       "h1": [
         110.87417,
@@ -3889,11 +3245,7 @@
         110.95872,
         110.85997,
         110.57916,
-<<<<<<< Updated upstream
         110.38855
-=======
-        110.44543
->>>>>>> Stashed changes
       ]
     },
     "NZDJPY": {
@@ -3953,11 +3305,7 @@
         90.92703,
         90.10146,
         89.76541,
-<<<<<<< Updated upstream
         89.4308
-=======
-        89.45012
->>>>>>> Stashed changes
       ],
       "h4": [
         94.34678,
@@ -4015,11 +3363,7 @@
         89.90454,
         89.91416,
         89.86107,
-<<<<<<< Updated upstream
         89.4308
-=======
-        89.45012
->>>>>>> Stashed changes
       ],
       "h1": [
         90.02402,
@@ -4077,11 +3421,7 @@
         89.95448,
         89.85482,
         89.55762,
-<<<<<<< Updated upstream
         89.4308
-=======
-        89.45012
->>>>>>> Stashed changes
       ]
     },
     "CADJPY": {
@@ -4141,11 +3481,7 @@
         111.93755,
         111.62332,
         111.17242,
-<<<<<<< Updated upstream
         111.53064
-=======
-        111.51736
->>>>>>> Stashed changes
       ],
       "h4": [
         115.39761,
@@ -4203,11 +3539,7 @@
         111.20443,
         111.27255,
         111.30698,
-<<<<<<< Updated upstream
         111.53064
-=======
-        111.51736
->>>>>>> Stashed changes
       ],
       "h1": [
         111.44715,
@@ -4265,11 +3597,7 @@
         111.53145,
         111.55977,
         111.62297,
-<<<<<<< Updated upstream
         111.53064
-=======
-        111.51736
->>>>>>> Stashed changes
       ]
     }
   },
@@ -4277,7 +3605,6 @@
     "tf": "h4",
     "points": {
       "GBP": {
-<<<<<<< Updated upstream
         "x": 45.5,
         "y": 31.7,
         "quadrant": "improving"
@@ -4285,15 +3612,6 @@
       "EUR": {
         "x": 55.2,
         "y": -3.9,
-=======
-        "x": 43.9,
-        "y": 30.1,
-        "quadrant": "improving"
-      },
-      "EUR": {
-        "x": 55.9,
-        "y": -3.2,
->>>>>>> Stashed changes
         "quadrant": "weakening"
       },
       "AUD": {
@@ -4302,7 +3620,6 @@
         "quadrant": "lagging"
       },
       "NZD": {
-<<<<<<< Updated upstream
         "x": 17.5,
         "y": 3.6,
         "quadrant": "improving"
@@ -4320,25 +3637,6 @@
       "CHF": {
         "x": 22.2,
         "y": -77.8,
-=======
-        "x": 17.9,
-        "y": 4.0,
-        "quadrant": "improving"
-      },
-      "CAD": {
-        "x": 72.7,
-        "y": 72.7,
-        "quadrant": "leading"
-      },
-      "JPY": {
-        "x": 49.8,
-        "y": 17.4,
-        "quadrant": "improving"
-      },
-      "CHF": {
-        "x": 26.8,
-        "y": -73.2,
->>>>>>> Stashed changes
         "quadrant": "lagging"
       },
       "USD": {
@@ -4350,24 +3648,14 @@
     "history": {
       "GBP": [
         [
-<<<<<<< Updated upstream
           45.5,
           31.7
-=======
-          43.9,
-          30.1
->>>>>>> Stashed changes
         ]
       ],
       "EUR": [
         [
-<<<<<<< Updated upstream
           55.2,
           -3.9
-=======
-          55.9,
-          -3.2
->>>>>>> Stashed changes
         ]
       ],
       "AUD": [
@@ -4378,46 +3666,26 @@
       ],
       "NZD": [
         [
-<<<<<<< Updated upstream
           17.5,
           3.6
-=======
-          17.9,
-          4.0
->>>>>>> Stashed changes
         ]
       ],
       "CAD": [
         [
-<<<<<<< Updated upstream
           73.1,
           73.1
-=======
-          72.7,
-          72.7
->>>>>>> Stashed changes
         ]
       ],
       "JPY": [
         [
-<<<<<<< Updated upstream
           49.6,
           17.2
-=======
-          49.8,
-          17.4
->>>>>>> Stashed changes
         ]
       ],
       "CHF": [
         [
-<<<<<<< Updated upstream
           22.2,
           -77.8
-=======
-          26.8,
-          -73.2
->>>>>>> Stashed changes
         ]
       ],
       "USD": [
@@ -4704,11 +3972,7 @@
     ],
     "conflicts": [],
     "narrative": "Growth-positive risk-on: favour AUD \u00b7 NZD \u00b7 CAD over JPY \u00b7 CHF.",
-<<<<<<< Updated upstream
     "updated": "2026-09-10T13:36:03.066171+00:00"
-=======
-    "updated": "2026-09-10T13:40:05.727461+00:00"
->>>>>>> Stashed changes
   },
   "pulse": {
     "score": 53.2,

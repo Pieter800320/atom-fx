@@ -27,13 +27,14 @@ jobs:
           FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
         run: python -m scanner.scan_cot
       - name: Commit data
+        # 2026-09-10 — see scan_h1.yml's own comment: the stash/rebase/stash-pop dance could
+        # silently commit unresolved git conflict markers as if they were valid JSON when
+        # this workflow raced another scan's. Commit our own fresh output first, then rebase
+        # resolving any conflict on our own side (-X ours) — no stash, no silent failure path.
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/signals.json
-          git stash || true
-          git pull --rebase origin main
-          git stash pop || true
-          git add data/signals.json
           git diff --cached --quiet || git commit -m "chore: weekly COT scan"
+          git pull --rebase -X ours origin main
           git push

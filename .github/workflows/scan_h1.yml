@@ -33,13 +33,21 @@ jobs:
           FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
         run: python -m scanner.scan_h1
       - name: Commit data
+        # 2026-09-10 — the previous stash/rebase/stash-pop dance silently corrupted
+        # data/signals.json in production: scan_h1 and scan_news aren't in the same
+        # concurrency group, so they CAN run close together; when both touched this file,
+        # `git stash pop || true` hit a real conflict, the `|| true` swallowed the failure,
+        # and the literal `<<<<<<< Updated upstream` / `>>>>>>> Stashed changes` markers got
+        # `git add`ed and pushed as valid JSON — breaking every client's parse. This file is
+        # fully regenerated every run (never hand-edited), so there is nothing to preserve on
+        # a conflict: commit our own fresh output first, then rebase onto whatever else
+        # landed on main since checkout, resolving any per-hunk conflict on OUR side
+        # (`-X ours`) rather than trying to hand-merge two scan snapshots. No stash, no
+        # silent failure path.
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git stash || true
-          git pull --rebase origin main
-          git stash pop || true
-          git add data/
           git diff --cached --quiet || git commit -m "chore: h1 scan"
+          git pull --rebase -X ours origin main
           git push
