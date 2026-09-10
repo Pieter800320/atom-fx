@@ -150,19 +150,21 @@ private val CCY_DRIVERS = mapOf(
 // 2026-09-10 (Pieter's ask) — was its own local squircle recipe (a taller opaque-lerp square,
 // value/delta stacked). Now built on the exact same `SmallPillCell` (SheetComponents.kt) as
 // MomentumSheet's own MomBar — same shape/height/alpha-wash/fonts, value and delta inline instead
-// of stacked, and the same dark-mode `lighten()` contrast fix on the delta number (it now sits on
-// a translucent wash rather than the old opaque fill, which didn't need the extra contrast boost).
-// Deliberately NOT changed: the headline hue stays delta-sign-based here, unlike Momentum's own
-// value-based fix (`MomentumSheet`'s "should it be red if the value is 58?" catch) — CSM strength
-// is a min-max-rescaled RANK among the 8 currencies each scan, not a bipolar oscillator with a
-// real neutral anchor at 50 the way Momentum's 0–100 reading is, so "value >= 50 = bullish" isn't
-// a meaningful rule here. This was a visual/typography match only, not a colour-logic one — flag
-// if that's not what was wanted.
+// of stacked, and the same dark-mode `lighten()` contrast fix on the delta number.
+// 2026-09-10, same day, follow-up — the pill's headline hue moved from delta-sign-based to
+// value-based (`strength >= 50`), matching `WheelMapper.mapCurrencies`' own Strength-mode threshold
+// for the CSM bar strip exactly (`tint = if (strength >= 50) Tint.BULL else Tint.BEAR`) — turns out
+// that IS a real, already-established convention in this app, not something invented here. Same
+// principle as Momentum's own "should it be red if the value is 58?" fix: the pill's headline
+// number is the strength value, not the delta, so its colour should agree with what it's actually
+// headlining. Delta/Flow keeps doing its own job — colouring only the small secondary number
+// (strengthening/weakening) — so this pill and Flow-mode's own diverging chart can legitimately
+// disagree on direction; they're different lenses, not a contradiction.
 @Composable
 private fun CcyTfSquare(label: String, value: Double?, delta: Double?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val hue = directionHue(delta, colors)
+    val hue = valueHue(value, colors)
     val isDark = colors == DarkColors
-    val deltaColor = if (isDark) lighten(hue, 0.45f) else hue
+    val deltaColor = if (isDark) lighten(directionHue(delta, colors), 0.45f) else directionHue(delta, colors)
     SmallPillCell(label, hue, colors, modifier) {
         Text(text = value?.let { it.toInt().toString() } ?: "—", style = AtomType.Body.copy(color = colors.textPrimary))
         if (delta != null) {
@@ -172,6 +174,16 @@ private fun CcyTfSquare(label: String, value: Double?, delta: Double?, colors: A
     }
 }
 
+// Strength — the pill's headline wash/value colour. Matches WheelMapper.mapCurrencies' own
+// Strength-mode threshold for the CSM bar strip (same >=50 split on the same 0-100 rank).
+private fun valueHue(value: Double?, colors: AtomColors): Color = when {
+    value == null -> colors.neutral
+    value >= 50 -> colors.bull
+    else -> colors.bear
+}
+
+// Flow — used only for the small delta number's own colour (strengthening/weakening), never for
+// the pill's headline wash any more (see this file's own doc comment above).
 private fun directionHue(delta: Double?, colors: AtomColors): Color = when {
     delta == null -> colors.neutral
     delta > 0 -> colors.bull
