@@ -126,11 +126,18 @@ private val CCY_NAMES = mapOf(
 )
 
 // Mirrors scanner/csm.py's STRENGTH_PAIRS exactly (frozen, read-only reference — this is the
-// actual 16-pair universe the CSM strength calculation is built from, not a Kotlin re-derivation
-// of it). Kept local rather than in WheelGeometry since it's a CSM-domain fact, not wheel geometry.
+// actual universe the CSM strength calculation is built from, not a Kotlin re-derivation of it).
+// Kept local rather than in WheelGeometry since it's a CSM-domain fact, not wheel geometry.
+//
+// 2026-09-10 — caught out of sync (Pieter's own catch: "should Breadth's total and Expressed By's
+// pill count be the same?"). csm.py's own list grew 16->18 pairs the same day (Rule #1 sign-off,
+// added EURJPY/GBPJPY — see that file's own comment), but this Kotlin copy never got updated
+// alongside it, so EUR/GBP/JPY's "Expressed By" section was quietly missing a pill each while
+// Breadth (H4)'s own total already counted the real 18-pair universe. Synced back to match exactly.
 private val CSM_STRENGTH_PAIRS = listOf(
     "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD",
     "AUDJPY", "NZDJPY", "CADJPY", "EURGBP", "EURCHF", "GBPCHF", "AUDNZD", "AUDCAD", "GBPAUD",
+    "EURJPY", "GBPJPY",
 )
 
 // Pieter's own macro-driver shorthand per currency — short, static reference copy (same category
