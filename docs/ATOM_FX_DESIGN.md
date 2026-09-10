@@ -555,10 +555,12 @@ BottomSheetHost     draggable sheet host (rises above any tab)
 CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a currency wedge tap)
 RegimeSheet         hub tap — D1 regime detail
 PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Overview (5 consensus
-                     rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
+                     rows) · Breakdown (Momentum, Structure, Alignment, %B) · Correlation
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
-MarketIndicatorsCard Insights-tab card: Rotation/Pulse/Thrust behind a 3-tab switcher (§19.4)
+PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by both PercentBChart (per-pair,
+                     Breakdown) and PercentBBoardChart (market-wide, Insights)
+MarketIndicatorsCard Insights-tab card: Rotation/Pulse/Thrust/%B behind a 4-tab switcher (§19.4)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 FreshnessBadge      fresh / stale / unavailable
@@ -579,10 +581,10 @@ Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented c
 
 ### 19.4 Market indicators (Insights tab, 2026-09-10)
 
-Three concept indicators, tried live so Pieter could compare them before any one earns a
+Four concept indicators, tried live so Pieter could compare them before any one earns a
 permanent home (research/mockup process, not a spec-first build) — a card on `InsightsScreen`
 (chosen over the Wheel landing screen, which has zero idle vertical budget under §17), title +
-a `SheetTabs` 3-way switcher (Rotation/Pulse/Thrust), one chart + a short caption per tab.
+a `SheetTabs` 4-way switcher (Rotation/Pulse/Thrust/%B), one chart + a short caption per tab.
 
 - **Rotation** — a quadrant scatter (new chart grammar, no existing precedent): axes at
   CSM=50/Delta=0, 4 soft quadrant fills, one squircle marker + short comet trail per currency.
@@ -599,9 +601,26 @@ a `SheetTabs` 3-way switcher (Rotation/Pulse/Thrust), one chart + a short captio
   Colour comes from `pulse.band`, not the series' own start/end like `LineChart` does.
 - **Thrust** — a centered-zero histogram (new shape): one bar per recent scan either side of a
   zero baseline, bull/bear/neutral by sign, today's bar outlined.
+- **%B ("Board %B")** — a real technical oscillator (Bollinger %B + its own 12-period SMA signal
+  line, D1), not a bespoke concept like the other three. Drawn by the shared
+  `ui/chart/PercentBOscillator.kt` primitive (also used by the per-pair chart below — one drawing,
+  two data sources, so they can't visually drift apart): y-domain clamped 0-100 **for drawing
+  only** (raw %B legitimately pierces past 0/100 — a real "walk along the band" — the backend
+  keeps that true value, per Pieter's own "normalise to oscillate between 0-100" ask); a solid
+  centre line at 50; two dashed threshold lines at 10/90 (display reference only, not a backend
+  gate — Pieter is still watching real data to see which levels hold up); raw %B thin/quiet
+  (`textSecondary`), the signal line bolder in `watch` — a neutral accent, deliberately **not**
+  bull/bear-coded, since %B's extremes don't yet have a settled directional meaning.
 
-All three are pure consumers of `rotation`/`pulse`/`breadth_thrust` (Architecture §4.2) — no
-value is computed in Kotlin.
+All four are pure consumers of `rotation`/`pulse`/`breadth_thrust`/`percent_b_board`
+(Architecture §4.2) — no value is computed in Kotlin.
+
+### 19.4a %B (Bollinger), per-pair (Pair sheet → Breakdown, 2026-09-10)
+
+A 4th `BreakdownSection` alongside ALIGNMENT/MOMENTUM/STRUCTURE (`PairSheet.kt`), same narrowed-
+field composable convention as its siblings (`PercentBChart(bbD1: BbD1?, colors)`). Same
+`PercentBOscillator` drawing as Board %B above, reading `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`
+directly — no on-device Bollinger/SMA math (Architecture §8.3), the series is backend-computed.
 
 ---
 

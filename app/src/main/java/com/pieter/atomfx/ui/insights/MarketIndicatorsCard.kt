@@ -44,17 +44,18 @@ fun MarketIndicatorsCard(signals: Signals, colors: AtomColors, modifier: Modifie
     Column(modifier = modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
         Text(text = "MARKET INDICATORS", style = AtomType.Caption.copy(color = colors.textMuted))
         Text(
-            text = "Three ways to read the whole market at a glance",
+            text = "Four ways to read the whole market at a glance",
             style = AtomType.Title.copy(color = colors.textPrimary),
             modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
         )
 
-        SheetTabs(tabs = listOf("Rotation", "Pulse", "Thrust"), selected = selected, colors = colors) { selected = it }
+        SheetTabs(tabs = listOf("Rotation", "Pulse", "Thrust", "%B"), selected = selected, colors = colors) { selected = it }
 
         when (selected) {
             0 -> RotationTab(signals, colors)
             1 -> PulseTab(signals, colors)
-            else -> ThrustTab(signals, colors)
+            2 -> ThrustTab(signals, colors)
+            else -> PercentBBoardChart(signals.percentBBoard, colors)
         }
     }
 }

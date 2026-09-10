@@ -84,5 +84,6 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 2        # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 3        # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
+# 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).

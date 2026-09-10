@@ -230,6 +230,11 @@ pulse              {score: float|null, band: string|null,
                     share (2026-09-10). `score`/`band` are null when fewer than 2 of the 4 axes
                     are available. Deliberately excludes Conviction (COT) — weekly cadence would
                     make a daily composite sticky.
+percent_b_board    {line:[float,…], signal:[float,…]}  — market-wide average %B (2026-09-10):
+                    the pointwise mean of every pair's own `bb_d1.pctb`/`.pctb_sma` (see below),
+                    across whichever pairs have a bb_d1 read. Rebuilt fresh every scan straight
+                    from D1 closes — no scan-to-scan history round-trip needed (`bb_touch.py`
+                    already holds the full rolling series each run, not just today's snapshot).
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 
@@ -238,6 +243,12 @@ Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a ne
 "structure": { "h4": {"direction":"bull","event":"BOS","strength":0.78,"multiplier":1.23},
                "d1": {"direction":"bull","event":"none","strength":0.0,"multiplier":1.0} }
 ```
+
+Similarly, `pairs.<PAIR>.bb_d1` (Signals Roadmap §5, D1 Bollinger touch state) gained two new
+fields alongside its existing `touching`/`sma`/`upper`/`lower`/`width_pct`/`width_trend`
+(2026-09-10): `pctb`/`pctb_sma`, the %B oscillator line and its 12-period signal line, oldest-
+first, up to 56 recent D1 bars — not clamped to 0-100 (a real close outside the bands legitimately
+pierces past 0/100; only the chart that draws it clamps for display).
 
 > **Contract invariants Claude Code must honour:**
 > 1. New keys are **added**; no frozen key is renamed, removed, or repurposed.

@@ -42,6 +42,9 @@ data class Signals(
     val rotation: RotationBlock? = null,
     val pulse: PulseBlock? = null,
     @SerialName("breadth_thrust") val breadthThrust: ThrustBlock? = null,
+    // 2026-09-10 (2nd) — the market-wide average of every pair's own %B/signal line (bb_d1.pctb/
+    // pctbSma above), a 4th "whole board" read alongside rotation/pulse/breadthThrust.
+    @SerialName("percent_b_board") val percentBBoard: PercentBBoardBlock? = null,
     @SerialName("schema_version") val schemaVersion: Int? = null,
 )
 
@@ -151,6 +154,14 @@ data class BbD1(
     val lower: Double? = null,
     @SerialName("width_pct") val widthPct: Double? = null,
     @SerialName("width_trend") val widthTrend: String? = null,
+    // 2026-09-10 — %B (Pieter's ask): (close-lower)/(upper-lower)*100 over the same rolling bands
+    // above, plus its own 12-period SMA as a signal line. Oldest-first, up to 56 recent D1 bars.
+    // Not clamped to 0-100 here — a real close outside the bands legitimately pierces past 0/100;
+    // only the chart that draws this clamps for display. Computed fresh every scan straight from
+    // D1 closes (bb_touch.py already holds the full rolling series, not just today's snapshot),
+    // so unlike rotation/pulse/breadth_thrust this needs no scan-to-scan history round-trip.
+    val pctb: List<Double> = emptyList(),
+    @SerialName("pctb_sma") val pctbSma: List<Double> = emptyList(),
 )
 
 @Serializable
@@ -410,4 +421,12 @@ data class PulseAxes(
 data class ThrustBlock(
     val h4: Int? = null,
     val history: List<Int> = emptyList(),
+)
+
+/** 2026-09-10 (2nd) — pointwise mean of every pair's `bb_d1.pctb`/`pctbSma`, oldest-first. See
+ *  `bb_touch.py`'s `compute_board_percent_b` for the exact aggregation. */
+@Serializable
+data class PercentBBoardBlock(
+    val line: List<Double> = emptyList(),
+    val signal: List<Double> = emptyList(),
 )

@@ -138,6 +138,24 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         whyItMatters = "Every pill you see — D1/H4/H1, bull, bull_strong, neutral, bear, bear_strong — comes from this one engine, the single source of truth for \"what does this timeframe think.\" The pair sheet's 3-TF alignment strip is this same read, compacted. Three Strong Buys or three Strong Sells in a row also fires an Alignment alert — tap its book icon for the Alignment Playbook, on why three independently-computed timeframes agreeing is genuine confluence, not circular.",
     ),
     LibraryEntry(
+        id = "percent-b",
+        term = "%B",
+        category = "Momentum & Price Action",
+        summary = "Where price sits inside its own D1 Bollinger Bands, on a 0–100 scale — 50 is the middle band, 0 and 100 are the outer bands.",
+        howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, using the same 12-period ±2σ D1 bands the Bollinger touch alert reads. A second line — a 12-period average of %B itself — smooths it out, the same way a signal line smooths any oscillator.\n" +
+            "Can read below 0 or above 100: that means price closed outside its own bands, a real and meaningful reading, not an error.\n" +
+            "Shown against a pair's own chart, on the Breakdown tab.",
+        whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
+    ),
+    LibraryEntry(
+        id = "board-percent-b",
+        term = "Board %B",
+        category = "Momentum & Price Action",
+        summary = "The whole board's average %B — how stretched are pairs against their own D1 bands, on average, right now?",
+        howItWorks = "The same %B calculation, run separately for all 12 wheel pairs, then averaged point by point — one line, plus its own 12-period smoothed signal line. On the Insights tab's Market Indicators card.",
+        whyItMatters = "A single pair pinned to its upper band could just be that pair's own story. The whole board stretched the same way is a market-wide read, not a one-pair coincidence.",
+    ),
+    LibraryEntry(
         id = "csm",
         term = "CSM (Currency Strength Model)",
         category = "Currency Strength",

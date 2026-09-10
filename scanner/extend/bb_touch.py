@@ -24,6 +24,15 @@ BB_SIGMA = 2.0
 WIDTH_LOOKBACK = 5           # D1 bars back to compare band width against
 WIDTH_TREND_THRESHOLD = 0.10  # +/-10% width change counts as expanding/converging, else flat
 
+# %B (2026-09-10, Pieter's ask) — (close - lower) / (upper - lower) * 100, using the SAME rolling
+# sma/upper/lower this file already builds for the touch/width read above; not clamped to 0-100
+# here (a real, meaningful "walk along the band" pierces past 0 or 100 — the chart that draws this
+# clamps for display, the number itself stays real). PCTB_SIGNAL_PERIOD matches BB_PERIOD by
+# construction (a %B "signal line" is conventionally the same period as the bands it's derived
+# from), not a coincidence needing its own justification.
+PCTB_SIGNAL_PERIOD = 12
+PCTB_LINE_BARS = 56          # matches potential_config.SPARK_BARS's own convention
+
 
 def compute_bb_d1(d1_df) -> dict | None:
     """
@@ -71,6 +80,9 @@ def compute_bb_d1(d1_df) -> dict | None:
         else:
             width_trend = "flat"
 
+    pctb = (closes - lower) / (upper - lower) * 100
+    pctb_sma = pctb.rolling(PCTB_SIGNAL_PERIOD).mean()
+
     return {
         "touching": touching,
         "sma": round(cur_sma, 6),
@@ -78,7 +90,32 @@ def compute_bb_d1(d1_df) -> dict | None:
         "lower": round(cur_lower, 6),
         "width_pct": width_pct,
         "width_trend": width_trend,
+        "pctb": [round(v, 2) for v in pctb.dropna().tail(PCTB_LINE_BARS)],
+        "pctb_sma": [round(v, 2) for v in pctb_sma.dropna().tail(PCTB_LINE_BARS)],
     }
+
+
+def compute_board_percent_b(pairs_out: dict) -> dict:
+    """
+    Market-wide %B (2026-09-10) — the pointwise mean of every pair's own %B / %B-signal line,
+    across whichever pairs currently have a bb_d1 read. Reads what attach_bb_d1() already wrote
+    onto pairs_out; no new band math, single source of truth stays compute_bb_d1() above.
+
+    Pairs' lines can differ in length (different D1 history depth); trimmed to the shortest
+    common length (right-aligned — most recent bars) so the average stays aligned across pairs.
+    Returns {"line": [...], "signal": [...]} (empty lists if no pair has a bb_d1 read yet).
+    """
+    lines = [b["pctb"] for b in (block.get("bb_d1") for block in pairs_out.values()) if b and b.get("pctb")]
+    signals = [b["pctb_sma"] for b in (block.get("bb_d1") for block in pairs_out.values()) if b and b.get("pctb_sma")]
+
+    def _pointwise_mean(series_list: list[list[float]]) -> list[float]:
+        if not series_list:
+            return []
+        n = min(len(s) for s in series_list)
+        trimmed = [s[-n:] for s in series_list]
+        return [round(sum(vals) / len(vals), 2) for vals in zip(*trimmed)]
+
+    return {"line": _pointwise_mean(lines), "signal": _pointwise_mean(signals)}
 
 
 def attach_bb_d1(pairs_out: dict, ohlcv: dict) -> None:

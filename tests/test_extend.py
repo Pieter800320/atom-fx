@@ -316,6 +316,64 @@ def test_bb_touch_alert_edge_triggered():
     assert state_alerts._bb_touch_alerts(out, prev_same) == []
 
 
+# ── %B / Board %B (2026-09-10) ────────────────────────────────────────────────────
+def test_percent_b_present_after_min_history():
+    r = bb_touch.compute_bb_d1(_synthetic_d1(_TIGHT_D1))
+    assert r is not None
+    assert len(r["pctb"]) == len(_TIGHT_D1) - bb_touch.BB_PERIOD + 1  # 17-12+1=6
+    assert r["pctb_sma"] == []  # not enough pctb points yet for a 12-period smoothing
+
+
+def test_percent_b_numeric_correctness():
+    df = _synthetic_d1(_TIGHT_D1)
+    closes = df["close"]
+    sma = closes.rolling(bb_touch.BB_PERIOD).mean()
+    std = closes.rolling(bb_touch.BB_PERIOD).std()
+    upper = sma + bb_touch.BB_SIGMA * std
+    lower = sma - bb_touch.BB_SIGMA * std
+    expected = [round(v, 2) for v in ((closes - lower) / (upper - lower) * 100).dropna().tail(bb_touch.PCTB_LINE_BARS)]
+    r = bb_touch.compute_bb_d1(df)
+    assert r["pctb"] == expected
+
+
+def test_percent_b_not_clamped_outside_bands():
+    # A long flat run, then a final bar closing far outside the just-built band -- %B for that
+    # bar should read past 0/100, not clamped (clamping is the chart's job, not the backend's).
+    closes = [1.1000] * 30 + [1.3000]
+    r = bb_touch.compute_bb_d1(_synthetic_d1(closes))
+    assert r["pctb"][-1] > 100
+
+
+def test_percent_b_sma_is_12_period_rolling_mean():
+    closes = [1.1000 + 0.0001 * (i % 5) for i in range(40)]
+    df = _synthetic_d1(closes)
+    c = df["close"]
+    sma = c.rolling(bb_touch.BB_PERIOD).mean()
+    std = c.rolling(bb_touch.BB_PERIOD).std()
+    upper = sma + bb_touch.BB_SIGMA * std
+    lower = sma - bb_touch.BB_SIGMA * std
+    pctb = (c - lower) / (upper - lower) * 100
+    expected_sma = [round(v, 2) for v in pctb.rolling(bb_touch.PCTB_SIGNAL_PERIOD).mean().dropna().tail(bb_touch.PCTB_LINE_BARS)]
+    r = bb_touch.compute_bb_d1(df)
+    assert r["pctb_sma"] == expected_sma
+
+
+def test_compute_board_percent_b_pointwise_mean():
+    pairs_out = {
+        "EURUSD": {"bb_d1": {"pctb": [10.0, 20.0, 30.0], "pctb_sma": [15.0, 25.0]}},
+        "GBPUSD": {"bb_d1": {"pctb": [50.0, 60.0], "pctb_sma": [55.0, 65.0, 75.0]}},
+        "USDJPY": {"bb_d1": None},  # no read yet -- excluded
+    }
+    board = bb_touch.compute_board_percent_b(pairs_out)
+    # shortest common pctb length is 2 -> both right-aligned to their last 2 points
+    assert board["line"] == [35.0, 45.0]
+    assert board["signal"] == [40.0, 50.0]
+
+
+def test_compute_board_percent_b_empty_when_no_pairs_ready():
+    assert bb_touch.compute_board_percent_b({"EURUSD": {"bb_d1": None}}) == {"line": [], "signal": []}
+
+
 def test_spark_shape():
     ohlcv, _ = _fixture()
     s = spark.compute_spark(ohlcv)

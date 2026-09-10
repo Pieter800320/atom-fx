@@ -211,6 +211,9 @@ private fun BreakdownContent(pairBlock: PairBlock?, colors: AtomColors) {
         SheetDivider(colors)
         Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
         BreakdownSection("STRUCTURE", colors) { StructureTabContent(pairBlock?.structure, colors) }
+        SheetDivider(colors)
+        Spacer(modifier = Modifier.height(BREAKDOWN_SECTION_GAP))
+        BreakdownSection("BOLLINGER %B", colors) { PercentBChart(pairBlock?.bbD1, colors) }
     }
 }
 

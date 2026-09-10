@@ -16,6 +16,11 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
 - **CSM** — Currency Strength Model, 0–100 per currency, over 8 currencies / 16 pairs, D1/H4/H1.
 - **CSM Delta** — change in CSM over a defined lookback: "getting stronger/weaker" (the flow signal).
 - **Breadth** — how many of a currency's relationships agree with its move (broad vs narrow).
+- **%B** — 0–100, where price sits inside its own 12-period D1 Bollinger Bands (50 = middle band,
+  0/100 = the outer bands; can read past 0 or 100, a real "walk along the band"). A 12-period SMA
+  of %B itself is its signal line. `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, Breakdown tab.
+- **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
+  `percent_b_board`, Insights tab's Market Indicators card.
 
 ## The wheels
 
