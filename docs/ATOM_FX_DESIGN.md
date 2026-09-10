@@ -559,11 +559,10 @@ PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Over
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
 ChartSheet          long-press a wheel node: per-pair %B oscillator + value/touch-state header
-                     (§19.4a) — no D1/H4/H1 switcher, %B is D1-only
-PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by both PercentBChart (per-pair,
-                     ChartSheet) and PercentBBoardChart (market-wide, Insights)
-MarketIndicatorsCard Insights-tab card: Relative Rotation/Confidence Index/Breadth Thrust/%B
-                     behind a "+ <current>" fan-out picker, not tabs (§19.4)
+                     (§19.4a), plus the pair's own base/quote Currency %B cards below it — no
+                     D1/H4/H1 switcher, %B is D1-only
+PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by PercentBChart and
+                     CurrencyPercentBCard (both per-pair, ChartSheet)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 FreshnessBadge      fresh / stale / unavailable
@@ -582,64 +581,22 @@ The archetype **banner** is the hero: the regime name in Title weight, a confide
 
 Quiet, utilitarian, grouped rows on `surface`. A prominent **theme** segmented control (System / Dark / Light); a **notifications** group with a "Send test" button; a **data** group (source URL, refresh cadence, last-updated, force-refresh); an **optional** collapsed "Price-level alerts" group that reveals a GitHub-PAT field only when enabled; and an **About / legend** entry that opens the ⓘ guide. No API-key fields for market data or AI — state plainly that those live server-side.
 
-### 19.4 Whole Market Indicators (Insights tab, 2026-09-10)
+### 19.4 Whole Market Indicators — retired 2026-09-10
 
-Four concept indicators, tried live so Pieter could compare them before any one earns a
-permanent home (research/mockup process, not a spec-first build) — a card on `InsightsScreen`
-(chosen over the Wheel landing screen, which has zero idle vertical budget under §17). The
-heading ("WHOLE MARKET INDICATORS") reads at `AtomType.Caption`/`textSecondary` — matching
-`InsightsScreen.kt`'s own other section headers ("BREAKING", "CATALYST CHECK") — not a large
-Title; this card is one more section on the page, not a bigger one (Pieter's follow-up correction
-from an initial `Title`-styled pass). Working titles Rotation/Pulse/Thrust were renamed to real
-technical terms same day (see each bullet); the
-switcher itself was also restyled same day, from a `SheetTabs` 4-way row to a single "+ &lt;current&gt;"
-picker button (`PickerButton`) that fans out into a tap-to-select list (`PickerRow` × 4, Item
-Library #3's reflow mechanic — `AnimatedVisibility`/`expandVertically`+`fadeIn`, 260ms,
-`CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)`, the same recipe `StatusStrip.kt` already proved).
-The picker button itself gets a "bump and settle" press animation — `scale` animates to 0.94 on
-press via `spring(dampingRatio = Spring.DampingRatioMediumBouncy)` reading
-`collectIsPressedAsState()` off the same `InteractionSource` driving its `pressWash` ripple
-(`PressWash.kt` gained an optional `interactionSource` param for this, backward-compatible with
-every existing call site). One chart + a short caption renders below, for whichever is selected.
-
-- **Relative Rotation** (was "Rotation") — a quadrant scatter (new chart grammar, no existing
-  precedent): axes at CSM=50/Delta=0, 4 soft quadrant fills, one squircle marker + short comet
-  trail per currency. The marker is `SmallPillCell`'s own wash (tint at 18% alpha, 8dp corners)
-  with the currency code set inside it, small/non-bold, text coloured to the tint — the
-  technical-pill treatment (`TfAlignmentStrip`), not a dot with an external label (2026-09-10
-  follow-up: a plain dot's label needed its own edge-flip logic to avoid running off the chart;
-  the marker containing its own text sidesteps that, and clamps to stay fully inside the plot at
-  an axis extreme). Colour reuses the 4 existing status tokens as-is (Leading=bull,
-  Weakening=watch, Lagging=bear, Improving=neutral) — **a deliberate choice, Pieter's own call,
-  not a 5th chromatic token** — per §2's "colour encodes market state, never variety."
-- **Confidence Index** (was "Pulse") — a direct extension of §19.1's `LineChart` idiom (1.5dp
-  stroke, soft area fill, emphasised endpoint) onto a bounded 0-100 range, with two dashed
-  threshold lines at 50/70. Colour comes from `pulse.band`, not the series' own start/end like
-  `LineChart` does.
-- **Breadth Thrust** (was "Thrust") — a centered-zero histogram (new shape): one bar per recent
-  scan either side of a zero baseline, bull/bear/neutral by sign, today's bar outlined.
-- **%B ("Board %B")** — a real technical oscillator (Bollinger %B + its own 12-period SMA signal
-  line, D1), not a bespoke concept like the other three. Drawn by the shared
-  `ui/chart/PercentBOscillator.kt` primitive (also used by the per-pair chart below — one drawing,
-  two data sources, so they can't visually drift apart): y-domain clamped 0-100 **for drawing
-  only** (raw %B legitimately pierces past 0/100 — a real "walk along the band" — the backend
-  keeps that true value, per Pieter's own "normalise to oscillate between 0-100" ask); a solid
-  centre line at 50; two dashed threshold lines at 10/90 (display reference only, not a backend
-  gate — Pieter is still watching real data to see which levels hold up); raw %B thin/quiet
-  (`textSecondary`, 1.5dp), the signal line also thin (`watch`, 1dp — Pieter's own follow-up ask,
-  was 2dp/bolder at first) — a neutral accent, deliberately **not** bull/bear-coded, since %B's
-  extremes don't yet have a settled directional meaning. Three sparse date labels (oldest/middle/
-  newest, `MMM d` format) print below the plot when `dates` is present and length-matches the
-  series — one axis label per app convention (RotationChart's own single "CSM →"), not one per bar.
-
-All four are pure consumers of `rotation`/`pulse`/`breadth_thrust`/`percent_b_board`
-(Architecture §4.2) — no value is computed in Kotlin.
-
-An earlier same-day iteration added an on-device rename panel (Item Library #3 again, a "+" glyph
-fanning out 4 editable text fields, persisted via `UserPreferences`) so Pieter could try names
-against the real button width before choosing — superseded once he settled on the real names
-above; the rename plumbing (`UserPreferences.IndicatorLabels` and its 4 setters) was removed
-rather than left dead.
+Built same-day as a card on `InsightsScreen`: four concept indicators (Relative Rotation,
+Confidence Index, Breadth Thrust, and %B/Currency %B) behind a "+ &lt;current&gt;" fan-out picker,
+"tried live so Pieter could compare them before any one earns a permanent home." Once Currency %B
+proved itself the useful one of the five (praised on-device: "The graphs look great... I think
+this might be a very useful indicator"), Pieter's own call was to remove the whole experimental
+card rather than trim it — Currency %B already had a real permanent home by then (§19.4a, below),
+and Relative Rotation/Confidence Index/Breadth Thrust/Board %B had no other surface, so they left
+the app entirely with it. `MarketIndicatorsCard.kt` and its four dedicated chart files
+(`RotationChart.kt`/`PulseChart.kt`/`ThrustChart.kt`/`PercentBBoardChart.kt`/
+`CurrencyPercentBChart.kt`) were deleted outright rather than left dead; the `Signals.kt` fields
+that fed only this card (`rotation`/`pulse`/`breadthThrust`/`percentBBoard`, plus the
+`RotationBlock`/`PulseBlock`/`ThrustBlock` types) were removed the same way. The backend still
+computes and publishes `rotation`/`pulse`/`breadth_thrust`/`percent_b_board` in `signals.json`
+(Architecture §4.2) — nothing server-side was touched — the app simply no longer reads them.
 
 ### 19.4a %B (Bollinger), per-pair (long-press → ChartSheet, moved 2026-09-10)
 
@@ -656,17 +613,19 @@ and a switcher pointing at nothing would be worse than none. In its place, a sma
 above the chart: `%B <value>` (left) and, when `bb_d1.touching` is `"upper"`/`"lower"`, "Still
 touching upper/lower" (right, `bear`/`bull` token — upper reads bear since it signals a stretched-
 up reversion risk, lower bull for the opposite) — blank when not touching either band. Same
-`PercentBOscillator` drawing as Board %B above, reading `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`/
-`.pctbDates` directly — no on-device Bollinger/SMA math or date derivation (Architecture §8.3),
+`ui/chart/PercentBOscillator.kt` primitive every %B chart in this app shares, reading
+`pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`/`.pctbDates` directly — no on-device Bollinger/SMA math or
+date derivation (Architecture §8.3),
 the series and its dates are both backend-computed (see Architecture §4.2's `pctb_dates` entry
 for how the backend recovers dates the frozen aggregator itself discards).
 
 Below the pair's own %B card, two more (2026-09-10, 2nd, Pieter's ask, talked through first) —
 the pair's own base and quote currencies' `percent_b_currency` reads, one small card each
-(`CurrencyPercentBCard`, `ChartSheet.kt`), same `PercentBOscillator` drawing again. The workflow
-behind this: a currency-level "USD looks fragile" read (Currency %B rolling over + CSM weakening,
-read together on the Insights card) only becomes an actual pair-level candidate once you check
-whether the OTHER leg of a specific pair agrees — so both currencies sit right on the pair sheet
+(`CurrencyPercentBCard`, `ChartSheet.kt`), same `PercentBOscillator` drawing again — **this is
+Currency %B's only UI surface** now that §19.4's Insights-tab picker is retired. The workflow
+behind this: a currency-level "USD looks fragile" read (Currency %B rolling over + CSM weakening)
+only becomes an actual pair-level candidate once you check whether the OTHER leg of a specific
+pair agrees — so both currencies sit right on the pair sheet
 next to the pair's own %B, where that comparison happens. Deliberately three separate small
 charts, not one merged one — pair %B (price position within THIS pair's own bands) and currency
 %B (each currency's own stretch across ALL its pairs) are related but different reads; overlaying

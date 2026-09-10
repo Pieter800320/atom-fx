@@ -119,8 +119,6 @@ private fun InsightsContent(signals: Signals, colors: AtomColors) {
             else -> NotAvailableSection("RECOMMENDATION", "Recommendation not available yet", colors)
         }
 
-        MarketIndicatorsCard(signals, colors)
-
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "BREAKING", style = AtomType.Caption.copy(color = colors.textSecondary))
             BreakingHeadlines(signals.breaking?.headlines.orEmpty(), signals.breaking?.themes.orEmpty(), colors)

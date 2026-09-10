@@ -68,6 +68,7 @@ import com.pieter.atomfx.data.NotificationHistoryStore
 import com.pieter.atomfx.data.SignalsRepository
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPreferences
+import com.pieter.atomfx.data.WatchlistStore
 import com.pieter.atomfx.push.extractDeepLinkUri
 import com.pieter.atomfx.push.parseDeepLink
 import com.pieter.atomfx.ui.insights.InsightsScreen
@@ -89,6 +90,8 @@ import com.pieter.atomfx.ui.wheel.WheelScreen
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.OffsetDateTime
 
 const val SIGNALS_TOPIC = "atomfx-signals"
 
@@ -150,6 +153,11 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
     val notificationHistory = remember { NotificationHistoryStore(context.applicationContext) }
     val notificationRecords by notificationHistory.state.collectAsState()
     val hasUnreadNotifications = notificationRecords.any { !it.read }
+    // 2026-09-10 (Pieter's ask) — same "green dot means something needs a look" language as the
+    // gear's own unread-notification dot, extended to the watchlist glyph.
+    val watchlistStore = remember { WatchlistStore(context.applicationContext) }
+    val watchlistItems by watchlistStore.state.collectAsState()
+    val hasWatchlistItems = watchlistItems.isNotEmpty()
 
     // Design §2.1: system by default, overridable by the stored preference — resolved once, here,
     // so every consumer (this theme, WheelCanvas's own isDark param) agrees on one value.
@@ -210,6 +218,15 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
 
         val screenState by viewModel.screenState.collectAsState()
         val loaded = screenState as? WheelScreenState.Loaded
+        // 2026-09-10 (Pieter's ask) — "imminent" = within the next hour, same cadence as the
+        // app's own hourly scan (STALE_AFTER in SignalsRepository.kt uses the same reasoning).
+        // Mirrors CalendarSheet.kt's own relativeCountdown parsing (OffsetDateTime.parse on each
+        // event's `iso`), just collapsed to a single "is anything this close" boolean here.
+        val hasImminentCalendarEvent = loaded?.signals?.calendar?.events.orEmpty().any { event ->
+            val target = event.iso?.let { runCatching { OffsetDateTime.parse(it) }.getOrNull() } ?: return@any false
+            val minutes = Duration.between(OffsetDateTime.now(target.offset), target).toMinutes()
+            minutes in 0..60
+        }
         val pagerState = rememberPagerState(initialPage = AppTab.Wheel.ordinal) { AppTab.entries.size }
         val scope = rememberCoroutineScope()
         var settingsOpen by remember { mutableStateOf(false) }
@@ -246,6 +263,8 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     updated = loaded?.signals?.updated,
                     isFresh = loaded?.freshness == Freshness.FRESH,
                     hasUnreadNotifications = hasUnreadNotifications,
+                    hasImminentCalendarEvent = hasImminentCalendarEvent,
+                    hasWatchlistItems = hasWatchlistItems,
                     onCalendarClick = { calendarOpen = true },
                     onWatchlistClick = { watchlistOpen = true },
                     onSettingsClick = { settingsOpen = true },
@@ -356,6 +375,8 @@ private fun AtomGearBar(
     updated: String?,
     isFresh: Boolean,
     hasUnreadNotifications: Boolean,
+    hasImminentCalendarEvent: Boolean,
+    hasWatchlistItems: Boolean,
     onCalendarClick: () -> Unit,
     onWatchlistClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -386,32 +407,35 @@ private fun AtomGearBar(
                 text = "Updated ${formatUpdated(updated)}",
                 style = AtomType.Caption.copy(color = colors.textMuted),
             )
-            CalendarGlyph(
-                colors = colors,
-                modifier = Modifier.padding(start = 16.dp).pressWash { tap(onCalendarClick) },
-            )
+            HeaderGlyphWithDot(showDot = hasImminentCalendarEvent, colors = colors, modifier = Modifier.padding(start = 16.dp)) {
+                CalendarGlyph(colors = colors, modifier = Modifier.pressWash { tap(onCalendarClick) })
+            }
             // Signals Roadmap §5 (2026-09-09, Pieter's own call) — its own header icon, a sibling
             // to Settings' gear, not nested inside Settings.
-            WatchlistGlyph(
-                colors = colors,
-                modifier = Modifier.padding(start = 14.dp).pressWash { tap(onWatchlistClick) },
-            )
-            Box(modifier = Modifier.padding(start = 14.dp)) {
-                GearGlyph(
-                    colors = colors,
-                    modifier = Modifier.pressWash { tap(onSettingsClick) },
-                )
-                if (hasUnreadNotifications) {
-                    // Same 7dp CircleShape recipe as the freshness dot above — no new visual
-                    // language for "something needs your attention."
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(7.dp)
-                            .background(colors.bull, CircleShape),
-                    )
-                }
+            HeaderGlyphWithDot(showDot = hasWatchlistItems, colors = colors, modifier = Modifier.padding(start = 14.dp)) {
+                WatchlistGlyph(colors = colors, modifier = Modifier.pressWash { tap(onWatchlistClick) })
             }
+            HeaderGlyphWithDot(showDot = hasUnreadNotifications, colors = colors, modifier = Modifier.padding(start = 14.dp)) {
+                GearGlyph(colors = colors, modifier = Modifier.pressWash { tap(onSettingsClick) })
+            }
+        }
+    }
+}
+
+// 2026-09-10 (Pieter's ask) — same "green dot means something needs a look" recipe the gear's own
+// unread-notification dot originated (7dp CircleShape, TopEnd-aligned, colors.bull), now shared
+// across all three header glyphs instead of re-inlined per call site.
+@Composable
+private fun HeaderGlyphWithDot(showDot: Boolean, colors: AtomColors, modifier: Modifier = Modifier, glyph: @Composable () -> Unit) {
+    Box(modifier = modifier) {
+        glyph()
+        if (showDot) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(7.dp)
+                    .background(colors.bull, CircleShape),
+            )
         }
     }
 }

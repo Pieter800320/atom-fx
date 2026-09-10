@@ -24,19 +24,20 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, long-press a wheel node (ChartSheet) — moved off the pair
   sheet's Breakdown tab 2026-09-10.
 - **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
-  `percent_b_board`, Insights tab's Market Indicators card. **Not currency-direction aware** — it
-  averages every pair's raw %B with no regard for which side is base vs. quote, so a falling
-  reading can mean opposite things pair to pair (EUR/USD falling = USD strong; USD/CAD falling =
-  USD weak). See Currency %B below.
+  `percent_b_board`, computed every scan — **no UI surface any more** (lived on the Insights tab's
+  Market Indicators card until that card was retired 2026-09-10, see "Whole Market Indicators"
+  below). **Not currency-direction aware** — it averages every pair's raw %B with no regard for
+  which side is base vs. quote, so a falling reading can mean opposite things pair to pair
+  (EUR/USD falling = USD strong; USD/CAD falling = USD weak). See Currency %B below.
 - **Currency %B** — the currency-direction-corrected sibling to Board %B (2026-09-10, Pieter's own
   catch), one line+signal per currency (same 8 as CSM). Built the same way CSM's own
   `compute_csm_d1` corrects currency strength from a mixed pair set, mirrored around 100 instead
   of negated (since %B is a 0-100 position, not a signed return). `signals.json` key
-  `percent_b_currency`. Two surfaces: Insights tab's Market Indicators card (own 8-currency picker,
-  compares against Board %B directly), and — long-press a wheel node (ChartSheet), 2026-09-10 (2nd)
-  — the pair's own two currencies (base + quote), right alongside that pair's own %B, so a
-  currency-level "USD looks fragile" read can be checked against whether the pair's OTHER leg
-  agrees before treating it as a trade candidate.
+  `percent_b_currency`. Shown long-press a wheel node (ChartSheet) — the pair's own two currencies
+  (base + quote), right alongside that pair's own %B, so a currency-level "USD looks fragile" read
+  can be checked against whether the pair's OTHER leg agrees before treating it as a trade
+  candidate. (It briefly also had an Insights-tab surface, same day — retired with the rest of
+  "Whole Market Indicators" below, once this pair-level one proved to be the useful one.)
 
 ## The wheels
 
@@ -65,29 +66,27 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   the UI (2026-09-02) to keep the Currency Flow sheet and ticker to one clear number per
   currency — flow leader/laggard only. Don't resurface it without checking with him first.
 
-## Whole Market Indicators (Insights tab)
+## Whole Market Indicators — retired 2026-09-10
 
-Four concept reads, one picked at a time via a "+ &lt;current&gt;" button that fans out into a
-tap-to-select list (Item Library #3's own reflow mechanic — not tabs, since six were considered
-before settling on these four names). 2026-09-10: renamed from their working titles
-(Rotation/Pulse/Thrust) to real technical terms, Pieter's own sign-off.
+Was a card on the Insights tab: four concept reads (Relative Rotation, Confidence Index, Breadth
+Thrust, %B/Currency %B) picked one at a time via a "+ &lt;current&gt;" fan-out button — "tried
+live so Pieter could compare them before any one earns a permanent home." Once Currency %B proved
+useful, the whole card was removed rather than trimmed (Currency %B already had its permanent
+home on ChartSheet by then; the other three had nowhere else to go, so they left the app with it).
+Terms kept here for anyone chasing old references:
 
-- **Relative Rotation** (was "Rotation") — a quadrant map of every currency's CSM (h4) against its
-  CSM Delta (h4): **Leading** (strong, gaining) · **Weakening** (strong, losing) · **Lagging**
-  (weak, losing) · **Improving** (weak, gaining). Named for the real methodology it's modelled on
-  (Relative Rotation Graphs, sector-rotation analysis) applied here to currency strength instead.
-  `signals.json` key `rotation`.
-- **Confidence Index** (was "Pulse") — a 0–100 composite of Breadth unanimity, Regime evidence-
-  axis clarity, CSM dispersion percentile, and BB width expansion: is today's market broad/
-  confirmed enough to trust a signal, or thin/contradictory? Bands: **confirmed** (≥70) ·
-  **mixed** (50–69) · **noise** (<50). Null until at least 2 of its 4 inputs are available.
-  Genuinely bespoke — no real external indicator to name it after — this name describes what it
-  measures rather than claiming a pedigree it doesn't have. `signals.json` key `pulse`.
-- **Breadth Thrust** (was "Thrust") — count of currencies with breadth `dir == "strong"` minus
-  `dir == "weak"`, -8..+8: the FX analogue of a stock-market advance/decline line, named for that
-  real indicator family (incl. the Zweig Breadth Thrust). `signals.json` key `breadth_thrust`.
-- **%B** — the 4th view here; see its own entry above (Scores & measurements) — this is the
-  market-wide "Board %B" average, same term either place.
+- **Relative Rotation** (`signals.json` key `rotation`) — a quadrant map of every currency's CSM
+  (h4) against its CSM Delta (h4): Leading/Weakening/Lagging/Improving. Named for the real
+  methodology it's modelled on (Relative Rotation Graphs). Backend still computes it; unused by
+  the app.
+- **Confidence Index** (`signals.json` key `pulse`) — a 0–100 composite of Breadth unanimity,
+  Regime evidence-axis clarity, CSM dispersion percentile, and BB width expansion. Genuinely
+  bespoke, no real external pedigree. Backend still computes it; unused by the app.
+- **Breadth Thrust** (`signals.json` key `breadth_thrust`) — count of currencies breadth-strong
+  minus breadth-weak, -8..+8, the FX analogue of a stock-market advance/decline line (incl. the
+  Zweig Breadth Thrust). Backend still computes it; unused by the app.
+- **%B / "Board %B"** — see its own entry above (Scores & measurements); superseded in the app by
+  Currency %B.
 
 ## Macro
 

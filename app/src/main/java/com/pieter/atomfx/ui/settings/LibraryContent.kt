@@ -149,12 +149,12 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
     ),
     LibraryEntry(
-        id = "board-percent-b",
-        term = "Board %B",
+        id = "currency-percent-b",
+        term = "Currency %B",
         category = "Momentum & Price Action",
-        summary = "The whole board's average %B — how stretched are pairs against their own D1 bands, on average, right now?",
-        howItWorks = "The same %B calculation, run separately for all 12 wheel pairs, then averaged point by point — one line, plus its own 12-period smoothed signal line. On the Insights tab's Market Indicators card.",
-        whyItMatters = "A single pair pinned to its upper band could just be that pair's own story. The whole board stretched the same way is a market-wide read, not a one-pair coincidence.",
+        summary = "Each currency's own %B — how stretched it is against its own recent range, corrected for which side of each pair it's on.",
+        howItWorks = "Averaging every pair's raw %B together doesn't work cleanly: EUR/USD falling means USD is strengthening, but USD/CAD falling means USD is weakening — opposite USD stories. Currency %B fixes this the same way CSM corrects currency strength from a mixed pair set: each pair's %B feeds its base currency directly, and its quote currency mirrored around 100 (since %B is a 0-100 position, not a signed return CSM can just negate). Shown long-press a wheel node: the pair's own base and quote currencies each get a small card below the pair's own %B, so the two can be compared directly.",
+        whyItMatters = "A currency-level read — %B stretched high and rolling over, CSM not confirming new strength — only becomes an actual pair-level candidate once you check whether that pair's OTHER leg agrees. Putting both currencies' own %B right on the pair sheet is where that comparison happens.",
     ),
     LibraryEntry(
         id = "csm",
@@ -194,39 +194,6 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "Below 50%: weak.\n" +
             "This is a confidence read, not a direction read — it says how unanimous the agreement is, not which way. A currency can be strong-and-weakening just as easily as strong-and-strengthening; the app shows the actual direction as its own word (strengthening/weakening/flat) alongside the confidence band, not instead of it.",
         whyItMatters = "The difference between \"EUR is strong\" — broad, real — and \"EUR is strong against JPY\" — one relationship, which could be a JPY story, not a EUR one. Also the difference between \"broadly agreed\" and \"broadly agreed to be rising\" — a currency's pairs can unanimously confirm it's weakening just as easily as strengthening.",
-    ),
-    LibraryEntry(
-        id = "rotation",
-        term = "Rotation",
-        category = "Currency Strength",
-        summary = "A quadrant map of every currency's strength against the momentum of that strength — who's leading, who's fading.",
-        howItWorks = "Each currency is plotted by H4 CSM (strength, left to right) against H4 CSM Delta (momentum of that strength, bottom to top).\n" +
-            "Leading: strong and still gaining.\n" +
-            "Weakening: strong but losing ground.\n" +
-            "Lagging: weak and still losing.\n" +
-            "Improving: weak but gaining ground.\n" +
-            "A short trail behind each dot shows its last few readings.",
-        whyItMatters = "Strength alone doesn't say which way things are heading. A currency can be the strongest on the board and already fading (Weakening), or the weakest and turning the corner (Improving) — Rotation is on the Insights tab.",
-    ),
-    LibraryEntry(
-        id = "pulse",
-        term = "Pulse",
-        category = "Regime & Macro",
-        summary = "0–100. Is today's market broad and confirmed enough to trust a signal, or thin and contradictory?",
-        howItWorks = "An average of up to four reads: how many currencies agree with their own direction (Breadth), how many evidence axes support the current regime (Regime), whether today's currency-strength spread is unusually wide (Separation), and how much of the market is in an expanding volatility phase.\n" +
-            "70 or above: confirmed.\n" +
-            "50–69: mixed.\n" +
-            "Below 50: noise.\n" +
-            "Needs at least two of the four reads available, or it shows nothing rather than a misleading single-input score.",
-        whyItMatters = "A high setup score in a noise market is a weaker bet than the same score in a confirmed one — Pulse is the market-wide context, on the Insights tab.",
-    ),
-    LibraryEntry(
-        id = "thrust",
-        term = "Thrust",
-        category = "Currency Strength",
-        summary = "How many currencies are breadth-strong minus how many are breadth-weak, from -8 to +8 — is the market splitting into winners and losers, or staying flat?",
-        howItWorks = "Counts each of the 8 currencies' own breadth direction: +1 for strong, -1 for weak, 0 for flat, summed.",
-        whyItMatters = "A run of readings near zero says the market is undecided even if individual pairs look busy; a run moving toward +8 or -8 says conviction is building broadly, not just in one pair — Thrust is on the Insights tab.",
     ),
     LibraryEntry(
         id = "setup-rank",

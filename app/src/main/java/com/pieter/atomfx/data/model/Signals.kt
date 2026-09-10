@@ -36,22 +36,17 @@ data class Signals(
     @SerialName("macro_regime") val macroRegime: MacroRegimeBlock? = null,
     val spark: Map<String, SparkEntry> = emptyMap(),
     val conviction: ConvictionBlock? = null,
-    // 2026-09-10 — Rotation/Pulse/Thrust, three new market-state indicators (Insights tab). All
-    // three are pure aggregation of values already in this same document (csm/csm_delta/breadth/
-    // macro_regime/pairs.bb_d1) — see each block's own doc comment.
-    val rotation: RotationBlock? = null,
-    val pulse: PulseBlock? = null,
-    @SerialName("breadth_thrust") val breadthThrust: ThrustBlock? = null,
-    // 2026-09-10 (2nd) — the market-wide average of every pair's own %B/signal line (bb_d1.pctb/
-    // pctbSma above), a 4th "whole board" read alongside rotation/pulse/breadthThrust.
-    @SerialName("percent_b_board") val percentBBoard: PercentBBoardBlock? = null,
-    // 2026-09-10 (5th, Pieter's own catch) — percentBBoard mixes every pair's raw %B with no
-    // regard for which side of the pair is base vs. quote (EURUSD falling = USD strong, USDCAD
-    // falling = USD weak — opposite USD stories averaged together unfixed). This is the
-    // currency-direction-corrected version instead: one entry per currency code (same 8 as CSM),
-    // each shaped exactly like percentBBoard. See `bb_touch.py`'s `compute_currency_percent_b`
-    // for the base/quote mirroring (100 - value on the quote side, since %B is a 0-100 position,
-    // not a signed return CSM's own base/quote split can just negate).
+    // 2026-09-10 (5th, Pieter's own catch) — percent_b_board (the market-wide average of every
+    // pair's own %B/signal line) mixes every pair's raw %B with no regard for which side of the
+    // pair is base vs. quote (EURUSD falling = USD strong, USDCAD falling = USD weak — opposite
+    // USD stories averaged together unfixed). This is the currency-direction-corrected version
+    // instead: one entry per currency code (same 8 as CSM). See `bb_touch.py`'s
+    // `compute_currency_percent_b` for the base/quote mirroring (100 - value on the quote side,
+    // since %B is a 0-100 position, not a signed return CSM's own base/quote split can just
+    // negate). Rotation/Pulse/Thrust/percent_b_board themselves (2026-09-10's original "Whole
+    // Market Indicators" experiment) were retired 2026-09-10 (2nd) — the card they lived on was
+    // removed once Currency %B (shown per-pair on ChartSheet instead) proved to be the useful one
+    // of the five; `PercentBBoardBlock` survives only as this field's own map-value shape.
     @SerialName("percent_b_currency") val percentBCurrency: Map<String, PercentBBoardBlock> = emptyMap(),
     @SerialName("schema_version") val schemaVersion: Int? = null,
 )
@@ -387,52 +382,6 @@ data class SparkEntry(
     val d1: List<Double> = emptyList(),
     val h4: List<Double> = emptyList(),
     val h1: List<Double> = emptyList(),
-)
-
-/** 2026-09-10 — currency strength (x, CSM h4) plotted against momentum-of-strength (y, CSM Delta
- *  h4), quadrant-classified. `history` is a short oldest-first comet trail per currency, each
- *  entry `[x, y]`. See `rotation.py`'s own doc comment for the quadrant convention. */
-@Serializable
-data class RotationBlock(
-    val tf: String? = null,
-    val points: Map<String, RotationPoint> = emptyMap(),
-    val history: Map<String, List<List<Double>>> = emptyMap(),
-)
-
-@Serializable
-data class RotationPoint(
-    val x: Double? = null,
-    val y: Double? = null,
-    val quadrant: String? = null,
-)
-
-/** 2026-09-10 — "is this a market where today's signals can be trusted, or is it noise?" A 0-100
- *  composite of unanimity/regime-clarity/separation/volatility-phase; `score`/`band` are null
- *  when fewer than 2 of the 4 axes are available (see `market_pulse.py`'s own doc comment).
- *  `history` is oldest-first, one score per scan it was computable. */
-@Serializable
-data class PulseBlock(
-    val score: Double? = null,
-    val band: String? = null,
-    val axes: PulseAxes = PulseAxes(),
-    val history: List<Double> = emptyList(),
-)
-
-@Serializable
-data class PulseAxes(
-    val unanimity: Double? = null,
-    @SerialName("regime_clarity") val regimeClarity: Double? = null,
-    val separation: Double? = null,
-    @SerialName("volatility_phase") val volatilityPhase: Double? = null,
-)
-
-/** 2026-09-10 — the FX advance/decline line: count of currencies with breadth `dir == "strong"`
- *  minus `dir == "weak"`, range -8..+8. `history` is oldest-first. See `breadth.py`'s
- *  `compute_thrust` for the exact aggregation. */
-@Serializable
-data class ThrustBlock(
-    val h4: Int? = null,
-    val history: List<Int> = emptyList(),
 )
 
 /** 2026-09-10 (2nd) — pointwise mean of every pair's `bb_d1.pctb`/`pctbSma`, oldest-first. See
