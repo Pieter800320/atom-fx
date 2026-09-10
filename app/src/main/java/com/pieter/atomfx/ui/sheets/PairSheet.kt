@@ -411,21 +411,23 @@ private fun overviewRows(node: PairNode, signals: Signals, pairBlock: PairBlock?
     // one. Tint and text now both come off `node.trendDirection` (the H4 pill), the same field
     // the wheel's own Trend wing uses (WheelCanvas.modeHue) — one source, not two.
     val h4Direction = node.trendDirection
-    val trendUnconfirmed = node.adx >= 25 && h4Direction == Direction.NEUTRAL
+    // 2026-09-10 (Pieter's ask) — the old "ADX >=25 but H4 pill neutral" mismatch got its own
+    // WATCH flag and "…but direction unconfirmed" text; folded into a plain neutral read now,
+    // same call already made for the wheel's own Trend wing (WheelCanvas.modeHue) — no separate
+    // callout, just an ordinary neutral-tinted trend reading whose magnitude text (below) still
+    // says what ADX itself shows.
     // Succinct on purpose (Pieter's ask) — "X is happening, good/bad/meh," one short line, not a
     // paragraph. ADX 60+ still gets its own "risky" word rather than just "strong," since a
     // reading that rare (see the Library's ADX entry) is genuinely a different situation from a
     // garden-variety 25-40, not more of the same.
     val trendRow = OverviewRow(
         label = "TREND (H4)",
-        tint = when {
-            trendUnconfirmed -> OverviewTint.WATCH
-            h4Direction == Direction.BULL -> OverviewTint.BULL
-            h4Direction == Direction.BEAR -> OverviewTint.BEAR
+        tint = when (h4Direction) {
+            Direction.BULL -> OverviewTint.BULL
+            Direction.BEAR -> OverviewTint.BEAR
             else -> OverviewTint.NEUTRAL
         },
         explanation = when {
-            trendUnconfirmed -> "Trending on H4, but direction unconfirmed."
             node.adx >= 60 -> "Extreme trend on H4 — exhaustion risk."
             node.adx >= 40 -> "Very strong trend on H4."
             node.adx >= 25 -> "Trending on H4."
