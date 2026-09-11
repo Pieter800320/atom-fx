@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-11T09:38:26.062268+00:00",
+  "updated": "2026-09-11T10:38:16.662490+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -3003,24 +3003,24 @@
     }
   },
   "regime_w1": {
-    "regime": "Mixed",
-    "confidence": "Low",
-    "score": 5.0,
-    "signals": 0,
-    "total": 2,
-    "stable": true
+    "regime": "Risk-On",
+    "confidence": "Medium",
+    "score": 0.0,
+    "signals": -1,
+    "total": 1,
+    "stable": false
   },
   "macro": {
     "label": "Risk-On",
     "signals": -1,
     "total": 3,
     "confidence": "Low",
-    "stable": false
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 17.6,
-      "delta_pct": -1.3,
+      "value": 17.15,
+      "delta_pct": -3.9,
       "direction": "flat",
       "label": "VIX"
     },
@@ -3031,20 +3031,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4391.0,
+      "value": 4390.2,
       "delta_pct": 0.6,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.119,
-      "delta_pct": 0.0,
+      "value": 99.17,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.545,
-      "delta_pct": 1.2,
+      "value": 6.5365,
+      "delta_pct": 1.1,
       "direction": "up",
       "label": "Copper"
     },
@@ -3061,14 +3061,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 100.7,
-      "delta_pct": -1.7,
+      "value": 99.2,
+      "delta_pct": -3.2,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77346.0,
-      "delta_pct": 1.0,
+      "value": 77003.0,
+      "delta_pct": 0.6,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3081,8 +3081,8 @@
   },
   "macro_assets_w1": {
     "vix": {
-      "direction": "up",
-      "delta_pct": 21.1,
+      "direction": "flat",
+      "delta_pct": 18.0,
       "label": "VIX"
     },
     "spx": {
@@ -3092,17 +3092,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.2,
+      "delta_pct": -2.3,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.1,
+      "delta_pct": 0.2,
       "label": "DXY"
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": -0.5,
+      "delta_pct": -0.6,
       "label": "Copper"
     },
     "us10y": {
@@ -3117,12 +3117,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 10.3,
+      "delta_pct": 8.7,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -3.7,
+      "delta_pct": -4.2,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3132,24 +3132,29 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT at risk. UK GDP beat +0.4% vs 0.0% expected accelerates GBP upside.",
-    "updated": "2026-09-11T08:38:15.000740+00:00"
+    "text": "USDCHF LONG at risk: USD testing new lows vs JPY signals broader dollar weakness conflicting setup.",
+    "updated": "2026-09-11T10:38:16.662490+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y strength confirms USD bid thesis directly.\n\nGBPUSD SHORT: US 10Y rise supports short bias confirmation today.",
+    "text": "USDCHF LONG: US 10Y rise confirms USD strength bias today.\n\nNZDJPY SHORT: Gold and equities weakness confirm JPY safe-haven bid.\n\nNZDUSD SHORT: Rising US 10Y confirms USD bid against NZD.",
     "top": [
+      {
+        "pair": "USDCHF",
+        "direction": "bull",
+        "score": 7.55
+      },
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 6.4
+      },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 6.55
-      },
-      {
-        "pair": "GBPUSD",
-        "direction": "bear",
-        "score": 5.33
+        "score": 6.38
       }
     ],
-    "updated": "2026-09-11T08:38:15.000740+00:00"
+    "updated": "2026-09-11T10:38:16.662490+00:00"
   },
   "calendar": {
     "events": [
@@ -3214,7 +3219,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-11T08:38:15.000740+00:00"
+    "updated": "2026-09-11T10:38:16.662490+00:00"
   },
   "deep_analysis": {
     "text": "Gold firmer, VIX easing and bitcoin higher point to a mild risk-on tone, though equities slipping and a notable jump in US10Y yields muddy that read, keeping the dollar bloc's weakness less than clean-cut. DXY sits flat, neither confirming nor denying gold's signal, while oil's drop weighs on commodity-linked currencies even as copper's gain hints at underlying demand resilience. Headlines center on Fed hike bets reviving against an ECB tightening backdrop, framing a broader central-bank divergence theme. The next major risk is the US CPI and PPI prints, alongside the ECB decision, both landing within hours and likely to reset the rate-differential narrative driving major currencies.",
@@ -3222,16 +3227,16 @@
   },
   "breaking": {
     "headlines": [
-      "UK July monthly GDP +0.4% beats 0.0% expectation; supports GBP strength",
-      "US Dollar tests new lows against JPY; DXY weakness persists",
-      "ECB tightening decision looms; inflation risks rise amid Fed hike bets"
+      "US Dollar tests new lows against Japanese Yen amid risk-off sentiment",
+      "ECB tightening looms; Fed hike bets rise supporting dollar volatility",
+      "Strong US jobs data revives Fed rate hike expectations this cycle"
     ],
     "themes": [
       "risk",
-      "usd",
+      "rates",
       "rates"
     ],
-    "updated": "2026-09-11T08:38:15.000740+00:00"
+    "updated": "2026-09-11T10:38:16.662490+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
