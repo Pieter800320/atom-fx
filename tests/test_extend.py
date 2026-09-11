@@ -375,16 +375,35 @@ def test_compute_board_percent_b_empty_when_no_pairs_ready():
 
 
 def test_d1_ny_close_boundary_at_17_ny_edt():
-    # 2026-09-10 is EDT (UTC-4): 17:00 NY == 21:00 UTC. The H1 bar starting 20:00 UTC (16:00-17:00
-    # EDT, before the boundary) belongs to the SESSION LABELED THE PREVIOUS calendar date (it
-    # covers Sep-09 17:00 EDT -> Sep-10 17:00 EDT); the bar starting 21:00 UTC (right at 17:00 EDT)
-    # starts the next session, labeled Sep-10.
+    # 2026-09-10 is EDT (UTC-4): 17:00 NY == 21:00 UTC. DECISION-006: the date label is now the
+    # session's CLOSE day (agg_nyclose's convention), not its open day. The H1 bar starting
+    # 20:00 UTC (16:00-17:00 EDT, before the boundary) belongs to the session that CLOSES on
+    # Sep-10 (it covers Sep-09 17:00 EDT -> Sep-10 17:00 EDT) -> labeled Sep-10; the bar starting
+    # 21:00 UTC (right at 17:00 EDT) starts the NEXT session, which closes Sep-11 -> labeled Sep-11.
     h1_df = pd.DataFrame({
         "datetime": ["2026-09-10 20:00:00", "2026-09-10 21:00:00"],
         "open": [1.1, 1.2], "high": [1.1, 1.2], "low": [1.1, 1.2], "close": [1.1, 1.2],
     })
     d1 = bb_touch._d1_ny_close(h1_df)
-    assert d1["date"].astype(str).tolist() == ["2026-09-09", "2026-09-10"]
+    assert d1["date"].astype(str).tolist() == ["2026-09-10", "2026-09-11"]
+
+
+def test_d1_ny_close_delegates_to_agg_nyclose_dated_bar_for_bar():
+    """DECISION-006 invariant: bb_touch._d1_ny_close is now a thin adapter onto
+    agg_nyclose.aggregate_d1_nyclose_dated — same OHLC, same close-day date labels, only the
+    'date' column's dtype differs (plain datetime.date here, to keep the three existing call
+    sites' `.astype(str)` -> "YYYY-MM-DD" behaviour unchanged)."""
+    from scanner.extend.agg_nyclose import aggregate_d1_nyclose_dated
+
+    h1_df = _synthetic_h1(seed=7, base=1.15, n=600)
+    via_bb_touch = bb_touch._d1_ny_close(h1_df)
+    via_agg_nyclose = aggregate_d1_nyclose_dated(h1_df)
+
+    assert len(via_bb_touch) == len(via_agg_nyclose) > 0
+    for col in ("open", "high", "low", "close"):
+        assert via_bb_touch[col].tolist() == via_agg_nyclose[col].tolist()
+    # close-day label: bb_touch's plain date() must equal agg_nyclose's own Timestamp date
+    assert via_bb_touch["date"].tolist() == via_agg_nyclose["date"].dt.date.tolist()
 
 
 def test_attach_bb_d1_uses_ny_close_dates_when_raw_ohlcv_given():

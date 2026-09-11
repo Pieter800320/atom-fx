@@ -52,6 +52,13 @@ DECISION-003 — Stop basis: H1 pullback structural low − stop_buffer_atr×ATR
 DECISION-004 — Position sizing: OUT of v1. App emits entry/stop/target/R:R + pip distance;
               user sizes by own risk-% rule.                     Status: DECIDED (2026-09-11)
 DECISION-005 — Parameter defaults                    Status: PROPOSED → DECIDED after Task 5
+
+DECISION-006 — Unify D1 NY-close on one helper: scanner/extend/bb_touch.py's _d1_ny_close now
+              delegates to scanner/extend/agg_nyclose.aggregate_d1_nyclose_dated instead of
+              re-bucketing independently; date label standardized to the session's CLOSE day
+              (agg_nyclose's convention) instead of bb_touch's old OPEN-day label — same
+              bars/values, label shifts by exactly one calendar day.
+                                                                    Status: DECIDED (2026-09-11)
 ```
 
 ---

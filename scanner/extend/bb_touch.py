@@ -22,6 +22,7 @@ import pandas as pd
 
 from scanner.config import CURRENCIES
 from scanner.csm import STRENGTH_PAIRS
+from scanner.extend.agg_nyclose import aggregate_d1_nyclose_dated
 
 BB_PERIOD = 12
 BB_SIGMA = 2.0
@@ -40,41 +41,31 @@ PCTB_LINE_BARS = 56          # matches potential_config.SPARK_BARS's own convent
 
 def _d1_ny_close(h1_df) -> "pd.DataFrame":
     """
-    2026-09-10 (%B/touch precision fix) — an independent D1 aggregation, %B/touch only, using
-    the retail-platform convention: a daily candle runs 17:00 New York -> next 17:00 New York,
-    not UTC midnight. `scanner/aggregator.py` (frozen, never edited) deliberately uses UTC
-    midnight instead, and says so in its own docstring: "the small session-boundary difference
-    is acceptable for trend/momentum signals" — true for a coarse bull/bear pill, not true for
-    %B/touch, which reads the exact daily high/low/close. During a fast one-directional move
-    (confirmed 2026-09-10: USDJPY's news-driven plunge, our %B vs. live LiteFinance read didn't
-    match) the up-to-7h boundary gap means our "today" bar and a broker's "today" bar cover
-    different hours, which is enough to disagree on whether a band was actually touched.
+    D1 aggregation on the retail-platform convention: a daily candle runs 17:00 New York ->
+    next 17:00 New York, not UTC midnight. `scanner/aggregator.py` (frozen, never edited)
+    deliberately uses UTC midnight instead, and says so in its own docstring: "the small
+    session-boundary difference is acceptable for trend/momentum signals" — true for a coarse
+    bull/bear pill, not true for %B/touch, which reads the exact daily high/low/close. During a
+    fast one-directional move (confirmed 2026-09-10: USDJPY's news-driven plunge, our %B vs.
+    live LiteFinance read didn't match) the up-to-7h boundary gap means our "today" bar and a
+    broker's "today" bar cover different hours, which is enough to disagree on whether a band
+    was actually touched.
 
-    Same "independently re-bucket the SAME raw H1 fetch scan_h1.py already has" pattern this
-    file used for dates alone before (`_d1_dates`, now folded into this function) — Rule #1
-    safe, reads frozen OHLCV only, never modifies it, never touches the frozen aggregator.
-    Returns a D1-shaped frame (open/high/low/close, oldest first) plus a `date` column (the NY
-    session's own start date) — dates and bars now come from one call, so they're aligned by
-    construction; no separate length-mismatch guard needed for this path any more.
-
-    NY local time via `tz_convert` (not a fixed UTC offset) so the 17:00 boundary is correct
-    across the EDT/EST transition, not just whichever offset happened to apply when this was
-    written.
+    DECISION-006 (2026-09-11) — delegates to `scanner.extend.agg_nyclose.aggregate_d1_nyclose_dated`
+    instead of re-bucketing independently. There is now exactly ONE implementation of the D1
+    NY-close boundary math in this codebase (agg_nyclose); this function is a thin adapter onto
+    it, not a second aggregator. The 17:00-NY boundary itself is unchanged, and so is every
+    open/high/low/close value this produces — DST handling and the date LABEL are what got
+    standardized: this function used to label a session by its own OPEN day
+    (`(ny - 17h).date`); agg_nyclose labels the SAME session by its CLOSE day
+    (`floor(ny_walltime + 7h)`, DST-aware via `tz_convert`) — one calendar day later, identical
+    bars. The `date` column below is therefore now the close-day label, converted back to plain
+    `datetime.date` (this function's original dtype) so the three existing call sites'
+    `.astype(str)` -> "YYYY-MM-DD" behaviour is unchanged.
     """
-    df = h1_df.copy()
-    df["dt"] = pd.to_datetime(df["datetime"], utc=True)
-    df = df.sort_values("dt").set_index("dt")
-    for col in ("open", "high", "low", "close"):
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    ny = df.index.tz_convert("America/New_York")
-    session_date = (ny - pd.Timedelta(hours=17)).date
-
-    d1 = df.groupby(session_date).agg(
-        open=("open", "first"), high=("high", "max"), low=("low", "min"), close=("close", "last"),
-    ).dropna(subset=["open", "close"])
-    d1.index.name = "date"
-    return d1.reset_index()
+    d1 = aggregate_d1_nyclose_dated(h1_df)
+    d1["date"] = d1["date"].dt.date
+    return d1
 
 
 def compute_bb_d1(d1_df, dates: list[str] | None = None) -> dict | None:
