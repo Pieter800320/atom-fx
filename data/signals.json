@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-11T02:38:19.493626+00:00",
+  "updated": "2026-09-11T04:38:18.239347+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3002,10 +3002,10 @@
     "stable": true
   },
   "macro": {
-    "label": "Mixed",
-    "signals": 0,
-    "total": 4,
-    "confidence": "Neutral",
+    "label": "Risk-On",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
     "stable": false
   },
   "macro_assets": {
@@ -3022,21 +3022,21 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4366.2,
-      "delta_pct": -1.1,
-      "direction": "down",
+      "value": 4368.3,
+      "delta_pct": 0.1,
+      "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.121,
+      "value": 99.098,
       "delta_pct": 0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.5305,
-      "delta_pct": -4.0,
-      "direction": "down",
+      "value": 6.539,
+      "delta_pct": 1.1,
+      "direction": "up",
       "label": "Copper"
     },
     "us10y": {
@@ -3052,14 +3052,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 102.72,
-      "delta_pct": 6.9,
-      "direction": "up",
+      "value": 102.47,
+      "delta_pct": -0.0,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 76859.0,
-      "delta_pct": -1.8,
+      "value": 77074.0,
+      "delta_pct": -1.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3083,7 +3083,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -0.0,
+      "delta_pct": -2.7,
       "label": "Gold"
     },
     "dxy": {
@@ -3093,7 +3093,7 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": 0.5,
+      "delta_pct": -0.6,
       "label": "Copper"
     },
     "us10y": {
@@ -3108,12 +3108,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 12.9,
+      "delta_pct": 12.2,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -3.7,
+      "delta_pct": -3.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3123,16 +3123,16 @@
     }
   },
   "catalyst": {
-    "text": "AUDJPY SHORT at risk: Japan PPI +7.6% accelerates BOJ hike probability, supporting JPY.",
-    "updated": "2026-09-11T02:38:19.493626+00:00"
+    "text": "NZDJPY SHORT at risk: Strong Japan PPI (+7.6% y/y) accelerates BOJ hike expectations, strengthening JPY directionally against NZD.",
+    "updated": "2026-09-11T04:38:18.239347+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Macro confirms setup; USD bid from VIX and yields.\n\nNZDJPY SHORT: Macro confirms setup; JPY bid from VIX and equities.\n\nAUDJPY SHORT: Macro confirms setup; JPY bid overwhelms copper weakness for AUD.",
+    "text": "NZDUSD SHORT: Macro confirms setup via dual USD bid drivers VIX and rates.\n\nNZDJPY SHORT: Macro confirms setup via JPY bid from VIX and equities.\n\nAUDJPY SHORT: Macro confirms setup via JPY bid from VIX and equities.",
     "top": [
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 9.12
+        "score": 8.93
       },
       {
         "pair": "NZDJPY",
@@ -3145,7 +3145,7 @@
         "score": 7.53
       }
     ],
-    "updated": "2026-09-11T02:38:19.493626+00:00"
+    "updated": "2026-09-11T04:38:18.239347+00:00"
   },
   "calendar": {
     "events": [
@@ -3210,7 +3210,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-11T02:38:19.493626+00:00"
+    "updated": "2026-09-11T04:38:18.239347+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-off as equities slip, the VIX jumps and gold eases alongside a firmer dollar index, though the gold signal itself stays neutral, leaving conviction incomplete. Yields pushing higher add dollar support even as recent headlines flagged broader dollar softness against major peers, a tension pointing to a market still digesting rate-path signals rather than committing fully to one regime. Oil's sharp surge lifts the commodity-currency backdrop selectively while copper's drop and Bitcoin's decline reinforce cautious positioning in risk-sensitive currencies. The next major risk arrives fast: the ECB decision, followed by US CPI and PPI, then BoE, BoC and RBNZ rate calls stacked through the session, setting up a heavy volatility window across major blocs.",
@@ -3218,16 +3218,16 @@
   },
   "breaking": {
     "headlines": [
-      "Japan PPI surges +7.6% y/y, strengthening case for BOJ rate hike",
-      "US Dollar tests new lows against Japanese Yen amid bond market shifts",
-      "ECB tightening decision looms as inflation risks rise, supporting Euro strength"
+      "Japan PPI surges +7.6% y/y, strengthening BOJ hike case significantly",
+      "US Dollar tests new lows against Japanese Yen; USD/JPY weakens",
+      "ECB tightening looms as inflation risks rise; EUR/USD key levels"
     ],
     "themes": [
       "rates",
-      "rates",
+      "usd",
       "rates"
     ],
-    "updated": "2026-09-11T02:38:19.493626+00:00"
+    "updated": "2026-09-11T04:38:18.239347+00:00"
   },
   "last_alert": "2026-09-10T20:17:42.661478+00:00",
   "gold_signal": {
