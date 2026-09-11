@@ -29,15 +29,20 @@ HOW TO RUN
     calls to stay well inside the per-minute rate limit; on a pair's error, prints and
     moves on to the next pair rather than aborting the whole run.
 
-Rule #1: EXTEND. Reuses the frozen scanner.fetch._get (rate-limited HTTP + retry + the
-daily-limit abort) read-only, via a local helper that adds the `end_date` paging parameter
-scanner.fetch.fetch_ohlcv() doesn't expose — never edits scanner/fetch.py. Reuses
-scanner.extend.agg_nyclose (Task 1a) for the boundary math and scanner.extend.d1_store
-(Task 1b) for persistence — no duplicated aggregation logic here.
+Rule #1: EXTEND. Reuses the frozen scanner.fetch module read-only for auth/rate-limiting
+(fetch.API_KEY, fetch.BASE, fetch._rate_wait) — never edits scanner/fetch.py. The actual HTTP
+request is this tool's own _get()/_build_url() (see their docstrings for why: fetch._get's
+own query-string building doesn't survive an `end_date` value, which fetch.fetch_ohlcv()
+doesn't even expose as a param in the first place). Reuses scanner.extend.agg_nyclose
+(Task 1a) for the boundary math and scanner.extend.d1_store (Task 1b) for persistence — no
+duplicated aggregation logic here.
 =========================================================================
 """
+import json
 import sys
 import time
+import urllib.parse
+import urllib.request
 
 import pandas as pd
 
@@ -51,17 +56,69 @@ TARGET_D1 = 550        # spec §3 acceptance: >= 500 NY-close D1 bars per pair a
 MAX_PAGES = 12          # safety cap; ~2+ years of H1 history needs ~3 pages in practice
 CALL_DELAY_S = 8        # spec: "spaced for the rate limit"
 
+_consecutive_429 = 0    # local to this tool; mirrors fetch._get's own daily-limit abort
+
+
+def _build_url(endpoint: str, params: dict) -> str:
+    """Pure URL builder, no I/O — properly percent-encodes every param via
+    urllib.parse.urlencode(quote_via=urllib.parse.quote), unlike the frozen scanner.fetch._get
+    (which this tool can't edit), whose query string is built by plain f"{k}={v}"
+    concatenation. That concatenation works for every OTHER caller in this app because none of
+    them pass a value containing a space or colon — but this tool's `end_date` paging cursor
+    is Twelvedata's own "YYYY-MM-DD HH:MM:SS" format, which DOES contain both, and
+    urllib.request.urlopen rejects a URL with a raw, unescaped space ("URL can't contain
+    control characters"). quote() (not urlencode's default quote_plus) encodes a space as
+    %20, not '+' — some datetime parsers mishandle '+' as a literal plus sign. This also
+    percent-encodes a pair symbol's "/" (e.g. "EUR/USD" -> "EUR%2FUSD") — a cosmetic wire
+    difference from the frozen fetch._get's raw, unescaped "/", but %2F decodes back to "/"
+    correctly on any standards-compliant server, so Twelvedata reads the same symbol either way.
+    """
+    query = {**params, "apikey": fetch.API_KEY}
+    return f"{fetch.BASE}/{endpoint}?" + urllib.parse.urlencode(query, quote_via=urllib.parse.quote)
+
+
+def _get(endpoint: str, params: dict, retries: int = 3) -> dict:
+    """Same request/retry/rate-limit/daily-abort behaviour as the frozen scanner.fetch._get,
+    reusing its rate limiter (fetch._rate_wait) and credentials (fetch.API_KEY/fetch.BASE)
+    read-only — only the URL construction differs (_build_url() above), which is the actual
+    bug fix. Kept local to this tool rather than editing scanner/fetch.py."""
+    global _consecutive_429
+    url = _build_url(endpoint, params)
+    for attempt in range(1, retries + 1):
+        fetch._rate_wait()
+        try:
+            with urllib.request.urlopen(url, timeout=60) as r:
+                data = json.loads(r.read().decode())
+            if data.get("code") == 429:
+                _consecutive_429 += 1
+                if _consecutive_429 >= 3:
+                    raise RuntimeError(
+                        f"Daily API credit limit reached (3 consecutive 429s). "
+                        f"Message: {data.get('message', '-')}"
+                    )
+                wait = 15 * attempt
+                print(f"  ⚠ 429 rate limit — waiting {wait}s (attempt {attempt}/{retries})")
+                time.sleep(wait)
+                continue
+            _consecutive_429 = 0
+            return data
+        except RuntimeError:
+            raise
+        except Exception as e:
+            print(f"  ⚠ _get attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(15)
+    raise TimeoutError(f"All {retries} attempts failed for {url[:80]}")
+
 
 def _fetch_h1_page(symbol: str, end_date: str | None, outputsize: int = PAGE_SIZE):
-    """One page of raw H1 bars via the frozen scanner.fetch._get, read-only. Adds the
-    `end_date` backward-paging cursor, which the frozen fetch.fetch_ohlcv() doesn't expose —
-    everything else (auth, rate limiting, retry, the daily-limit abort) is the same frozen
-    call every other fetch in this app goes through. Returns None on a provider error."""
+    """One page of raw H1 bars. Adds the `end_date` backward-paging cursor, which
+    scanner.fetch.fetch_ohlcv() doesn't expose as a param. Returns None on a provider error."""
     params = {"symbol": symbol, "interval": "1h", "outputsize": outputsize,
               "order": "ASC", "type": "price"}
     if end_date:
         params["end_date"] = end_date
-    raw = fetch._get("time_series", params)
+    raw = _get("time_series", params)
     if raw.get("status") == "error" or "values" not in raw:
         print(f"  ⚠ {symbol}: fetch error at end_date={end_date}: {raw.get('message', '?')}")
         return None
