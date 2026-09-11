@@ -47,6 +47,17 @@ def _trading_days(h1_df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _aggregate(tagged_df: pd.DataFrame) -> pd.DataFrame:
+    """Internal: the one groupby/agg step shared by both public aggregators below —
+    tagged_df is _trading_days()'s output (has a 'trading_day' column)."""
+    return tagged_df.groupby("trading_day").agg(
+        open=("open", "first"),
+        high=("high", "max"),
+        low=("low", "min"),
+        close=("close", "last"),
+    ).dropna(subset=["open", "close"])
+
+
 def aggregate_d1_nyclose(h1_df: pd.DataFrame) -> pd.DataFrame:
     """
     Aggregate H1 -> D1 on a 17:00 America/New_York close (DST-aware); Sunday's reopen bars
@@ -59,18 +70,25 @@ def aggregate_d1_nyclose(h1_df: pd.DataFrame) -> pd.DataFrame:
     The incomplete current trading day is included (matches the frozen aggregator's
     behaviour) — it is simply whatever the last group happens to contain.
     """
-    df = _trading_days(h1_df)
-    d1 = df.groupby("trading_day").agg(
-        open=("open", "first"),
-        high=("high", "max"),
-        low=("low", "min"),
-        close=("close", "last"),
-    ).dropna(subset=["open", "close"])
-
-    d1 = d1.reset_index(drop=True)
+    d1 = _aggregate(_trading_days(h1_df)).reset_index(drop=True)
     for col in ("open", "high", "low", "close"):
         d1[col] = d1[col].astype(float)
     return d1
+
+
+def aggregate_d1_nyclose_dated(h1_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Same aggregation as aggregate_d1_nyclose() (identical grouping via _trading_days/
+    _aggregate — no duplicated boundary math), but keeps the trading-day key as a 'date'
+    column instead of discarding it. For Task 1b's persisted store (scanner/extend/d1_store.py),
+    which needs the date to merge/append correctly across scans.
+
+    Output columns: date, open, high, low, close (date first, oldest row first).
+    """
+    d1 = _aggregate(_trading_days(h1_df)).reset_index().rename(columns={"trading_day": "date"})
+    for col in ("open", "high", "low", "close"):
+        d1[col] = d1[col].astype(float)
+    return d1[["date", "open", "high", "low", "close"]]
 
 
 def with_emas(d1_df: pd.DataFrame) -> pd.DataFrame:
