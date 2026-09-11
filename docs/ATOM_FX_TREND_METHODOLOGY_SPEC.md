@@ -78,6 +78,25 @@ Evidence: manual H1 diagnostic on EUR/USD, 2026-09-12 — identical weekend bloc
         both the "recent" and end_date-paginated fetch paths for the same calendar dates,
         ruling out a pagination/fetch-path artifact; confirmed absent before 2026-01-11 via
         the same paginated fetch style one week earlier.
+
+DECISION-008 — Backtest modeling assumptions (tools/backtest_trend_pullback.py, Task 5).
+                                                                    Status: DECIDED (2026-09-12)
+Decision: No look-ahead — at each step the detector sees only H1 bars up to and including the
+        current bar (a bounded rolling window, never anything later). Entry = the detector's
+        own returned `entry` (signal-bar close); stop/target = the detector's own outputs,
+        never recomputed by the backtest. Trade resolution walks forward bar by bar (H1):
+        LONG loses if bar.low <= stop, wins if bar.high >= target — a bar hitting BOTH
+        resolves as a STOP (conservative); SHORT mirrors. MAX_HOLD_BARS = 360 (~15 trading
+        days); if neither hits by then, exit at that bar's close, exit_reason="timeout". One
+        open position per pair at a time; scanning resumes on the bar after the exit bar.
+        Params = trend_pullback.PARAMS, the detector's own defaults — no sweep in this task.
+Reason: A baseline edge check must replay the SHIPPED detector faithfully (calling
+        evaluate_from_h1 itself, never a re-implementation of any gate) under assumptions a
+        reasonable trader would actually apply, without look-ahead and without tuning
+        parameters to the very sample being used to judge them.
+Affected: tools/backtest_trend_pullback.py only. No frozen file, scan_h1.py, or the detector
+        touched. Gates further work (Task 4 live wiring, DECISION-005 param ratification) on
+        review of this backtest's results — not run automatically as part of it.
 ```
 
 ---
