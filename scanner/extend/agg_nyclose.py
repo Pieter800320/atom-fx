@@ -1,5 +1,5 @@
 """
-ATOM FX — NY-close D1 aggregation (DECISION-001).
+ATOM FX — NY-close D1 aggregation (DECISION-001, DECISION-007).
 
 docs/ATOM_FX_TREND_METHODOLOGY_SPEC.md §3: the frozen `scanner/aggregator.py` buckets D1 on
 UTC calendar dates (documented there as an accepted approximation for the coarse bull/bear
@@ -8,6 +8,13 @@ the retail/broker convention instead — a daily candle runs 17:00 -> next 17:00
 America/New_York, DST-aware, with the Sunday reopen rolled into Monday's bar (no phantom
 ~2-hour Sunday stub). Needed because the trend-pullback methodology's D1 EMA50/EMA200 bias
 gate must match the convention traders actually see (Rule 1: faithful or not at all).
+
+DECISION-007 (2026-09-12): Twelvedata began emitting market-closed weekend bars for these
+pairs on 2026-01-11 — a Sunday 00:00-16:59 ET pre-open block and a recurring Saturday
+00:00-03:00 ET block. Neither appears on any broker/TradingView daily, and under the +7h
+close-day rule alone they'd land on their own phantom Saturday/Sunday D1 labels. `_trading_days`
+below now drops any bar outside the real FX week [Sunday 17:00 ET, Friday 17:00 ET) BEFORE
+grouping, so both public aggregators inherit the filter identically — see `_within_fx_week`.
 
 Rule #1: EXTEND. Reads the same raw H1 contract scanner/aggregator.py takes; never touches a
 frozen file. Imports only the frozen `scanner.score._ema` (read-only) for EMA math so these
@@ -20,11 +27,35 @@ from scanner.score import _ema
 NY_CLOSE_HOUR = 17          # daily close/open, America/New_York wall-clock
 _NY_CLOSE_OFFSET = pd.Timedelta(hours=24 - NY_CLOSE_HOUR)  # 7h: shifts 17:00 NY onto the next midnight
 
+_FRIDAY, _SATURDAY, _SUNDAY = 4, 5, 6
+
+
+def _within_fx_week(ny_naive: "pd.DatetimeIndex") -> "pd.Series":
+    """
+    DECISION-007: True for bars inside the real FX trading week, in NY wall-clock time —
+    [Sunday 17:00, Friday 17:00). ny_naive is a tz-dropped America/New_York DatetimeIndex
+    (as produced in _trading_days below), so weekday/hour here are already local wall-clock,
+    DST-correct by construction.
+
+    Dropped: Saturday (any hour), Sunday before 17:00, Friday from 17:00 onward. Kept:
+    everything else — in particular Sunday AT/AFTER 17:00, which is the real weekly reopen and
+    must roll into Monday under the existing +7h trading-day rule, not be treated as closed.
+    """
+    weekday = ny_naive.weekday
+    hour = ny_naive.hour
+    closed = (
+        (weekday == _SATURDAY) |
+        ((weekday == _SUNDAY) & (hour < NY_CLOSE_HOUR)) |
+        ((weekday == _FRIDAY) & (hour >= NY_CLOSE_HOUR))
+    )
+    return ~closed
+
 
 def _trading_days(h1_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Internal: parse + sort h1_df ascending by time, and attach a 'trading_day' column —
-    the calendar day each H1 bar belongs to under the 17:00 America/New_York close.
+    Internal: parse + sort h1_df ascending by time, drop any bar outside the real FX trading
+    week (DECISION-007, `_within_fx_week`), and attach a 'trading_day' column — the calendar
+    day each SURVIVING H1 bar belongs to under the 17:00 America/New_York close.
 
     trading_day = floor_to_day(ny_walltime + 7h), computed on a TZ-DROPPED naive NY
     timestamp (tz_convert first, for DST-correctness, then tz_localize(None) before the
@@ -43,6 +74,10 @@ def _trading_days(h1_df: pd.DataFrame) -> pd.DataFrame:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
     ny_naive = df.index.tz_convert("America/New_York").tz_localize(None)
+    keep = _within_fx_week(ny_naive)
+    df = df[keep]
+    ny_naive = ny_naive[keep]
+
     df["trading_day"] = (ny_naive + _NY_CLOSE_OFFSET).floor("D")
     return df
 

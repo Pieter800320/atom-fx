@@ -59,6 +59,25 @@ DECISION-006 — Unify D1 NY-close on one helper: scanner/extend/bb_touch.py's _
               (agg_nyclose's convention) instead of bb_touch's old OPEN-day label — same
               bars/values, label shifts by exactly one calendar day.
                                                                     Status: DECIDED (2026-09-11)
+
+DECISION-007 — Drop bars outside the real FX week [Sun 17:00 ET, Fri 17:00 ET) in the NY-close
+              extend path (scanner/extend/agg_nyclose.py, before grouping; shared by both
+              aggregate_d1_nyclose and aggregate_d1_nyclose_dated, so they cannot diverge).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: Twelvedata began emitting market-closed weekend bars for these pairs on 2026-01-11 —
+        a Sunday 00:00-16:59 ET pre-open block and a recurring Saturday 00:00-03:00 ET block.
+        Neither appears on any broker/TradingView daily; under the +7h close-day rule alone
+        they landed on their own phantom Saturday/Sunday D1 candles, breaking history
+        uniformity. A genuine Sunday 17:00-ET-or-later reopen is unaffected and still rolls
+        into Monday as before.
+Affected: scanner/extend/agg_nyclose.py (both aggregators); scanner/extend/bb_touch.py
+        inherits it via DECISION-006's delegation (bands/%B for any pair whose H1 history
+        contains these weekend bars); tools/bootstrap_d1_nyclose.py's per-pair summary now
+        also reports a phantom-Saturday count alongside phantom-Sunday.
+Evidence: manual H1 diagnostic on EUR/USD, 2026-09-12 — identical weekend blocks present via
+        both the "recent" and end_date-paginated fetch paths for the same calendar dates,
+        ruling out a pagination/fetch-path artifact; confirmed absent before 2026-01-11 via
+        the same paginated fetch style one week earlier.
 ```
 
 ---

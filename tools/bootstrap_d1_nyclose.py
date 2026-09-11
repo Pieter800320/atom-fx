@@ -3,7 +3,7 @@
 tools/bootstrap_d1_nyclose.py
 =========================================================================
 ATOM FX — one-time NY-close D1 deep-history bootstrap (DECISION-001, spec §3
-"EMA200 warm-up").
+"EMA200 warm-up"; weekend bars filtered per DECISION-007).
 
 PURPOSE
     scanner/extend/d1_store.py's update_d1() carries the D1 series forward one scan at a
@@ -170,10 +170,11 @@ def bootstrap_pair(pair: str) -> None:
 
     dates = pd.to_datetime(d1["date"])
     phantom_sundays = int((dates.dt.dayofweek == 6).sum())
+    phantom_saturdays = int((dates.dt.dayofweek == 5).sum())
     print(f"{pair}: {len(d1)} D1 bars, {dates.min().date()} -> {dates.max().date()}, "
-          f"phantom-Sunday count = {phantom_sundays}")
-    if phantom_sundays:
-        print(f"  ⚠ {pair}: expected 0 phantom-Sunday days — investigate before trusting this store.")
+          f"phantom-Sunday count = {phantom_sundays}, phantom-Saturday count = {phantom_saturdays}")
+    if phantom_sundays or phantom_saturdays:
+        print(f"  ⚠ {pair}: expected 0 phantom weekend days — investigate before trusting this store.")
 
 
 def main(pairs=None) -> None:
