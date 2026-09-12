@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-12T20:38:26.600313+00:00",
+  "updated": "2026-09-12T22:38:15.770235+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77153.0,
-      "delta_pct": -0.0,
+      "value": 77194.0,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3137,7 +3137,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -2.5,
+      "delta_pct": -2.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG invalidated: ECB hike looms, supporting CHF as safe-haven alternative to USD strength narrative.",
-    "updated": "2026-09-12T20:38:26.600313+00:00"
+    "text": "USD/JPY weakness conflicts with USDCHF LONG. Fed hike bets support USD but JPY strength outweighs.",
+    "updated": "2026-09-12T22:38:15.770235+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-Off regime confirms setup, VIX decline supports safe-haven demand.\n\nUSDCHF LONG: Risk-Off regime confirms setup, VIX decline supports CHF appreciation.\n\nCADJPY SHORT: WTI oil falling confirms CAD weakness, macro supports short setup.",
+    "text": "NZDUSD SHORT: Risk-Off regime confirms short, NZD weakness expected.\n\nUSDCHF LONG: Risk-Off supports USD strength, CHF safe-haven bid.\n\nCADJPY SHORT: WTI oil decline confirms CAD weakness, supports short.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 6.8
       }
     ],
-    "updated": "2026-09-12T20:38:26.600313+00:00"
+    "updated": "2026-09-12T22:38:15.770235+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-12T20:38:26.600313+00:00"
+    "updated": "2026-09-12T22:38:15.770235+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: gold sits flat, VIX has dropped sharply, equities are firmer and Bitcoin is barely changed, painting a calmer, risk-tolerant tone even as the H1 read still flags risk-off residue. DXY is unchanged and headlines lean toward broad dollar softness, with markets pricing Fed hike bets against a looming ECB move, keeping the greenback under pressure versus European currencies. Yields ticked up modestly while oil fell, muting commodity-currency support. The next major risk is US CPI at 08:30 ET, alongside the ECB decision, both capable of resetting this fragile, mixed-signal backdrop quickly.",
@@ -3242,16 +3242,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as US CPI meets expectations at 3.4%",
-      "US dollar tests new lows against Japanese yen amid weakness",
-      "ECB tightening looms as inflation risks rise, supports euro strength"
+      "Fed rate hike bets rise as US CPI inflation data takes center stage",
+      "US dollar tests new lows against Japanese yen; USD/JPY weakens",
+      "ECB tightening looms; DXY stays weak as inflation risks persist"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-12T20:38:26.600313+00:00"
+    "updated": "2026-09-12T22:38:15.770235+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
@@ -3269,13 +3269,13 @@
     "primary_pair": "NZDUSD",
     "direction": "bear",
     "confidence": "Low",
-    "rationale": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off favors CHF safe-haven bid, VIX drop validates.\n\nCADJPY SHORT: WTI weakness pressures CAD, macro setup fully confirmed.",
+    "rationale": "NZDUSD SHORT: Risk-Off regime confirms short, NZD weakness expected.\n\nUSDCHF LONG: Risk-Off supports USD strength, CHF safe-haven bid.\n\nCADJPY SHORT: WTI oil decline confirms CAD weakness, supports short.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-    "generated_at": "2026-09-12T08:38:41.618836+00:00",
+    "generated_at": "2026-09-12T22:38:40.418481+00:00",
     "_narrated": false
   },
   "conviction": {
