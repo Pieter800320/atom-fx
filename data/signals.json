@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-12T06:38:16.493294+00:00",
+  "updated": "2026-09-12T08:38:17.517019+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77256.0,
-      "delta_pct": 0.9,
+      "value": 77330.0,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3137,7 +3137,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -3.9,
+      "delta_pct": -2.3,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG conflicted: ECB tightening supports Euro, weakens CHF carry appeal and USD/CHF upside.",
-    "updated": "2026-09-12T06:38:16.493294+00:00"
+    "text": "USDCHF LONG at risk: ECB hike looms, supporting CHF as safe-haven; conflicts carry trade thesis.",
+    "updated": "2026-09-12T08:38:17.517019+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX declining supports NZD weakness.\n\nUSDCHF LONG: Risk-off favors CHF safety, but macro contradicts USD strength here.\n\nCADJPY SHORT: WTI oil falling directly confirms CAD offered, strengthens short thesis.",
+    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off favors CHF safe-haven bid, VIX drop validates.\n\nCADJPY SHORT: WTI weakness pressures CAD, macro setup fully confirmed.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 6.8
       }
     ],
-    "updated": "2026-09-12T06:38:16.493294+00:00"
+    "updated": "2026-09-12T08:38:17.517019+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-12T06:38:16.493294+00:00"
+    "updated": "2026-09-12T08:38:17.517019+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are split: equities firmer, VIX sharply lower and gold nudging higher point toward risk-on, while the yen's broad advance and softer dollar tone in headlines suggest funding-currency unwind rather than pure risk appetite. Copper's gain and stable yields add a modestly constructive growth undertone, though WTI's drop tempers commodity-bloc conviction. Headlines center on diverging central bank paths, with Fed hike bets firming even as the dollar struggles broadly. Near-term focus sits squarely on US CPI and PPI, alongside the ECB, BoE, BoC, and RBNZ decisions within the next day, all likely to reset rate-differential expectations across major blocs.",
@@ -3242,16 +3242,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as US CPI takes center stage; EUR/USD key levels",
-      "US Dollar tests new lows against Japanese Yen; USD/JPY analysis critical",
-      "DXY stays weak as ECB hike looms; inflation risks rise significantly"
+      "Fed rate hike bets rise as US CPI data takes center stage",
+      "US dollar tests new lows against Japanese yen amid weakness",
+      "ECB tightening looms as inflation risks support euro strength"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-12T06:38:16.493294+00:00"
+    "updated": "2026-09-12T08:38:17.517019+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
@@ -3263,19 +3263,19 @@
     "updated": "2026-09-11T19:38:37.701936+00:00"
   },
   "recommendation": {
-    "headline": "Stand Aside: CADJPY bear",
+    "headline": "Stand Aside: NZDUSD bear",
     "bias": "mixed",
     "action": "stand_aside",
-    "primary_pair": "CADJPY",
+    "primary_pair": "NZDUSD",
     "direction": "bear",
     "confidence": "Low",
-    "rationale": "CADJPY SHORT: Macro confirms setup, oil weakness directly pressures Canadian dollar.\n\nUSDCHF LONG: Macro challenges setup, risk-on stocks undermine safe haven demand.\n\nNZDUSD SHORT: Macro confirms setup, risk-off regime supports yen-proxy New Zealand selling.",
+    "rationale": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off favors CHF safe-haven bid, VIX drop validates.\n\nCADJPY SHORT: WTI weakness pressures CAD, macro setup fully confirmed.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-    "generated_at": "2026-09-11T19:41:28.998272+00:00",
+    "generated_at": "2026-09-12T08:38:41.618836+00:00",
     "_narrated": false
   },
   "conviction": {
