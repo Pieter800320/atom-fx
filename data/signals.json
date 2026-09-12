@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-12T16:38:16.175350+00:00",
+  "updated": "2026-09-12T18:38:15.878552+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77345.0,
-      "delta_pct": 0.2,
+      "value": 77158.0,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3137,7 +3137,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -2.2,
+      "delta_pct": -2.5,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG challenged: ECB tightening looms, supporting Euro and offsetting USD strength narrative underlying this setup.",
-    "updated": "2026-09-12T16:38:16.175350+00:00"
+    "text": "USDCHF LONG invalidated: ECB hiking cycle reduces CHF safe-haven demand, supports EUR strength against USD.",
+    "updated": "2026-09-12T18:38:15.878552+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off environment favors CHF strength, VIX pullback reinforces.\n\nCADJPY SHORT: WTI oil weakness directly pressures CAD, confirms short.",
+    "text": "NZDUSD SHORT: Risk-Off regime confirms setup, NZD weakness driver.\n\nUSDCHF LONG: Risk-Off regime confirms setup, CHF safe-haven driver.\n\nCADJPY SHORT: WTI oil falling confirms CAD weakness driver.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 6.8
       }
     ],
-    "updated": "2026-09-12T16:38:16.175350+00:00"
+    "updated": "2026-09-12T18:38:15.878552+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-12T16:38:16.175350+00:00"
+    "updated": "2026-09-12T18:38:15.878552+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: gold sits flat, VIX has dropped sharply, equities are firmer and Bitcoin is barely changed, painting a calmer, risk-tolerant tone even as the H1 read still flags risk-off residue. DXY is unchanged and headlines lean toward broad dollar softness, with markets pricing Fed hike bets against a looming ECB move, keeping the greenback under pressure versus European currencies. Yields ticked up modestly while oil fell, muting commodity-currency support. The next major risk is US CPI at 08:30 ET, alongside the ECB decision, both capable of resetting this fragile, mixed-signal backdrop quickly.",
@@ -3243,15 +3243,15 @@
   "breaking": {
     "headlines": [
       "Fed rate hike bets rise as US CPI data takes center stage",
-      "US Dollar tests new lows against Japanese Yen amid weakness",
-      "ECB tightening looms as inflation risks rise, supports Euro strength"
+      "US dollar tests new lows against Japanese yen amid weakness",
+      "ECB tightening looms as inflation risks support euro strength"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-12T16:38:16.175350+00:00"
+    "updated": "2026-09-12T18:38:15.878552+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
