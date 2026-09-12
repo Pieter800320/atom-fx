@@ -127,6 +127,30 @@ Reason: The original same-bar AND (spec §4 Gate D, pre-revision) requires one H
         pin down precisely, which the backtest itself will still do post-fix.)
 Affected: scanner/extend/trend_pullback.py (Gate D only — Gates A/B/C, DECISION-002/003/004,
         risk outputs, and states are unchanged); tests/test_trend_pullback.py.
+
+DECISION-010 — Gate D changed again, SUPERSEDES DECISION-009: the H1 entry trigger is now
+              "enter WHILE STILL IN THE ZONE" — a body close past the prior H1 bar's own
+              high (LONG) / low (SHORT), evaluated on the same bar Gate C is true. The
+              DECISION-009 swing-high/low break is removed entirely (last_swing_high(h1) is
+              no longer needed for LONG's gate at all). The reversal candle (engulfing/pin)
+              stays context-only in `trigger` ("engulfing"/"pin" when applicable, else
+              "confirm" — renamed from DECISION-009's "break", since there is no break left).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: DECISION-009's break trigger only confirmed AFTER price had already closed back
+        beyond the H1 swing high/low it had to break — but `target` is `leg_high`/`leg_low`,
+        the SAME kind of level one timeframe up. By the time price broke its own H1 swing,
+        it had typically already eaten most of the distance up to `target`, so
+        `target - entry` collapsed toward zero and R:R could never clear `min_rr` — a
+        geometric incoherence between the trigger and the target, not a parameter-tuning
+        problem. The post-DECISION-009 backtest confirmed this directly: 4 of 78 candidates
+        reached Gate D, 0 fired, all 4 armed on R:R. Entering INSIDE the pullback zone instead
+        (a minimal "turning up" confirmation, not a break of anything) keeps the full
+        leg_high/leg_low distance available as reward against a stop that's still tight (just
+        below/above the pullback's own low/high) — the entry and the target are no longer
+        fighting over the same level.
+Affected: scanner/extend/trend_pullback.py (Gate D and the entry/trigger fields only — Gates
+        A/B/C, DECISION-002/003/004's stop/target formulas, min_rr, and states are unchanged);
+        tests/test_trend_pullback.py.
 ```
 
 ---
@@ -203,18 +227,20 @@ must pass. Each gate names its data source and its PROPOSED parameter.
 - **DECISION-002 (DECIDED):** **both** the Fib-zone test **and** the EMA-distance test must
   pass (confluence → fewer, higher-quality signals; aligns Rule 3).
 
-**Gate D — H1 entry trigger (timing).** On H1 (DECISION-009, revised from the original
-same-bar version — see the Decision Log):
-- The gate: decisive continuation. H1 `close >` the prior minor H1 swing high that preceded
-  the pullback (`swings.py`, `swing_n_h1`). A wick through it does not count — body close
-  only. (SHORT mirrors: `close <` the prior minor H1 swing low.)
+**Gate D — H1 entry trigger, "enter WHILE STILL IN THE ZONE" (DECISION-010, supersedes
+DECISION-009 — see the Decision Log for why the swing-high/low break was removed entirely,
+not just decoupled from the candle):
+- The gate: a minimal "pullback turning up" confirmation, evaluated on the SAME H1 bar Gate C
+  is true. H1 `close >` the PRIOR H1 bar's own high — body close only, no wick. (SHORT
+  mirrors: `close <` the prior H1 bar's own low.) There is no swing break to satisfy;
+  `last_swing_high(h1)` is no longer read for LONG's gate at all.
 - A bullish reversal candle — **engulfing** (body engulfs prior body) **or** **pin/hammer**
-  (lower wick ≥ 2× body, small upper wick) — is recorded as **context**, not a same-bar
-  requirement: `trigger` is `"engulfing"` or `"pin"` when the breaking bar happens to be one,
-  else `"break"`. It no longer decides fire/no-fire.
-- *Basis:* enter on proof the pullback is over (the break), not on requiring the reversal
-  candle and that proof to land on the identical bar — in practice they rarely do (the
-  reversal candle marks the pullback's low; the break typically confirms several bars later).
+  (lower wick ≥ 2× body, small upper wick) — is recorded as **context**, never a gate:
+  `trigger` is `"engulfing"` or `"pin"` when the confirming bar happens to be one, else
+  `"confirm"`.
+- *Basis:* enter where the reward (to `target = leg_high`/`leg_low`) is still fully intact,
+  not after price has already closed most of that distance by breaking its own H1 swing
+  first (DECISION-009's failure mode — see the Decision Log for the backtest evidence).
 
 **Alignment corroboration (reuse `pills`).** Reject the long if `pills.h4 == "bear_strong"` or
 `pills.d1` is bearish — a cheap consistency check against the existing engine; never the primary
@@ -230,7 +256,9 @@ ROADMAP §1). It never re-fires while still true.
 
 Emitted with the signal so the recommendation is act-ready; the app never sizes or executes.
 
-- **Entry:** current H1 close (and the H4 zone bounds for context).
+- **Entry (DECISION-010):** current H1 close — WHILE STILL IN the H4 pullback zone Gate C
+  qualified (and the H4 zone bounds for context), not after a swing break has already used up
+  most of the distance to target (see DECISION-010).
 - **Stop (DECISION-003, DECIDED):** `stop = min(pullback_leg_H1_lows) - stop_buffer_atr * ATR(H1)`
   — just below the pullback's own H1 swing low, minus the ATR buffer.
 - **Target 1:** the swing high the pullback originated from → defines R:R.
@@ -251,7 +279,7 @@ pairs.<PAIR>.trend_pullback: {
   direction:  "long" | "short" | null,
   entry:      float|null, stop: float|null, target: float|null, rr: float|null,
   adx: float, fib_pct: float|null, ema50_dist_atr: float|null,
-  trigger:    "engulfing" | "pin" | null,
+  trigger:    "engulfing" | "pin" | "confirm" | null,   // DECISION-010: context only, never a gate
   blocked_at: "A"|"B"|"C"|"D"|"rr"|null,     // first gate that failed, for UI transparency
   ts:         iso8601
 }
