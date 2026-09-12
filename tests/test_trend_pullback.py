@@ -112,13 +112,25 @@ def _h4_small_leg():
 
 
 # ── H1 fixtures (the entry trigger) ─────────────────────────────────────────────
-def _h1_long_trigger(entry_close=1.4250, swing_high=1.4210, no_candle=False):
-    """Micro zigzag: swing low ~idx7 (1.4150ish), swing high ~idx7' (`swing_high`), a small
-    consolidation, then a final 2-bar bullish engulfing closing at `entry_close`."""
-    up1 = np.linspace(1.4100, swing_high, 8)
-    down1 = np.linspace(swing_high, 1.4150, 8)[1:]
+def _h1_long_trigger(entry_close=1.4250, no_candle=False, no_confirm=False):
+    """
+    Micro zigzag: a genuine swing low ~idx7 (~1.4145, the stop reference), a small
+    consolidation, then a final 2-bar move closing at `entry_close` (DECISION-010: entered
+    WHILE STILL IN THE ZONE — `entry_close` must be a value that also satisfies Gate C for
+    the H4 fixture in use, since current_price is shared between the two gates).
+
+    no_candle  : the confirming bar isn't a recognized engulfing/pin (still confirms, since
+                 Gate D no longer requires one -> trigger records "confirm").
+    no_confirm : the prior bar's own high sits ABOVE entry_close, so `close > prior.high`
+                 fails -> Gate D blocks regardless of candle shape.
+    """
+    up1 = np.linspace(1.4100, 1.4210, 8)
+    down1 = np.linspace(1.4210, 1.4150, 8)[1:]
     chop = np.linspace(1.4150, 1.4170, 10)[1:]
-    if no_candle:
+    if no_confirm:
+        prior_open, prior_close = entry_close + 0.0020, entry_close + 0.0015   # sits above entry
+        cur_open, cur_close = entry_close + 0.0010, entry_close
+    elif no_candle:
         prior_open, prior_close = 1.4160, 1.4220   # prior itself already bullish
         cur_open, cur_close = 1.4220, entry_close    # small up move, not engulfing/pin
     else:
@@ -130,12 +142,9 @@ def _h1_long_trigger(entry_close=1.4250, swing_high=1.4210, no_candle=False):
     open_[1:] = close[:-1]
     open_[-2] = prior_open
     open_[-1] = cur_open
-    if no_candle:
-        high = np.maximum(open_, close) + 0.0002
-        low = np.minimum(open_, close) - 0.0002
-    else:
-        high = np.maximum(open_, close) + 0.0005
-        low = np.minimum(open_, close) - 0.0005
+    eps = 0.0002 if no_candle else 0.0005
+    high = np.maximum(open_, close) + eps
+    low = np.minimum(open_, close) - eps
     return pd.DataFrame({"open": open_, "high": high, "low": low, "close": close})
 
 
@@ -253,24 +262,25 @@ def test_gate_c_fail_far_from_ema50():
     assert r["ema50_dist_atr"] > 1.0
 
 
-# ── 6. Gate D (DECISION-009): the break decides fire/no-fire; the candle is context only ──
-def test_gate_d_break_without_reversal_candle_still_fires():
-    # Same price levels/swing structure as the valid-long fixture (same D1/H4, same entry/
-    # swing-high/swing-low), but the final 2 bars are NOT a textbook engulfing/pin -- under
-    # DECISION-009 the break alone is the gate, so this still fires; `trigger` records the
-    # candle shape as context ("break", since the breaking bar isn't a recognized pattern).
+# ── 6. Gate D (DECISION-010): enter IN THE ZONE; the candle is context only ──────
+def test_gate_d_in_zone_confirm_without_reversal_candle_fires():
+    # Same D1/H4/entry as the valid-long fixture (still inside Gate C's zone), but the final
+    # 2 bars are NOT a textbook engulfing/pin -- Gate D only requires close > prior bar's own
+    # high, so this still fires; `trigger` records the candle shape as context ("confirm",
+    # since the confirming bar isn't a recognized pattern).
     h1 = _h1_long_trigger(no_candle=True)
     tfs = {"d1": _d1_long(), "h4": _h4_long(), "h1": h1}
     r = evaluate(tfs)
     assert r["state"] == "fired"
     assert r["blocked_at"] is None
-    assert r["trigger"] == "break"
+    assert r["rr"] >= 2.0
+    assert r["trigger"] == "confirm"
 
 
-def test_gate_d_fail_no_swing_break():
-    # the swing high (~1.4305) sits above the close (1.4250) -- no break, regardless of
-    # candle shape -- so Gate D fails even with a textbook engulfing candle present.
-    h1 = _h1_long_trigger(entry_close=1.4250, swing_high=1.4300)
+def test_gate_d_fail_no_confirm():
+    # still in Gate C's zone (same entry_close), but the prior bar's own high sits ABOVE the
+    # close -- close > prior.high fails, so Gate D blocks regardless of candle shape.
+    h1 = _h1_long_trigger(entry_close=1.4250, no_confirm=True)
     tfs = {"d1": _d1_long(), "h4": _h4_long(), "h1": h1}
     r = evaluate(tfs)
     assert r["state"] == "none"
