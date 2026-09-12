@@ -33,7 +33,8 @@ def _ohlc(close, high=None, low=None, open_=None):
 # ── D1 fixtures ────────────────────────────────────────────────────────────────
 def _d1_long(accelerate=True):
     """Rising trend, 240 bars: EMA50>EMA200, close>EMA200, EMA50 rising, structure bull.
-    The last-30-bar acceleration also drives ADX >= adx_min and rising (Gate B)."""
+    The last-30-bar acceleration also drives ADX >= adx_min (Gate B, DECISION-011: no rising
+    sub-condition)."""
     n = 240
     t = np.arange(n)
     base = np.linspace(1.00, 1.30, n)
@@ -68,11 +69,28 @@ def _d1_flat_choppy():
 
 
 def _d1_weak_trend():
-    """A real (if gentle) uptrend -- Gate A passes -- but too choppy for ADX to hold >= 22
-    and rising: ADX peaks near the middle of the fixture then declines into the last bars."""
+    """A real (if gentle) uptrend -- Gate A passes -- but a short, choppy oscillation (period
+    14, amplitude 0.02) keeps directional movement too weak for ADX(D1) to ever reach adx_min
+    (22): verified ADX ~15.5 at the last bar (DECISION-011: Gate B is ADX>=adx_min only, no
+    rising sub-condition)."""
     n = 240
     t = np.arange(n)
-    close = np.linspace(1.00, 1.06, n) + 0.035 * np.sin(t / 4.0)
+    close = np.linspace(1.00, 1.10, n) + 0.02 * np.sin(2 * np.pi * t / 14.0)
+    return _ohlc(close, high=close + 0.003, low=close - 0.003, open_=close)
+
+
+def _d1_long_declining_adx():
+    """Same shape as _d1_long(accelerate=False)'s oscillation but WITHOUT detrending: ADX
+    climbs to a mid-fixture peak (~32) then declines for many consecutive bars into the last
+    bar (verified ADX ~26.97 at the end, monotonically falling over at least the prior
+    adx_rising_lookback-equivalent window). ADX stays >= adx_min (22) throughout the tail, so
+    under DECISION-011 (Gate B = ADX>=adx_min only) this must clear Gate B despite the falling
+    slope that would have failed the old 'ADX rising' sub-condition."""
+    n = 240
+    t = np.arange(n)
+    base = np.linspace(1.00, 1.06, n)
+    osc = 0.035 * np.sin(t / 4.0)
+    close = base + osc
     return _ohlc(close, high=close + 0.003, low=close - 0.003, open_=close)
 
 
@@ -221,13 +239,26 @@ def test_gate_a_fail_tangled_emas():
     assert r["direction"] is None
 
 
-# ── 4. Gate B fail: ADX below min / not rising ────────────────────────────────
-def test_gate_b_fail_adx_not_rising():
+# ── 4. Gate B fail: ADX below min ──────────────────────────────────────────────
+def test_gate_b_fail_adx_below_min():
     tfs = {"d1": _d1_weak_trend(), "h4": _h4_long(), "h1": _h1_long_trigger()}
     r = evaluate(tfs)
     assert r["state"] == "none"
     assert r["blocked_at"] == "B"
     assert r["direction"] == "long"   # Gate A already picked a side before B failed
+
+
+# ── 4b. Gate B pass: ADX >= min clears the gate regardless of slope (DECISION-011) ─────────
+def test_gate_b_passes_with_falling_adx_above_min():
+    """ADX peaks mid-fixture then falls for many consecutive bars but stays >= adx_min (22)
+    at the last bar -- the old 'ADX rising' sub-condition would have blocked this at B; under
+    DECISION-011 it must clear B and (with a valid H4/H1 setup) fire."""
+    tfs = {"d1": _d1_long_declining_adx(), "h4": _h4_long(), "h1": _h1_long_trigger()}
+    r = evaluate(tfs)
+    assert r["blocked_at"] != "B"
+    assert r["adx"] >= 22
+    assert r["state"] == "fired"
+    assert r["direction"] == "long"
 
 
 # ── 5. Gate C fail: three ways ────────────────────────────────────────────────

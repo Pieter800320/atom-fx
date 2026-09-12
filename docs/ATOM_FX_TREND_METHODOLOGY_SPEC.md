@@ -151,6 +151,22 @@ Reason: DECISION-009's break trigger only confirmed AFTER price had already clos
 Affected: scanner/extend/trend_pullback.py (Gate D and the entry/trigger fields only — Gates
         A/B/C, DECISION-002/003/004's stop/target formulas, min_rr, and states are unchanged);
         tests/test_trend_pullback.py.
+
+DECISION-011 — Gate B simplified: dropped the "ADX rising" sub-condition. Gate B is now
+              `ADX(D1) >= adx_min` alone; `adx_rising_lookback` is removed from PARAMS (no
+              longer read anywhere).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: Gate B required ADX RISING while Gate C requires price to be IN a pullback — a
+        pullback is momentum pausing, during which ADX typically DIPS. The two conditions
+        fought each other by construction: on the very bars where Gate C could be true, Gate B
+        was often false, which is a key cause of the funnel showing this strategy firing only
+        3 times in 2 years on EUR/USD. `ADX >= adx_min` alone already confirms the pair is in
+        a trending (not ranging) regime; requiring the slope to also be positive at the exact
+        moment price is pausing to pull back added no discriminating power, only false
+        negatives.
+Affected: scanner/extend/trend_pullback.py (Gate B and PARAMS only — Gates A/C/D,
+        DECISION-002/003/004/009/010, risk outputs, and states are unchanged);
+        tests/test_trend_pullback.py.
 ```
 
 ---
@@ -214,9 +230,13 @@ must pass. Each gate names its data source and its PROPOSED parameter.
 - Corroboration: `detect_structure(d1).direction == "bull"` (higher highs & higher lows).
 - *Basis:* price above both EMAs, 50 above 200, HH/HL structure.
 
-**Gate B — trend strength (anti-range filter).** On NY-close D1:
-- `ADX(D1) >= adx_min` AND ADX rising: `ADX[t] > ADX[t - adx_rising_lookback]`.
-- *Basis:* trade only when ADX confirms a trend, not a range.
+**Gate B — trend strength (anti-range filter, DECISION-011: dropped the rising sub-condition).**
+On NY-close D1:
+- `ADX(D1) >= adx_min`. (No ADX-rising sub-condition — see DECISION-011.)
+- *Basis:* trade only when ADX confirms a trend, not a range. ADX rising is deliberately NOT
+  required: it contradicted Gate C, which requires price to be IN a pullback — pullbacks are
+  momentum pausing, during which ADX typically dips. `ADX >= adx_min` alone already confirms
+  the trend regime.
 
 **Gate C — pullback present & of quality (DECISION-002).** On H4:
 - Retracement depth into the last completed H4 up-swing (from `swings.py`) lies in
@@ -331,7 +351,7 @@ guards. **No task after Task 5 enables the push until the backtest is reviewed (
 | Param | Default | Source / note |
 |---|---|---|
 | `adx_min` | 22 | ADX 20–25 "trending" band |
-| `adx_rising_lookback` | 3 | ADX rising |
+| ~~`adx_rising_lookback`~~ | ~~3~~ | removed (DECISION-011) — Gate B is `ADX >= adx_min` only |
 | `ema50_slope_lookback` (D1) | 5 | trend, not fresh cross |
 | `pullback_fib_min` / `max` | 0.382 / 0.618 | classic retracement zone |
 | `fib_invalidation` | 0.786 | beyond = reversal risk |
