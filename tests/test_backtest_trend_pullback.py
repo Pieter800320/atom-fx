@@ -1,8 +1,10 @@
 """
 ATOM FX — backtest_trend_pullback.py tests (Task 5, DECISION-008).
 
-Unit-tests resolve_trade() ONLY — a pure function of a synthetic forward price path plus a
-trade's entry/stop/target, no network, no detector call. Style follows tests/test_extend.py.
+Unit-tests resolve_trade() (a pure function of a synthetic forward price path plus a trade's
+entry/stop/target) plus the two small pure CLI-arg helpers added alongside --pairs/--months
+(_normalize_pair_token, _index_for_months_back) — no network, no detector call anywhere in
+this file. Style follows tests/test_extend.py.
 
 This file asserts EXTEND behaviour only; it never touches a frozen key. tests/test_rule1_frozen
 stays the proof that no frozen file changed.
@@ -11,7 +13,7 @@ Run:  python -m tests.test_backtest_trend_pullback
 """
 import pandas as pd
 
-from tools.backtest_trend_pullback import resolve_trade
+from tools.backtest_trend_pullback import resolve_trade, _normalize_pair_token, _index_for_months_back
 
 
 def _bars(rows):
@@ -124,6 +126,41 @@ def test_short_stop_first_on_same_bar_hitting_both():
     assert r["exit_reason"] == "stop"
     assert r["exit_price"] == stop
     assert r["realized_R"] == -1.0
+
+
+# ── --pairs / --months arg-parsing helpers ────────────────────────────────────
+def test_normalize_pair_token_matches_configured_pairs_case_and_slash_insensitive():
+    assert _normalize_pair_token("EURUSD") == "EUR/USD"
+    assert _normalize_pair_token("eur/usd") == "EUR/USD"
+    assert _normalize_pair_token(" UsdJpy ") == "USD/JPY"
+
+
+def test_normalize_pair_token_falls_back_to_3plus3_split_for_unlisted_pair():
+    # not in scanner.config.PAIRS, but a plausible Twelvedata symbol -- still accepted.
+    assert _normalize_pair_token("EURGBP") == "EUR/GBP"
+
+
+def test_normalize_pair_token_rejects_garbage():
+    for bad in ("XX", "EURUS1", "TOOLONGCODE"):
+        try:
+            _normalize_pair_token(bad)
+            assert False, f"expected ValueError for {bad!r}"
+        except ValueError:
+            pass
+
+
+def test_index_for_months_back_finds_approximately_right_cutoff():
+    dt = pd.date_range("2024-01-01", periods=24 * 400, freq="1h", tz="UTC")  # 400 days
+    h1 = pd.DataFrame({"datetime": dt.strftime("%Y-%m-%d %H:%M:%S")})
+    idx = _index_for_months_back(h1, 6)
+    days_back = (pd.Timestamp(h1["datetime"].iloc[-1]) - pd.Timestamp(h1["datetime"].iloc[idx])).days
+    assert days_back == 180   # 6 * 30 days, exactly, by this function's own "30-day month"
+
+
+def test_index_for_months_back_clamps_to_start_when_months_exceeds_history():
+    dt = pd.date_range("2024-01-01", periods=24 * 400, freq="1h", tz="UTC")
+    h1 = pd.DataFrame({"datetime": dt.strftime("%Y-%m-%d %H:%M:%S")})
+    assert _index_for_months_back(h1, 100) == 0
 
 
 if __name__ == "__main__":
