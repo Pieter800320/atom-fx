@@ -9,7 +9,9 @@ Gate order (all must pass to reach a state other than "none"):
   A  - D1 trend established (EMA50/200 + slope + structure not opposing) -> sets `direction`.
   B  - D1 trend strength (ADX >= min and rising).
   C  - H4 pullback quality (DECISION-002: BOTH the Fib-zone test AND the near-EMA50 test).
-  D  - H1 entry trigger (BOTH a reversal candle AND a break of the prior H1 swing).
+  D  - H1 entry trigger: a decisive body-close break of the prior H1 swing (DECISION-009 —
+       the reversal candle is recorded as context in `trigger`, not a same-bar requirement;
+       see that decision for why the same-bar version passed ~0% of real candidates).
   rr - reward:risk >= min_rr, else "armed" (setup real, insufficient reward — no alert).
 
 Rule #1: EXTEND. Imports frozen scanner.score._ema/_atr_series/_dmi and
@@ -247,9 +249,16 @@ def evaluate(tfs: dict, params: dict | None = None, pair: str | None = None) -> 
         result["blocked_at"] = "C"
         return result
 
-    # ── Gate D: H1 entry trigger (BOTH required) ────────────────────────────────
-    # Both swing points are needed regardless of direction: one for the break-check below,
-    # the other for the stop reference in the risk outputs — treat either missing as a D-fail.
+    # ── Gate D: H1 entry trigger — decisive body-close break of the prior H1 swing ──
+    # DECISION-009: dropped the same-bar reversal-candle requirement. In a real pullback the
+    # candle forms AT the low (the turning point); the swing-high break — proof the pullback
+    # is actually over — typically comes several bars LATER, once price has already retraced
+    # back through the prior structure. Requiring both on one bar effectively demanded a
+    # single bar that both reverses the pullback AND covers the whole distance back through
+    # the old high — the funnel diagnosis that led to this decision found ~0% of real
+    # Gate-D-reaching bars ever satisfied that. Both swing points are still needed regardless
+    # of direction: one for the break-check below, the other for the stop reference in the
+    # risk outputs — treat either missing as a D-fail.
     if h1_swing_high is None or h1_swing_low is None:
         result["blocked_at"] = "D"
         return result
@@ -258,16 +267,18 @@ def evaluate(tfs: dict, params: dict | None = None, pair: str | None = None) -> 
     prior = {k: float(prior_row[k]) for k in ("open", "high", "low", "close")}
     cur = {k: float(cur_row[k]) for k in ("open", "high", "low", "close")}
 
-    trigger = _reversal_trigger(prior, cur, direction)
     if direction == "long":
         broke = cur["close"] > h1_swing_high[1]
     else:
         broke = cur["close"] < h1_swing_low[1]
 
-    if trigger is None or not broke:
+    if not broke:
         result["blocked_at"] = "D"
         return result
-    result["trigger"] = trigger
+
+    # The reversal candle is context now, not a gate: still worth surfacing (e.g. for the
+    # UI), just no longer decides fire/no-fire. "break" when the breaking bar isn't one.
+    result["trigger"] = _reversal_trigger(prior, cur, direction) or "break"
 
     # ── Risk outputs (DECISION-003/004) ─────────────────────────────────────────
     entry = current_price
