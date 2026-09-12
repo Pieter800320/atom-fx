@@ -31,8 +31,26 @@ MODELING ASSUMPTIONS (DECISION-008 — docs/ATOM_FX_TREND_METHODOLOGY_SPEC.md §
 HOW TO RUN
     export TWELVEDATA_KEY=your_key_here        # (Windows: set TWELVEDATA_KEY=...)
     python -m tools.backtest_trend_pullback                  # all scanner.config.PAIRS
-    python -m tools.backtest_trend_pullback EUR/USD GBP/USD  # just these pairs
+    python -m tools.backtest_trend_pullback EUR/USD GBP/USD  # just these pairs (positional)
+    python -m tools.backtest_trend_pullback --pairs EURUSD,GBPUSD,USDJPY   # same, no-slash CSV form
+    python -m tools.backtest_trend_pullback --months 6       # fast first look: last ~6 months only
     python -m tools.backtest_trend_pullback --refresh         # force a full H1 re-fetch
+    python -m tools.backtest_trend_pullback --funnel                    # WHERE signals die
+    python -m tools.backtest_trend_pullback --funnel --funnel-step 4    # quicker, coarser estimate
+
+    --funnel is a diagnostic, not a backtest: when a run produces zero (or very few) fired
+    trades, it tallies EVERY evaluated bar's own blocked_at/state (calling the same
+    evaluate_from_h1, same rolling window, as the real simulation -- no gate reimplemented)
+    so you can see WHICH gate is actually killing signals before touching any parameter. It
+    never simulates a trade, uses ONLY the existing data/h1_cache (no network, no
+    TWELVEDATA_KEY needed), and --funnel-step lets it sample every Nth bar for a faster,
+    coarser read. See run_funnel()'s own docstring for the exact tally/funnel shape.
+
+    --months restricts PART 2 (simulation) to roughly its most recent N months, so a first
+    look doesn't require waiting through the full multi-year replay -- Part 1 still fetches
+    the full ~TARGET_H1_BARS history regardless (the bars before the cutoff are still needed
+    to warm the D1 EMA200 the detector reads at the cutoff itself; only the STEPPING start
+    point moves later, never the data available to it).
 
     Part 1 (H1 history): pages Twelvedata H1 backwards per pair to ~TARGET_H1_BARS, reusing
     tools.bootstrap_d1_nyclose's paginated/URL-encoded/rate-limited fetch (_fetch_h1_page) --
@@ -45,9 +63,10 @@ HOW TO RUN
     below, which proves the window doesn't change which signals fire. On state=="fired",
     opens and resolves the trade per the assumptions above, then resumes after the exit bar.
 
-    Writes data/backtest/trades.csv and prints a per-pair + aggregate stats table plus a
-    plain-language read of the result. Both output directories are runtime artifacts, not
-    committed by this change.
+    Each pair's summary line prints (and flushes) and its trades are appended to
+    data/backtest/trades.csv as soon as that pair finishes -- not held back for one final
+    write -- so a partial or interrupted run has already produced something useful. Both
+    output directories are runtime artifacts, not committed by this change.
 
 Rule #1: EXTEND. Calls the real scanner.extend.trend_pullback.evaluate_from_h1 — never
 reimplements a gate. Reuses tools.bootstrap_d1_nyclose's _fetch_h1_page (read-only import,
@@ -214,17 +233,38 @@ def _first_index_with_min_d1(h1_full: pd.DataFrame, min_d1: int = MIN_D1_BARS) -
     return lo - 1
 
 
-def simulate_pair(pair: str, h1_full: pd.DataFrame, window: int = WINDOW) -> list[dict]:
+def _index_for_months_back(h1_full: pd.DataFrame, months: int) -> int:
+    """First H1 index whose datetime is >= (last bar's datetime - months*30 days) -- a month
+    is treated as 30 days, "roughly" per --months's own contract; not a calendar-exact cut.
+    Only used to move the simulation's STEPPING start point later for a fast first look
+    (simulate_pair still takes max() against the D1-warmup index, so this can only push the
+    start later, never earlier than there's enough D1 history to evaluate)."""
+    dt = pd.to_datetime(h1_full["datetime"])
+    cutoff = dt.iloc[-1] - pd.Timedelta(days=30 * months)
+    idx = int(dt.searchsorted(cutoff, side="left"))
+    return min(idx, len(h1_full) - 1)
+
+
+def simulate_pair(pair: str, h1_full: pd.DataFrame, window: int = WINDOW,
+                   months: int | None = None) -> list[dict]:
     """
     Step through h1_full at H1 resolution from the first bar with >= MIN_D1_BARS of D1
     history, only while flat, handing evaluate_from_h1 the trailing `window` H1 bars ending
     at the current bar (DECISION-008: no look-ahead — nothing after the current bar is ever
     in that window). On a "fired" state, opens and resolves the trade, then resumes on the
     bar after its exit.
+
+    months: if given, starts stepping later -- roughly the most recent `months` months of
+    history -- for a fast first look before a full run. Never starts earlier than the
+    D1-warmup point regardless (max() of the two candidate start indices); the rolling
+    window itself is untouched, so bars before the (later) start point are still available
+    to warm every indicator the detector reads.
     """
     start_idx = _first_index_with_min_d1(h1_full)
     if start_idx is None:
         return []
+    if months is not None:
+        start_idx = max(start_idx, _index_for_months_back(h1_full, months))
 
     trades = []
     n = len(h1_full)
@@ -279,6 +319,125 @@ def spotcheck_window_equivalence(pair: str, h1_full: pd.DataFrame, window: int =
     return {"n_checked": len(sample), "n_mismatched": len(mismatches), "mismatches": mismatches}
 
 
+# ── --funnel: where do signals die? (diagnostic, no trades simulated) ────────────
+_STAGE_ORDER = ["data", "A", "B", "C", "D", "rr", "fired"]   # evaluate()'s own gate order
+
+
+def _stage_of(result: dict) -> str:
+    """Collapse evaluate()'s {state, blocked_at} into one of _STAGE_ORDER's 7 buckets. A
+    'fired' state always has blocked_at=None (evaluate()'s own contract), so that's the only
+    state that needs a name of its own here; every other outcome IS its blocked_at value."""
+    return "fired" if result["state"] == "fired" else result["blocked_at"]
+
+
+def run_funnel(pair: str, h1_full: pd.DataFrame, window: int = WINDOW, step: int = 1,
+               max_examples: int = 5) -> dict:
+    """
+    Steps every `step`-th H1 bar from the first index with >= MIN_D1_BARS of D1 history to
+    the end, calling evaluate_from_h1 on the SAME rolling window simulate_pair uses (no gate
+    reimplemented) — but never opens/resolves a trade or skips ahead on a fire, since the
+    point here is the distribution of EVERY evaluated bar's own outcome, not a trade's P&L.
+
+    Returns {"n_evaluated", "counts": {stage: n, ...}, "examples": {"D"/"rr"/"fired": [ts,...]}}
+    — up to max_examples example bar timestamps for each of the three deepest stages that has
+    at least one bar, so a near-miss (or a rare hit) can be eyeballed directly in the cache.
+    """
+    start_idx = _first_index_with_min_d1(h1_full)
+    if start_idx is None:
+        return {"n_evaluated": 0, "counts": {s: 0 for s in _STAGE_ORDER}, "examples": {}}
+
+    counts = {s: 0 for s in _STAGE_ORDER}
+    examples: dict[str, list[str]] = {"D": [], "rr": [], "fired": []}
+    n = len(h1_full)
+
+    for i in range(start_idx, n, step):
+        lo = max(0, i - window + 1)
+        w = h1_full.iloc[lo:i + 1]
+        result = evaluate_from_h1(w, pair=pair)
+        stage = _stage_of(result)
+        counts[stage] += 1
+        if stage in examples and len(examples[stage]) < max_examples:
+            examples[stage].append(str(h1_full["datetime"].iloc[i]))
+
+    return {"n_evaluated": sum(counts.values()), "counts": counts, "examples": examples}
+
+
+def _cumulative_funnel(counts: dict) -> dict:
+    """Gates run strictly in order (A then B then C then D then the rr-check), and blocked_at
+    names exactly the FIRST one a bar failed — so "reached stage X" is just "didn't fail at X
+    or anything earlier", derivable by subtraction alone; no extra evaluation needed."""
+    total = sum(counts.values())
+    enough_data = total - counts["data"]
+    passed_a = enough_data - counts["A"]
+    passed_b = passed_a - counts["B"]
+    passed_c = passed_b - counts["C"]
+    passed_d = passed_c - counts["D"]   # == bars that reached the rr-check
+    return {
+        "total_evaluated": total, "enough_data": enough_data, "passed_A": passed_a,
+        "passed_B": passed_b, "passed_C": passed_c, "passed_D": passed_d,
+        "reached_rr_check": passed_d, "fired": counts["fired"],
+    }
+
+
+def print_funnel_report(label: str, report: dict) -> None:
+    total = report["n_evaluated"]
+    print(f"\n{label} — funnel over {total} evaluated bar(s):")
+    if total == 0:
+        print("  (no bars with enough D1 history to evaluate)")
+        return
+
+    counts = report["counts"]
+    for stage in _STAGE_ORDER:
+        c = counts[stage]
+        display = "rr (armed)" if stage == "rr" else stage
+        print(f"  blocked_at={display:12s} {c:>8}  ({c / total * 100:5.1f}%)")
+
+    cum = _cumulative_funnel(counts)
+    print("  cumulative pass-through:")
+    print(f"    enough D1 data (attempted Gate A) {cum['enough_data']:>8}")
+    print(f"    passed Gate A                     {cum['passed_A']:>8}")
+    print(f"    passed Gate B                     {cum['passed_B']:>8}")
+    print(f"    passed Gate C                     {cum['passed_C']:>8}")
+    print(f"    passed Gate D (reached rr-check)  {cum['passed_D']:>8}")
+    print(f"    fired (rr also passed)            {cum['fired']:>8}")
+
+    for stage, desc in (("D", "reached Gate D"), ("rr", "armed (rr too low)"), ("fired", "fired")):
+        ts = report["examples"].get(stage) or []
+        if ts:
+            print(f"  example timestamps — {desc}: {ts}")
+
+
+def run_funnel_mode(pairs: list[str], step: int = 1) -> None:
+    """--funnel's own top-level driver: cache-only (no fetch, no TWELVEDATA_KEY), per-pair
+    plus one aggregate report, exactly as print_funnel_report formats a single pair's."""
+    print(f"Funnel diagnostic over {len(pairs)} pair(s), every {step} bar(s), "
+          f"cached H1 history only (no network).")
+
+    agg_counts = {s: 0 for s in _STAGE_ORDER}
+    any_evaluated = False
+    for pair in pairs:
+        h1 = load_h1_cache(pair)
+        if len(h1) < MIN_D1_BARS:
+            print(f"\n{pair}: only {len(h1)} H1 bars cached — not enough to evaluate at all "
+                  f"(run without --funnel first to populate data/h1_cache)")
+            continue
+
+        report = run_funnel(pair, h1, step=step)
+        if report["n_evaluated"] == 0:
+            print(f"\n{pair}: cached history never reaches {MIN_D1_BARS} D1 bars — skipped")
+            continue
+
+        any_evaluated = True
+        for s in _STAGE_ORDER:
+            agg_counts[s] += report["counts"][s]
+        print_funnel_report(pair, report)
+
+    if any_evaluated:
+        print("\n" + "=" * 60)
+        agg_report = {"n_evaluated": sum(agg_counts.values()), "counts": agg_counts, "examples": {}}
+        print_funnel_report("AGGREGATE (all pairs)", agg_report)
+
+
 # ── Reporting ─────────────────────────────────────────────────────────────────────
 def _compute_stats(trades: list[dict]) -> dict:
     """win = realized_R > 0 (a timeout that closed in profit still counts); loss =
@@ -315,29 +474,17 @@ def _compute_stats(trades: list[dict]) -> dict:
     }
 
 
-def print_report(trades_by_pair: dict[str, list[dict]]) -> None:
-    cols = ["pair", "n_trades", "win_pct", "avg_planned_rr", "avg_realized_R", "total_R",
-            "profit_factor", "max_consec_losses", "avg_bars_held", "pct_timeouts"]
-    header = f"{'pair':10s} {'n':>5s} {'win%':>6s} {'avgRR':>7s} {'avgR':>7s} {'totR':>8s} {'PF':>6s} {'maxCL':>6s} {'avgBH':>7s} {'to%':>6s}"
-    print(header)
-    print("-" * len(header))
+def _table_header() -> str:
+    return (f"{'pair':10s} {'n':>5s} {'win%':>6s} {'avgRR':>7s} {'avgR':>7s} {'totR':>8s} "
+            f"{'PF':>6s} {'maxCL':>6s} {'avgBH':>7s} {'to%':>6s}")
 
-    all_trades = []
-    for pair, trades in trades_by_pair.items():
-        all_trades.extend(trades)
-        s = _compute_stats(trades)
-        print(f"{pair:10s} {s['n_trades']:>5} {_fmt(s['win_pct']):>6} {_fmt(s['avg_planned_rr']):>7} "
-              f"{_fmt(s['avg_realized_R']):>7} {_fmt(s['total_R']):>8} {_fmt(s['profit_factor']):>6} "
-              f"{_fmt(s['max_consec_losses']):>6} {_fmt(s['avg_bars_held']):>7} {_fmt(s['pct_timeouts']):>6}")
 
-    print("-" * len(header))
-    agg = _compute_stats(all_trades)
-    print(f"{'TOTAL':10s} {agg['n_trades']:>5} {_fmt(agg['win_pct']):>6} {_fmt(agg['avg_planned_rr']):>7} "
-          f"{_fmt(agg['avg_realized_R']):>7} {_fmt(agg['total_R']):>8} {_fmt(agg['profit_factor']):>6} "
-          f"{_fmt(agg['max_consec_losses']):>6} {_fmt(agg['avg_bars_held']):>7} {_fmt(agg['pct_timeouts']):>6}")
-
-    print()
-    _print_honest_read(agg)
+def _row_string(label: str, s: dict) -> str:
+    """One table row for `label` (a pair, or 'TOTAL'). Shared by the streamed per-pair print
+    in main() and the final TOTAL row, so the two can never drift out of format."""
+    return (f"{label:10s} {s['n_trades']:>5} {_fmt(s['win_pct']):>6} {_fmt(s['avg_planned_rr']):>7} "
+            f"{_fmt(s['avg_realized_R']):>7} {_fmt(s['total_R']):>8} {_fmt(s['profit_factor']):>6} "
+            f"{_fmt(s['max_consec_losses']):>6} {_fmt(s['avg_bars_held']):>7} {_fmt(s['pct_timeouts']):>6}")
 
 
 def _fmt(v) -> str:
@@ -365,54 +512,110 @@ def _print_honest_read(agg: dict) -> None:
     )
 
 
-def write_trades_csv(trades_by_pair: dict[str, list[dict]]) -> str:
+_TRADE_COLS = ["pair", "direction", "entry", "stop", "target", "planned_rr",
+               "realized_R", "bars_held", "exit_reason"]
+
+
+def _init_trades_csv() -> str:
+    """Truncate/create data/backtest/trades.csv with just the header, ready for each pair to
+    append to as it finishes (see _append_trades_csv) rather than one write at the very end."""
     os.makedirs(BACKTEST_DIR, exist_ok=True)
     path = os.path.join(BACKTEST_DIR, "trades.csv")
-    all_trades = [t for trades in trades_by_pair.values() for t in trades]
-    cols = ["pair", "direction", "entry", "stop", "target", "planned_rr",
-            "realized_R", "bars_held", "exit_reason"]
-    pd.DataFrame(all_trades, columns=cols).to_csv(path, index=False)
+    pd.DataFrame(columns=_TRADE_COLS).to_csv(path, index=False)
     return path
+
+
+def _append_trades_csv(path: str, trades: list[dict]) -> None:
+    if not trades:
+        return
+    pd.DataFrame(trades, columns=_TRADE_COLS).to_csv(path, index=False, mode="a", header=False)
+
+
+def _normalize_pair_token(token: str) -> str:
+    """'EURUSD' (or 'eur/usd', 'EUR/USD', ...) -> the canonical 'EUR/USD' form scanner.config.
+    PAIRS and the rest of this tool use. Matches against PAIRS first; falls back to a plain
+    3+3 currency-code split for a pair not in PAIRS (still a legitimate Twelvedata symbol)."""
+    key = token.strip().upper().replace("/", "")
+    for p in PAIRS:
+        if p.replace("/", "") == key:
+            return p
+    if len(key) == 6 and key.isalpha():
+        return f"{key[:3]}/{key[3:]}"
+    raise ValueError(f"unrecognized pair token: {token!r}")
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
 def main(argv=None) -> None:
     parser = argparse.ArgumentParser(description="ATOM FX trend-pullback baseline backtest")
-    parser.add_argument("pairs", nargs="*", default=None, help="pairs to backtest, e.g. EUR/USD")
+    parser.add_argument("pairs", nargs="*", default=None,
+                         help="pairs to backtest, e.g. EUR/USD GBP/USD (alternative to --pairs)")
+    parser.add_argument("--pairs", dest="pairs_opt", default=None,
+                         help="comma-separated pairs, no slash, e.g. EURUSD,GBPUSD,USDJPY "
+                              "-- overrides the positional pairs args if both are given")
+    parser.add_argument("--months", type=int, default=None,
+                         help="restrict simulation to roughly the most recent N months of "
+                              "tradeable history -- a fast first look before a full run")
     parser.add_argument("--refresh", action="store_true", help="force a full H1 re-fetch")
+    parser.add_argument("--funnel", action="store_true",
+                         help="diagnostic mode: tally where signals die (blocked_at/state) "
+                              "across every H1 bar in the existing cache -- no network, no "
+                              "trades simulated. Use this before touching any parameter.")
+    parser.add_argument("--funnel-step", type=int, default=1,
+                         help="in --funnel mode, evaluate every Nth bar for a quicker, "
+                              "coarser estimate (default: every bar)")
     args = parser.parse_args(argv)
+
+    if args.pairs_opt:
+        try:
+            pairs = [_normalize_pair_token(t) for t in args.pairs_opt.split(",") if t.strip()]
+        except ValueError as e:
+            sys.exit(str(e))
+    else:
+        pairs = args.pairs or PAIRS
+
+    if args.funnel:
+        run_funnel_mode(pairs, step=args.funnel_step)
+        return
 
     if not fetch.API_KEY:
         sys.exit("Set TWELVEDATA_KEY in your environment first.")
 
-    pairs = args.pairs or PAIRS
-    print(f"Backtesting {len(pairs)} pair(s) with detector defaults: {PARAMS}\n")
+    months_note = f", last ~{args.months} months" if args.months else ""
+    print(f"Backtesting {len(pairs)} pair(s) with detector defaults{months_note}: {PARAMS}\n")
 
-    trades_by_pair: dict[str, list[dict]] = {}
+    csv_path = _init_trades_csv()
+    header = _table_header()
+    print(header, flush=True)
+    print("-" * len(header), flush=True)
+
+    all_trades: list[dict] = []
     for pair in pairs:
         try:
             h1 = fetch_h1_history(pair, refresh=args.refresh)
             if len(h1) < MIN_D1_BARS:
-                print(f"{pair}: only {len(h1)} H1 bars cached, not enough to backtest — skipped")
+                print(f"{pair}: only {len(h1)} H1 bars cached, not enough to backtest — skipped", flush=True)
                 continue
 
             check = spotcheck_window_equivalence(pair, h1)
             print(f"{pair}: window-vs-full-history spot-check — "
-                  f"{check['n_checked'] - check['n_mismatched']}/{check['n_checked']} matched")
+                  f"{check['n_checked'] - check['n_mismatched']}/{check['n_checked']} matched", flush=True)
             if check["n_mismatched"]:
-                print(f"  ⚠ {pair}: {check['n_mismatched']} mismatch(es): {check['mismatches']}")
+                print(f"  ⚠ {pair}: {check['n_mismatched']} mismatch(es): {check['mismatches']}", flush=True)
 
-            trades = simulate_pair(pair, h1)
-            trades_by_pair[pair] = trades
-            print(f"{pair}: {len(trades)} trades")
+            trades = simulate_pair(pair, h1, months=args.months)
+            all_trades.extend(trades)
+            _append_trades_csv(csv_path, trades)   # available immediately, not just at the end
+            print(_row_string(pair, _compute_stats(trades)), flush=True)
         except Exception as e:
-            print(f"{pair}: ERROR - {e}")
+            print(f"{pair}: ERROR - {e}", flush=True)
             continue
 
+    print("-" * len(header))
+    agg = _compute_stats(all_trades)
+    print(_row_string("TOTAL", agg))
     print()
-    print_report(trades_by_pair)
-    path = write_trades_csv(trades_by_pair)
-    print(f"\nTrades written to {path}")
+    _print_honest_read(agg)
+    print(f"\nTrades written to {csv_path}")
 
 
 if __name__ == "__main__":

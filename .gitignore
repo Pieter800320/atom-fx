@@ -12,3 +12,8 @@ app/build/
 captures/
 .externalNativeBuild/
 .idea/
+
+# Backtest runtime output (data/d1_nyclose and data/signals.json stay tracked)
+data/h1_cache/
+data/backtest/
+gradle/gradle-daemon-jvm.properties
