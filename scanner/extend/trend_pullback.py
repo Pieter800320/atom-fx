@@ -7,7 +7,8 @@ twice on the same frames returns byte-identical output (proven in tests/test_tre
 
 Gate order (all must pass to reach a state other than "none"):
   A  - D1 trend established (EMA50/200 + slope + structure not opposing) -> sets `direction`.
-  B  - D1 trend strength (ADX >= min and rising).
+  B  - D1 trend strength (ADX >= min; DECISION-011 dropped the "rising" sub-condition —
+       it fought Gate C's pullback, which pauses momentum and typically dips ADX).
   C  - H4 pullback quality (DECISION-002: BOTH the Fib-zone test AND the near-EMA50 test).
   D  - H1 entry trigger: enter WHILE STILL IN THE ZONE — a body close past the prior H1
        bar's own high/low, evaluated on the same bar Gate C is true (DECISION-010, supersedes
@@ -45,7 +46,6 @@ from scanner.extend.swings import find_swings, last_swing_high, last_swing_low
 # is ratified; do not treat any of these as settled until then.
 PARAMS = {
     "adx_min": 22,
-    "adx_rising_lookback": 3,
     "ema50_slope_lookback": 5,
     "fib_min": 0.382,
     "fib_max": 0.618,
@@ -218,9 +218,9 @@ def evaluate(tfs: dict, params: dict | None = None, pair: str | None = None) -> 
 
     result["direction"] = direction
 
-    # ── Gate B: D1 strength ──────────────────────────────────────────────────────
-    adx_then = float(d1_adx_s.iloc[-1 - p["adx_rising_lookback"]])
-    if not (adx_now >= p["adx_min"] and adx_now > adx_then):
+    # ── Gate B: D1 strength (DECISION-011: ADX>=min only, no rising sub-condition —
+    # "rising" fought Gate C's pullback, which by definition pauses momentum and dips ADX) ──
+    if not (adx_now >= p["adx_min"]):
         result["blocked_at"] = "B"
         return result
 
