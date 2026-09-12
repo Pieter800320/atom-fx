@@ -112,7 +112,7 @@ def _h4_small_leg():
 
 
 # ── H1 fixtures (the entry trigger) ─────────────────────────────────────────────
-def _h1_long_trigger(entry_close=1.4250, swing_high=1.4210, no_break=False, no_candle=False):
+def _h1_long_trigger(entry_close=1.4250, swing_high=1.4210, no_candle=False):
     """Micro zigzag: swing low ~idx7 (1.4150ish), swing high ~idx7' (`swing_high`), a small
     consolidation, then a final 2-bar bullish engulfing closing at `entry_close`."""
     up1 = np.linspace(1.4100, swing_high, 8)
@@ -253,17 +253,23 @@ def test_gate_c_fail_far_from_ema50():
     assert r["ema50_dist_atr"] > 1.0
 
 
-# ── 6. Gate D fail: no reversal candle, and no swing break ───────────────────
-def test_gate_d_fail_no_reversal_candle():
+# ── 6. Gate D (DECISION-009): the break decides fire/no-fire; the candle is context only ──
+def test_gate_d_break_without_reversal_candle_still_fires():
+    # Same price levels/swing structure as the valid-long fixture (same D1/H4, same entry/
+    # swing-high/swing-low), but the final 2 bars are NOT a textbook engulfing/pin -- under
+    # DECISION-009 the break alone is the gate, so this still fires; `trigger` records the
+    # candle shape as context ("break", since the breaking bar isn't a recognized pattern).
     h1 = _h1_long_trigger(no_candle=True)
     tfs = {"d1": _d1_long(), "h4": _h4_long(), "h1": h1}
     r = evaluate(tfs)
-    assert r["state"] == "none"
-    assert r["blocked_at"] == "D"
+    assert r["state"] == "fired"
+    assert r["blocked_at"] is None
+    assert r["trigger"] == "break"
 
 
 def test_gate_d_fail_no_swing_break():
-    # engulfing shape intact, but the swing high (~1.4305) sits above the close (1.4250)
+    # the swing high (~1.4305) sits above the close (1.4250) -- no break, regardless of
+    # candle shape -- so Gate D fails even with a textbook engulfing candle present.
     h1 = _h1_long_trigger(entry_close=1.4250, swing_high=1.4300)
     tfs = {"d1": _d1_long(), "h4": _h4_long(), "h1": h1}
     r = evaluate(tfs)

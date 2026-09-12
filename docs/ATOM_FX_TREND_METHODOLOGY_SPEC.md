@@ -97,6 +97,36 @@ Reason: A baseline edge check must replay the SHIPPED detector faithfully (calli
 Affected: tools/backtest_trend_pullback.py only. No frozen file, scan_h1.py, or the detector
         touched. Gates further work (Task 4 live wiring, DECISION-005 param ratification) on
         review of this backtest's results — not run automatically as part of it.
+
+DECISION-009 — Gate D decoupled: the H1 entry trigger is now the swing-high/low break ALONE
+              (H1 close beyond the prior minor swing, body close only). The bullish/bearish
+              reversal candle (engulfing/pin) is recorded as context in the `trigger` output
+              field ("engulfing"/"pin" when the breaking bar happens to be one, else "break")
+              — it no longer has to land on the SAME bar as the break to count.
+                                                                    Status: DECIDED (2026-09-12)
+Reason: The original same-bar AND (spec §4 Gate D, pre-revision) requires one H1 bar to both
+        reverse the pullback AND already close back through the opposing swing extreme — in a
+        real pullback the reversal candle marks the LOW, while the break confirming the
+        pullback is over typically lands several bars later. The baseline backtest's --funnel
+        diagnostic found 0 of 78 Gate-D-reaching bars satisfied the same-bar AND. This task's
+        own re-verification independently sampled Gate-D-reaching bars from the 3 cached
+        pairs' real H1 history (EUR/USD, GBP/USD, USD/JPY), using the SAME rolling-window
+        evaluate_from_h1 call, re-deriving the break/candle booleans via the module's own
+        exported helpers (no gate reimplemented). A full exact (every-bar) re-scan proved too
+        heavy for this session (a background run was killed on low system memory); two
+        smaller sampled passes (every 25th bar across all 3 pairs, n=10; every 10th bar on
+        EUR/USD alone, n=7 — 17 Gate-D-reaching bars total, not a full census) gave:
+        break-alone passed 1/17 (5.9%); the old candle-requirement-alone passed 2/17 (11.8%);
+        BOTH together (today's actual AND, pre-fix) passed 0/17 (0%) — zero co-occurrence in
+        every sample checked, consistent with and corroborating the original 78-bar finding.
+        Break-alone and candle-alone each occur independently; neither sample ever found them
+        on the same bar — confirming the candle was the blocker, not a separate bug in the
+        break/swing-high logic. (Sample sizes are small by necessity, not by choice — the
+        qualitative finding, zero co-occurrence, is what both the 78-bar and 17-bar checks
+        agree on; the exact break-alone/candle-alone base rates would need a full scan to
+        pin down precisely, which the backtest itself will still do post-fix.)
+Affected: scanner/extend/trend_pullback.py (Gate D only — Gates A/B/C, DECISION-002/003/004,
+        risk outputs, and states are unchanged); tests/test_trend_pullback.py.
 ```
 
 ---
@@ -173,12 +203,18 @@ must pass. Each gate names its data source and its PROPOSED parameter.
 - **DECISION-002 (DECIDED):** **both** the Fib-zone test **and** the EMA-distance test must
   pass (confluence → fewer, higher-quality signals; aligns Rule 3).
 
-**Gate D — H1 entry trigger (timing).** On H1:
-- A bullish reversal candle on the latest closed H1 bar: **engulfing** (body engulfs prior
-  body) **or** **pin/hammer** (lower wick ≥ 2× body, small upper wick), AND
-- decisive continuation: H1 `close >` the prior minor H1 swing high that preceded the pullback
-  (`swings.py`, `swing_n_h1`). A wick through it does not count — body close only.
-- *Basis:* enter on proof the pullback is over, not on the level alone.
+**Gate D — H1 entry trigger (timing).** On H1 (DECISION-009, revised from the original
+same-bar version — see the Decision Log):
+- The gate: decisive continuation. H1 `close >` the prior minor H1 swing high that preceded
+  the pullback (`swings.py`, `swing_n_h1`). A wick through it does not count — body close
+  only. (SHORT mirrors: `close <` the prior minor H1 swing low.)
+- A bullish reversal candle — **engulfing** (body engulfs prior body) **or** **pin/hammer**
+  (lower wick ≥ 2× body, small upper wick) — is recorded as **context**, not a same-bar
+  requirement: `trigger` is `"engulfing"` or `"pin"` when the breaking bar happens to be one,
+  else `"break"`. It no longer decides fire/no-fire.
+- *Basis:* enter on proof the pullback is over (the break), not on requiring the reversal
+  candle and that proof to land on the identical bar — in practice they rarely do (the
+  reversal candle marks the pullback's low; the break typically confirms several bars later).
 
 **Alignment corroboration (reuse `pills`).** Reject the long if `pills.h4 == "bear_strong"` or
 `pills.d1` is bearish — a cheap consistency check against the existing engine; never the primary
