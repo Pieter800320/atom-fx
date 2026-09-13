@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-13T06:38:16.537450+00:00",
+  "updated": "2026-09-13T08:38:21.208161+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77279.0,
-      "delta_pct": 0.1,
+      "value": 76836.0,
+      "delta_pct": -0.6,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3137,7 +3137,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -2.3,
+      "delta_pct": -2.0,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USD/JPY weakness conflicts USDCHF LONG setup; yen strength suggests broader USD selloff pressure",
-    "updated": "2026-09-13T06:38:16.537450+00:00"
+    "text": "USD/JPY weakness conflicts with USDCHF LONG setup; risk-off favors JPY over CHF carry.",
+    "updated": "2026-09-13T08:38:21.208161+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX collapse validates.\n\nUSDCHF LONG: Risk-off environment supports CHF strength, gold bid reinforces.\n\nCADJPY SHORT: Oil weakness and gold strength perfectly confirm short setup.",
+    "text": "NZDUSD SHORT: Risk-off regime confirms short, NZD weakness primary driver.\n\nUSDCHF LONG: Risk-off supports long, CHF safe-haven bid driver.\n\nCADJPY SHORT: Oil and gold divergence strongly confirms short setup.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 7.0
       }
     ],
-    "updated": "2026-09-13T06:38:16.537450+00:00"
+    "updated": "2026-09-13T08:38:21.208161+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-13T06:38:16.537450+00:00"
+    "updated": "2026-09-13T08:38:21.208161+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: equities are firmer and volatility has dropped sharply, pointing to risk-on, yet gold sits flat and the dollar index is unchanged, offering no confirmation either way. Bitcoin is barely higher and oil has slipped, muddying the picture further, while the H1 read still flags risk-off beneath the surface. Headlines center on a broadly softer dollar as Fed hike bets compete with ECB tightening expectations and bond buyback news. The next major risk is US CPI at 08:30 ET, alongside the ECB decision, both capable of resetting the dollar's near-term tone.",
@@ -3242,16 +3242,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as US CPI takes center stage; EUR/USD key",
-      "US Dollar tests new lows against Japanese Yen; USD/JPY weakens",
-      "DXY stays weak as ECB hike looms; inflation risks rise"
+      "Fed hike bets rise as US CPI takes center stage; USD strength",
+      "US Dollar tests new lows against Japanese Yen; USD/JPY weakness",
+      "ECB tightening looms as DXY stays weak; Euro support building"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-13T06:38:16.537450+00:00"
+    "updated": "2026-09-13T08:38:21.208161+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
