@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-13T02:38:15.866948+00:00",
+  "updated": "2026-09-13T04:38:19.122952+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3028,7 +3028,7 @@
   "macro": {
     "label": "Risk-On",
     "signals": -2,
-    "total": 2,
+    "total": 4,
     "confidence": "Medium",
     "stable": true
   },
@@ -3046,9 +3046,9 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4366.2,
-      "delta_pct": 0.0,
-      "direction": "flat",
+      "value": 4408.9,
+      "delta_pct": 1.0,
+      "direction": "up",
       "label": "Gold"
     },
     "dxy": {
@@ -3058,9 +3058,9 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.4695,
-      "delta_pct": 0.0,
-      "direction": "flat",
+      "value": 6.548,
+      "delta_pct": 1.3,
+      "direction": "up",
       "label": "Copper"
     },
     "us10y": {
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77237.0,
-      "delta_pct": 0.1,
+      "value": 77197.0,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3107,7 +3107,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.8,
+      "delta_pct": -1.8,
       "label": "Gold"
     },
     "dxy": {
@@ -3117,7 +3117,7 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": -1.6,
+      "delta_pct": -0.4,
       "label": "Copper"
     },
     "us10y": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG: USD weakness vs JPY conflicts with CHF strength narrative from ECB tightening support.",
-    "updated": "2026-09-13T02:38:15.866948+00:00"
+    "text": "USD/JPY: Dollar weakness vs Yen conflicts with USDCHF long positioning amid broader USD selling pressure.",
+    "updated": "2026-09-13T04:38:19.122952+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms, VIX decline challenges directional conviction slightly.\n\nUSDCHF LONG: Risk-off environment confirms USD safe-haven demand as primary driver.\n\nCADJPY SHORT: Falling WTI oil confirms CAD weakness, supports short thesis directly.",
+    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off strength confirms USD safe-haven bid today.\n\nCADJPY SHORT: Oil weakness confirms CAD offered, gold supports JPY bid.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3166,10 +3166,10 @@
       {
         "pair": "CADJPY",
         "direction": "bear",
-        "score": 6.8
+        "score": 7.0
       }
     ],
-    "updated": "2026-09-13T02:38:15.866948+00:00"
+    "updated": "2026-09-13T04:38:19.122952+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-13T02:38:15.866948+00:00"
+    "updated": "2026-09-13T04:38:19.122952+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: equities are firmer and volatility has dropped sharply, pointing to risk-on, yet gold sits flat and the dollar index is unchanged, offering no confirmation either way. Bitcoin is barely higher and oil has slipped, muddying the picture further, while the H1 read still flags risk-off beneath the surface. Headlines center on a broadly softer dollar as Fed hike bets compete with ECB tightening expectations and bond buyback news. The next major risk is US CPI at 08:30 ET, alongside the ECB decision, both capable of resetting the dollar's near-term tone.",
@@ -3242,7 +3242,7 @@
   },
   "breaking": {
     "headlines": [
-      "Fed rate hike odds rise as US CPI meets expectations at 3.4%",
+      "Fed rate hike bets rise as US CPI data takes center stage",
       "US Dollar tests new lows against Japanese Yen amid weakness",
       "ECB tightening looms as inflation risks support Euro strength"
     ],
@@ -3251,7 +3251,7 @@
       "usd",
       "rates"
     ],
-    "updated": "2026-09-13T02:38:15.866948+00:00"
+    "updated": "2026-09-13T04:38:19.122952+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
