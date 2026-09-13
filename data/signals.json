@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-13T10:38:15.494839+00:00",
+  "updated": "2026-09-13T12:38:16.246026+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,7 +3082,7 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 76748.0,
+      "value": 76723.0,
       "delta_pct": -0.7,
       "direction": "flat",
       "label": "Bitcoin"
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG invalidated: ECB hike looms, supporting CHF appreciation vs USD long bias.",
-    "updated": "2026-09-13T10:38:15.494839+00:00"
+    "text": "USDCHF LONG: USD weakness vs JPY conflicts with long setup; ECB tightening supports CHF.",
+    "updated": "2026-09-13T12:38:16.246026+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, NZD weakness supported.\n\nUSDCHF LONG: Risk-off flight-to-safety supports CHF strength, challenges long USD.\n\nCADJPY SHORT: Oil weakness confirms CAD offered, gold strength challenges JPY bid.",
+    "text": "NZDUSD SHORT: Risk-off supports NZD weakness, macro confirms setup.\n\nUSDCHF LONG: Risk-off supports CHF bid, macro confirms setup.\n\nCADJPY SHORT: Oil weakness and gold strength both confirm setup.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 7.0
       }
     ],
-    "updated": "2026-09-13T10:38:15.494839+00:00"
+    "updated": "2026-09-13T12:38:16.246026+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-13T10:38:15.494839+00:00"
+    "updated": "2026-09-13T12:38:16.246026+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: equities are firmer and volatility has dropped sharply, pointing to risk-on, yet gold sits flat and the dollar index is unchanged, offering no confirmation either way. Bitcoin is barely higher and oil has slipped, muddying the picture further, while the H1 read still flags risk-off beneath the surface. Headlines center on a broadly softer dollar as Fed hike bets compete with ECB tightening expectations and bond buyback news. The next major risk is US CPI at 08:30 ET, alongside the ECB decision, both capable of resetting the dollar's near-term tone.",
@@ -3243,15 +3243,15 @@
   "breaking": {
     "headlines": [
       "Fed rate hike bets rise as US CPI inflation data takes center stage",
-      "US dollar tests new lows against Japanese yen amid weakness",
-      "ECB tightening looms as inflation risks rise, supporting euro strength"
+      "US Dollar tests new lows against Japanese Yen amid weakness",
+      "ECB tightening looms as inflation risks support Euro strength"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-13T10:38:15.494839+00:00"
+    "updated": "2026-09-13T12:38:16.246026+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
@@ -3269,13 +3269,13 @@
     "primary_pair": "NZDUSD",
     "direction": "bear",
     "confidence": "Low",
-    "rationale": "NZDUSD SHORT: Risk-Off regime confirms short, NZD weakness expected.\n\nUSDCHF LONG: Risk-Off supports USD strength, CHF safe-haven bid.\n\nCADJPY SHORT: WTI oil decline confirms CAD weakness, supports short.",
+    "rationale": "NZDUSD SHORT: Risk-off supports NZD weakness, macro confirms setup.\n\nUSDCHF LONG: Risk-off supports CHF bid, macro confirms setup.\n\nCADJPY SHORT: Oil weakness and gold strength both confirm setup.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-    "generated_at": "2026-09-12T22:38:40.418481+00:00",
+    "generated_at": "2026-09-13T12:38:39.855848+00:00",
     "_narrated": false
   },
   "conviction": {
