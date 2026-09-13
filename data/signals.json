@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-13T20:38:16.317711+00:00",
+  "updated": "2026-09-13T21:38:24.203895+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3082,8 +3082,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77285.0,
-      "delta_pct": 0.0,
+      "value": 77328.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3137,7 +3137,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.5,
+      "delta_pct": -1.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3147,11 +3147,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG: ECB hike looms, supporting CHF strength and threatening long setup. NZDUSD SHORT: Fed hike bets rising accelerates USD strength, conflicts with short bias.",
-    "updated": "2026-09-13T20:38:16.317711+00:00"
+    "text": "USDCHF LONG invalidated: ECB tightening looms, supporting EUR weakness against CHF, contradicting long setup.",
+    "updated": "2026-09-13T21:38:24.203895+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline challenges conviction slightly.\n\nUSDCHF LONG: Risk-off strength confirms USD safety bid, gold rise challenges CHF demand.\n\nCADJPY SHORT: Oil weakness and gold strength perfectly confirm the directional setup.",
+    "text": "NZDUSD SHORT: Risk-off regime confirms short bias, VIX decline supports.\n\nUSDCHF LONG: Risk-off favors CHF bid, contradicts long USD setup.\n\nCADJPY SHORT: Oil weakness and gold strength perfectly confirm short thesis.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -3169,7 +3169,7 @@
         "score": 7.0
       }
     ],
-    "updated": "2026-09-13T20:38:16.317711+00:00"
+    "updated": "2026-09-13T21:38:24.203895+00:00"
   },
   "calendar": {
     "events": [
@@ -3234,7 +3234,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-13T20:38:16.317711+00:00"
+    "updated": "2026-09-13T21:38:24.203895+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are pulling in different directions today: gold firmer, VIX sharply lower, equities higher and copper up all point to risk appetite improving, yet the H1 tape still reads risk-off and the dollar index sits flat rather than confirming either side. Bitcoin's marginal softness adds to the muddled picture. Headlines lean on a broadly softer dollar narrative, with Fed hike bets rising alongside ECB tightening expectations and yen strength drawing attention. The next major catalyst is US CPI at 08:30 ET, alongside PPI, followed by the ECB decision, with BoE, BoC and RBNZ rate calls stacking risk across the dollar bloc, euro, sterling and commodity currencies within the next 24 hours.",
@@ -3242,16 +3242,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed rate hike bets rise as US CPI inflation data takes center stage",
-      "US Dollar tests new lows against Japanese Yen amid bond market shifts",
-      "ECB tightening looms as DXY weakens and inflation risks persist globally"
+      "Fed hike bets rise as US CPI takes center stage; EUR/USD focus",
+      "US dollar tests new lows against Japanese yen; USD/JPY weakness",
+      "DXY stays weak as ECB hike looms; inflation risks persist"
     ],
     "themes": [
       "rates",
-      "rates",
+      "usd",
       "rates"
     ],
-    "updated": "2026-09-13T20:38:16.317711+00:00"
+    "updated": "2026-09-13T21:38:24.203895+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
@@ -7891,5 +7891,9 @@
       46.9
     ]
   },
-  "schema_version": 7
+  "schema_version": 7,
+  "week_ahead": {
+    "text": "Inflation data dominates this week as the US releases PPI Thursday and CPI Friday, with both releases critical to Fed policy trajectory and dollar direction. Friday's CPI print is the most important event, directly affecting USD pairs and safe-haven flows into gold. Watch USD/CAD closely as the BoC holds policy steady while the loonie faces pressure from diverging US-Canada rate expectations and oil weakness. The wildcard is whether PPI surprises higher ahead of Friday's CPI, potentially accelerating a dollar bounce and triggering technical breakouts in EUR/USD and gold liquidation.",
+    "generated_at": "2026-09-13T21:38:24.203895+00:00"
+  }
 }
