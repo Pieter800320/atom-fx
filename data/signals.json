@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T19:38:32.537166+00:00",
+  "updated": "2026-09-14T20:38:22.578361+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3051,69 +3051,69 @@
   },
   "macro": {
     "label": "Risk-Off",
-    "signals": 1,
-    "total": 3,
-    "confidence": "Low",
+    "signals": 2,
+    "total": 4,
+    "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 16.74,
-      "delta_pct": 5.7,
+      "value": 17.1,
+      "delta_pct": 8.0,
       "direction": "up",
       "label": "VIX"
     },
     "spx": {
-      "value": 7636.95,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "value": 7619.98,
+      "delta_pct": -0.5,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4347.2,
-      "delta_pct": -1.4,
+      "value": 4338.8,
+      "delta_pct": -1.6,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.417,
-      "delta_pct": 0.3,
+      "value": 99.499,
+      "delta_pct": 0.4,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.4075,
-      "delta_pct": -1.0,
+      "value": 6.3985,
+      "delta_pct": -1.1,
       "direction": "down",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.955,
-      "delta_bp": -2.0,
+      "value": 4.961,
+      "delta_bp": -1.4,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.932,
-      "delta_bp": 1.9,
-      "direction": "flat",
+      "value": 3.935,
+      "delta_bp": 2.2,
+      "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 101.37,
-      "delta_pct": 1.3,
+      "value": 101.84,
+      "delta_pct": 1.8,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79112.0,
-      "delta_pct": 3.0,
+      "value": 79368.0,
+      "delta_pct": 3.3,
       "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.3,
-      "delta_bp": -3.9,
+      "value": 102.6,
+      "delta_bp": -3.6,
       "direction": "down",
       "label": "10Y-3M"
     }
@@ -3121,17 +3121,17 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 9.4,
+      "delta_pct": 11.8,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": -1.1,
+      "delta_pct": -1.3,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.9,
+      "delta_pct": -2.1,
       "label": "Gold"
     },
     "dxy": {
@@ -3141,59 +3141,59 @@
     },
     "copper": {
       "direction": "down",
-      "delta_pct": -2.9,
+      "delta_pct": -3.0,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 17.1,
+      "delta_bp": 17.7,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "up",
-      "delta_bp": 17.5,
+      "delta_bp": 17.8,
       "label": "US 3M"
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 10.8,
+      "delta_pct": 11.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 1.1,
+      "delta_pct": 1.4,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -0.4,
+      "delta_bp": -0.1,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT at risk: ECB tightening supports euro, conflicting with short setup. Fed hike bets mixed signal.",
-    "updated": "2026-09-14T18:38:19.413656+00:00"
+    "text": "EURUSD SHORT conflicted: ECB hike looms supporting euro, contradicting short bias. Monitor closely.",
+    "updated": "2026-09-14T20:38:22.578361+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: VIX surge and DXY strength confirm USD bid setup strongly.\n\nNZDUSD SHORT: Rising VIX and falling gold reinforce risk-off USD demand.\n\nNZDJPY SHORT: VIX spike supports JPY bid but oil strength challenges yen.",
+    "text": "NZDJPY SHORT: VIX surge and equity weakness strongly confirm JPY safe-haven bid setup.\n\nEURUSD SHORT: VIX rise and DXY strength confirm USD bid overriding gold weakness signal.\n\nNZDUSD SHORT: VIX spike and gold decline confirm USD safe-haven bid challenging NZD weakness.",
     "top": [
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 7.8
+      },
       {
         "pair": "EURUSD",
         "direction": "bear",
-        "score": 7.9
+        "score": 7.7
       },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 7.83
-      },
-      {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 7.6
+        "score": 7.62
       }
     ],
-    "updated": "2026-09-14T18:38:19.413656+00:00"
+    "updated": "2026-09-14T20:38:22.578361+00:00"
   },
   "calendar": {
     "events": [
@@ -3258,7 +3258,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-14T18:38:19.413656+00:00"
+    "updated": "2026-09-14T20:38:22.578361+00:00"
   },
   "week_ahead": {
     "text": "US inflation data dominates the week ahead with Friday's CPI release serving as the primary catalyst for dollar direction, while the ECB rate decision Wednesday will test EUR resilience and set the tone for broader rate expectations. Watch EUR/USD closely as it remains trapped in tight consolidation awaiting these macro crossroads, particularly the ECB's hawkish or dovish lean. The biggest risk lies in a hotter-than-expected CPI reading that could flip market sentiment from the current risk-on backdrop and trigger violent mean reversion across commodities and currency pairs.",
@@ -3270,16 +3270,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as CPI takes center stage; EUR/USD weakens",
-      "ECB tightening looms; euro supported against weakening US dollar",
-      "US dollar moves lower as Bessent boosts bond buybacks"
+      "Fed hike bets rise as CPI takes center stage; USD strength expected",
+      "ECB at crossroads as hike looms; euro support limits EUR/USD downside",
+      "Risk trades rebound on Trump AI optimism; yen weakness pressures NZDJPY"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      "risk"
     ],
-    "updated": "2026-09-14T18:38:19.413656+00:00"
+    "updated": "2026-09-14T20:38:22.578361+00:00"
   },
   "last_alert": "2026-09-14T13:38:27.517672+00:00",
   "gold_signal": {
