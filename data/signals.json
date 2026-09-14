@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T05:38:25.975919+00:00",
+  "updated": "2026-09-14T06:38:16.420778+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -3030,9 +3030,9 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -2,
-    "total": 2,
-    "confidence": "Medium",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
     "stable": true
   },
   "macro_assets": {
@@ -3049,19 +3049,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4371.5,
+      "value": 4372.2,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.332,
-      "delta_pct": 0.2,
-      "direction": "flat",
+      "value": 99.42,
+      "delta_pct": 0.3,
+      "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.477,
+      "value": 6.4745,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "Copper"
@@ -3079,14 +3079,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 102.94,
-      "delta_pct": 2.9,
+      "value": 102.24,
+      "delta_pct": 2.2,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77550.0,
-      "delta_pct": 0.4,
+      "value": 77461.0,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3115,12 +3115,12 @@
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.2,
+      "delta_pct": 0.3,
       "label": "DXY"
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": -1.8,
+      "delta_pct": -1.9,
       "label": "Copper"
     },
     "us10y": {
@@ -3135,12 +3135,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 12.5,
+      "delta_pct": 11.8,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.1,
+      "delta_pct": -1.2,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3150,29 +3150,29 @@
     }
   },
   "catalyst": {
-    "text": "USDCHF LONG invalidated: ECB hike looms, supports CHF safe-haven demand, weakens dollar outlook.",
-    "updated": "2026-09-14T04:38:17.690632+00:00"
+    "text": "NZDJPY SHORT accelerates: USD weakness vs JPY supports yen strength, boosting short setup conviction.",
+    "updated": "2026-09-14T06:38:16.420778+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms setup, VIX decline challenges conviction.\n\nUSDCHF LONG: Risk-off supports USD strength, oil rally provides headwind.\n\nNZDJPY SHORT: Risk-off environment confirms both currencies weakening, VIX decline adds uncertainty.",
+    "text": "NZDJPY SHORT: Ranging regime confirms mean reversion setup perfectly today.\n\nNZDUSD SHORT: DXY rising challenges short bias with USD strength.\n\nUSDCHF LONG: DXY rising and risk on medium confirm setup.",
     "top": [
+      {
+        "pair": "NZDJPY",
+        "direction": "bear",
+        "score": 7.7
+      },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 7.6
+        "score": 7.38
       },
       {
         "pair": "USDCHF",
         "direction": "bull",
-        "score": 7.0
-      },
-      {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 6.62
+        "score": 6.83
       }
     ],
-    "updated": "2026-09-14T04:38:17.690632+00:00"
+    "updated": "2026-09-14T06:38:16.420778+00:00"
   },
   "calendar": {
     "events": [
@@ -3237,7 +3237,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-14T04:38:17.690632+00:00"
+    "updated": "2026-09-14T06:38:16.420778+00:00"
   },
   "week_ahead": {
     "text": "US inflation data dominates the week ahead with Friday's CPI release serving as the primary catalyst for dollar direction, while the ECB rate decision Wednesday will test EUR resilience and set the tone for broader rate expectations. Watch EUR/USD closely as it remains trapped in tight consolidation awaiting these macro crossroads, particularly the ECB's hawkish or dovish lean. The biggest risk lies in a hotter-than-expected CPI reading that could flip market sentiment from the current risk-on backdrop and trigger violent mean reversion across commodities and currency pairs.",
@@ -3249,16 +3249,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as CPI takes center stage; EUR/USD key levels",
-      "US dollar tests new lows against Japanese yen; USD/JPY analysis",
-      "DXY stays weak as ECB hike looms; inflation risks rise"
+      "US CPI data raises odds for Fed rate hike bets",
+      "US Dollar tests new lows against Japanese Yen today",
+      "ECB tightening looms; DXY stays weak amid inflation risks"
     ],
     "themes": [
       "rates",
       "usd",
       "rates"
     ],
-    "updated": "2026-09-14T04:38:17.690632+00:00"
+    "updated": "2026-09-14T06:38:16.420778+00:00"
   },
   "last_alert": "2026-09-11T07:38:26.388973+00:00",
   "gold_signal": {
