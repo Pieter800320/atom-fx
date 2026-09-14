@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-14T20:38:22.578361+00:00",
+  "updated": "2026-09-14T22:38:17.486598+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -3070,19 +3070,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4338.8,
-      "delta_pct": -1.6,
+      "value": 4335.8,
+      "delta_pct": -1.7,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.499,
+      "value": 99.467,
       "delta_pct": 0.4,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.3985,
+      "value": 6.4015,
       "delta_pct": -1.1,
       "direction": "down",
       "label": "Copper"
@@ -3100,15 +3100,15 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 101.84,
-      "delta_pct": 1.8,
+      "value": 101.97,
+      "delta_pct": 1.9,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 79368.0,
-      "delta_pct": 3.3,
-      "direction": "up",
+      "value": 78560.0,
+      "delta_pct": 2.2,
+      "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
@@ -3156,12 +3156,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 11.3,
+      "delta_pct": 11.5,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 1.4,
+      "delta_pct": 0.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3171,11 +3171,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT conflicted: ECB hike looms supporting euro, contradicting short bias. Monitor closely.",
-    "updated": "2026-09-14T20:38:22.578361+00:00"
+    "text": "EURUSD SHORT: ECB tightening and hike odds support euro, conflicting bearish setup. Risk-on sentiment from Trump AI comments may weaken JPY, pressuring NZDJPY SHORT.",
+    "updated": "2026-09-14T22:38:17.486598+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: VIX surge and equity weakness strongly confirm JPY safe-haven bid setup.\n\nEURUSD SHORT: VIX rise and DXY strength confirm USD bid overriding gold weakness signal.\n\nNZDUSD SHORT: VIX spike and gold decline confirm USD safe-haven bid challenging NZD weakness.",
+    "text": "NZDJPY SHORT: Macro confirms setup. VIX rising and S&P falling drive JPY bid.\n\nEURUSD SHORT: Macro confirms setup. VIX rising and DXY strength drive USD bid.\n\nNZDUSD SHORT: Macro confirms setup. VIX rising and gold falling drive USD bid.",
     "top": [
       {
         "pair": "NZDJPY",
@@ -3193,7 +3193,7 @@
         "score": 7.62
       }
     ],
-    "updated": "2026-09-14T20:38:22.578361+00:00"
+    "updated": "2026-09-14T22:38:17.486598+00:00"
   },
   "calendar": {
     "events": [
@@ -3258,11 +3258,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-14T20:38:22.578361+00:00"
-  },
-  "week_ahead": {
-    "text": "US inflation data dominates the week ahead with Friday's CPI release serving as the primary catalyst for dollar direction, while the ECB rate decision Wednesday will test EUR resilience and set the tone for broader rate expectations. Watch EUR/USD closely as it remains trapped in tight consolidation awaiting these macro crossroads, particularly the ECB's hawkish or dovish lean. The biggest risk lies in a hotter-than-expected CPI reading that could flip market sentiment from the current risk-on backdrop and trigger violent mean reversion across commodities and currency pairs.",
-    "generated_at": "2026-09-13T22:38:15.879036+00:00"
+    "updated": "2026-09-14T22:38:17.486598+00:00"
   },
   "deep_analysis": {
     "text": "Gold's sharp drop alongside a firm VIX spike and a stronger DXY points to a classic risk-off tilt, with softer US yields the one inconsistent thread. Bitcoin's rally and equities' modest slip muddy the picture further, suggesting sentiment is jittery rather than uniformly defensive. Commodity currencies face crosscurrents as oil firms while copper slides, reflecting growth unease beneath the surface. Headlines center on rising Fed hike expectations alongside ECB tightening bets, keeping the dollar narrative live into today's US CPI print, which follows shortly and stands as the next major catalyst alongside back-to-back central bank decisions from the ECB, BoE, BoC, and RBNZ.",
@@ -3270,16 +3266,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as CPI takes center stage; USD strength expected",
-      "ECB at crossroads as hike looms; euro support limits EUR/USD downside",
-      "Risk trades rebound on Trump AI optimism; yen weakness pressures NZDJPY"
+      "Fed hike bets rise as CPI takes center stage; EUR/USD weakens",
+      "ECB tightening supports euro as inflation risks rise sharply",
+      "US dollar moves lower as Bessent boosts bond buybacks"
     ],
     "themes": [
       "rates",
       "rates",
-      "risk"
+      "rates"
     ],
-    "updated": "2026-09-14T20:38:22.578361+00:00"
+    "updated": "2026-09-14T22:38:17.486598+00:00"
   },
   "last_alert": "2026-09-14T13:38:27.517672+00:00",
   "gold_signal": {
