@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-15T07:38:21.776601+00:00",
+  "updated": "2026-09-15T08:38:18.209627+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -3058,15 +3058,15 @@
   "macro": {
     "label": "Risk-On",
     "signals": -1,
-    "total": 3,
+    "total": 1,
     "confidence": "Low",
-    "stable": false
+    "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 17.1,
-      "delta_pct": 8.0,
-      "direction": "up",
+      "value": 17.71,
+      "delta_pct": 3.6,
+      "direction": "flat",
       "label": "VIX"
     },
     "spx": {
@@ -3076,20 +3076,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4329.1,
-      "delta_pct": -0.5,
+      "value": 4313.1,
+      "delta_pct": -0.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.665,
+      "value": 99.61,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.3885,
-      "delta_pct": 0.9,
+      "value": 6.368,
+      "delta_pct": 0.6,
       "direction": "up",
       "label": "Copper"
     },
@@ -3106,14 +3106,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 103.36,
-      "delta_pct": 1.9,
+      "value": 103.43,
+      "delta_pct": 2.0,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 77409.0,
-      "delta_pct": 0.7,
+      "value": 76797.0,
+      "delta_pct": -1.7,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3127,7 +3127,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 11.8,
+      "delta_pct": 12.7,
       "label": "VIX"
     },
     "spx": {
@@ -3137,7 +3137,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.5,
+      "delta_pct": -1.8,
       "label": "Gold"
     },
     "dxy": {
@@ -3147,7 +3147,7 @@
     },
     "copper": {
       "direction": "down",
-      "delta_pct": -5.2,
+      "delta_pct": -5.5,
       "label": "Copper"
     },
     "us10y": {
@@ -3162,12 +3162,12 @@
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 11.1,
+      "delta_pct": 11.2,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.1,
+      "delta_pct": 0.3,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3177,29 +3177,29 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT: ECB crossroads uncertainty may delay tightening, weakening euro support thesis.",
-    "updated": "2026-09-15T06:38:20.540290+00:00"
+    "text": "EURUSD SHORT: ECB at crossroads signals potential policy hesitation, conflicting euro support narrative and weakening setup momentum.",
+    "updated": "2026-09-15T08:38:18.209627+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: VIX surge and equity weakness strongly confirm JPY bid thesis.\n\nNZDUSD SHORT: Rising VIX supports USD bid but oil strength challenges NZD weakness.\n\nEURUSD SHORT: VIX rally and gold decline reinforce USD strength conviction clearly.",
+    "text": "NZDJPY SHORT: S&P falling confirms JPY bid thesis strongly today.\n\nNZDUSD SHORT: Gold decline supports USD strength confirmation perfectly aligned.\n\nEURUSD SHORT: Risk-on low contradicts strong short setup slightly concerning.",
     "top": [
       {
         "pair": "NZDJPY",
         "direction": "bear",
-        "score": 7.42
+        "score": 6.58
       },
       {
         "pair": "NZDUSD",
         "direction": "bear",
-        "score": 6.97
+        "score": 6.55
       },
       {
         "pair": "EURUSD",
         "direction": "bear",
-        "score": 6.92
+        "score": 6.22
       }
     ],
-    "updated": "2026-09-15T06:38:20.540290+00:00"
+    "updated": "2026-09-15T08:38:18.209627+00:00"
   },
   "calendar": {
     "events": [
@@ -3264,24 +3264,24 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-15T06:38:20.540290+00:00"
+    "updated": "2026-09-15T08:38:18.209627+00:00"
   },
   "deep_analysis": {
-    "text": "Gold's sharp drop alongside a firm VIX spike and a stronger DXY points to a classic risk-off tilt, with softer US yields the one inconsistent thread. Bitcoin's rally and equities' modest slip muddy the picture further, suggesting sentiment is jittery rather than uniformly defensive. Commodity currencies face crosscurrents as oil firms while copper slides, reflecting growth unease beneath the surface. Headlines center on rising Fed hike expectations alongside ECB tightening bets, keeping the dollar narrative live into today's US CPI print, which follows shortly and stands as the next major catalyst alongside back-to-back central bank decisions from the ECB, BoE, BoC, and RBNZ.",
-    "generated_at": "2026-09-14T18:38:47.851497+00:00"
+    "text": "Markets lean risk-off as gold and bitcoin slip while volatility climbs, with equities softer and the dollar index firming modestly, confirming the defensive tone despite a slight pullback in yields. Oil's advance offers the commodity bloc some counterbalance, and copper's steadiness suggests the risk-off move lacks full conviction. Headlines center on rising Fed hike expectations alongside ECB tightening bets, keeping policy divergence in focus. The next major catalyst lands within hours as US CPI and PPI data hit, followed by central bank decisions from the ECB, BoE, and later BoC and RBNZ, all of which could sharpen or unwind today's cautious positioning across risk-sensitive currencies and the dollar bloc.",
+    "generated_at": "2026-09-15T08:38:46.425880+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
-      "10-year Treasury yields hit 5.02% sending warning signal ahead Fed",
-      "ECB at crossroads as Hormuz holds key to next policy move"
+      "Fed hike odds rise as CPI takes center stage; USD strengthens",
+      "UK labour market cools; payrolls fall and wage growth slows significantly",
+      "10-year Treasury yields hit 5.02% as bond market warns ahead Fed"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-15T06:38:20.540290+00:00"
+    "updated": "2026-09-15T08:38:18.209627+00:00"
   },
   "last_alert": "2026-09-14T13:38:27.517672+00:00",
   "gold_signal": {
