@@ -285,6 +285,19 @@ private fun SettingsSection(title: String, colors: AtomColors, content: @Composa
     }
 }
 
+// 2026-09-17 (Pieter's ask) — a lighter sub-header for grouping rows WITHIN one SettingsSection
+// (the Notifications group's Market-wide/Currency/Pair split), one step dimmer than
+// SettingsSection's own title (textMuted vs. textSecondary) so it reads as a level below it,
+// not a second section heading.
+@Composable
+private fun NotificationSubheader(title: String, colors: AtomColors) {
+    Text(
+        text = title,
+        style = AtomType.Caption.copy(color = colors.textMuted),
+        modifier = Modifier.padding(top = 14.dp, bottom = 4.dp),
+    )
+}
+
 @Composable
 private fun SettingsRow(
     label: String,
@@ -436,10 +449,62 @@ private fun NotificationsGroup(
         }
     }
     Spacer(modifier = Modifier.height(16.dp))
+
+    // 2026-09-17 (Pieter's ask) — the flat toggle list below grew to nine rows in historical
+    // build order, with no relationship between neighbours. Regrouped by SCOPE — market-wide vs.
+    // one currency vs. one pair — since that's what actually explains "why did I get this" to
+    // someone configuring toggles; composite (multi-factor) alerts lead each group over
+    // single-factor ones as the higher-conviction read. Purely a display/ordering change, no
+    // preference keys or firing behaviour touched.
+    NotificationSubheader("MARKET-WIDE", colors)
+    // Composite: gold's own move + H4 regime + H1 regime all agreeing.
     SettingsRow("Gold signal alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.goldSignal, colors, enabled = notif.enabled) { preferences.setGoldSignalEnabled(it) }
     })
-    // 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
+    // Single-factor (two variants merged under one toggle, Pieter's call, 2026-09-04): the H4
+    // regime flips, or the Macro Archetype changes. Neither is pair- or currency-scoped.
+    SettingsRow("Regime alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.regimeAlerts, colors, enabled = notif.enabled) { preferences.setRegimeAlertsEnabled(it) }
+    })
+
+    NotificationSubheader("CURRENCY", colors)
+    // Composite: the 6-input Conviction blend (COT percentile, OI momentum, asset-manager
+    // alignment, CSM extreme, extension, breadth) crossing an extreme threshold. Signals Roadmap
+    // §4 (Phase 3) — the only alert scoped to one of the 8 currencies, not a pair; weekly cadence.
+    SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
+    })
+
+    NotificationSubheader("PAIR", colors)
+    // Composite: the full 6-factor weighted rank score (cont/CMP/momentum-delta/CSM-divergence/
+    // regime-fit/cross-asset) clearing its own floor. Signals Roadmap §1 (2026-09-16) —
+    // supersedes the retired Setup alert (single-factor cont>=45 alone; see UserPreferences.kt's
+    // own doc comment).
+    SettingsRow("Recommendation alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.recommendationAlerts, colors, enabled = notif.enabled) { preferences.setRecommendationAlertsEnabled(it) }
+    })
+    // Single-factor: a fresh BOS or CHoCH on H4 structure.
+    SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
+    })
+    // Single-factor: ATR percentile newly crossing 90.
+    SettingsRow("Volatility alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.volatilityAlerts, colors, enabled = notif.enabled) { preferences.setVolatilityAlertsEnabled(it) }
+    })
+    // Single-factor, multi-timeframe: the same pill classification agreeing across D1/H4/H1, not
+    // a blend of different evidence.
+    SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
+    })
+    // Single-factor: D1 %B touching a band. No confirmation gate, the touch alone fires; the
+    // Library entry (LibraryContent.kt, id "bb_reversal_criteria") documents what to check by
+    // hand — see that entry's own doc comment for why it's a reference, not an enforced
+    // threshold. Signals Roadmap §5 (Phase 4, 2026-09-09).
+    SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
+    })
+    // Single-factor: a user-set price level. Last in this group since it's the one still
+    // dormant. 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
     // server-side (level_ema_alerts.py -> send_push_alert) and the preference/toggle wiring is
     // untouched ("maybe in future we will use it"), but it can never actually fire today — it
     // depends on `data/level_alerts.json`, which needs a dashboard or on-device "set alert" flow
@@ -449,39 +514,6 @@ private fun NotificationsGroup(
     SettingsRow("Level alerts", colors) {
         SettingsSwitch(checked = notif.levelAlerts, colors = colors, enabled = false) {}
     }
-    // Signals Roadmap §2 (Phase 1) — state-transition alert toggles. Structure covers both new
-    // BOS and CHoCH events; Regime covers both an H4 regime flip and a Macro Archetype change
-    // (Pieter's call on both mergers, 2026-09-04). Setup alerts retired 2026-09-17 — redundant
-    // with Recommendation alerts below (see UserPreferences.kt's own doc comment for why).
-    SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
-    })
-    SettingsRow("Regime alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.regimeAlerts, colors, enabled = notif.enabled) { preferences.setRegimeAlertsEnabled(it) }
-    })
-    SettingsRow("Volatility alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.volatilityAlerts, colors, enabled = notif.enabled) { preferences.setVolatilityAlertsEnabled(it) }
-    })
-    SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
-    })
-    // Signals Roadmap §4 (Phase 3) — the conviction_extreme alert.
-    SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
-    })
-    // Signals Roadmap §5 (Phase 4, 2026-09-09) — the bb_touch alert. No confirmation gate, the
-    // touch alone fires; the Library entry (LibraryContent.kt, id "bb_reversal_criteria")
-    // documents what to check by hand — see that entry's own doc comment for why it's a
-    // reference, not an enforced threshold.
-    SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
-    })
-    // Signals Roadmap §1 (2026-09-16) — edge-triggered "recommendation" alert: a pair newly
-    // enters the hourly-refreshed HOME ranking (ranked.top) or flips direction while staying
-    // in it. Same one-toggle-per-alert-type convention as every row above.
-    SettingsRow("Recommendation alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.recommendationAlerts, colors, enabled = notif.enabled) { preferences.setRecommendationAlertsEnabled(it) }
-    })
 }
 
 // Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,
