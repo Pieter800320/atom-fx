@@ -112,9 +112,9 @@ def regime_emoji(regime: str) -> str:
 def _recommendation_alerts(out: dict, prev: dict) -> list:
     """
     Signals Roadmap §1 — edge-triggered "recommendation changed" push. Fires once per pair
-    that, versus the previous scan's `ranked.top`, either newly appears in the fresh top 3
-    (`out["ranked"]["top"]`, re-ranked hourly by the frozen `rank.py::rank_pairs` — see the
-    call site in `main()`) or stays in the top but flips direction (long<->short). Same
+    that, versus the previous scan's `ranked.top`, either newly clears the score floor into the
+    fresh top (`out["ranked"]["top"]`, re-ranked hourly by the frozen `rank.py::rank_pairs` —
+    see the call site in `main()`) or stays in the top but flips direction (long<->short). Same
     edge-triggered convention `scanner/extend/state_alerts.py`'s own detectors use (compare
     this scan vs `prev`, one alert per transition, first-ever run with no `prev` never
     fires) — kept local to this file rather than added to that module so this addition stays
@@ -142,7 +142,7 @@ def _recommendation_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type":     "recommendation",
             "pair":     pair,
-            "msg":      f"<b>{pair} — {verb}</b>\n{dir_word} · score {r.get('score', 0):.1f}",
+            "msg":      f"<b>{pair} — Recommendation Alert</b>\n{verb} · score {r.get('score', 0):.1f}",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction,
         })
@@ -628,13 +628,17 @@ def main():
             for r in ranked_top
         ) if ranked_top else "—"
 
-        emoji   = "🔴" if gs_direction == "bear" else "🟢"
-        dir_lbl = "BEAR — USD bid" if gs_direction == "bear" else "BULL — Risk-On"
-        gp_str  = f"{gold_pct:+.1f}%" if gold_pct is not None else ""
+        # 2026-09-17 (Pieter's ask) — every alert's push title now follows one shape,
+        # "{Entity} — {Category} Alert" (Entity omitted for a market-wide alert like this one,
+        # same as Regime below), with the specifics moved into the body. Was "Gold Signal:
+        # {BEAR — USD bid}"; the "USD bid"/"Risk-On" descriptor moves into the body's first line.
+        dir_word   = "BEAR" if gs_direction == "bear" else "BULL"
+        dir_detail = "USD bid" if gs_direction == "bear" else "Risk-On"
+        gp_str     = f"{gold_pct:+.1f}%" if gold_pct is not None else ""
 
         msg = (
-            f"{emoji} <b>Gold Signal: {dir_lbl}</b>\n"
-            f"Gold {gp_str} | H4 {h4_regime} ({h4_conf}) | H1 {h1_regime}\n"
+            f"<b>Gold Signal Alert — {dir_word}</b>\n"
+            f"{dir_detail} · Gold {gp_str} | H4 {h4_regime} ({h4_conf}) | H1 {h1_regime}\n"
             f"Setups: {pairs_line}\n"
             f"{now.strftime('%H:%M')} UTC"
         )

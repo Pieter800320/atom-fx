@@ -53,7 +53,7 @@ def _pair_setup_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "potential_state",
             "pair": pair,
-            "msg": f"<b>{pair} entered Tradeable Now</b>\n{dir_word} · Setup {cont}",
+            "msg": f"<b>{pair} — Setup Alert</b>\n{dir_word} · Setup {cont}",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction,
         })
@@ -75,7 +75,7 @@ def _structure_event_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "structure_event",
             "pair": pair,
-            "msg": f"<b>{pair} — {event} on H4</b>\n{dir_word} · strength {h4.get('strength', 0.0):.2f}",
+            "msg": f"<b>{pair} — Structure Alert</b>\n{event} on H4 · {dir_word} · strength {h4.get('strength', 0.0):.2f}",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction if direction in ("bull", "bear") else None,
             # Alert Playbook pass, 2026-09-04 — same mechanism as archetype_change's regime_code /
@@ -103,7 +103,7 @@ def _regime_flip_alert(out: dict, prev: dict) -> list:
         return []
     return [{
         "type": "regime_flip",
-        "msg": f"<b>Regime: {old} → {new}</b>\nD1 confidence: {d1.get('confidence', 'Low')}",
+        "msg": f"<b>Regime Alert</b>\n{old} → {new}\nD1 confidence: {d1.get('confidence', 'Low')}",
         "deeplink": "atomfx://regime",
         "direction": None,
         # Signals Roadmap "living handbook" pass, part 2 (2026-09-04) — mirrors
@@ -129,7 +129,7 @@ def _archetype_change_alert(out: dict, prev: dict) -> list:
     narrative = mr.get("narrative") or ""
     return [{
         "type": "archetype_change",
-        "msg": f"<b>Macro: {old_name} → {new_name}</b>\n{narrative}".rstrip(),
+        "msg": f"<b>Regime Alert</b>\n{old_name} → {new_name}\n{narrative}".rstrip(),
         "deeplink": "atomfx://regime",
         "direction": None,
         # Signals Roadmap "living handbook" pass, 2026-09-04 — the app's own Regime
@@ -152,7 +152,7 @@ def _volatility_spike_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "volatility_spike",
             "pair": pair,
-            "msg": f"<b>{pair} — volatility expanding</b>\nATR percentile {atr_pct}",
+            "msg": f"<b>{pair} — Volatility Alert</b>\nATR percentile {atr_pct} (expanding)",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": None,
         })
@@ -198,8 +198,8 @@ def _bb_touch_alerts(out: dict, prev: dict) -> list:
             "type": "bb_touch",
             "pair": pair,
             "msg": (
-                f"<b>{pair} — D1 Bollinger {touching} touch</b>\n"
-                f"ADX {adx if adx is not None else '—'} · Reset {reset if reset is not None else '—'} · "
+                f"<b>{pair} — BB Touch Alert</b>\n"
+                f"D1 {touching} band touch · ADX {adx if adx is not None else '—'} · Reset {reset if reset is not None else '—'} · "
                 f"Bands {bb.get('width_trend', 'flat')} · "
                 f"D1/H4/H1 {pills.get('d1', '—')}/{pills.get('h4', '—')}/{pills.get('h1', '—')}"
             ),
@@ -223,7 +223,7 @@ def _tf_alignment_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "tf_alignment",
             "pair": pair,
-            "msg": f"<b>{pair} — D1/H4/H1 aligned {dir_word}</b>\nStrong {'Buy' if direction == 'bull' else 'Sell'} across all three timeframes",
+            "msg": f"<b>{pair} — Alignment Alert</b>\nD1/H4/H1 aligned {dir_word} · Strong {'Buy' if direction == 'bull' else 'Sell'} across all three timeframes",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction,
         })
