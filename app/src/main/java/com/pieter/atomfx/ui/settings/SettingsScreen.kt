@@ -71,8 +71,13 @@ import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreenState
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /** Fraction of the screen width the settings panel occupies (Item Library #05 — mirrors the
  *  noting app's `SettingsSheet.PANEL_WIDTH_PERCENT`, Pieter's own established value across his
@@ -80,6 +85,16 @@ import java.time.format.DateTimeFormatter
  *  said "full-screen or top sheet" — flagged per CLAUDE.md §4; Pieter asked for this shape
  *  explicitly (2026-09-03), superseding the full-screen presentation described there. */
 private const val PANEL_WIDTH_FRACTION = 0.82f
+
+// Display-only freshness thresholds — how old before a row's timestamp shows amber.
+// First pass; tune freely, they gate nothing.
+private val STALE_TECHNICAL   = Duration.ofMinutes(90)   // matches existing 90-min H1 rule
+private val STALE_RECO        = Duration.ofMinutes(90)   // shares the hourly technical scan
+private val STALE_AI_RECO     = Duration.ofHours(12)     // scan_news cadence
+private val STALE_DAILY_BRIEF = Duration.ofHours(24)
+private val STALE_MACRO       = Duration.ofHours(6)
+private val STALE_NEWS        = Duration.ofHours(6)
+private val STALE_CATALYST    = Duration.ofHours(24)
 
 /**
  * Functional Spec §9 — reached from the header gear "on any tab" (Functional Spec §2/§3.1). A
@@ -611,34 +626,99 @@ private fun PriceLevelAlertsGroup(colors: AtomColors) {
     }
 }
 
+/**
+ * 2026-09-17 (Pieter's ask) — was three rows (Last updated/Status/Schema version), all off the
+ * H1 technical scan's own `signals.updated`. The app actually carries several independently-
+ * refreshing layers (hourly technical + ranking, scan_news-cadence AI recommendation/daily
+ * brief/macro/news/catalyst, weekly COT) — this board surfaces each one's own "as of" stamp and
+ * a display-only staleness hint, so a stale AI narrative or a week-old COT read is visible
+ * instead of hiding behind one blanket Fresh/Stale word. Never gates anything — purely a read of
+ * timestamps already in `signals.json`, same "app never recomputes a trading number" rule
+ * extended to "never invents a freshness rule that blocks a render."
+ */
 @Composable
 private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors, onRefreshNow: () -> Unit) {
-    val updated = loaded?.signals?.updated?.let {
-        // Locale.US explicitly — the default locale can render month abbreviations differently
-        // (e.g. "sept." instead of "Sep"), same bug class swept out of every other formatter.
-        // 2026-09-09 — atZoneSameInstant(systemDefault()) converts UTC to the device's actual
-        // timezone (DST included) instead of printing the raw UTC offset, same fix as
-        // MainActivity's formatUpdated().
-        runCatching {
-            OffsetDateTime.parse(it).atZoneSameInstant(java.time.ZoneId.systemDefault())
-                .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US))
-        }.getOrNull()
-    } ?: "—"
+    val signals = loaded?.signals
+    val technicalIso = signals?.updated
     val freshnessWord = when (loaded?.freshness) {
         Freshness.FRESH -> "Fresh"
         Freshness.STALE -> "Stale"
         null -> "—"
     }
-    val schema = loaded?.signals?.schemaVersion?.toString() ?: "—"
+    val schema = signals?.schemaVersion?.toString() ?: "—"
 
     // 2026-09-10 (Pieter's ask) — general Settings rule: heading, then buttons, then the rest.
     // Force refresh moves above the diagnostic rows instead of trailing below them.
     SettingsActionButton(label = "Force refresh", colors = colors, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
         onRefreshNow()
     }
-    DiagRow("Last updated", updated, colors)
+
+    DiagRow("Technical (H1)", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_TECHNICAL, colors))
+    // Kept immediately after Technical (H1) — same relative position as before this board grew,
+    // and its own meaning is unchanged: driven by `loaded.freshness` (WheelViewModel), the H1
+    // technical scan's own fresh/stale read, not derived from any of the rows below.
     DiagRow("Status", freshnessWord, colors, if (loaded?.freshness == Freshness.STALE) colors.bear else colors.bull)
+
+    // `signals.ranked` has no timestamp of its own in the app's model (`RankedBlock` is just
+    // `text`/`top` — no `updated` field) because the deterministic ranking is now recomputed
+    // inside the same hourly `scan_h1.py` pass that writes `signals.updated` (`rank_pairs()`
+    // called directly there since 2026-09-16) — it shares that stamp rather than needing its own.
+    DiagRow("Recommendation", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_RECO, colors))
+
+    val aiRecoIso = signals?.recommendation?.generatedAt
+    DiagRow("AI recommendation", formatUtcLocal(aiRecoIso), colors, freshnessColor(aiRecoIso, STALE_AI_RECO, colors))
+
+    val briefIso = signals?.deepAnalysis?.generatedAt
+    DiagRow("Daily brief", formatUtcLocal(briefIso), colors, freshnessColor(briefIso, STALE_DAILY_BRIEF, colors))
+
+    val macroIso = signals?.macroRegime?.updated
+    DiagRow("Macro regime", formatUtcLocal(macroIso), colors, freshnessColor(macroIso, STALE_MACRO, colors))
+
+    val newsIso = signals?.breaking?.updated
+    DiagRow("News", formatUtcLocal(newsIso), colors, freshnessColor(newsIso, STALE_NEWS, colors))
+
+    val catalystIso = signals?.catalyst?.updated
+    DiagRow("Catalyst", formatUtcLocal(catalystIso), colors, freshnessColor(catalystIso, STALE_CATALYST, colors))
+
+    // COT is the one exception to the time-threshold rule above — weekly by design (CFTC
+    // publishes Fridays), so a client-side age check would flag it amber every single week on
+    // schedule, not on an actual problem. The backend already computes the real signal
+    // (`cot_stale` — data-fetch failure, not "it's been a few days"), so that's what colours
+    // this row; `cotDate` (the COT survey date itself) rides along in the value when parseable.
+    val conviction = signals?.conviction
+    val cotDateWord = conviction?.cotDate?.let { raw ->
+        runCatching { LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("MMM d", Locale.US)) }
+            .getOrDefault(raw)
+    }
+    val cotValue = when {
+        conviction?.updated == null -> "—"
+        cotDateWord != null -> "${formatUtcLocal(conviction.updated)}  ·  $cotDateWord  ·  weekly"
+        else -> formatUtcLocal(conviction.updated)
+    }
+    DiagRow("COT positioning", cotValue, colors, if (conviction?.cotStale == true) colors.watch else colors.textPrimary)
+
     DiagRow("Schema version", schema, colors)
+}
+
+// Same UTC->local formatting this board's rows all share — Locale.US explicitly (the default
+// locale can render month abbreviations differently, e.g. "sept." instead of "Sep") and
+// atZoneSameInstant(systemDefault()) to convert UTC to the device's actual timezone (DST
+// included) instead of printing the raw UTC offset, same fix as MainActivity's formatUpdated().
+private fun formatUtcLocal(iso: String?): String {
+    if (iso == null) return "—"
+    return runCatching {
+        OffsetDateTime.parse(iso).atZoneSameInstant(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", Locale.US))
+    }.getOrNull() ?: "—"
+}
+
+/** Display-only — never null/unparseable -> amber; we don't actually know an unreadable
+ *  timestamp is stale, so it renders in normal colour like any other missing value. */
+private fun freshnessColor(iso: String?, threshold: Duration, colors: AtomColors): Color {
+    val stale = iso != null && runCatching {
+        Duration.between(OffsetDateTime.parse(iso).toInstant(), Instant.now()) > threshold
+    }.getOrDefault(false)
+    return if (stale) colors.watch else colors.textPrimary
 }
 
 @Composable

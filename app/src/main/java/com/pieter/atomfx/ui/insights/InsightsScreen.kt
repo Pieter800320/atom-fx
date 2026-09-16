@@ -39,7 +39,9 @@ import com.pieter.atomfx.ui.theme.lighten
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * Architecture §8.2 `ui/insights/InsightsScreen.kt` — Functional Spec §7 + quick-reference rows
@@ -148,6 +150,9 @@ private fun InsightsContent(signals: Signals, colors: AtomColors) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = "DAILY BRIEF", style = AtomType.Caption.copy(color = colors.textSecondary))
                 Text(text = brief, style = AtomType.Body.copy(color = colors.textPrimary))
+                // 2026-09-17 (Pieter's ask) — the daily brief's own "as of" stamp, so its age is
+                // visible where it's actually read, not only in Settings' freshness board.
+                Text(text = "as of ${formatUtcLocal(signals.deepAnalysis?.generatedAt)}", style = AtomType.Caption.copy(color = colors.textMuted))
             }
         }
 
@@ -178,7 +183,7 @@ private fun NotAvailableSection(label: String, message: String, colors: AtomColo
 private fun RecommendationCard(rec: RecommendationBlock, colors: AtomColors) {
     Column(modifier = Modifier.fillMaxWidth().background(colors.cardSurface, CARD_SHAPE).padding(14.dp)) {
         Text(
-            text = "RECOMMENDATION" + (formatGeneratedAt(rec.generatedAt)?.let { " · $it" } ?: ""),
+            text = "RECOMMENDATION",
             style = AtomType.Caption.copy(color = colors.textMuted),
         )
         Text(
@@ -207,6 +212,14 @@ private fun RecommendationCard(rec: RecommendationBlock, colors: AtomColors) {
         if (rec.nextCatalyst != null) {
             RecBlock("NEXT CATALYST", catalystLine(rec.nextCatalyst), colors.textSecondary, colors, cutout = true, modifier = Modifier.padding(top = 10.dp))
         }
+        // 2026-09-17 (Pieter's ask) — replaces the eyebrow's old bare "· HH:mm" fragment (no
+        // date, no timezone conversion) with the same "as of" stamp/formatter every freshness
+        // read in the app now shares (Settings' FreshnessGroup board).
+        Text(
+            text = "as of ${formatUtcLocal(rec.generatedAt)}",
+            style = AtomType.Caption.copy(color = colors.textMuted),
+            modifier = Modifier.padding(top = 10.dp),
+        )
     }
 }
 
@@ -252,9 +265,18 @@ private fun catalystLine(catalyst: NextCatalyst): String {
     return if (time != null) "$event ($time)" else event
 }
 
-private fun formatGeneratedAt(generatedAt: String?): String? {
-    val timestamp = generatedAt ?: return null
-    return runCatching { OffsetDateTime.parse(timestamp).format(DateTimeFormatter.ofPattern("HH:mm")) }.getOrNull()
+// Same UTC->local formatting SettingsScreen.kt's own FreshnessGroup board uses — small local
+// copy, not shared, same house style as this file's other tiny cross-file duplicates (e.g.
+// CARD_SHAPE mirroring Home/Macro's own constant). Locale.US explicitly (the default locale can
+// render month abbreviations differently, e.g. "sept." instead of "Sep") and
+// atZoneSameInstant(systemDefault()) to convert UTC to the device's actual timezone (DST
+// included) instead of printing the raw UTC offset.
+private fun formatUtcLocal(iso: String?): String {
+    if (iso == null) return "—"
+    return runCatching {
+        OffsetDateTime.parse(iso).atZoneSameInstant(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", Locale.US))
+    }.getOrNull() ?: "—"
 }
 
 /** Breaking headlines, theme-tagged — the mockup's `.news-row`: a divided list (dividers between
