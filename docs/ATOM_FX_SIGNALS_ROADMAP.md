@@ -294,12 +294,21 @@ Six-Factor engine is trend-following; this is mean-reversion.
   hardcoded into the alert itself.
 - **New feature: Watchlist.** A pair added from its sheet (a toggle button on `PairHeader`)
   appears on a new Watchlist screen, reached via a new icon in the header next to the
-  calendar/gear (Pieter's call — not a new bottom tab, not a bottom sheet). Each card shows a
-  compact snapshot (touch direction + how long ago, ADX, pill alignment, Reset Score,
-  band-width trend, Structure) and taps through to the full pair sheet. Storage: same
-  `SharedPreferences` + JSON + hot `StateFlow` pattern `NotificationHistoryStore` already
-  uses — no new dependency. No auto-expiry in v1 — Pieter manages the list by hand; add one
-  later if the list gets noisy in practice.
+  calendar/gear (Pieter's call — not a new bottom tab, not a bottom sheet). Taps through to the
+  full pair sheet. Storage: same `SharedPreferences` + JSON + hot `StateFlow` pattern
+  `NotificationHistoryStore` already uses — no new dependency. No auto-expiry in v1 — Pieter
+  manages the list by hand; add one later if the list gets noisy in practice.
+  **Card content redesigned 2026-09-16** — originally a BB-touch-specific snapshot (touch
+  direction + how long ago, ADX, pill alignment, Reset Score, band-width trend, Structure) plus
+  a tap-to-reveal "what to look for" reversal checklist (the same prose the BB Library entry
+  carries). A watched pair is no longer assumed to be mid-reversal-watch, so the card now shows
+  general pair state instead: pair + direction word + added time, a "★ RECOMMENDED" chip when
+  the pair is currently in `ranked.top` (§5b), a "Setup {cont} · {six-factor state}" ripeness
+  line, the same Regime/Trend/Momentum/Volatility/Structure five-factor consensus dot row
+  StatusStrip's own recommendation panel shows (extracted into one shared
+  `ui/components/ConsensusRow.kt` so the two surfaces can't drift, and so a colour bug fixed in
+  one can't silently persist in the other), and the existing D1/H4/H1 pill row. The reversal
+  checklist itself is unchanged and still lives in the Library, just no longer duplicated here.
 - **Rule #1 tier:** EXTEND.
 - **Effort:** L (touch detection is small; the Watchlist is a genuinely new screen + storage +
   nav entry + pair-sheet control, not a quick addition).
