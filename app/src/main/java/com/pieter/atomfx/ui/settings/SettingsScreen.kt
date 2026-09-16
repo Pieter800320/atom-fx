@@ -71,8 +71,13 @@ import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreenState
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /** Fraction of the screen width the settings panel occupies (Item Library #05 — mirrors the
  *  noting app's `SettingsSheet.PANEL_WIDTH_PERCENT`, Pieter's own established value across his
@@ -80,6 +85,16 @@ import java.time.format.DateTimeFormatter
  *  said "full-screen or top sheet" — flagged per CLAUDE.md §4; Pieter asked for this shape
  *  explicitly (2026-09-03), superseding the full-screen presentation described there. */
 private const val PANEL_WIDTH_FRACTION = 0.82f
+
+// Display-only freshness thresholds — how old before a row's timestamp shows amber.
+// First pass; tune freely, they gate nothing.
+private val STALE_TECHNICAL   = Duration.ofMinutes(90)   // matches existing 90-min H1 rule
+private val STALE_RECO        = Duration.ofMinutes(90)   // shares the hourly technical scan
+private val STALE_AI_RECO     = Duration.ofHours(12)     // scan_news cadence
+private val STALE_DAILY_BRIEF = Duration.ofHours(24)
+private val STALE_MACRO       = Duration.ofHours(6)
+private val STALE_NEWS        = Duration.ofHours(6)
+private val STALE_CATALYST    = Duration.ofHours(24)
 
 /**
  * Functional Spec §9 — reached from the header gear "on any tab" (Functional Spec §2/§3.1). A
@@ -270,6 +285,19 @@ private fun SettingsSection(title: String, colors: AtomColors, content: @Composa
     }
 }
 
+// 2026-09-17 (Pieter's ask) — a lighter sub-header for grouping rows WITHIN one SettingsSection
+// (the Notifications group's Market-wide/Currency/Pair split), one step dimmer than
+// SettingsSection's own title (textMuted vs. textSecondary) so it reads as a level below it,
+// not a second section heading.
+@Composable
+private fun NotificationSubheader(title: String, colors: AtomColors) {
+    Text(
+        text = title,
+        style = AtomType.Caption.copy(color = colors.textMuted),
+        modifier = Modifier.padding(top = 14.dp, bottom = 4.dp),
+    )
+}
+
 @Composable
 private fun SettingsRow(
     label: String,
@@ -421,10 +449,62 @@ private fun NotificationsGroup(
         }
     }
     Spacer(modifier = Modifier.height(16.dp))
+
+    // 2026-09-17 (Pieter's ask) — the flat toggle list below grew to nine rows in historical
+    // build order, with no relationship between neighbours. Regrouped by SCOPE — market-wide vs.
+    // one currency vs. one pair — since that's what actually explains "why did I get this" to
+    // someone configuring toggles; composite (multi-factor) alerts lead each group over
+    // single-factor ones as the higher-conviction read. Purely a display/ordering change, no
+    // preference keys or firing behaviour touched.
+    NotificationSubheader("MARKET-WIDE", colors)
+    // Composite: gold's own move + H4 regime + H1 regime all agreeing.
     SettingsRow("Gold signal alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.goldSignal, colors, enabled = notif.enabled) { preferences.setGoldSignalEnabled(it) }
     })
-    // 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
+    // Single-factor (two variants merged under one toggle, Pieter's call, 2026-09-04): the H4
+    // regime flips, or the Macro Archetype changes. Neither is pair- or currency-scoped.
+    SettingsRow("Regime alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.regimeAlerts, colors, enabled = notif.enabled) { preferences.setRegimeAlertsEnabled(it) }
+    })
+
+    NotificationSubheader("CURRENCY", colors)
+    // Composite: the 6-input Conviction blend (COT percentile, OI momentum, asset-manager
+    // alignment, CSM extreme, extension, breadth) crossing an extreme threshold. Signals Roadmap
+    // §4 (Phase 3) — the only alert scoped to one of the 8 currencies, not a pair; weekly cadence.
+    SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
+    })
+
+    NotificationSubheader("PAIR", colors)
+    // Composite: the full 6-factor weighted rank score (cont/CMP/momentum-delta/CSM-divergence/
+    // regime-fit/cross-asset) clearing its own floor. Signals Roadmap §1 (2026-09-16) —
+    // supersedes the retired Setup alert (single-factor cont>=45 alone; see UserPreferences.kt's
+    // own doc comment).
+    SettingsRow("Recommendation alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.recommendationAlerts, colors, enabled = notif.enabled) { preferences.setRecommendationAlertsEnabled(it) }
+    })
+    // Single-factor: a fresh BOS or CHoCH on H4 structure.
+    SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
+    })
+    // Single-factor: ATR percentile newly crossing 90.
+    SettingsRow("Volatility alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.volatilityAlerts, colors, enabled = notif.enabled) { preferences.setVolatilityAlertsEnabled(it) }
+    })
+    // Single-factor, multi-timeframe: the same pill classification agreeing across D1/H4/H1, not
+    // a blend of different evidence.
+    SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
+    })
+    // Single-factor: D1 %B touching a band. No confirmation gate, the touch alone fires; the
+    // Library entry (LibraryContent.kt, id "bb_reversal_criteria") documents what to check by
+    // hand — see that entry's own doc comment for why it's a reference, not an enforced
+    // threshold. Signals Roadmap §5 (Phase 4, 2026-09-09).
+    SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
+    })
+    // Single-factor: a user-set price level. Last in this group since it's the one still
+    // dormant. 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
     // server-side (level_ema_alerts.py -> send_push_alert) and the preference/toggle wiring is
     // untouched ("maybe in future we will use it"), but it can never actually fire today — it
     // depends on `data/level_alerts.json`, which needs a dashboard or on-device "set alert" flow
@@ -434,35 +514,6 @@ private fun NotificationsGroup(
     SettingsRow("Level alerts", colors) {
         SettingsSwitch(checked = notif.levelAlerts, colors = colors, enabled = false) {}
     }
-    // Signals Roadmap §2 (Phase 1) — five new state-transition alert toggles. Structure
-    // covers both new BOS and CHoCH events; Regime covers both an H4 regime flip and a
-    // Macro Archetype change (Pieter's call on both mergers, 2026-09-04).
-    SettingsRow("Setup alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.setupAlerts, colors, enabled = notif.enabled) { preferences.setSetupAlertsEnabled(it) }
-    })
-    SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
-    })
-    SettingsRow("Regime alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.regimeAlerts, colors, enabled = notif.enabled) { preferences.setRegimeAlertsEnabled(it) }
-    })
-    SettingsRow("Volatility alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.volatilityAlerts, colors, enabled = notif.enabled) { preferences.setVolatilityAlertsEnabled(it) }
-    })
-    SettingsRow("Alignment alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.alignmentAlerts, colors, enabled = notif.enabled) { preferences.setAlignmentAlertsEnabled(it) }
-    })
-    // Signals Roadmap §4 (Phase 3) — the conviction_extreme alert.
-    SettingsRow("Positioning alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.positioningAlerts, colors, enabled = notif.enabled) { preferences.setPositioningAlertsEnabled(it) }
-    })
-    // Signals Roadmap §5 (Phase 4, 2026-09-09) — the bb_touch alert. No confirmation gate, the
-    // touch alone fires; the Library entry (LibraryContent.kt, id "bb_reversal_criteria")
-    // documents what to check by hand — see that entry's own doc comment for why it's a
-    // reference, not an enforced threshold.
-    SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
-    })
 }
 
 // Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,
@@ -605,34 +656,105 @@ private fun PriceLevelAlertsGroup(colors: AtomColors) {
     }
 }
 
+/**
+ * 2026-09-17 (Pieter's ask) — was three rows (Last updated/Status/Schema version), all off the
+ * H1 technical scan's own `signals.updated`. The app actually carries several independently-
+ * refreshing layers (hourly technical + ranking, scan_news-cadence AI recommendation/daily
+ * brief/macro/news/catalyst, weekly COT) — this board surfaces each one's own "as of" stamp and
+ * a display-only staleness hint, so a stale AI narrative or a week-old COT read is visible
+ * instead of hiding behind one blanket Fresh/Stale word. Never gates anything — purely a read of
+ * timestamps already in `signals.json`, same "app never recomputes a trading number" rule
+ * extended to "never invents a freshness rule that blocks a render."
+ */
 @Composable
 private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors, onRefreshNow: () -> Unit) {
-    val updated = loaded?.signals?.updated?.let {
-        // Locale.US explicitly — the default locale can render month abbreviations differently
-        // (e.g. "sept." instead of "Sep"), same bug class swept out of every other formatter.
-        // 2026-09-09 — atZoneSameInstant(systemDefault()) converts UTC to the device's actual
-        // timezone (DST included) instead of printing the raw UTC offset, same fix as
-        // MainActivity's formatUpdated().
-        runCatching {
-            OffsetDateTime.parse(it).atZoneSameInstant(java.time.ZoneId.systemDefault())
-                .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", java.util.Locale.US))
-        }.getOrNull()
-    } ?: "—"
+    val signals = loaded?.signals
+    val technicalIso = signals?.updated
     val freshnessWord = when (loaded?.freshness) {
         Freshness.FRESH -> "Fresh"
         Freshness.STALE -> "Stale"
         null -> "—"
     }
-    val schema = loaded?.signals?.schemaVersion?.toString() ?: "—"
+    val schema = signals?.schemaVersion?.toString() ?: "—"
 
     // 2026-09-10 (Pieter's ask) — general Settings rule: heading, then buttons, then the rest.
     // Force refresh moves above the diagnostic rows instead of trailing below them.
     SettingsActionButton(label = "Force refresh", colors = colors, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
         onRefreshNow()
     }
-    DiagRow("Last updated", updated, colors)
+
+    // 2026-09-17 (2nd, Pieter's ask) — Status leads the board as the one quick-glance summary
+    // (driven by `loaded.freshness`, the H1 technical scan's own fresh/stale read — unchanged),
+    // then a gap sets it apart from the per-layer rows below, same "the master switch isn't a
+    // ninth alert type" spacing this screen's notifications toggle already uses.
     DiagRow("Status", freshnessWord, colors, if (loaded?.freshness == Freshness.STALE) colors.bear else colors.bull)
+    Spacer(modifier = Modifier.height(12.dp))
+
+    DiagRow("Technical (H1)", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_TECHNICAL, colors))
+
+    // `signals.ranked` has no timestamp of its own in the app's model (`RankedBlock` is just
+    // `text`/`top` — no `updated` field) because the deterministic ranking is now recomputed
+    // inside the same hourly `scan_h1.py` pass that writes `signals.updated` (`rank_pairs()`
+    // called directly there since 2026-09-16) — it shares that stamp rather than needing its own.
+    DiagRow("Recommendation", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_RECO, colors))
+
+    val aiRecoIso = signals?.recommendation?.generatedAt
+    DiagRow("AI recommendation", formatUtcLocal(aiRecoIso), colors, freshnessColor(aiRecoIso, STALE_AI_RECO, colors))
+
+    val briefIso = signals?.deepAnalysis?.generatedAt
+    DiagRow("Daily brief", formatUtcLocal(briefIso), colors, freshnessColor(briefIso, STALE_DAILY_BRIEF, colors))
+
+    val macroIso = signals?.macroRegime?.updated
+    DiagRow("Macro regime", formatUtcLocal(macroIso), colors, freshnessColor(macroIso, STALE_MACRO, colors))
+
+    val newsIso = signals?.breaking?.updated
+    DiagRow("News", formatUtcLocal(newsIso), colors, freshnessColor(newsIso, STALE_NEWS, colors))
+
+    val catalystIso = signals?.catalyst?.updated
+    DiagRow("Catalyst", formatUtcLocal(catalystIso), colors, freshnessColor(catalystIso, STALE_CATALYST, colors))
+
+    // COT is the one exception to the time-threshold rule above — weekly by design (CFTC
+    // publishes Fridays), so a client-side age check would flag it amber every single week on
+    // schedule, not on an actual problem. The backend already computes the real signal
+    // (`cot_stale` — data-fetch failure, not "it's been a few days"), so that's what colours
+    // this row; `cotDate` (the COT survey date itself) rides along on its own second line —
+    // 2026-09-17 (2nd, Pieter's ask): jamming timestamp + survey date + "weekly" onto one line
+    // read as cramped next to this row's own longer label, so it's now a stacked value instead.
+    val conviction = signals?.conviction
+    val cotDateWord = conviction?.cotDate?.let { raw ->
+        runCatching { LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("MMM d", Locale.US)) }
+            .getOrDefault(raw)
+    }
+    DiagRowStacked(
+        label = "COT positioning",
+        value = formatUtcLocal(conviction?.updated),
+        secondary = cotDateWord?.let { "$it · weekly" },
+        colors = colors,
+        valueColor = if (conviction?.cotStale == true) colors.watch else colors.textPrimary,
+    )
+
     DiagRow("Schema version", schema, colors)
+}
+
+// Same UTC->local formatting this board's rows all share — Locale.US explicitly (the default
+// locale can render month abbreviations differently, e.g. "sept." instead of "Sep") and
+// atZoneSameInstant(systemDefault()) to convert UTC to the device's actual timezone (DST
+// included) instead of printing the raw UTC offset, same fix as MainActivity's formatUpdated().
+private fun formatUtcLocal(iso: String?): String {
+    if (iso == null) return "—"
+    return runCatching {
+        OffsetDateTime.parse(iso).atZoneSameInstant(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("MMM d, HH:mm", Locale.US))
+    }.getOrNull() ?: "—"
+}
+
+/** Display-only — never null/unparseable -> amber; we don't actually know an unreadable
+ *  timestamp is stale, so it renders in normal colour like any other missing value. */
+private fun freshnessColor(iso: String?, threshold: Duration, colors: AtomColors): Color {
+    val stale = iso != null && runCatching {
+        Duration.between(OffsetDateTime.parse(iso).toInstant(), Instant.now()) > threshold
+    }.getOrDefault(false)
+    return if (stale) colors.watch else colors.textPrimary
 }
 
 @Composable
@@ -640,6 +762,23 @@ private fun DiagRow(label: String, value: String, colors: AtomColors, valueColor
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(text = label, style = AtomType.Body.copy(color = colors.textSecondary))
         Text(text = value, style = AtomType.Body.copy(color = valueColor))
+    }
+}
+
+/** [DiagRow] with an optional second, smaller, muted line under the value — for a row whose
+ *  value carries extra context (COT's own survey date + cadence word) that crowded a single
+ *  line next to a longer label. Right-aligned under the primary value, not a separate row of
+ *  its own, so it still reads as "one row, one topic." */
+@Composable
+private fun DiagRowStacked(label: String, value: String, secondary: String?, colors: AtomColors, valueColor: Color = colors.textPrimary) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = label, style = AtomType.Body.copy(color = colors.textSecondary))
+        Column(horizontalAlignment = Alignment.End) {
+            Text(text = value, style = AtomType.Body.copy(color = valueColor))
+            if (secondary != null) {
+                Text(text = secondary, style = AtomType.Caption.copy(color = colors.textMuted))
+            }
+        }
     }
 }
 

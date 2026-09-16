@@ -119,9 +119,9 @@ private fun NotificationCard(
         record.type == "regime_flip" && record.regimeFlipTo != null ->
             TECHNICAL_REGIME_PLAYBOOK[record.regimeFlipTo]?.let { ReadingTarget.TechnicalRegime(it) }
         // Alert Playbook pass, 2026-09-04 — same "resolve once, up here" shape as the two cases
-        // above, now covering the five remaining alert types (level_alert and potential_state
-        // deliberately excluded, Pieter's own call — see AlertPlaybookContent.kt's own doc
-        // comment for why).
+        // above, now covering the five remaining alert types (level_alert excluded, Pieter's own
+        // call — see AlertPlaybookContent.kt's own doc comment for why; potential_state was
+        // excluded the same way, moot since it was retired outright 2026-09-17).
         record.type == "structure_event" && record.structureKind != null ->
             STRUCTURE_EVENT_PLAYBOOK[record.structureKind]?.let { ReadingTarget.Alert(it, "STRUCTURE PLAYBOOK") }
         record.type == "gold_signal" && record.direction != null ->
@@ -200,6 +200,10 @@ private fun NotificationCard(
 private fun alertTypeLabel(type: String): String = when (type) {
     "gold_signal" -> "GOLD SIGNAL"
     "level_alert" -> "LEVEL ALERT"
+    // Setup alerts (potential_state) retired 2026-09-17 — the backend can no longer produce a
+    // new one, but this mapping stays so a still-recent local history entry from before the
+    // retirement (7-day retention, NotificationHistoryStore.kt) doesn't fall through to the
+    // ugly "POTENTIAL_STATE" default.
     "potential_state" -> "SETUP"
     "structure_event" -> "STRUCTURE"
     "regime_flip" -> "REGIME"
@@ -207,6 +211,11 @@ private fun alertTypeLabel(type: String): String = when (type) {
     "volatility_spike" -> "VOLATILITY"
     "tf_alignment" -> "ALIGNMENT"
     "conviction_extreme" -> "POSITIONING"
+    // 2026-09-17 (incidental fix, found while editing this function) — both missing before:
+    // "bb_touch" fell through to the ugly literal "BB_TOUCH" (underscore, never stripped);
+    // "recommendation" happened to look right via the same fallback but wasn't explicit.
+    "bb_touch" -> "BB TOUCH"
+    "recommendation" -> "RECOMMENDATION"
     else -> type.uppercase()
 }
 

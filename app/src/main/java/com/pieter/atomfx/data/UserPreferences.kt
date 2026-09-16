@@ -18,8 +18,13 @@ data class NotificationPrefs(
     val levelAlerts: Boolean = true,
     // Signals Roadmap §2 (Phase 1) — Structure covers both new BOS and CHoCH events (one
     // toggle, per Pieter's call); Regime covers both an H4 regime flip and a Macro Archetype
-    // change (again one toggle — same "the backdrop changed" register).
-    val setupAlerts: Boolean = true,
+    // change (again one toggle — same "the backdrop changed" register). Setup alerts
+    // (`potential_state`) retired 2026-09-17 — redundant with Recommendation alerts (below):
+    // Setup fired on a pair's own cont >= 45 alone, the loosest single-factor bar in the app,
+    // while Recommendation fires on the full weighted composite clearing 6.5/10 — strictly
+    // richer evidence for the same "this pair just got interesting" story. Checked live before
+    // removing: 9/12 pairs cleared Setup's gate in one real scan vs. only 3/12 for
+    // Recommendation's, confirming Setup was the systematically noisier duplicate.
     val structureAlerts: Boolean = true,
     val regimeAlerts: Boolean = true,
     val volatilityAlerts: Boolean = true,
@@ -28,6 +33,9 @@ data class NotificationPrefs(
     val positioningAlerts: Boolean = true,
     // Signals Roadmap §5 (Phase 4, 2026-09-09) — the bb_touch alert.
     val bbTouchAlerts: Boolean = true,
+    // Signals Roadmap §1 (2026-09-16) — the edge-triggered "recommendation" alert (a pair
+    // newly enters the hourly-refreshed ranked.top, or flips direction while staying in it).
+    val recommendationAlerts: Boolean = true,
 )
 
 data class UserPrefsState(
@@ -56,13 +64,13 @@ class UserPreferences(context: Context) {
             enabled = prefs.getBoolean(KEY_NOTIF_ENABLED, true),
             goldSignal = prefs.getBoolean(KEY_NOTIF_GOLD, true),
             levelAlerts = prefs.getBoolean(KEY_NOTIF_LEVEL, true),
-            setupAlerts = prefs.getBoolean(KEY_NOTIF_SETUP, true),
             structureAlerts = prefs.getBoolean(KEY_NOTIF_STRUCTURE, true),
             regimeAlerts = prefs.getBoolean(KEY_NOTIF_REGIME, true),
             volatilityAlerts = prefs.getBoolean(KEY_NOTIF_VOLATILITY, true),
             alignmentAlerts = prefs.getBoolean(KEY_NOTIF_ALIGNMENT, true),
             positioningAlerts = prefs.getBoolean(KEY_NOTIF_POSITIONING, true),
             bbTouchAlerts = prefs.getBoolean(KEY_NOTIF_BB_TOUCH, true),
+            recommendationAlerts = prefs.getBoolean(KEY_NOTIF_RECOMMENDATION, true),
         ),
         signalsUrl = prefs.getString(KEY_URL, null) ?: DEFAULT_SIGNALS_URL,
         refreshMinutes = prefs.getInt(KEY_REFRESH_MIN, DEFAULT_REFRESH_MINUTES),
@@ -86,11 +94,6 @@ class UserPreferences(context: Context) {
     fun setLevelAlertsEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_NOTIF_LEVEL, enabled).apply()
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(levelAlerts = enabled))
-    }
-
-    fun setSetupAlertsEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_NOTIF_SETUP, enabled).apply()
-        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(setupAlerts = enabled))
     }
 
     fun setStructureAlertsEnabled(enabled: Boolean) {
@@ -123,6 +126,11 @@ class UserPreferences(context: Context) {
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(bbTouchAlerts = enabled))
     }
 
+    fun setRecommendationAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_RECOMMENDATION, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(recommendationAlerts = enabled))
+    }
+
     fun setSignalsUrl(url: String) {
         val resolved = url.ifBlank { DEFAULT_SIGNALS_URL }
         prefs.edit().putString(KEY_URL, resolved).apply()
@@ -140,13 +148,13 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_ENABLED = "notif_enabled"
         const val KEY_NOTIF_GOLD = "notif_gold_signal"
         const val KEY_NOTIF_LEVEL = "notif_level_alerts"
-        const val KEY_NOTIF_SETUP = "notif_setup_alerts"
         const val KEY_NOTIF_STRUCTURE = "notif_structure_alerts"
         const val KEY_NOTIF_REGIME = "notif_regime_alerts"
         const val KEY_NOTIF_VOLATILITY = "notif_volatility_alerts"
         const val KEY_NOTIF_ALIGNMENT = "notif_alignment_alerts"
         const val KEY_NOTIF_POSITIONING = "notif_positioning_alerts"
         const val KEY_NOTIF_BB_TOUCH = "notif_bb_touch_alerts"
+        const val KEY_NOTIF_RECOMMENDATION = "notif_recommendation_alerts"
         const val KEY_URL = "signals_url"
         const val KEY_REFRESH_MIN = "refresh_minutes"
     }

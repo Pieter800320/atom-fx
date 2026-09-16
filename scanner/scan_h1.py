@@ -40,6 +40,7 @@ from scanner.mom1212    import compute_all as compute_mom
 from scanner.csm        import compute_csm, STRENGTH_PAIRS
 from scanner.regime     import classify_regime
 from scanner.cont_score import compute_cont, pill_direction
+from scanner.rank       import rank_pairs
 from scanner.correlate  import compute_correlation
 from scanner.score              import compute_reset_score, atr_percentile
 from scanner.level_ema_alerts   import check_levels, check_ema_touches
@@ -54,6 +55,20 @@ from push.alert_helpers         import send_push_alert, send_push_level_alert, s
 CSM_EXTRA = ["EUR/GBP", "EUR/CHF", "GBP/CHF", "AUD/NZD", "AUD/CAD", "GBP/AUD"]
 
 SCAN_TF = "h1"  # primary fetch timeframe
+
+# 2026-09-17 (Pieter's ask) — `ranked.top` used to be a flat top-3-by-rank slice regardless of
+# how many pairs actually cleared rank.py's own cont>=45 qualifying gate or how weak the
+# non-cont-qualifying ones scored on everything else. Checked live: on a strong trending day,
+# 9 of 12 pairs can clear that gate at once (one broad USD-strength theme wearing 9 pair labels,
+# not 9 independent setups), so a flat top-3 either hides real extra setups on a genuinely
+# decorrelated day or, more often, just shows "the best 3 of a flood." Replaced with a score
+# floor instead: every pair scoring >= this on rank.py's own 0-10 weighted scale gets in, no
+# upper cap. 6.5 was picked by simulating it against 40 scans' worth of historical ranked.top
+# scores (5% would show zero — rare enough to trust, unlike 7.0's 25%) — a defensible first
+# pass, not a frozen number; tune freely. Also duplicated in scan_news.py's own
+# call_ranked_analysis (same "small local copy, not shared" house style used throughout this
+# codebase — a shared constant isn't worth a new module for one number).
+RECOMMENDATION_MIN_SCORE = 6.5
 
 # Keys written by a job other than scan_h1.py (scan_news.py's own cadence, scan_cot.py's
 # weekly cadence, …) that must survive an hourly rebuild of `out` — scan_h1.py assembles
@@ -92,6 +107,74 @@ def save_signals(data: dict):
 
 def regime_emoji(regime: str) -> str:
     return {"Risk-Off": "🔴", "Risk-On": "🟢", "Mixed": "🟡", "Ranging": "⚪"}.get(regime, "")
+
+
+def _gold_signal_should_push(gs_direction: str, qualifies_now: bool, prev_gold: dict) -> bool:
+    """
+    2026-09-17 (Pieter's explicit sign-off — see ARCHITECTURE.md §5.2's own discussion of why
+    this firing-condition change was allowed, not a silent Rule #1 deviation) — edge-triggers
+    the Gold Signal push, same convention every other alert in the app uses (Signals Roadmap §1:
+    "never for a condition that's merely still true"). Previously this pushed every single hour
+    `qualifies_now` held, with no comparison against `prev` at all — the one alert in the whole
+    system that could spam identical information for many consecutive hours during one sustained
+    regime. The underlying qualifying condition itself (gs_direction/h4_confirmed/h1_confirmed/
+    h4_conf, computed by the frozen gold-signal block in `main()`) is completely untouched —
+    this only gates the push: fires on the not-qualifying -> qualifying transition, or a
+    direction flip while it stays qualifying, same shape `_recommendation_alerts` (below) uses.
+
+    `prev_gold` is last scan's own `out["gold_signal"]` dict (or `{}` on a first-ever run —
+    `qualifies_now` is still checked first, so a first run correctly fires exactly like the old
+    unconditional behavior did, no special-casing needed).
+    """
+    if not qualifies_now:
+        return False
+    prev_qualified = (
+        prev_gold.get("direction") not in (None, "neutral")
+        and prev_gold.get("h4_confirmed")
+        and prev_gold.get("h1_confirmed")
+        and prev_gold.get("h4_confidence") in ("Medium", "High")
+    )
+    return not (prev_qualified and prev_gold.get("direction") == gs_direction)
+
+
+def _recommendation_alerts(out: dict, prev: dict) -> list:
+    """
+    Signals Roadmap §1 — edge-triggered "recommendation changed" push. Fires once per pair
+    that, versus the previous scan's `ranked.top`, either newly clears the score floor into the
+    fresh top (`out["ranked"]["top"]`, re-ranked hourly by the frozen `rank.py::rank_pairs` —
+    see the call site in `main()`) or stays in the top but flips direction (long<->short). Same
+    edge-triggered convention `scanner/extend/state_alerts.py`'s own detectors use (compare
+    this scan vs `prev`, one alert per transition, first-ever run with no `prev` never
+    fires) — kept local to this file rather than added to that module so this addition stays
+    a small, self-contained, easy-to-merge diff (`scan_h1.py` is also edited on the
+    trend-pullback branch).
+    """
+    if not prev:
+        return []
+    prev_top = {
+        r["pair"]: r.get("direction")
+        for r in (prev.get("ranked") or {}).get("top", [])
+        if r.get("pair")
+    }
+    alerts = []
+    for r in out.get("ranked", {}).get("top", []):
+        pair      = r.get("pair")
+        direction = r.get("direction")
+        if not pair or not direction:
+            continue
+        if pair in prev_top and prev_top[pair] == direction:
+            continue  # unchanged — still in the top, same direction
+        is_new   = pair not in prev_top
+        dir_word = "LONG" if direction == "bull" else "SHORT"
+        verb     = "entered the top setups" if is_new else f"flipped to {dir_word}"
+        alerts.append({
+            "type":     "recommendation",
+            "pair":     pair,
+            "msg":      f"<b>{pair} — Recommendation Alert</b>\n{verb} · score {r.get('score', 0):.1f}",
+            "deeplink": f"atomfx://pair/{pair}",
+            "direction": direction,
+        })
+    return alerts
 
 
 def d_pct(df, bars_back: int):
@@ -352,6 +435,29 @@ def main():
         **preserved,
     }
 
+    # ── Hourly recommendation ranking ─────────────────────────────────────────
+    # rank.py is FROZEN (Rule #1) — imported read-only above, never edited. Every input it
+    # reads off `out` here (pairs/csm/regime_d1) was just computed fresh this same scan;
+    # only `macro_assets` (the 10%-weight `cross` component) rides the preserved news-cadence
+    # value (PRESERVED_KEYS, above) — cadence rides the existing hourly scan_h1 trigger, no
+    # scheduler change. HOME's StatusStrip/Watchlist glyphs only ever read `ranked.top`
+    # (pair/direction/score, never `ranked.text`), so overwriting just `.top` here and leaving
+    # `ranked.text`/`ranked.updated` (the Haiku narrative, still news-cadence) untouched is
+    # safe — checked directly, nothing in the Android app renders `ranked.text` today.
+    # 2026-09-17 (Pieter's ask) — score floor (RECOMMENDATION_MIN_SCORE, above), not a flat
+    # top-3 slice: every qualifying pair scoring >= the floor gets in, no upper cap. rank_pairs()
+    # already returns its results sorted by score descending, so this is a straight filter, no
+    # re-sort needed.
+    fresh_ranked = rank_pairs(out)
+    out["ranked"] = {
+        **out.get("ranked", {}),
+        "top": [
+            {"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
+            for r in fresh_ranked if r["score"] >= RECOMMENDATION_MIN_SCORE
+        ],
+    }
+    recommendation_alerts_list = _recommendation_alerts(out, prev)
+
     save_signals(out)
     print(f"\n✓ signals.json saved")
 
@@ -518,6 +624,10 @@ def main():
 
     save_signals(out)
 
+    # Recommendation-ranking edge-trigger (computed earlier, independent of the EXTEND try
+    # block above) rides the same generic alert-dict push loop below.
+    state_alerts_list = state_alerts_list + recommendation_alerts_list
+
     # ── State-transition alerts push (Signals Roadmap §2) ─────────────────────
     if state_alerts_list:
         print(f"\n[State alerts] {len(state_alerts_list)} transition(s) this scan…")
@@ -533,12 +643,25 @@ def main():
     check_levels(_pair_closes, send_push_level_alert)
     # EMA touch alerts removed — Gold signal is the only proactive alert
 
-    if (
+    # NOTE (2026-09-17, Pieter's ask) — when Level Alert (price-level alerts UI + PAT sync,
+    # Functional Spec §9, BUILD_STATUS.md item 7) actually ships: align its push message to the
+    # "{pair} — Level Alert" title convention every other alert type now uses (see
+    # BUILD_STATUS.md's "Alert push title standardization" row). It was skipped in that pass —
+    # the message itself lives in level_ema_alerts.py::check_levels, FROZEN, and this feature is
+    # currently dormant (Settings toggle hardcoded disabled) — so it still reads
+    # "Level Alert — {pair}" (pair second, not first). Changing that message text needs the
+    # usual Rule #1 stop-and-ask conversation before editing that file, same as any other
+    # frozen-file touch.
+
+    gold_qualifies_now = (
         gs_direction != "neutral"
         and h4_confirmed
         and h1_confirmed
         and h4_conf in ("Medium", "High")
-    ):
+    )
+    gold_should_push = _gold_signal_should_push(gs_direction, gold_qualifies_now, prev.get("gold_signal") or {})
+
+    if gold_should_push:
         # Build pair list from ranked top setups
         ranked_top = out.get("ranked", {}).get("top", [])[:3]
         pairs_line = " | ".join(
@@ -546,13 +669,17 @@ def main():
             for r in ranked_top
         ) if ranked_top else "—"
 
-        emoji   = "🔴" if gs_direction == "bear" else "🟢"
-        dir_lbl = "BEAR — USD bid" if gs_direction == "bear" else "BULL — Risk-On"
-        gp_str  = f"{gold_pct:+.1f}%" if gold_pct is not None else ""
+        # 2026-09-17 (Pieter's ask) — every alert's push title now follows one shape,
+        # "{Entity} — {Category} Alert" (Entity omitted for a market-wide alert like this one,
+        # same as Regime below), with the specifics moved into the body. Was "Gold Signal:
+        # {BEAR — USD bid}"; the "USD bid"/"Risk-On" descriptor moves into the body's first line.
+        dir_word   = "BEAR" if gs_direction == "bear" else "BULL"
+        dir_detail = "USD bid" if gs_direction == "bear" else "Risk-On"
+        gp_str     = f"{gold_pct:+.1f}%" if gold_pct is not None else ""
 
         msg = (
-            f"{emoji} <b>Gold Signal: {dir_lbl}</b>\n"
-            f"Gold {gp_str} | H4 {h4_regime} ({h4_conf}) | H1 {h1_regime}\n"
+            f"<b>Gold Signal Alert — {dir_word}</b>\n"
+            f"{dir_detail} · Gold {gp_str} | H4 {h4_regime} ({h4_conf}) | H1 {h1_regime}\n"
             f"Setups: {pairs_line}\n"
             f"{now.strftime('%H:%M')} UTC"
         )
@@ -561,7 +688,10 @@ def main():
         out["last_alert"] = now.isoformat()
         save_signals(out)
     else:
-        print(f"\nNo Telegram: direction={gs_direction} h4={h4_confirmed} h1={h1_confirmed} conf={h4_conf}")
+        print(
+            f"\nNo Telegram: direction={gs_direction} h4={h4_confirmed} h1={h1_confirmed} "
+            f"conf={h4_conf} qualifies_now={gold_qualifies_now} already_pushed_this_state={gold_qualifies_now and not gold_should_push}"
+        )
 
     print("=== Hourly Scan complete ===")
 

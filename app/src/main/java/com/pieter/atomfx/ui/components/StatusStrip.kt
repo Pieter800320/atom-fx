@@ -40,8 +40,6 @@ import com.pieter.atomfx.ui.sheets.SheetTarget
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
-import com.pieter.atomfx.ui.wheel.Direction
-import com.pieter.atomfx.ui.wheel.Factor
 import com.pieter.atomfx.ui.wheel.PairNode
 import com.pieter.atomfx.ui.wheel.WheelUiState
 
@@ -57,10 +55,11 @@ private const val EMPTY_KEY = "__empty__"
 /**
  * 2026-09-06 (Pieter's follow-up ask) — was one glyph for the single deterministic
  * `recommendation.primary_pair`; now one small glyph PER pair in `signals.ranked.top`
- * (`rank.py::rank_pairs`, hard-capped to 3 by `scan_news.py::call_ranked_analysis` — never all 12,
- * however many pairs actually clear its directional+continuation gate). The glyphs sit in a row
- * above the wheel, horizontally scrollable if more than fit (in practice at most 3, so this is a
- * safety net, not the common case).
+ * (`rank.py::rank_pairs`, filtered to a score floor rather than a fixed count — see
+ * `RECOMMENDATION_MIN_SCORE` in `scan_h1.py`/`scan_news.py`, 2026-09-17 — never all 12, however
+ * many pairs actually clear both `rank.py`'s own gate and that floor). The glyphs sit in a row
+ * above the wheel, horizontally scrollable if more than fit — genuinely needed now, not just a
+ * safety net: a correlated trending day can clear the floor on several pairs at once.
  *
  * Tapping a glyph opens a FULL-WIDTH panel below the row — Item Library #03's canonical §4
  * "reflow, not overlay" behaviour (superseding this same feature's own brief same-day detour into
@@ -253,24 +252,13 @@ private fun RecommendationPanel(item: RecoItem, colors: AtomColors, onClick: () 
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
-        Row(
+        ConsensusDotRow(
+            node = item.node,
+            structureEvent = item.structureEvent,
+            structureDirection = item.structureDirection,
+            colors = colors,
             modifier = Modifier.padding(top = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            ConsensusItem("REGIME", regimeDotColor(item.node, colors), colors)
-            ConsensusItem("TREND", trendDotColor(item.node, colors), colors)
-            ConsensusItem("MOM", momentumDotColor(item.node, colors), colors)
-            ConsensusItem("VOL", volatilityDotColor(item.node, colors), colors)
-            ConsensusItem("STRUCTURE", structureDotColor(item.structureEvent, item.structureDirection, colors), colors)
-        }
-    }
-}
-
-@Composable
-private fun ConsensusItem(label: String, dotColor: Color, colors: AtomColors) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        EvidenceDot(color = dotColor, modifier = Modifier.padding(end = 6.dp))
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted), maxLines = 1)
+        )
     }
 }
 
@@ -284,38 +272,4 @@ private fun directionColor(direction: String?, colors: AtomColors): Color = when
     "bull" -> colors.bull
     "bear" -> colors.bear
     else -> colors.textSecondary
-}
-
-// Same four reads the pair sheet's own Overview tab shows (PairSheet.kt's `overviewRows`) —
-// duplicated here on purpose rather than shared, same house style as RegimeSheet's own tiny
-// `regimeTint` copy: a few lines of pure logic, not worth a shared API for.
-private fun regimeDotColor(node: PairNode, colors: AtomColors): Color =
-    if (Factor.REGIME in node.factorsPassed) colors.bull else colors.textMuted
-
-private fun trendDotColor(node: PairNode, colors: AtomColors): Color = when {
-    node.adx >= 25 && node.trendDirection == Direction.NEUTRAL -> colors.watch
-    node.trendDirection == Direction.BULL -> colors.bull
-    node.trendDirection == Direction.BEAR -> colors.bear
-    else -> colors.textMuted
-}
-
-private fun momentumDotColor(node: PairNode, colors: AtomColors): Color =
-    if (node.momentum >= 50) colors.bull else colors.bear
-
-private fun volatilityDotColor(node: PairNode, colors: AtomColors): Color =
-    if (node.volatility in 20..70) colors.bull else colors.watch
-
-// Same convention as PairSheet.kt's own Overview `structureRow` — 2026-09-09 (Pieter's ask):
-// coloured by the event's own `direction` (real price direction), not by event type (BOS/CHoCH
-// used to be hardcoded bull/bear regardless of which way they actually broke). No recent event
-// still reads as neutral, same as every other dot here when there's nothing to report — the
-// backend sends event as the literal string "none" (not JSON null) in that case, so this matches
-// on "BOS"/"CHoCH" first rather than checking for null, same as PairSheet's own row does.
-private fun structureDotColor(event: String?, direction: String?, colors: AtomColors): Color = when (event) {
-    "BOS", "CHoCH" -> when (direction) {
-        "bull" -> colors.bull
-        "bear" -> colors.bear
-        else -> colors.textMuted
-    }
-    else -> colors.textMuted
 }
