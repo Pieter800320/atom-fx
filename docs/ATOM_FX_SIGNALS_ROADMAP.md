@@ -294,15 +294,79 @@ Six-Factor engine is trend-following; this is mean-reversion.
   hardcoded into the alert itself.
 - **New feature: Watchlist.** A pair added from its sheet (a toggle button on `PairHeader`)
   appears on a new Watchlist screen, reached via a new icon in the header next to the
-  calendar/gear (Pieter's call — not a new bottom tab, not a bottom sheet). Each card shows a
-  compact snapshot (touch direction + how long ago, ADX, pill alignment, Reset Score,
-  band-width trend, Structure) and taps through to the full pair sheet. Storage: same
-  `SharedPreferences` + JSON + hot `StateFlow` pattern `NotificationHistoryStore` already
-  uses — no new dependency. No auto-expiry in v1 — Pieter manages the list by hand; add one
-  later if the list gets noisy in practice.
+  calendar/gear (Pieter's call — not a new bottom tab, not a bottom sheet). Taps through to the
+  full pair sheet. Storage: same `SharedPreferences` + JSON + hot `StateFlow` pattern
+  `NotificationHistoryStore` already uses — no new dependency. No auto-expiry in v1 — Pieter
+  manages the list by hand; add one later if the list gets noisy in practice.
+  **Card content redesigned 2026-09-16** — originally a BB-touch-specific snapshot (touch
+  direction + how long ago, ADX, pill alignment, Reset Score, band-width trend, Structure) plus
+  a tap-to-reveal "what to look for" reversal checklist (the same prose the BB Library entry
+  carries). A watched pair is no longer assumed to be mid-reversal-watch, so the card now shows
+  general pair state instead: pair + direction word + added time, a "★ RECOMMENDED" chip when
+  the pair is currently in `ranked.top` (§5b), a "Setup {cont} · {six-factor state}" ripeness
+  line, the same Regime/Trend/Momentum/Volatility/Structure five-factor consensus dot row
+  StatusStrip's own recommendation panel shows (extracted into one shared
+  `ui/components/ConsensusRow.kt` so the two surfaces can't drift, and so a colour bug fixed in
+  one can't silently persist in the other), and the existing D1/H4/H1 pill row. The reversal
+  checklist itself is unchanged and still lives in the Library, just no longer duplicated here.
 - **Rule #1 tier:** EXTEND.
 - **Effort:** L (touch detection is small; the Watchlist is a genuinely new screen + storage +
   nav entry + pair-sheet control, not a quick addition).
+
+---
+
+## 5b. Hourly recommendation ranking + edge-triggered alert
+
+> **Shipped 2026-09-16.** Backend: `scanner/scan_h1.py` (fresh `rank_pairs()` call + local
+> `_recommendation_alerts` detector). Settings toggle in `NotificationPrefs`/`SettingsScreen.kt`/
+> `AtomFxMessagingService.kt`. Tests in `tests/test_extend.py`. Docs updated:
+> `ATOM_FX_ARCHITECTURE.md` §4.1/§7, this section, `LibraryContent.kt`.
+
+HOME's recommendation glyph row (`signals.ranked.top`) previously only refreshed on
+`scan_news.py`'s slower cadence — the same cadence as its AI narrative call, even though the
+underlying ranking (`rank.py::rank_pairs`, FROZEN, deterministic) doesn't need a model call at
+all and every input it reads (`cont`/`csm.d1`/`regime_d1`/`pills`/`mom`/`adx`) is already
+recomputed fresh every hourly scan. Only the 10%-weight cross-asset component still reads the
+slower-cadence `macro_assets`.
+
+- **Trigger:** `scan_h1.py` now calls the frozen `rank_pairs(out)` itself, right after `out` is
+  assembled each hourly scan, and overwrites `ranked.top` with every pair scoring
+  **>= `RECOMMENDATION_MIN_SCORE` (6.5, rank.py's own 0–10 weighted scale)** — `pair`/
+  `direction`/`score`, no upper cap on count — `ranked.text`/`ranked.updated` (the Haiku
+  narrative) are left alone, still written only by `scan_news.py`. Verified before building
+  this that nothing in the app reads `ranked.text`, so the split cadence carries no UI mismatch
+  risk.
+- **Score floor, not a flat top-3 slice (2026-09-17, Pieter's ask, same-day follow-up).** The
+  original ship used `ranked[:3]` — always exactly 3 regardless of how many pairs actually
+  qualified or how weak the non-`cont` components scored. Checked live: on a strong trending
+  day, 9 of 12 pairs can clear `rank.py`'s own `cont >= 45` gate at once (one broad
+  USD-strength/risk-off theme wearing 9 pair labels, not 9 independent setups) — a flat top-3
+  either hid genuine extra setups on a decorrelated day or, more often, just showed "the best 3
+  of a flood." `RECOMMENDATION_MIN_SCORE = 6.5` was picked by simulating it against 40 scans'
+  worth of historical `ranked.top` scores (5% would show zero pairs — rare enough to trust,
+  vs. 7.0's 25%) and cross-checked against a live full re-rank (9 pairs cleared the base gate,
+  only 3 cleared 6.5). Duplicated as the same-named constant in both `scan_h1.py` and
+  `scan_news.py::call_ranked_analysis` (same house style as `state_alerts.py`'s own
+  `_CONT_QUALIFY_THRESHOLD` cross-referencing `rank.py`'s 45) — a defensible first pass, not a
+  frozen number, tune freely. HOME's glyph row and the Watchlist's "RECOMMENDED" chip both
+  already iterate `signals.ranked.top` with no hardcoded count assumption (the glyph row was
+  already built to horizontally scroll "if more than fit"), so no app-side change was needed.
+- **Cadence: still rides the existing hourly `scan_h1` Apps Script trigger** — no scheduler
+  change, and `scan_news.py` does **not** become hourly.
+- **New alert — edge-triggered, per this doc's own §1 rule:** fires once per pair that, versus
+  the previous scan's `ranked.top`, either newly appears in the fresh top (now score-floored,
+  not count-capped) or stays in it but flips direction (long↔short). No `prev` (first-ever run)
+  never fires. `type: "recommendation"`, payload `pair`/`direction`/`score`, deeplink
+  `atomfx://pair/{PAIR}` — same `send_push_alert` path Gold Signal and the state-transition
+  alerts already use.
+- **Kept local to `scan_h1.py`**, not added to `scanner/extend/state_alerts.py` even though the
+  edge-trigger *pattern* matches that module's six detectors exactly — `scan_h1.py` was already
+  being edited on a concurrent branch (trend-pullback) at ship time, so this stayed a small,
+  self-contained addition to ease that merge, rather than spreading across two files.
+- **Settings toggle:** "Recommendation alerts", same one-boolean-per-type convention as every
+  row above.
+- **Rule #1 tier:** `rank.py` untouched, imported read-only. `scan_h1.py` is FROZEN-logic/EXTEND
+  call-sites tier, same as every other addition to that file.
 
 ---
 
@@ -320,9 +384,9 @@ Six-Factor engine is trend-following; this is mean-reversion.
 ## 7. Cross-cutting engineering notes
 
 - `UserPreferences.kt`'s `NotificationPrefs` data class grows one boolean per new toggle
-  (Setup, Structure, Regime, Volatility, Alignment, Positioning, Reversal) — plan the Settings
-  NOTIFICATIONS group's layout for seven-plus rows before Phase 1 ships its first four or five,
-  rather than bolting rows on ad hoc each phase.
+  (Setup, Structure, Regime, Volatility, Alignment, Positioning, Reversal, Recommendation) —
+  plan the Settings NOTIFICATIONS group's layout for seven-plus rows before Phase 1 ships its
+  first four or five, rather than bolting rows on ad hoc each phase.
 - Every new detector needs `prev` (the previous scan's full `signals.json`) available at the
   comparison point in `scan_h1.py` — confirm it's already in scope there (it is, for the
   preserved-keys block) before assuming a new load is needed.
@@ -363,6 +427,8 @@ roadmap become the only place a shipped feature is documented:
   `ATOM_FX_ARCHITECTURE.md` and `ATOM_FX_FUNCTIONAL_SPEC.md`.
 - Phase 4 → new `bb_signal`/reversal concept, same two docs, plus `GLOSSARY.md` gets the new
   term (verbatim naming, per that doc's own rule).
+- Phase 5b → hourly `ranked.top` re-rank + `recommendation` alert type, documented in
+  `ATOM_FX_ARCHITECTURE.md` §4.1/§7 and this section.
 - Each phase should also get a new entry in `LibraryContent.kt` (`app/src/main/java/.../ui/
   settings/`) — the in-app study library should stay in lockstep with what's actually shipped,
   not just what existed at the time it was first written.

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -68,7 +69,13 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
         } else {
             Column(modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = "%B ${bbD1.pctb.last().toInt()}", style = AtomType.Body.copy(color = colors.textPrimary))
+                    // 2026-09-17 (2nd, Pieter's ask) — same split as the currency cards below:
+                    // the pair (this card's own identity) stays the bigger, primary run; the %B
+                    // reading drops to Caption/textSecondary so the two don't read as one run.
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(text = pair, style = AtomType.Body.copy(color = colors.textPrimary))
+                        Text(text = "%B ${bbD1.pctb.last().toInt()}", style = AtomType.Caption.copy(color = colors.textSecondary))
+                    }
                     val touchWord = when (bbD1.touching) {
                         "upper" -> "Still touching upper"
                         "lower" -> "Still touching lower"
@@ -96,7 +103,14 @@ private fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, c
             NotAvailableRow("$currency %B", colors)
             return@Column
         }
-        Text(text = "$currency %B ${block.line.last().toInt()}", style = AtomType.Body.copy(color = colors.textPrimary))
+        // 2026-09-17 (Pieter's ask) — "NZD %B 14" read as one run; the currency code (the card's
+        // own identity) and the %B reading (a supporting number, not the headline) now split into
+        // two styles so they're visually distinct at a glance, same "identity primary, reading
+        // secondary" pairing MetricCell's label/value split uses elsewhere.
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(text = currency, style = AtomType.Body.copy(color = colors.textPrimary))
+            Text(text = "%B ${block.line.last().toInt()}", style = AtomType.Caption.copy(color = colors.textSecondary))
+        }
         PercentBOscillator(block.line, block.signal, colors, dates = block.dates, modifier = Modifier.padding(top = 8.dp))
         Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             LegendItem("%B", colors.textSecondary, colors)

@@ -375,7 +375,7 @@ def compute_conviction_alerts(conviction: dict, prev_conviction: dict | None) ->
         suffix = "" if cot_available else " (technical only — COT data unavailable)"
         alerts.append({
             "type": "conviction_extreme",
-            "msg": f"<b>{ccy} — Conviction Extreme</b>\nConviction {score:+d} · {dir_word}{suffix}",
+            "msg": f"<b>{ccy} — Positioning Alert</b>\nConviction {score:+d} · {dir_word}{suffix}",
             "deeplink": f"atomfx://currency/{ccy}",
             "direction": direction,
             "cot_confirmed": cot_available,

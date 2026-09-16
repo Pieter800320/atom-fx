@@ -48,7 +48,8 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         if (type == "level_alert" && !notif.levelAlerts) return
         // Signals Roadmap §2 (Phase 1) — Structure covers structure_event (BOS + CHoCH, one
         // toggle); Regime covers both regime_flip and archetype_change (one toggle).
-        if (type == "potential_state" && !notif.setupAlerts) return
+        // ("potential_state" / Setup alerts retired 2026-09-17 — the backend no longer sends
+        // this type at all, see state_alerts.py's own doc comment for why.)
         if (type == "structure_event" && !notif.structureAlerts) return
         if ((type == "regime_flip" || type == "archetype_change") && !notif.regimeAlerts) return
         if (type == "volatility_spike" && !notif.volatilityAlerts) return
@@ -57,6 +58,8 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         if (type == "conviction_extreme" && !notif.positioningAlerts) return
         // Signals Roadmap §5 (Phase 4, 2026-09-09).
         if (type == "bb_touch" && !notif.bbTouchAlerts) return
+        // Signals Roadmap §1 (2026-09-16) — edge-triggered "recommendation" alert.
+        if (type == "recommendation" && !notif.recommendationAlerts) return
 
         val title = message.data["title"] ?: type ?: "ATOM FX"
         val body = message.data["body"] ?: return

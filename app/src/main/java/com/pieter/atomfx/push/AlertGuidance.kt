@@ -22,10 +22,6 @@ val ALERT_GUIDANCE: Map<String, AlertGuidance> = mapOf(
         "Price reached a level you set. Confirm the setup still holds on the Pair sheet before entering.",
         "level-ema-alerts",
     ),
-    "potential_state" to AlertGuidance(
-        "This pair's Continuation Score just crossed into qualifying range. Open the Pair sheet's Overview tab to see what's actually supporting it.",
-        "potential",
-    ),
     "structure_event" to AlertGuidance(
         "A BOS usually confirms the existing trend (a pullback entry opportunity); a CHoCH is a reversal warning — tighten risk on positions in the old direction. Check which one fired above.",
         "structure-events",

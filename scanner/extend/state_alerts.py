@@ -16,48 +16,21 @@ this scan. `msg` follows the existing Gold Signal convention consumed by
 `scan_h1.py::send_push_alert` (`_msg_to_title_body`: first line becomes the push title,
 remaining lines the body; `<b>` tags are harmless since the Telegram fallback parses
 HTML).
-"""
 
-from scanner.cont_score import pill_direction
+2026-09-17 (Pieter's ask) — `_pair_setup_alerts` (`type: "potential_state"`, the "Setup
+alerts" toggle) retired outright, not just disabled: it fired on a pair's own `cont >= 45`
+alone, the loosest single-factor qualifying bar in the app, while the newer `recommendation`
+alert (`scan_h1.py::_recommendation_alerts`) fires on the full weighted composite score
+clearing 6.5/10 — strictly richer evidence for substantially the same "this pair just got
+interesting" story. Checked live before removing: 9 of 12 pairs cleared Setup's gate in one
+real scan while only 3 cleared Recommendation's, confirming Setup was the systematically
+noisier, redundant duplicate rather than a genuinely distinct signal. Kotlin-side toggle/
+guidance/label wiring removed alongside this — see that session's own commit for the full
+list of touchpoints.
+"""
 
 _ATR_SPIKE_THRESHOLD = 90
 _ALIGNED_PILLS = ("bull_strong", "bear_strong")
-
-
-_CONT_QUALIFY_THRESHOLD = 45  # matches rank.py's own qualifying gate — not a new number
-
-
-def _pair_setup_alerts(out: dict, prev: dict) -> list:
-    """
-    Fires when a pair's Continuation Score (`cont`, frozen) newly crosses into the
-    qualifying band (>= 45, matching `rank.py`'s own threshold) — "this pair just became
-    worth a look." Replaces the old Level 6/A+ trigger (`potential.state in
-    tradeable/aplus`) now that the six-factor gate is retired app-wide (Simplification
-    Rework, 2026-09-05) — same alert `type` ("potential_state") and delivery mechanism,
-    only the trigger condition changed, so existing Settings toggles/ALERT_GUIDANCE/
-    NotificationHistoryStore entries on the Kotlin side need no changes.
-    """
-    alerts = []
-    for pair, block in out.get("pairs", {}).items():
-        cont = block.get("cont")
-        if cont is None or cont < _CONT_QUALIFY_THRESHOLD:
-            continue
-        prev_cont = prev.get("pairs", {}).get(pair, {}).get("cont")
-        if prev_cont is not None and prev_cont >= _CONT_QUALIFY_THRESHOLD:
-            continue
-        # 2026-09-06 (Rule #1 sign-off) — was D1-pill-only, so a pair qualifying via
-        # compute_cont's own D1-else-H4 fallback would fire this alert with a blank "—"
-        # direction. pill_direction() is the same fallback compute_cont itself uses.
-        direction = pill_direction(block.get("pills") or {})
-        dir_word = "LONG" if direction == "bull" else "SHORT" if direction == "bear" else "—"
-        alerts.append({
-            "type": "potential_state",
-            "pair": pair,
-            "msg": f"<b>{pair} entered Tradeable Now</b>\n{dir_word} · Setup {cont}",
-            "deeplink": f"atomfx://pair/{pair}",
-            "direction": direction,
-        })
-    return alerts
 
 
 def _structure_event_alerts(out: dict, prev: dict) -> list:
@@ -75,7 +48,7 @@ def _structure_event_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "structure_event",
             "pair": pair,
-            "msg": f"<b>{pair} — {event} on H4</b>\n{dir_word} · strength {h4.get('strength', 0.0):.2f}",
+            "msg": f"<b>{pair} — Structure Alert</b>\n{event} on H4 · {dir_word} · strength {h4.get('strength', 0.0):.2f}",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction if direction in ("bull", "bear") else None,
             # Alert Playbook pass, 2026-09-04 — same mechanism as archetype_change's regime_code /
@@ -103,7 +76,7 @@ def _regime_flip_alert(out: dict, prev: dict) -> list:
         return []
     return [{
         "type": "regime_flip",
-        "msg": f"<b>Regime: {old} → {new}</b>\nD1 confidence: {d1.get('confidence', 'Low')}",
+        "msg": f"<b>Regime Alert</b>\n{old} → {new}\nD1 confidence: {d1.get('confidence', 'Low')}",
         "deeplink": "atomfx://regime",
         "direction": None,
         # Signals Roadmap "living handbook" pass, part 2 (2026-09-04) — mirrors
@@ -129,7 +102,7 @@ def _archetype_change_alert(out: dict, prev: dict) -> list:
     narrative = mr.get("narrative") or ""
     return [{
         "type": "archetype_change",
-        "msg": f"<b>Macro: {old_name} → {new_name}</b>\n{narrative}".rstrip(),
+        "msg": f"<b>Regime Alert</b>\n{old_name} → {new_name}\n{narrative}".rstrip(),
         "deeplink": "atomfx://regime",
         "direction": None,
         # Signals Roadmap "living handbook" pass, 2026-09-04 — the app's own Regime
@@ -152,7 +125,7 @@ def _volatility_spike_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "volatility_spike",
             "pair": pair,
-            "msg": f"<b>{pair} — volatility expanding</b>\nATR percentile {atr_pct}",
+            "msg": f"<b>{pair} — Volatility Alert</b>\nATR percentile {atr_pct} (expanding)",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": None,
         })
@@ -198,8 +171,8 @@ def _bb_touch_alerts(out: dict, prev: dict) -> list:
             "type": "bb_touch",
             "pair": pair,
             "msg": (
-                f"<b>{pair} — D1 Bollinger {touching} touch</b>\n"
-                f"ADX {adx if adx is not None else '—'} · Reset {reset if reset is not None else '—'} · "
+                f"<b>{pair} — BB Touch Alert</b>\n"
+                f"D1 {touching} band touch · ADX {adx if adx is not None else '—'} · Reset {reset if reset is not None else '—'} · "
                 f"Bands {bb.get('width_trend', 'flat')} · "
                 f"D1/H4/H1 {pills.get('d1', '—')}/{pills.get('h4', '—')}/{pills.get('h1', '—')}"
             ),
@@ -223,7 +196,7 @@ def _tf_alignment_alerts(out: dict, prev: dict) -> list:
         alerts.append({
             "type": "tf_alignment",
             "pair": pair,
-            "msg": f"<b>{pair} — D1/H4/H1 aligned {dir_word}</b>\nStrong {'Buy' if direction == 'bull' else 'Sell'} across all three timeframes",
+            "msg": f"<b>{pair} — Alignment Alert</b>\nD1/H4/H1 aligned {dir_word} · Strong {'Buy' if direction == 'bull' else 'Sell'} across all three timeframes",
             "deeplink": f"atomfx://pair/{pair}",
             "direction": direction,
         })
@@ -235,7 +208,6 @@ def compute_state_alerts(out: dict, prev: dict) -> list:
     if not prev:
         return []
     alerts = []
-    alerts += _pair_setup_alerts(out, prev)
     alerts += _structure_event_alerts(out, prev)
     alerts += _regime_flip_alert(out, prev)
     alerts += _archetype_change_alert(out, prev)

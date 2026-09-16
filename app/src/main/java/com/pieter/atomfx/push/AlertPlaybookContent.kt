@@ -4,10 +4,11 @@ package com.pieter.atomfx.push
  * Part 3 of the "living handbook" pass (Pieter, 2026-09-04) — extending the pattern proven on
  * `archetype_change`/`regime_flip` (see `RegimePlaybookContent.kt`/`TechnicalRegimePlaybookContent.kt`)
  * to the remaining state-transition alerts: `structure_event`, `volatility_spike`, `tf_alignment`,
- * `conviction_extreme`, and `gold_signal`. `level_alert` and `potential_state` deliberately excluded
- * (Pieter's own call) — `level_alert` is a user-defined price trigger with no backend regime/state
- * to unpack, and `potential_state`'s own mechanism is already fully covered by the existing
- * "Potential" and "The Six-Factor Engine" Library entries.
+ * `conviction_extreme`, and `gold_signal`. `level_alert` deliberately excluded (Pieter's own
+ * call) — it's a user-defined price trigger with no backend regime/state to unpack.
+ * (`potential_state` was excluded here the same way, for the same "already fully covered by the
+ * Library" reason — moot since 2026-09-17, when the alert itself was retired outright as
+ * redundant with `recommendation`; see `state_alerts.py`'s own doc comment.)
  *
  * One shared, simpler shape this time, not a bespoke class per alert (the Regime Playbook's
  * richer shape — confirmingAxes/confidenceNote/biasMechanism/historicalNote — was built for a
