@@ -57,6 +57,8 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         if (type == "conviction_extreme" && !notif.positioningAlerts) return
         // Signals Roadmap §5 (Phase 4, 2026-09-09).
         if (type == "bb_touch" && !notif.bbTouchAlerts) return
+        // Signals Roadmap §1 (2026-09-16) — edge-triggered "recommendation" alert.
+        if (type == "recommendation" && !notif.recommendationAlerts) return
 
         val title = message.data["title"] ?: type ?: "ATOM FX"
         val body = message.data["body"] ?: return

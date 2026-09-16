@@ -40,6 +40,7 @@ from scanner.mom1212    import compute_all as compute_mom
 from scanner.csm        import compute_csm, STRENGTH_PAIRS
 from scanner.regime     import classify_regime
 from scanner.cont_score import compute_cont, pill_direction
+from scanner.rank       import rank_pairs
 from scanner.correlate  import compute_correlation
 from scanner.score              import compute_reset_score, atr_percentile
 from scanner.level_ema_alerts   import check_levels, check_ema_touches
@@ -92,6 +93,46 @@ def save_signals(data: dict):
 
 def regime_emoji(regime: str) -> str:
     return {"Risk-Off": "🔴", "Risk-On": "🟢", "Mixed": "🟡", "Ranging": "⚪"}.get(regime, "")
+
+
+def _recommendation_alerts(out: dict, prev: dict) -> list:
+    """
+    Signals Roadmap §1 — edge-triggered "recommendation changed" push. Fires once per pair
+    that, versus the previous scan's `ranked.top`, either newly appears in the fresh top 3
+    (`out["ranked"]["top"]`, re-ranked hourly by the frozen `rank.py::rank_pairs` — see the
+    call site in `main()`) or stays in the top but flips direction (long<->short). Same
+    edge-triggered convention `scanner/extend/state_alerts.py`'s own detectors use (compare
+    this scan vs `prev`, one alert per transition, first-ever run with no `prev` never
+    fires) — kept local to this file rather than added to that module so this addition stays
+    a small, self-contained, easy-to-merge diff (`scan_h1.py` is also edited on the
+    trend-pullback branch).
+    """
+    if not prev:
+        return []
+    prev_top = {
+        r["pair"]: r.get("direction")
+        for r in (prev.get("ranked") or {}).get("top", [])
+        if r.get("pair")
+    }
+    alerts = []
+    for r in out.get("ranked", {}).get("top", []):
+        pair      = r.get("pair")
+        direction = r.get("direction")
+        if not pair or not direction:
+            continue
+        if pair in prev_top and prev_top[pair] == direction:
+            continue  # unchanged — still in the top, same direction
+        is_new   = pair not in prev_top
+        dir_word = "LONG" if direction == "bull" else "SHORT"
+        verb     = "entered the top setups" if is_new else f"flipped to {dir_word}"
+        alerts.append({
+            "type":     "recommendation",
+            "pair":     pair,
+            "msg":      f"<b>{pair} — {verb}</b>\n{dir_word} · score {r.get('score', 0):.1f}",
+            "deeplink": f"atomfx://pair/{pair}",
+            "direction": direction,
+        })
+    return alerts
 
 
 def d_pct(df, bars_back: int):
@@ -352,6 +393,25 @@ def main():
         **preserved,
     }
 
+    # ── Hourly recommendation ranking ─────────────────────────────────────────
+    # rank.py is FROZEN (Rule #1) — imported read-only above, never edited. Every input it
+    # reads off `out` here (pairs/csm/regime_d1) was just computed fresh this same scan;
+    # only `macro_assets` (the 10%-weight `cross` component) rides the preserved news-cadence
+    # value (PRESERVED_KEYS, above) — cadence rides the existing hourly scan_h1 trigger, no
+    # scheduler change. HOME's StatusStrip/Watchlist glyphs only ever read `ranked.top`
+    # (pair/direction/score, never `ranked.text`), so overwriting just `.top` here and leaving
+    # `ranked.text`/`ranked.updated` (the Haiku narrative, still news-cadence) untouched is
+    # safe — checked directly, nothing in the Android app renders `ranked.text` today.
+    fresh_ranked = rank_pairs(out)
+    out["ranked"] = {
+        **out.get("ranked", {}),
+        "top": [
+            {"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
+            for r in fresh_ranked[:3]
+        ],
+    }
+    recommendation_alerts_list = _recommendation_alerts(out, prev)
+
     save_signals(out)
     print(f"\n✓ signals.json saved")
 
@@ -517,6 +577,10 @@ def main():
         traceback.print_exc()
 
     save_signals(out)
+
+    # Recommendation-ranking edge-trigger (computed earlier, independent of the EXTEND try
+    # block above) rides the same generic alert-dict push loop below.
+    state_alerts_list = state_alerts_list + recommendation_alerts_list
 
     # ── State-transition alerts push (Signals Roadmap §2) ─────────────────────
     if state_alerts_list:

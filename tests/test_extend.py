@@ -765,6 +765,46 @@ def test_state_alerts_tf_alignment_fires():
     assert state_alerts.compute_state_alerts(out, out) == []
 
 
+# ── 3b. Hourly recommendation ranking edge-trigger (Signals Roadmap §1, 2026-09-16) ───────
+# `scan_h1._recommendation_alerts` — kept local to scan_h1.py rather than added to
+# state_alerts.py (see that function's own doc comment), so it's exercised here directly
+# via the module-level import at the top of this file, same as scan_h1.PRESERVED_KEYS below.
+def test_recommendation_alerts_no_prev_never_fires():
+    out = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 7.5}]}}
+    assert scan_h1._recommendation_alerts(out, {}) == []
+    assert scan_h1._recommendation_alerts(out, None) == []
+
+
+def test_recommendation_alerts_fires_on_new_pair():
+    prev = {"ranked": {"top": [{"pair": "GBPUSD", "direction": "bull", "score": 6.0}]}}
+    out = {"ranked": {"top": [
+        {"pair": "GBPUSD", "direction": "bull", "score": 6.0},
+        {"pair": "EURUSD", "direction": "bull", "score": 7.5},
+    ]}}
+    alerts = scan_h1._recommendation_alerts(out, prev)
+    assert len(alerts) == 1
+    assert alerts[0]["type"] == "recommendation"
+    assert alerts[0]["pair"] == "EURUSD"
+    assert alerts[0]["direction"] == "bull"
+    assert alerts[0]["deeplink"] == "atomfx://pair/EURUSD"
+
+
+def test_recommendation_alerts_fires_on_direction_flip():
+    prev = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 6.0}]}}
+    out = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bear", "score": 6.5}]}}
+    alerts = scan_h1._recommendation_alerts(out, prev)
+    assert len(alerts) == 1
+    assert alerts[0]["type"] == "recommendation"
+    assert alerts[0]["pair"] == "EURUSD"
+    assert alerts[0]["direction"] == "bear"
+
+
+def test_recommendation_alerts_unchanged_does_not_fire():
+    prev = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 6.0}]}}
+    out = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 6.4}]}}
+    assert scan_h1._recommendation_alerts(out, prev) == []
+
+
 # ── 4. Conviction score (Signals Roadmap §4) ──────────────────────────────────────
 def test_conviction_cot_position_hysteresis():
     assert conviction._score_cot_position(90) == -2          # deeply crowded long

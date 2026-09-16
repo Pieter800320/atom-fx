@@ -463,6 +463,12 @@ private fun NotificationsGroup(
     SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
     })
+    // Signals Roadmap §1 (2026-09-16) — edge-triggered "recommendation" alert: a pair newly
+    // enters the hourly-refreshed HOME ranking (ranked.top) or flips direction while staying
+    // in it. Same one-toggle-per-alert-type convention as every row above.
+    SettingsRow("Recommendation alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.recommendationAlerts, colors, enabled = notif.enabled) { preferences.setRecommendationAlertsEnabled(it) }
+    })
 }
 
 // Same visual language as the Theme control's pills (SheetTabs — controlSurface fill,

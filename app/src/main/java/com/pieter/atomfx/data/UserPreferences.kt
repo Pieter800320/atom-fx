@@ -28,6 +28,9 @@ data class NotificationPrefs(
     val positioningAlerts: Boolean = true,
     // Signals Roadmap §5 (Phase 4, 2026-09-09) — the bb_touch alert.
     val bbTouchAlerts: Boolean = true,
+    // Signals Roadmap §1 (2026-09-16) — the edge-triggered "recommendation" alert (a pair
+    // newly enters the hourly-refreshed ranked.top, or flips direction while staying in it).
+    val recommendationAlerts: Boolean = true,
 )
 
 data class UserPrefsState(
@@ -63,6 +66,7 @@ class UserPreferences(context: Context) {
             alignmentAlerts = prefs.getBoolean(KEY_NOTIF_ALIGNMENT, true),
             positioningAlerts = prefs.getBoolean(KEY_NOTIF_POSITIONING, true),
             bbTouchAlerts = prefs.getBoolean(KEY_NOTIF_BB_TOUCH, true),
+            recommendationAlerts = prefs.getBoolean(KEY_NOTIF_RECOMMENDATION, true),
         ),
         signalsUrl = prefs.getString(KEY_URL, null) ?: DEFAULT_SIGNALS_URL,
         refreshMinutes = prefs.getInt(KEY_REFRESH_MIN, DEFAULT_REFRESH_MINUTES),
@@ -123,6 +127,11 @@ class UserPreferences(context: Context) {
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(bbTouchAlerts = enabled))
     }
 
+    fun setRecommendationAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_RECOMMENDATION, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(recommendationAlerts = enabled))
+    }
+
     fun setSignalsUrl(url: String) {
         val resolved = url.ifBlank { DEFAULT_SIGNALS_URL }
         prefs.edit().putString(KEY_URL, resolved).apply()
@@ -147,6 +156,7 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_ALIGNMENT = "notif_alignment_alerts"
         const val KEY_NOTIF_POSITIONING = "notif_positioning_alerts"
         const val KEY_NOTIF_BB_TOUCH = "notif_bb_touch_alerts"
+        const val KEY_NOTIF_RECOMMENDATION = "notif_recommendation_alerts"
         const val KEY_URL = "signals_url"
         const val KEY_REFRESH_MIN = "refresh_minutes"
     }
