@@ -653,11 +653,14 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
         onRefreshNow()
     }
 
-    DiagRow("Technical (H1)", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_TECHNICAL, colors))
-    // Kept immediately after Technical (H1) — same relative position as before this board grew,
-    // and its own meaning is unchanged: driven by `loaded.freshness` (WheelViewModel), the H1
-    // technical scan's own fresh/stale read, not derived from any of the rows below.
+    // 2026-09-17 (2nd, Pieter's ask) — Status leads the board as the one quick-glance summary
+    // (driven by `loaded.freshness`, the H1 technical scan's own fresh/stale read — unchanged),
+    // then a gap sets it apart from the per-layer rows below, same "the master switch isn't a
+    // ninth alert type" spacing this screen's notifications toggle already uses.
     DiagRow("Status", freshnessWord, colors, if (loaded?.freshness == Freshness.STALE) colors.bear else colors.bull)
+    Spacer(modifier = Modifier.height(12.dp))
+
+    DiagRow("Technical (H1)", formatUtcLocal(technicalIso), colors, freshnessColor(technicalIso, STALE_TECHNICAL, colors))
 
     // `signals.ranked` has no timestamp of its own in the app's model (`RankedBlock` is just
     // `text`/`top` — no `updated` field) because the deterministic ranking is now recomputed
@@ -684,18 +687,21 @@ private fun FreshnessGroup(loaded: WheelScreenState.Loaded?, colors: AtomColors,
     // publishes Fridays), so a client-side age check would flag it amber every single week on
     // schedule, not on an actual problem. The backend already computes the real signal
     // (`cot_stale` — data-fetch failure, not "it's been a few days"), so that's what colours
-    // this row; `cotDate` (the COT survey date itself) rides along in the value when parseable.
+    // this row; `cotDate` (the COT survey date itself) rides along on its own second line —
+    // 2026-09-17 (2nd, Pieter's ask): jamming timestamp + survey date + "weekly" onto one line
+    // read as cramped next to this row's own longer label, so it's now a stacked value instead.
     val conviction = signals?.conviction
     val cotDateWord = conviction?.cotDate?.let { raw ->
         runCatching { LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("MMM d", Locale.US)) }
             .getOrDefault(raw)
     }
-    val cotValue = when {
-        conviction?.updated == null -> "—"
-        cotDateWord != null -> "${formatUtcLocal(conviction.updated)}  ·  $cotDateWord  ·  weekly"
-        else -> formatUtcLocal(conviction.updated)
-    }
-    DiagRow("COT positioning", cotValue, colors, if (conviction?.cotStale == true) colors.watch else colors.textPrimary)
+    DiagRowStacked(
+        label = "COT positioning",
+        value = formatUtcLocal(conviction?.updated),
+        secondary = cotDateWord?.let { "$it · weekly" },
+        colors = colors,
+        valueColor = if (conviction?.cotStale == true) colors.watch else colors.textPrimary,
+    )
 
     DiagRow("Schema version", schema, colors)
 }
@@ -726,6 +732,23 @@ private fun DiagRow(label: String, value: String, colors: AtomColors, valueColor
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(text = label, style = AtomType.Body.copy(color = colors.textSecondary))
         Text(text = value, style = AtomType.Body.copy(color = valueColor))
+    }
+}
+
+/** [DiagRow] with an optional second, smaller, muted line under the value — for a row whose
+ *  value carries extra context (COT's own survey date + cadence word) that crowded a single
+ *  line next to a longer label. Right-aligned under the primary value, not a separate row of
+ *  its own, so it still reads as "one row, one topic." */
+@Composable
+private fun DiagRowStacked(label: String, value: String, secondary: String?, colors: AtomColors, valueColor: Color = colors.textPrimary) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = label, style = AtomType.Body.copy(color = colors.textSecondary))
+        Column(horizontalAlignment = Alignment.End) {
+            Text(text = value, style = AtomType.Body.copy(color = valueColor))
+            if (secondary != null) {
+                Text(text = secondary, style = AtomType.Caption.copy(color = colors.textMuted))
+            }
+        }
     }
 }
 
