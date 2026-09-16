@@ -35,9 +35,9 @@ val LIBRARY_CATEGORIES = listOf(
 // Signals Roadmap §5 — the reversal checklist is written out in full because it's deliberately
 // not hardcoded into the bb_touch alert itself (see bb_touch.py's own doc comment): a touch alone
 // fires the notification, but whether it's actually a good reversal candidate is a judgment call,
-// informed by this. Shared verbatim between this Library entry and the Watchlist card's own
-// tap-to-reveal section (WatchlistScreen.kt) — one source of text, so the two surfaces can never
-// drift apart.
+// informed by this. 2026-09-16 (Pieter's ask) — no longer shared with the Watchlist card, which
+// dropped its BB-touch-specific tap-to-reveal section for a general pair-state layout
+// (WatchlistScreen.kt); this checklist now lives only here.
 const val BB_REVERSAL_HOW_TO_READ =
     "Check five things:\n" +
     "ADX — below 20 means ranging, where a touch is more likely to mean-revert cleanly; above 20 " +
@@ -56,7 +56,7 @@ const val BB_REVERSAL_WHY_IT_MATTERS =
     "or low relative to its recent history, not whether to buy or sell. The five checks above " +
     "separate a touch that's about to mean-revert from one that's just a pause before the trend " +
     "continues. None are hardcoded into the alert — the notification stays broad, and the " +
-    "judgment stays with you, informed by this checklist and the Watchlist."
+    "judgment stays with you, informed by this checklist."
 
 val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
     LibraryEntry(
