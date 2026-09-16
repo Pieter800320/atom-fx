@@ -303,7 +303,7 @@ private fun momentumDotColor(node: PairNode, colors: AtomColors): Color =
     if (node.momentum >= 50) colors.bull else colors.bear
 
 private fun volatilityDotColor(node: PairNode, colors: AtomColors): Color =
-    if (node.volatility in 20..70) colors.bull else colors.watch
+    if (node.volatility in 20..70) colors.wheelSane else colors.watch
 
 // Same convention as PairSheet.kt's own Overview `structureRow` — 2026-09-09 (Pieter's ask):
 // coloured by the event's own `direction` (real price direction), not by event type (BOS/CHoCH
