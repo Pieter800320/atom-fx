@@ -306,6 +306,43 @@ Six-Factor engine is trend-following; this is mean-reversion.
 
 ---
 
+## 5b. Hourly recommendation ranking + edge-triggered alert
+
+> **Shipped 2026-09-16.** Backend: `scanner/scan_h1.py` (fresh `rank_pairs()` call + local
+> `_recommendation_alerts` detector). Settings toggle in `NotificationPrefs`/`SettingsScreen.kt`/
+> `AtomFxMessagingService.kt`. Tests in `tests/test_extend.py`. Docs updated:
+> `ATOM_FX_ARCHITECTURE.md` §4.1/§7, this section, `LibraryContent.kt`.
+
+HOME's recommendation glyph row (`signals.ranked.top`) previously only refreshed on
+`scan_news.py`'s slower cadence — the same cadence as its AI narrative call, even though the
+underlying ranking (`rank.py::rank_pairs`, FROZEN, deterministic) doesn't need a model call at
+all and every input it reads (`cont`/`csm.d1`/`regime_d1`/`pills`/`mom`/`adx`) is already
+recomputed fresh every hourly scan. Only the 10%-weight cross-asset component still reads the
+slower-cadence `macro_assets`.
+
+- **Trigger:** `scan_h1.py` now calls the frozen `rank_pairs(out)` itself, right after `out` is
+  assembled each hourly scan, and overwrites `ranked.top` with the fresh top 3 (`pair`,
+  `direction`, `score`) — `ranked.text`/`ranked.updated` (the Haiku narrative) are left alone,
+  still written only by `scan_news.py`. Verified before building this that nothing in the app
+  reads `ranked.text`, so the split cadence carries no UI mismatch risk.
+- **Cadence: still rides the existing hourly `scan_h1` Apps Script trigger** — no scheduler
+  change, and `scan_news.py` does **not** become hourly.
+- **New alert — edge-triggered, per this doc's own §1 rule:** fires once per pair that, versus
+  the previous scan's `ranked.top`, either newly appears in the fresh top 3 or stays in it but
+  flips direction (long↔short). No `prev` (first-ever run) never fires. `type: "recommendation"`,
+  payload `pair`/`direction`/`score`, deeplink `atomfx://pair/{PAIR}` — same `send_push_alert`
+  path Gold Signal and the state-transition alerts already use.
+- **Kept local to `scan_h1.py`**, not added to `scanner/extend/state_alerts.py` even though the
+  edge-trigger *pattern* matches that module's six detectors exactly — `scan_h1.py` was already
+  being edited on a concurrent branch (trend-pullback) at ship time, so this stayed a small,
+  self-contained addition to ease that merge, rather than spreading across two files.
+- **Settings toggle:** "Recommendation alerts", same one-boolean-per-type convention as every
+  row above.
+- **Rule #1 tier:** `rank.py` untouched, imported read-only. `scan_h1.py` is FROZEN-logic/EXTEND
+  call-sites tier, same as every other addition to that file.
+
+---
+
 ## 6. Suggested order
 
 1. **Phase 1** (§2) — all six items plus the strip, one implementation session, ships together
@@ -320,9 +357,9 @@ Six-Factor engine is trend-following; this is mean-reversion.
 ## 7. Cross-cutting engineering notes
 
 - `UserPreferences.kt`'s `NotificationPrefs` data class grows one boolean per new toggle
-  (Setup, Structure, Regime, Volatility, Alignment, Positioning, Reversal) — plan the Settings
-  NOTIFICATIONS group's layout for seven-plus rows before Phase 1 ships its first four or five,
-  rather than bolting rows on ad hoc each phase.
+  (Setup, Structure, Regime, Volatility, Alignment, Positioning, Reversal, Recommendation) —
+  plan the Settings NOTIFICATIONS group's layout for seven-plus rows before Phase 1 ships its
+  first four or five, rather than bolting rows on ad hoc each phase.
 - Every new detector needs `prev` (the previous scan's full `signals.json`) available at the
   comparison point in `scan_h1.py` — confirm it's already in scope there (it is, for the
   preserved-keys block) before assuming a new load is needed.
@@ -363,6 +400,8 @@ roadmap become the only place a shipped feature is documented:
   `ATOM_FX_ARCHITECTURE.md` and `ATOM_FX_FUNCTIONAL_SPEC.md`.
 - Phase 4 → new `bb_signal`/reversal concept, same two docs, plus `GLOSSARY.md` gets the new
   term (verbatim naming, per that doc's own rule).
+- Phase 5b → hourly `ranked.top` re-rank + `recommendation` alert type, documented in
+  `ATOM_FX_ARCHITECTURE.md` §4.1/§7 and this section.
 - Each phase should also get a new entry in `LibraryContent.kt` (`app/src/main/java/.../ui/
   settings/`) — the in-app study library should stay in lockstep with what's actually shipped,
   not just what existed at the time it was first written.

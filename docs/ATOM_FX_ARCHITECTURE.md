@@ -74,7 +74,7 @@ These modules are **forked verbatim** into the new `atom-fx` repo under `scanner
 | `cont_score.py` | Continuation score 0–100 (computeQAI port) | FROZEN |
 | `rank.py` | Setup rank 0–10, cross-asset impact table | FROZEN |
 | `correlate.py` | 12×12 Pearson correlation on H4 returns | FROZEN |
-| `scan_h1.py` | Hourly orchestrator; assembles frozen `signals.json`; gold signal; alert triggers | **FROZEN logic, EXTEND call sites** (see §5.2) |
+| `scan_h1.py` | Hourly orchestrator; assembles frozen `signals.json`; gold signal; hourly `ranked.top` re-rank (calls frozen `rank.py`, 2026-09-16); alert triggers | **FROZEN logic, EXTEND call sites** (see §5.2) |
 | `scan_news.py` | Macro (Yahoo), W1 regime, headlines, calendar, catalyst, ranked narrative, daily brief, week ahead | **FROZEN logic, EXTEND with `recommendation`** (§6) |
 
 ### 2.1 The 12 pairs and 8 currencies (FROZEN)
@@ -172,7 +172,7 @@ regime_w1          {regime, confidence, score, signals, total, stable}
 macro              {label, confidence, stable, signals, total}
 macro_assets       {vix, us10y, us3m, wti, gold, spx, copper, dxy, btc, curve}
 catalyst           {text, updated}
-ranked             {text, top:[{pair, direction, score}], updated}
+ranked             {text, top:[{pair, direction, score}], updated}   (`top` hourly, `text` slower — see below)
 calendar           {events:[{day,time,iso,currency,name,forecast,previous,note}], updated}
 week_ahead         {text, generated_at}   (Sun–Mon only)
 deep_analysis      {text, generated_at}   (daily brief)
@@ -180,6 +180,16 @@ breaking           {headlines:[…], updated}
 gold_signal        {direction, gold_pct, h4_confirmed, h4_confidence, h1_confirmed, updated}
 last_alert         ISO timestamp
 ```
+
+`ranked` has a split cadence since 2026-09-16: `top` is re-ranked every hourly scan by
+`scan_h1.py` (calls the frozen `rank.py::rank_pairs` directly, right after `out` is assembled,
+off inputs computed fresh that same scan — cont/csm.d1/regime_d1/pills/mom/adx; only the
+10%-weight cross-asset component still rides the preserved, slower-cadence `macro_assets`).
+`text`/`updated` stay on `scan_news.py`'s own cadence — the Haiku one-sentence-per-setup
+narrative. This split is safe because the app only ever reads `top` (HOME's StatusStrip glyph
+row, Watchlist's "RECOMMENDED" chip); nothing renders `ranked.text` today. The same hourly
+re-rank also now fires an edge-triggered `recommendation` push (§7) when a pair newly enters
+`top` or flips direction within it.
 
 Per-pair frozen block (unchanged):
 ```json
@@ -472,7 +482,7 @@ POST https://fcm.googleapis.com/v1/projects/<PROJECT_ID>/messages:send
 Authorization: Bearer <OAuth2 access token minted from the service account>
 { "message": {
     "topic": "atomfx-signals",
-    "data": { "type":"gold_signal|level_alert|potential_state|structure_event|regime_flip|archetype_change|volatility_spike|tf_alignment|conviction_extreme",
+    "data": { "type":"gold_signal|level_alert|potential_state|structure_event|regime_flip|archetype_change|volatility_spike|tf_alignment|conviction_extreme|bb_touch|recommendation",
                "title": <title>, "body": <body>, "pair":"…", "direction":"…", "deeplink":"atomfx://pair/EURUSD" },
     "android": { "priority":"high" } } }
 ```
