@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-16T11:38:29.166635+00:00",
+  "updated": "2026-09-16T12:38:22.873396+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -3094,8 +3094,8 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 17.0,
-      "delta_pct": -1.2,
+      "value": 16.77,
+      "delta_pct": -2.5,
       "direction": "flat",
       "label": "VIX"
     },
@@ -3106,50 +3106,50 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4388.5,
-      "delta_pct": 1.3,
+      "value": 4379.7,
+      "delta_pct": 1.1,
       "direction": "up",
       "label": "Gold"
     },
     "dxy": {
-      "value": 99.684,
-      "delta_pct": 0.0,
+      "value": 99.733,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.503,
-      "delta_pct": 2.1,
+      "value": 6.5135,
+      "delta_pct": 2.3,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.996,
-      "delta_bp": 3.5,
+      "value": 4.979,
+      "delta_bp": -1.7,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.96,
-      "delta_bp": 2.5,
-      "direction": "up",
+      "value": 3.95,
+      "delta_bp": -1.0,
+      "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 103.96,
-      "delta_pct": -1.8,
+      "value": 103.64,
+      "delta_pct": -2.1,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 75906.0,
-      "delta_pct": 0.4,
+      "value": 75871.0,
+      "delta_pct": 0.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 103.6,
-      "delta_bp": 1.0,
+      "value": 102.9,
+      "delta_bp": -0.7,
       "direction": "flat",
       "label": "10Y-3M"
     }
@@ -3157,7 +3157,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 3.3,
+      "delta_pct": 1.9,
       "label": "VIX"
     },
     "spx": {
@@ -3167,69 +3167,69 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.6,
+      "delta_pct": -1.8,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.9,
+      "delta_pct": 1.0,
       "label": "DXY"
     },
     "copper": {
       "direction": "down",
-      "delta_pct": -4.4,
+      "delta_pct": -4.3,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 19.0,
+      "delta_bp": 14.2,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "up",
-      "delta_bp": 18.5,
+      "delta_bp": 14.5,
       "label": "US 3M"
     },
     "wti": {
       "direction": "up",
-      "delta_pct": 8.2,
+      "delta_pct": 7.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.6,
+      "delta_pct": -1.7,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": 0.5,
+      "delta_bp": -0.3,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT: UK CPI ahead of BOE decision creates volatility risk, potential upside conflict.",
-    "updated": "2026-09-16T10:38:22.957745+00:00"
+    "text": "USDCAD LONG: Bessent bond buybacks weaken USD, conflicting with long setup bullish thesis.",
+    "updated": "2026-09-16T12:38:22.873396+00:00"
   },
   "ranked": {
-    "text": "NZDJPY SHORT: Gold rising and equity weakness both confirm JPY bid strength.\n\nNZDUSD SHORT: Mixed macro provides no directional confirmation for this setup.\n\nGBPUSD SHORT: Oil weakness supports short bias but equity neutrality limits conviction.",
+    "text": "USDCAD LONG: Macro confirms setup, WTI weakness drives CAD offered pressure.\n\nCADJPY SHORT: Macro strongly confirms setup, dual drivers WTI and Gold reinforce.\n\nGBPUSD SHORT: Macro context neutral, no cross asset drivers support setup.",
     "top": [
       {
-        "pair": "NZDJPY",
-        "direction": "bear",
-        "score": 6.72
+        "pair": "USDCAD",
+        "direction": "bull",
+        "score": 6.42
       },
       {
-        "pair": "NZDUSD",
+        "pair": "CADJPY",
         "direction": "bear",
-        "score": 6.08
+        "score": 6.15
       },
       {
         "pair": "GBPUSD",
         "direction": "bear",
-        "score": 5.88
+        "score": 5.92
       }
     ],
-    "updated": "2026-09-16T10:38:22.957745+00:00"
+    "updated": "2026-09-16T12:38:22.873396+00:00"
   },
   "calendar": {
     "events": [
@@ -3294,24 +3294,24 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-16T10:38:22.957745+00:00"
+    "updated": "2026-09-16T12:38:22.873396+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset flows lean risk-off with softer gold, firmer VIX, a weaker BTC and modest DXY strength, though the move is shallow rather than a decisive flight to safety. Equities are only mildly softer and yields are ticking up, suggesting rate repricing is doing more work than fear right now. Oil's sharp rally alongside copper strength muddies the pure risk-off read, hinting at supply-side or growth-linked pressures rather than broad de-risking. Headlines center on rising Fed hike bets ahead of CPI, keeping the dollar bloc supported. The next major catalyst is US CPI, followed closely by ECB and BoE decisions within the same session, likely to dictate near-term direction across major currencies.",
-    "generated_at": "2026-09-15T22:38:45.805769+00:00"
+    "text": "Cross-asset signals are pulling in different directions today. Gold\u2019s firmer while VIX eases and BTC edges higher, a combination that leans risk-on, yet DXY holding flat and equities slipping slightly muddy that read, keeping the dollar\u2019s posture inconclusive. Copper\u2019s strong gain hints at underlying growth optimism, while WTI\u2019s drop and softer yields temper commodity-currency support. Headlines remain fixated on Fed hike repricing versus dollar softness, reflecting genuine indecision ahead of data. The next major risk is the US CPI print alongside PPI, followed by a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the same session, all likely to reset near-term volatility.",
+    "generated_at": "2026-09-16T12:38:52.615627+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise as CPI takes center stage; EUR/USD and GBP/USD key",
-      "ECB hike looms as inflation risks rise; DXY stays weak, EUR/USD GBP/USD focus",
-      "UK CPI inflation test before BOE rate decision impacts sterling volatility"
+      "Fed hike bets rise as CPI takes center stage; DXY strengthens",
+      "US August retail sales beat at +1.2% versus +0.8% expected",
+      "Bessent boosts bond buybacks; US dollar moves lower across majors"
     ],
     "themes": [
       "rates",
-      "rates",
+      null,
       "rates"
     ],
-    "updated": "2026-09-16T10:38:22.957745+00:00"
+    "updated": "2026-09-16T12:38:22.873396+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
