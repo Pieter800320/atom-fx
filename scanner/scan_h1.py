@@ -615,6 +615,16 @@ def main():
     check_levels(_pair_closes, send_push_level_alert)
     # EMA touch alerts removed — Gold signal is the only proactive alert
 
+    # NOTE (2026-09-17, Pieter's ask) — when Level Alert (price-level alerts UI + PAT sync,
+    # Functional Spec §9, BUILD_STATUS.md item 7) actually ships: align its push message to the
+    # "{pair} — Level Alert" title convention every other alert type now uses (see
+    # BUILD_STATUS.md's "Alert push title standardization" row). It was skipped in that pass —
+    # the message itself lives in level_ema_alerts.py::check_levels, FROZEN, and this feature is
+    # currently dormant (Settings toggle hardcoded disabled) — so it still reads
+    # "Level Alert — {pair}" (pair second, not first). Changing that message text needs the
+    # usual Rule #1 stop-and-ask conversation before editing that file, same as any other
+    # frozen-file touch.
+
     if (
         gs_direction != "neutral"
         and h4_confirmed
