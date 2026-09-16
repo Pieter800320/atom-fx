@@ -330,17 +330,35 @@ recomputed fresh every hourly scan. Only the 10%-weight cross-asset component st
 slower-cadence `macro_assets`.
 
 - **Trigger:** `scan_h1.py` now calls the frozen `rank_pairs(out)` itself, right after `out` is
-  assembled each hourly scan, and overwrites `ranked.top` with the fresh top 3 (`pair`,
-  `direction`, `score`) — `ranked.text`/`ranked.updated` (the Haiku narrative) are left alone,
-  still written only by `scan_news.py`. Verified before building this that nothing in the app
-  reads `ranked.text`, so the split cadence carries no UI mismatch risk.
+  assembled each hourly scan, and overwrites `ranked.top` with every pair scoring
+  **>= `RECOMMENDATION_MIN_SCORE` (6.5, rank.py's own 0–10 weighted scale)** — `pair`/
+  `direction`/`score`, no upper cap on count — `ranked.text`/`ranked.updated` (the Haiku
+  narrative) are left alone, still written only by `scan_news.py`. Verified before building
+  this that nothing in the app reads `ranked.text`, so the split cadence carries no UI mismatch
+  risk.
+- **Score floor, not a flat top-3 slice (2026-09-17, Pieter's ask, same-day follow-up).** The
+  original ship used `ranked[:3]` — always exactly 3 regardless of how many pairs actually
+  qualified or how weak the non-`cont` components scored. Checked live: on a strong trending
+  day, 9 of 12 pairs can clear `rank.py`'s own `cont >= 45` gate at once (one broad
+  USD-strength/risk-off theme wearing 9 pair labels, not 9 independent setups) — a flat top-3
+  either hid genuine extra setups on a decorrelated day or, more often, just showed "the best 3
+  of a flood." `RECOMMENDATION_MIN_SCORE = 6.5` was picked by simulating it against 40 scans'
+  worth of historical `ranked.top` scores (5% would show zero pairs — rare enough to trust,
+  vs. 7.0's 25%) and cross-checked against a live full re-rank (9 pairs cleared the base gate,
+  only 3 cleared 6.5). Duplicated as the same-named constant in both `scan_h1.py` and
+  `scan_news.py::call_ranked_analysis` (same house style as `state_alerts.py`'s own
+  `_CONT_QUALIFY_THRESHOLD` cross-referencing `rank.py`'s 45) — a defensible first pass, not a
+  frozen number, tune freely. HOME's glyph row and the Watchlist's "RECOMMENDED" chip both
+  already iterate `signals.ranked.top` with no hardcoded count assumption (the glyph row was
+  already built to horizontally scroll "if more than fit"), so no app-side change was needed.
 - **Cadence: still rides the existing hourly `scan_h1` Apps Script trigger** — no scheduler
   change, and `scan_news.py` does **not** become hourly.
 - **New alert — edge-triggered, per this doc's own §1 rule:** fires once per pair that, versus
-  the previous scan's `ranked.top`, either newly appears in the fresh top 3 or stays in it but
-  flips direction (long↔short). No `prev` (first-ever run) never fires. `type: "recommendation"`,
-  payload `pair`/`direction`/`score`, deeplink `atomfx://pair/{PAIR}` — same `send_push_alert`
-  path Gold Signal and the state-transition alerts already use.
+  the previous scan's `ranked.top`, either newly appears in the fresh top (now score-floored,
+  not count-capped) or stays in it but flips direction (long↔short). No `prev` (first-ever run)
+  never fires. `type: "recommendation"`, payload `pair`/`direction`/`score`, deeplink
+  `atomfx://pair/{PAIR}` — same `send_push_alert` path Gold Signal and the state-transition
+  alerts already use.
 - **Kept local to `scan_h1.py`**, not added to `scanner/extend/state_alerts.py` even though the
   edge-trigger *pattern* matches that module's six detectors exactly — `scan_h1.py` was already
   being edited on a concurrent branch (trend-pullback) at ship time, so this stayed a small,

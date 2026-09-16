@@ -21,6 +21,13 @@ TWELVEDATA    = os.environ.get("TWELVEDATA_KEY", "")
 HAIKU_MODEL   = "claude-haiku-4-5-20251001"
 SONNET_MODEL  = "claude-sonnet-5"
 
+# 2026-09-17 (Pieter's ask) — matches scan_h1.py's own RECOMMENDATION_MIN_SCORE exactly (same
+# house style as state_alerts.py's own _CONT_QUALIFY_THRESHOLD comment cross-referencing rank.py's
+# 45 — a shared constant isn't worth a new module for one number). Was a flat top-3 slice; see
+# scan_h1.py's own comment for why that flooded on a correlated trending day instead of showing
+# genuine independent setups.
+RECOMMENDATION_MIN_SCORE = 6.5
+
 # Yahoo Finance v8 — no API key needed
 # (key, yf_symbol, label, risk_off_when_up)
 MACRO_INSTRUMENTS = [
@@ -1002,9 +1009,14 @@ def call_ranked_analysis(signals: dict) -> tuple:
         return {"text": "No qualifying setups.", "top": []}, []
     prompt = build_haiku_prompt(ranked, signals)
     text   = _haiku(prompt, max_tokens=120)
-    top3   = [{"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
-              for r in ranked[:3]]
-    return {"text": text, "top": top3}, ranked
+    # Score floor, not a flat top-3 slice — see RECOMMENDATION_MIN_SCORE's own comment above.
+    # `ranked` is already sorted by score descending (rank.py::rank_pairs), so this is a filter,
+    # no re-sort needed. `build_haiku_prompt` above still narrates only its own top 3 (frozen,
+    # rank.py — unrelated to this list; the Haiku narrative text isn't rendered anywhere in the
+    # app today, only `top` is).
+    top = [{"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
+           for r in ranked if r["score"] >= RECOMMENDATION_MIN_SCORE]
+    return {"text": text, "top": top}, ranked
 
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────

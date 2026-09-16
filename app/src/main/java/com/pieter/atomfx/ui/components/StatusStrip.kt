@@ -55,10 +55,11 @@ private const val EMPTY_KEY = "__empty__"
 /**
  * 2026-09-06 (Pieter's follow-up ask) — was one glyph for the single deterministic
  * `recommendation.primary_pair`; now one small glyph PER pair in `signals.ranked.top`
- * (`rank.py::rank_pairs`, hard-capped to 3 by `scan_news.py::call_ranked_analysis` — never all 12,
- * however many pairs actually clear its directional+continuation gate). The glyphs sit in a row
- * above the wheel, horizontally scrollable if more than fit (in practice at most 3, so this is a
- * safety net, not the common case).
+ * (`rank.py::rank_pairs`, filtered to a score floor rather than a fixed count — see
+ * `RECOMMENDATION_MIN_SCORE` in `scan_h1.py`/`scan_news.py`, 2026-09-17 — never all 12, however
+ * many pairs actually clear both `rank.py`'s own gate and that floor). The glyphs sit in a row
+ * above the wheel, horizontally scrollable if more than fit — genuinely needed now, not just a
+ * safety net: a correlated trending day can clear the floor on several pairs at once.
  *
  * Tapping a glyph opens a FULL-WIDTH panel below the row — Item Library #03's canonical §4
  * "reflow, not overlay" behaviour (superseding this same feature's own brief same-day detour into

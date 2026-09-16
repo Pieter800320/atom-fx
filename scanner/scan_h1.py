@@ -56,6 +56,20 @@ CSM_EXTRA = ["EUR/GBP", "EUR/CHF", "GBP/CHF", "AUD/NZD", "AUD/CAD", "GBP/AUD"]
 
 SCAN_TF = "h1"  # primary fetch timeframe
 
+# 2026-09-17 (Pieter's ask) — `ranked.top` used to be a flat top-3-by-rank slice regardless of
+# how many pairs actually cleared rank.py's own cont>=45 qualifying gate or how weak the
+# non-cont-qualifying ones scored on everything else. Checked live: on a strong trending day,
+# 9 of 12 pairs can clear that gate at once (one broad USD-strength theme wearing 9 pair labels,
+# not 9 independent setups), so a flat top-3 either hides real extra setups on a genuinely
+# decorrelated day or, more often, just shows "the best 3 of a flood." Replaced with a score
+# floor instead: every pair scoring >= this on rank.py's own 0-10 weighted scale gets in, no
+# upper cap. 6.5 was picked by simulating it against 40 scans' worth of historical ranked.top
+# scores (5% would show zero — rare enough to trust, unlike 7.0's 25%) — a defensible first
+# pass, not a frozen number; tune freely. Also duplicated in scan_news.py's own
+# call_ranked_analysis (same house style as state_alerts.py's own _CONT_QUALIFY_THRESHOLD comment
+# cross-referencing rank.py's 45 — a shared constant isn't worth a new module for one number).
+RECOMMENDATION_MIN_SCORE = 6.5
+
 # Keys written by a job other than scan_h1.py (scan_news.py's own cadence, scan_cot.py's
 # weekly cadence, …) that must survive an hourly rebuild of `out` — scan_h1.py assembles
 # `out` from scratch every run, so anything not listed here is silently dropped the next
@@ -402,12 +416,16 @@ def main():
     # (pair/direction/score, never `ranked.text`), so overwriting just `.top` here and leaving
     # `ranked.text`/`ranked.updated` (the Haiku narrative, still news-cadence) untouched is
     # safe — checked directly, nothing in the Android app renders `ranked.text` today.
+    # 2026-09-17 (Pieter's ask) — score floor (RECOMMENDATION_MIN_SCORE, above), not a flat
+    # top-3 slice: every qualifying pair scoring >= the floor gets in, no upper cap. rank_pairs()
+    # already returns its results sorted by score descending, so this is a straight filter, no
+    # re-sort needed.
     fresh_ranked = rank_pairs(out)
     out["ranked"] = {
         **out.get("ranked", {}),
         "top": [
             {"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
-            for r in fresh_ranked[:3]
+            for r in fresh_ranked if r["score"] >= RECOMMENDATION_MIN_SCORE
         ],
     }
     recommendation_alerts_list = _recommendation_alerts(out, prev)
