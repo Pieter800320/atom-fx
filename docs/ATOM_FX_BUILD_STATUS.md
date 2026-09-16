@@ -110,6 +110,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
 
 13. Journal (Phase 10+) — parked (Pieter, 2026-09-03).
 14. ~~Macro archetype card reframe~~ — raised and deferred 2026-09-05, **resolved 2026-09-10** (see Section B). Insights page rethink is still open, raised the same day, not a defect.
+15. **Full-scale website** (raised 2026-09-17, Pieter's own idea) — a browser dashboard consuming the same `signals.json` the app reads, no backend changes at all (a pure new frontend consumer, same as this app). Deliberately **not** a port of the radial wheel — that's a phone-screen-real-estate solution; the website leans into a proper multi-column dashboard grid, real charts/sparklines, sortable tables, and hover interactions instead. A 7-page wireframe (Dashboard, Pair Detail drill-down, Macro, Insights, Watchlist, Alerts & History, Settings) was sketched and approved by Pieter as a direction — Claude Design canvas: https://claude.ai/artifact/LWPWKngAwP9twwQ5YQrPwo. IA mirrors `signals.json`'s own top-level sections (Dashboard's Setup Ranking table is the wheel's replacement as the hero "at a glance" element); built from the app's real dark-theme tokens (`Color.kt`) and Inter (`Type.kt`), not a generic template. One real gap flagged for whenever this is built for real: `signals.json` is a single latest snapshot, not a time series — the git history of `data/signals.json` itself (committed every scan) is a free, ready-made archive for real historical charts without touching the frozen scanner. Post-v1, no timeline yet.
 
 ---
 
