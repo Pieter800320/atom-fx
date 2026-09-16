@@ -48,6 +48,7 @@ import com.pieter.atomfx.ui.wheel.Direction
 import com.pieter.atomfx.ui.wheel.PairNode
 
 private val WL_CARD_SHAPE = RoundedCornerShape(14.dp)
+private val WL_PILL_SHAPE = RoundedCornerShape(8.dp)
 
 // Item Library #05 — same slide-in side panel recipe SettingsScreen.kt's own
 // PANEL_WIDTH_FRACTION/entrance Animatable use, duplicated rather than shared (this codebase's
@@ -214,6 +215,9 @@ private fun WatchlistCard(
             .pressWash(WL_CARD_SHAPE) { onOpen() }
             .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
+        // 2026-09-17 (3rd, Pieter's ask) — "Added…" moved off the pair-name line onto its own
+        // line beneath it; Remove stays the second child of this SpaceBetween row (Row defaults
+        // to top-aligned children, so it lines up with the pair name, not the Added line below).
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -222,14 +226,28 @@ private fun WatchlistCard(
                         text = directionWord(headerDirection),
                         style = AtomType.Caption.copy(color = directionColor(headerDirection, colors)),
                     )
-                    Text(text = timeAgo(item.addedAt), style = AtomType.Caption.copy(color = colors.textMuted))
                 }
+                Text(
+                    text = timeAgo(item.addedAt),
+                    style = AtomType.Caption.copy(color = colors.textMuted),
+                    modifier = Modifier.padding(top = 2.dp),
+                )
                 if (isRecommended) {
-                    Text(
-                        text = "★ RECOMMENDED ${directionWord(rankedDirection)}",
-                        style = AtomType.Caption.copy(color = directionColor(rankedDirection, colors)),
-                        modifier = Modifier.padding(top = 3.dp),
-                    )
+                    // Filled, tinted pill instead of a second LONG/SHORT word (2026-09-17, 3rd,
+                    // Pieter's ask) — the header bias above already states direction in words;
+                    // the pill's own tint carries it here, the star just flags which watched
+                    // pair currently holds the live `signals.ranked` recommendation.
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 5.dp)
+                            .background(directionSoft(rankedDirection, colors), WL_PILL_SHAPE)
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                    ) {
+                        Text(
+                            text = "★ RECOMMENDED",
+                            style = AtomType.Caption.copy(color = directionColor(rankedDirection, colors)),
+                        )
+                    }
                 }
             }
             Text(
@@ -264,30 +282,39 @@ private fun WatchlistCard(
         }
 
         Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)) {
-            MetricCell("D1", pillWord(block?.pills?.d1), colors, Modifier.weight(1f))
-            MetricCell("H4", pillWord(block?.pills?.h4), colors, Modifier.weight(1f))
-            MetricCell("H1", pillWord(block?.pills?.h1), colors, Modifier.weight(1f))
+            MetricCell("D1", pillAbbrev(block?.pills?.d1), colors, Modifier.weight(1f), pillColor(block?.pills?.d1, colors))
+            MetricCell("H4", pillAbbrev(block?.pills?.h4), colors, Modifier.weight(1f), pillColor(block?.pills?.h4, colors))
+            MetricCell("H1", pillAbbrev(block?.pills?.h1), colors, Modifier.weight(1f), pillColor(block?.pills?.h1, colors))
         }
     }
 }
 
 @Composable
-private fun MetricCell(label: String, value: String, colors: AtomColors, modifier: Modifier = Modifier) {
+private fun MetricCell(label: String, value: String, colors: AtomColors, modifier: Modifier = Modifier, valueColor: Color = colors.textPrimary) {
     Column(modifier = modifier) {
         Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
         // 2026-09-10 (Pieter's ask) — same size as the label above it (AtomType.Caption, not
         // Body); still reads as "the value" via colour (textPrimary vs the label's textMuted).
-        Text(text = value, style = AtomType.Caption.copy(color = colors.textPrimary))
+        Text(text = value, style = AtomType.Caption.copy(color = valueColor))
     }
 }
 
-private fun pillWord(pill: String?): String = when (pill) {
-    "bull_strong" -> "Strong+"
-    "bull" -> "Bull"
-    "bear_strong" -> "Strong−"
-    "bear" -> "Bear"
-    "neutral" -> "Neutral"
+// Same SB/B/N/S/SS abbreviations + bull/bear/neutral colouring as TfAlignmentStrip.kt's own
+// pillAbbrev/pillColor — small local copy, not shared, same house style as this file's own
+// directionColor doc comment above.
+private fun pillAbbrev(pill: String?): String = when (pill) {
+    "bull_strong" -> "SB"
+    "bull" -> "B"
+    "neutral" -> "N"
+    "bear" -> "S"
+    "bear_strong" -> "SS"
     else -> "—"
+}
+
+private fun pillColor(pill: String?, colors: AtomColors): Color = when (pill) {
+    "bull_strong", "bull" -> colors.bull
+    "bear", "bear_strong" -> colors.bear
+    else -> colors.neutral
 }
 
 // Same directionWord/directionColor convention as StatusStrip.kt's own copies — small local
@@ -302,6 +329,15 @@ private fun directionColor(direction: String?, colors: AtomColors): Color = when
     "bull" -> colors.bull
     "bear" -> colors.bear
     else -> colors.textSecondary
+}
+
+// The RECOMMENDED pill's own low-alpha fill — reuses the existing bullSoft/bearSoft tokens
+// rather than a new alpha value. `else` (rankedDirection null) is effectively unreachable in
+// practice: rank.py never puts a direction-less entry in `ranked.top`, so this only fires
+// alongside `isRecommended == true`, where a real bull/bear direction is always present.
+private fun directionSoft(direction: String?, colors: AtomColors): Color = when (direction) {
+    "bear" -> colors.bearSoft
+    else -> colors.bullSoft
 }
 
 private fun timeAgo(atMillis: Long): String {
