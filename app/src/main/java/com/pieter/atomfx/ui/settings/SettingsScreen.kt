@@ -449,12 +449,10 @@ private fun NotificationsGroup(
     SettingsRow("Level alerts", colors) {
         SettingsSwitch(checked = notif.levelAlerts, colors = colors, enabled = false) {}
     }
-    // Signals Roadmap §2 (Phase 1) — five new state-transition alert toggles. Structure
-    // covers both new BOS and CHoCH events; Regime covers both an H4 regime flip and a
-    // Macro Archetype change (Pieter's call on both mergers, 2026-09-04).
-    SettingsRow("Setup alerts", colors, enabled = notif.enabled, trailing = {
-        SettingsSwitch(notif.setupAlerts, colors, enabled = notif.enabled) { preferences.setSetupAlertsEnabled(it) }
-    })
+    // Signals Roadmap §2 (Phase 1) — state-transition alert toggles. Structure covers both new
+    // BOS and CHoCH events; Regime covers both an H4 regime flip and a Macro Archetype change
+    // (Pieter's call on both mergers, 2026-09-04). Setup alerts retired 2026-09-17 — redundant
+    // with Recommendation alerts below (see UserPreferences.kt's own doc comment for why).
     SettingsRow("Structure alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.structureAlerts, colors, enabled = notif.enabled) { preferences.setStructureAlertsEnabled(it) }
     })

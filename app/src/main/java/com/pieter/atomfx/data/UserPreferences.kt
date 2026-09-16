@@ -18,8 +18,13 @@ data class NotificationPrefs(
     val levelAlerts: Boolean = true,
     // Signals Roadmap §2 (Phase 1) — Structure covers both new BOS and CHoCH events (one
     // toggle, per Pieter's call); Regime covers both an H4 regime flip and a Macro Archetype
-    // change (again one toggle — same "the backdrop changed" register).
-    val setupAlerts: Boolean = true,
+    // change (again one toggle — same "the backdrop changed" register). Setup alerts
+    // (`potential_state`) retired 2026-09-17 — redundant with Recommendation alerts (below):
+    // Setup fired on a pair's own cont >= 45 alone, the loosest single-factor bar in the app,
+    // while Recommendation fires on the full weighted composite clearing 6.5/10 — strictly
+    // richer evidence for the same "this pair just got interesting" story. Checked live before
+    // removing: 9/12 pairs cleared Setup's gate in one real scan vs. only 3/12 for
+    // Recommendation's, confirming Setup was the systematically noisier duplicate.
     val structureAlerts: Boolean = true,
     val regimeAlerts: Boolean = true,
     val volatilityAlerts: Boolean = true,
@@ -59,7 +64,6 @@ class UserPreferences(context: Context) {
             enabled = prefs.getBoolean(KEY_NOTIF_ENABLED, true),
             goldSignal = prefs.getBoolean(KEY_NOTIF_GOLD, true),
             levelAlerts = prefs.getBoolean(KEY_NOTIF_LEVEL, true),
-            setupAlerts = prefs.getBoolean(KEY_NOTIF_SETUP, true),
             structureAlerts = prefs.getBoolean(KEY_NOTIF_STRUCTURE, true),
             regimeAlerts = prefs.getBoolean(KEY_NOTIF_REGIME, true),
             volatilityAlerts = prefs.getBoolean(KEY_NOTIF_VOLATILITY, true),
@@ -90,11 +94,6 @@ class UserPreferences(context: Context) {
     fun setLevelAlertsEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_NOTIF_LEVEL, enabled).apply()
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(levelAlerts = enabled))
-    }
-
-    fun setSetupAlertsEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_NOTIF_SETUP, enabled).apply()
-        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(setupAlerts = enabled))
     }
 
     fun setStructureAlertsEnabled(enabled: Boolean) {
@@ -149,7 +148,6 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_ENABLED = "notif_enabled"
         const val KEY_NOTIF_GOLD = "notif_gold_signal"
         const val KEY_NOTIF_LEVEL = "notif_level_alerts"
-        const val KEY_NOTIF_SETUP = "notif_setup_alerts"
         const val KEY_NOTIF_STRUCTURE = "notif_structure_alerts"
         const val KEY_NOTIF_REGIME = "notif_regime_alerts"
         const val KEY_NOTIF_VOLATILITY = "notif_volatility_alerts"

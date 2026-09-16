@@ -22,10 +22,9 @@ HAIKU_MODEL   = "claude-haiku-4-5-20251001"
 SONNET_MODEL  = "claude-sonnet-5"
 
 # 2026-09-17 (Pieter's ask) — matches scan_h1.py's own RECOMMENDATION_MIN_SCORE exactly (same
-# house style as state_alerts.py's own _CONT_QUALIFY_THRESHOLD comment cross-referencing rank.py's
-# 45 — a shared constant isn't worth a new module for one number). Was a flat top-3 slice; see
-# scan_h1.py's own comment for why that flooded on a correlated trending day instead of showing
-# genuine independent setups.
+# "small local copy, not shared" house style used throughout this codebase — a shared constant
+# isn't worth a new module for one number). Was a flat top-3 slice; see scan_h1.py's own comment
+# for why that flooded on a correlated trending day instead of showing genuine independent setups.
 RECOMMENDATION_MIN_SCORE = 6.5
 
 # Yahoo Finance v8 — no API key needed

@@ -702,19 +702,6 @@ def test_state_alerts_no_prev_never_fires():
     assert state_alerts.compute_state_alerts(out, None) == []
 
 
-def test_state_alerts_potential_state_fires_on_transition():
-    # 2026-09-05 — trigger moved from Level 6/A+ (`potential.state`) to crossing `cont >= 45`
-    # (rank.py's own qualifying threshold), matching the Simplification Rework's retirement of
-    # the six-factor gate. Same alert `type` ("potential_state"), new underlying condition.
-    prev = {"pairs": {"EURUSD": {"cont": 30, "pills": {"d1": "bull"}}}}
-    out = {"pairs": {"EURUSD": {"cont": 62, "pills": {"d1": "bull"}}}}
-    alerts = state_alerts.compute_state_alerts(out, prev)
-    assert len(alerts) == 1 and alerts[0]["type"] == "potential_state"
-    assert alerts[0]["direction"] == "bull"
-    # no-op rerun (already qualifying both sides) fires nothing
-    assert state_alerts.compute_state_alerts(out, out) == []
-
-
 def test_state_alerts_structure_event_fires_on_new_event():
     prev = {"pairs": {"EURUSD": {"structure": {"h4": {"event": "none"}}}}}
     out = {"pairs": {"EURUSD": {"structure": {"h4": {"event": "BOS", "direction": "bull", "strength": 0.8}}}}}
@@ -803,6 +790,35 @@ def test_recommendation_alerts_unchanged_does_not_fire():
     prev = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 6.0}]}}
     out = {"ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 6.4}]}}
     assert scan_h1._recommendation_alerts(out, prev) == []
+
+
+# ── 3c. Gold Signal edge-trigger (2026-09-17, Pieter's explicit sign-off) ─────────────────
+# `scan_h1._gold_signal_should_push` — see ATOM_FX_ARCHITECTURE.md §5.2 for why changing this
+# firing condition was allowed (a discussed exception, not a silent Rule #1 deviation).
+def test_gold_signal_first_ever_run_fires_when_qualifying():
+    # No prev gold_signal at all (fresh install) — qualifies_now alone decides, same as the old
+    # unconditional behavior, no special-casing needed.
+    assert scan_h1._gold_signal_should_push("bear", True, {}) is True
+
+
+def test_gold_signal_fires_on_new_qualification():
+    prev_gold = {"direction": "neutral", "h4_confirmed": False, "h1_confirmed": False, "h4_confidence": "Low"}
+    assert scan_h1._gold_signal_should_push("bear", True, prev_gold) is True
+
+
+def test_gold_signal_does_not_repeat_while_still_qualifying():
+    prev_gold = {"direction": "bear", "h4_confirmed": True, "h1_confirmed": True, "h4_confidence": "High"}
+    assert scan_h1._gold_signal_should_push("bear", True, prev_gold) is False
+
+
+def test_gold_signal_fires_on_direction_flip_while_qualifying():
+    prev_gold = {"direction": "bull", "h4_confirmed": True, "h1_confirmed": True, "h4_confidence": "Medium"}
+    assert scan_h1._gold_signal_should_push("bear", True, prev_gold) is True
+
+
+def test_gold_signal_never_fires_when_not_qualifying_now():
+    prev_gold = {"direction": "bear", "h4_confirmed": True, "h1_confirmed": True, "h4_confidence": "High"}
+    assert scan_h1._gold_signal_should_push("neutral", False, prev_gold) is False
 
 
 # ── 4. Conviction score (Signals Roadmap §4) ──────────────────────────────────────

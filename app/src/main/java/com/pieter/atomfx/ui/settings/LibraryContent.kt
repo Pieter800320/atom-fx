@@ -347,15 +347,17 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "state-transition-alerts",
         term = "State-Transition Alerts",
         category = "Alerts & Recommendation",
-        summary = "Six push alerts that fire the moment something changes, never for a condition that's merely still true.",
+        summary = "Five push alerts that fire the moment something changes, never for a condition that's merely still true.",
         howItWorks = "Each compares this scan's value against last scan's, on the app's own hourly cadence:\n" +
-            "Setup — a pair's Continuation Score newly crosses 45.\n" +
             "Structure — a pair's H4 structure newly reads a fresh BOS or CHoCH.\n" +
             "Regime — the H4 regime flips, or the Macro Archetype changes.\n" +
             "Volatility — a pair's ATR percentile newly crosses 90.\n" +
             "Alignment — a pair's D1/H4/H1 pills newly all agree at Strong Buy or Strong Sell.\n" +
-            "The very first scan after a fresh install can't fire anything — there's nothing yet to compare against.",
-        whyItMatters = "Edge-triggered, not level-triggered, on purpose: an alert that re-fires every hour for a condition that hasn't moved just trains you to ignore the channel. Each has its own Settings toggle. Structure, Regime, Volatility, and Alignment carry a book icon on their Notification History card, opening a Playbook — the deeper theory behind that specific firing, not just the one-line \"what to consider\" text every alert already has. Setup doesn't get one; its mechanism is already the Setup/Continuation Score entries in full.",
+            "The very first scan after a fresh install can't fire anything — there's nothing yet to compare against.\n" +
+            "(A sixth, Setup — a pair's Continuation Score newly crossing 45 — was retired 2026-09-17: it was " +
+            "strictly weaker, single-factor evidence for the same \"this pair just got interesting\" story the " +
+            "Recommendation Engine's own alert already tells with the full weighted score.)",
+        whyItMatters = "Edge-triggered, not level-triggered, on purpose: an alert that re-fires every hour for a condition that hasn't moved just trains you to ignore the channel. Each has its own Settings toggle. All four carry a book icon on their Notification History card, opening a Playbook — the deeper theory behind that specific firing, not just the one-line \"what to consider\" text every alert already has.",
     ),
     LibraryEntry(
         id = "bb_reversal_criteria",

@@ -66,8 +66,8 @@ SCAN_TF = "h1"  # primary fetch timeframe
 # upper cap. 6.5 was picked by simulating it against 40 scans' worth of historical ranked.top
 # scores (5% would show zero — rare enough to trust, unlike 7.0's 25%) — a defensible first
 # pass, not a frozen number; tune freely. Also duplicated in scan_news.py's own
-# call_ranked_analysis (same house style as state_alerts.py's own _CONT_QUALIFY_THRESHOLD comment
-# cross-referencing rank.py's 45 — a shared constant isn't worth a new module for one number).
+# call_ranked_analysis (same "small local copy, not shared" house style used throughout this
+# codebase — a shared constant isn't worth a new module for one number).
 RECOMMENDATION_MIN_SCORE = 6.5
 
 # Keys written by a job other than scan_h1.py (scan_news.py's own cadence, scan_cot.py's
@@ -107,6 +107,34 @@ def save_signals(data: dict):
 
 def regime_emoji(regime: str) -> str:
     return {"Risk-Off": "🔴", "Risk-On": "🟢", "Mixed": "🟡", "Ranging": "⚪"}.get(regime, "")
+
+
+def _gold_signal_should_push(gs_direction: str, qualifies_now: bool, prev_gold: dict) -> bool:
+    """
+    2026-09-17 (Pieter's explicit sign-off — see ARCHITECTURE.md §5.2's own discussion of why
+    this firing-condition change was allowed, not a silent Rule #1 deviation) — edge-triggers
+    the Gold Signal push, same convention every other alert in the app uses (Signals Roadmap §1:
+    "never for a condition that's merely still true"). Previously this pushed every single hour
+    `qualifies_now` held, with no comparison against `prev` at all — the one alert in the whole
+    system that could spam identical information for many consecutive hours during one sustained
+    regime. The underlying qualifying condition itself (gs_direction/h4_confirmed/h1_confirmed/
+    h4_conf, computed by the frozen gold-signal block in `main()`) is completely untouched —
+    this only gates the push: fires on the not-qualifying -> qualifying transition, or a
+    direction flip while it stays qualifying, same shape `_recommendation_alerts` (below) uses.
+
+    `prev_gold` is last scan's own `out["gold_signal"]` dict (or `{}` on a first-ever run —
+    `qualifies_now` is still checked first, so a first run correctly fires exactly like the old
+    unconditional behavior did, no special-casing needed).
+    """
+    if not qualifies_now:
+        return False
+    prev_qualified = (
+        prev_gold.get("direction") not in (None, "neutral")
+        and prev_gold.get("h4_confirmed")
+        and prev_gold.get("h1_confirmed")
+        and prev_gold.get("h4_confidence") in ("Medium", "High")
+    )
+    return not (prev_qualified and prev_gold.get("direction") == gs_direction)
 
 
 def _recommendation_alerts(out: dict, prev: dict) -> list:
@@ -625,12 +653,15 @@ def main():
     # usual Rule #1 stop-and-ask conversation before editing that file, same as any other
     # frozen-file touch.
 
-    if (
+    gold_qualifies_now = (
         gs_direction != "neutral"
         and h4_confirmed
         and h1_confirmed
         and h4_conf in ("Medium", "High")
-    ):
+    )
+    gold_should_push = _gold_signal_should_push(gs_direction, gold_qualifies_now, prev.get("gold_signal") or {})
+
+    if gold_should_push:
         # Build pair list from ranked top setups
         ranked_top = out.get("ranked", {}).get("top", [])[:3]
         pairs_line = " | ".join(
@@ -657,7 +688,10 @@ def main():
         out["last_alert"] = now.isoformat()
         save_signals(out)
     else:
-        print(f"\nNo Telegram: direction={gs_direction} h4={h4_confirmed} h1={h1_confirmed} conf={h4_conf}")
+        print(
+            f"\nNo Telegram: direction={gs_direction} h4={h4_confirmed} h1={h1_confirmed} "
+            f"conf={h4_conf} qualifies_now={gold_qualifies_now} already_pushed_this_state={gold_qualifies_now and not gold_should_push}"
+        )
 
     print("=== Hourly Scan complete ===")
 
