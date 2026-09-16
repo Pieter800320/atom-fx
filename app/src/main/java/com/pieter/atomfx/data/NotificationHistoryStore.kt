@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 import java.util.UUID
 
 private val json = Json { ignoreUnknownKeys = true }
-private const val RETENTION_MILLIS = 30L * 24 * 60 * 60 * 1000 // 30 days
+private const val RETENTION_MILLIS = 7L * 24 * 60 * 60 * 1000 // 7 days (Pieter's ask, 2026-09-17 — was 30d, filled up fast and past alerts never get checked)
 private const val MAX_RECORDS = 200 // sanity cap — never realistically hit, these are all edge-triggered
 
 @Serializable
@@ -48,9 +48,10 @@ data class NotificationRecord(
  * shape as [UserPreferences] — a bounded, small list doesn't earn a new dependency (Room/
  * DataStore) any more than the settings toggles did.
  *
- * Auto-pruned to the last 30 days on every write — no background job needed, since a write
+ * Auto-pruned to the last 7 days on every write — no background job needed, since a write
  * only happens when a notification actually fires (these are all edge-triggered, so volume
- * stays low by construction).
+ * stays low by construction, and another alert firing within a week is the common case that
+ * actually does the pruning).
  */
 class NotificationHistoryStore(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("atomfx_notification_history", Context.MODE_PRIVATE)
