@@ -189,7 +189,10 @@ off inputs computed fresh that same scan — cont/csm.d1/regime_d1/pills/mom/adx
 narrative. This split is safe because the app only ever reads `top` (HOME's StatusStrip glyph
 row, Watchlist's "RECOMMENDED" chip); nothing renders `ranked.text` today. The same hourly
 re-rank also now fires an edge-triggered `recommendation` push (§7) when a pair newly enters
-`top` or flips direction within it.
+`top` or flips direction within it. **`scan_h1.py` is `top`'s sole writer** — `scan_news.py`
+briefly (2026-09-16/17) also persisted a `top` it computed internally for its own catalyst-check
+context, a second silent writer with no edge-trigger on that cadence at all (a pair could
+change with zero notification); fixed 2026-09-17, see Signals Roadmap §5b's own bugfix note.
 
 Per-pair frozen block (unchanged):
 ```json
