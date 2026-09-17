@@ -147,6 +147,20 @@ data class PairBlock(
     // shape — same lesson as csm_dispersion_history's own on-device parse crash this session:
     // match the backend's actual shape exactly, including its null cases.
     @SerialName("bb_d1") val bbD1: BbD1? = null,
+    // 2026-09-17 (Pieter's ask, ChartSheet RSI/MACD glance panel) — `scanner/extend/
+    // momentum_series.py` calls the same frozen `_rsi`/`_macd` score.py already runs for its own
+    // scoring, just keeping a short history instead of only the latest bar. One of these per
+    // timeframe; a missing key (rather than an empty object) means that TF's history was too
+    // short to compute — same "match the backend's null case exactly" convention bb_d1 uses.
+    @SerialName("momentum_series") val momentumSeries: Map<String, MomentumSeries> = emptyMap(),
+)
+
+@Serializable
+data class MomentumSeries(
+    val rsi: List<Double> = emptyList(),
+    @SerialName("macd_line") val macdLine: List<Double> = emptyList(),
+    @SerialName("macd_signal") val macdSignal: List<Double> = emptyList(),
+    @SerialName("macd_histogram") val macdHistogram: List<Double> = emptyList(),
 )
 
 @Serializable

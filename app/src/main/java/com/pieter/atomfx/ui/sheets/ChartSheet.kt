@@ -10,17 +10,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.data.model.MomentumSeries
 import com.pieter.atomfx.data.model.PercentBBoardBlock
 import com.pieter.atomfx.data.model.Signals
+import com.pieter.atomfx.ui.chart.MacdOscillator
 import com.pieter.atomfx.ui.chart.PercentBOscillator
+import com.pieter.atomfx.ui.chart.RsiOscillator
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 
@@ -89,6 +97,8 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
             }
         }
 
+        MomentumCard(signals.pairs[pair]?.momentumSeries.orEmpty(), colors, modifier = Modifier.padding(top = 10.dp))
+
         CurrencyPercentBCard(base, signals.percentBCurrency[base], colors, modifier = Modifier.padding(top = 10.dp))
         CurrencyPercentBCard(quote, signals.percentBCurrency[quote], colors, modifier = Modifier.padding(top = 10.dp))
 
@@ -121,6 +131,65 @@ private fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, c
             style = AtomType.Caption.copy(color = colors.textMuted),
             modifier = Modifier.padding(top = 6.dp),
         )
+    }
+}
+
+private val MOMENTUM_TF_LABELS = listOf("D1", "H4", "H1")
+private val MOMENTUM_TF_KEYS = listOf("d1", "h4", "h1")
+
+/**
+ * 2026-09-17 (Pieter's ask) — RSI + MACD stacked, one shared D1/H4/H1 row (same
+ * `ControlButtonRow` the CSM strip uses) switching both charts at once rather than each carrying
+ * its own TF picker. `scanner/extend/momentum_series.py`'s own doc comment covers where the data
+ * comes from (the same frozen `_rsi`/`_macd` score.py already runs, just kept as a short series).
+ * First two of an eventual four (%B/BandWidth to join once they're computed at H4/H1 too, not
+ * just today's D1-only 12-period alert bands) — kept as its own card rather than merged into the
+ * pair's %B card above, since that one is still D1-only and shouldn't gain a TF row that does
+ * nothing to it yet.
+ */
+@Composable
+private fun MomentumCard(byTf: Map<String, MomentumSeries>, colors: AtomColors, modifier: Modifier = Modifier) {
+    var selectedTf by remember { mutableIntStateOf(1) } // H4 default, matching the CSM strip's own default
+    val series = byTf[MOMENTUM_TF_KEYS[selectedTf]]
+
+    Column(modifier = modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "Momentum", style = AtomType.Body.copy(color = colors.textPrimary))
+            ControlButtonRow(
+                labels = MOMENTUM_TF_LABELS,
+                selected = selectedTf,
+                colors = colors,
+                modifier = Modifier.width(150.dp),
+                onSelect = { selectedTf = it },
+            )
+        }
+
+        Text(
+            text = "RSI (14)" + (series?.rsi?.lastOrNull()?.let { " ${it.toInt()}" } ?: ""),
+            style = AtomType.Caption.copy(color = colors.textSecondary),
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        if (series == null || series.rsi.isEmpty()) {
+            NotAvailableRow("RSI", colors)
+        } else {
+            RsiOscillator(series.rsi, colors, modifier = Modifier.padding(top = 4.dp))
+        }
+
+        Text(
+            text = "MACD (12, 26, 9)",
+            style = AtomType.Caption.copy(color = colors.textSecondary),
+            modifier = Modifier.padding(top = 14.dp),
+        )
+        if (series == null || series.macdHistogram.isEmpty()) {
+            NotAvailableRow("MACD", colors)
+        } else {
+            MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, modifier = Modifier.padding(top = 4.dp))
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                LegendItem("MACD", colors.textPrimary, colors)
+                LegendItem("Signal", colors.watch, colors)
+                LegendItem("Histogram", colors.bull, colors)
+            }
+        }
     }
 }
 
