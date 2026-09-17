@@ -620,9 +620,9 @@ PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Over
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
 ChartSheet          long-press a wheel node: per-pair %B oscillator + value/touch-state header
-                     (§19.4a, no D1/H4/H1 switcher, %B is D1-only), a Momentum card (RSI + MACD,
-                     §19.4b, shared D1/H4/H1 switcher), then the pair's own base/quote Currency %B
-                     cards below it
+                     (§19.4a, no D1/H4/H1 switcher, %B is D1-only), a bare full-width D1/H4/H1 row,
+                     then separate RSI and MACD cards (§19.4b, both driven by that one row), then
+                     the pair's own base/quote Currency %B cards below it
 PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by PercentBChart and
                      CurrencyPercentBCard (both per-pair, ChartSheet)
 RsiOscillator/
@@ -739,7 +739,7 @@ up to 6 lines onto one chart would cost the "did it cross its own signal" readab
 any of this useful. `base`/`quote` come from the plain 6-char pair code (`pair.take(3)`/
 `.takeLast(3)`) — no new parsing.
 
-### 19.4b Momentum — RSI/MACD, per-pair (long-press → ChartSheet, added 2026-09-17)
+### 19.4b Momentum — RSI/MACD, per-pair (long-press → ChartSheet, added 2026-09-17, restyled 2026-09-18)
 
 Sits between the pair's own %B card (§19.4a) and the two Currency %B cards on the same
 `ChartSheet.kt` — first half of a planned 4-indicator glance panel Pieter asked for ("a set of
@@ -748,24 +748,37 @@ two, %B standardised to 20 periods and BandWidth as a numeric series, wait on ge
 backend calculation and were deliberately deferred — "ship RSI and MACD first, then I can see
 what they look like," since those two are pure exposure of values `score.py` already computes).
 
-One `MomentumCard`, one shared `ControlButtonRow` D1/H4/H1 switcher (same visual recipe the CSM
-strip's own TF row uses, H4 default to match) driving both charts at once — unlike %B, RSI/MACD
-are computed at all three timeframes already, so a real switcher belongs here. Two stacked
-oscillators, `ui/chart/MomentumOscillators.kt`:
+**Restyled 2026-09-18** (Pieter's ask, comparing the first cut against LiteFinance's own panel:
+"they look somewhat different... very flat"). RSI and MACD now each get their own card — was one
+shared card under a "Momentum" heading — and the D1/H4/H1 selector moved out to a bare full-width
+row above both, equal thirds, no title (same look HOME's own D1/H4/H1 row has below the wheel),
+still driving both charts from one choice. `ui/chart/MomentumOscillators.kt`:
 
-- **RSI (14)** — plain 0–100 line, dashed 30/70 reference lines, solid 50 centreline, no signal
+- **RSI (14)** — plain 0–100 line, dashed 30/70 reference lines, solid 50 centreline, the band
+  between 30/70 shaded (`colors.scrim`) so a stretched reading stands out at a glance, no signal
   line (plain RSI doesn't have one). Line tints `bear`/`bull` when the latest value is ≥70/≤30 —
   the same "stretched, due to revert" convention %B's own band-touch colouring uses, so the two
   charts agree on what a stretched reading means.
 - **MACD (12, 26, 9)** — histogram (MACD line − signal line) as bars tinted by sign
   (`bull`/`bear`), MACD line (`textPrimary`) and signal line (`watch`) overlaid, a legend row
-  underneath. Y-axis auto-scales symmetrically around zero to whatever range the pair's own
-  data spans, so the zero line — MACD's only fixed reference — always sits at vertical centre.
+  underneath. The histogram gets its OWN vertical scale, independent of the MACD/signal lines'
+  own scale, both symmetric around the same shared zero line — a histogram is a difference of two
+  similarly-sized series, so it's mathematically much smaller than either line on its own; one
+  shared scale (the first cut's approach) flattened it to a barely-visible sliver.
+
+Both charts are also now taller, finer-stroked, show three sparse date labels along the bottom
+(same convention `PercentBOscillator` already uses), and add a soft glow behind the current-value
+endpoint dot — the same `BlurMaskFilter` technique the wheel's own hub glow already uses
+(`WheelCanvas.kt::glowFillCircle`), not a new visual language.
 
 Both read `pairs.<PAIR>.momentum_series.<tf>` directly (`scanner/extend/momentum_series.py`,
-Architecture §4.2) — a 50-point tail of the same frozen `_rsi`/`_macd` `score.py` already runs
-for every pair/timeframe as part of its own scoring, kept as history instead of discarded after
-the latest value is read. No on-device RSI/MACD math (Architecture §8.3).
+Architecture §4.2) — a 90-point tail (up from 50 — a display cap only, not a fetch limit) of the
+same frozen `_rsi`/`_macd` `score.py` already runs for every pair/timeframe as part of its own
+scoring, kept as history instead of discarded after the latest value is read, plus its own `dates`
+(D1 via the same NY-session close %B uses; H4/H1 via `scanner/extend/tf_dates.py`, which recovers
+just the timestamps the frozen aggregator discards, the same "recover what the frozen aggregator
+throws away" pattern `pctb_dates` already established). No on-device RSI/MACD math
+(Architecture §8.3).
 
 ---
 
