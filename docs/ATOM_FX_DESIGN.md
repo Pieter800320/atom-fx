@@ -620,10 +620,13 @@ PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Over
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
 ChartSheet          long-press a wheel node: per-pair %B oscillator + value/touch-state header
-                     (§19.4a), plus the pair's own base/quote Currency %B cards below it — no
-                     D1/H4/H1 switcher, %B is D1-only
+                     (§19.4a, no D1/H4/H1 switcher, %B is D1-only), a Momentum card (RSI + MACD,
+                     §19.4b, shared D1/H4/H1 switcher), then the pair's own base/quote Currency %B
+                     cards below it
 PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by PercentBChart and
                      CurrencyPercentBCard (both per-pair, ChartSheet)
+RsiOscillator/
+MacdOscillator      §19.4b momentum charts (ui/chart/MomentumOscillators.kt), ChartSheet only
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 SessionsSheet       Sydney/Tokyo/London/New York — 24h rolling timeline + per-session open/closed,
@@ -735,6 +738,34 @@ charts, not one merged one — pair %B (price position within THIS pair's own ba
 up to 6 lines onto one chart would cost the "did it cross its own signal" readability that makes
 any of this useful. `base`/`quote` come from the plain 6-char pair code (`pair.take(3)`/
 `.takeLast(3)`) — no new parsing.
+
+### 19.4b Momentum — RSI/MACD, per-pair (long-press → ChartSheet, added 2026-09-17)
+
+Sits between the pair's own %B card (§19.4a) and the two Currency %B cards on the same
+`ChartSheet.kt` — first half of a planned 4-indicator glance panel Pieter asked for ("a set of
+standard indicators... each gives one a different view on a certain market dimension"; the other
+two, %B standardised to 20 periods and BandWidth as a numeric series, wait on genuinely new
+backend calculation and were deliberately deferred — "ship RSI and MACD first, then I can see
+what they look like," since those two are pure exposure of values `score.py` already computes).
+
+One `MomentumCard`, one shared `ControlButtonRow` D1/H4/H1 switcher (same visual recipe the CSM
+strip's own TF row uses, H4 default to match) driving both charts at once — unlike %B, RSI/MACD
+are computed at all three timeframes already, so a real switcher belongs here. Two stacked
+oscillators, `ui/chart/MomentumOscillators.kt`:
+
+- **RSI (14)** — plain 0–100 line, dashed 30/70 reference lines, solid 50 centreline, no signal
+  line (plain RSI doesn't have one). Line tints `bear`/`bull` when the latest value is ≥70/≤30 —
+  the same "stretched, due to revert" convention %B's own band-touch colouring uses, so the two
+  charts agree on what a stretched reading means.
+- **MACD (12, 26, 9)** — histogram (MACD line − signal line) as bars tinted by sign
+  (`bull`/`bear`), MACD line (`textPrimary`) and signal line (`watch`) overlaid, a legend row
+  underneath. Y-axis auto-scales symmetrically around zero to whatever range the pair's own
+  data spans, so the zero line — MACD's only fixed reference — always sits at vertical centre.
+
+Both read `pairs.<PAIR>.momentum_series.<tf>` directly (`scanner/extend/momentum_series.py`,
+Architecture §4.2) — a 50-point tail of the same frozen `_rsi`/`_macd` `score.py` already runs
+for every pair/timeframe as part of its own scoring, kept as history instead of discarded after
+the latest value is read. No on-device RSI/MACD math (Architecture §8.3).
 
 ---
 
