@@ -69,6 +69,17 @@ fun allSessionStatesAt(at: Instant): List<SessionState> = TradingSession.entries
  */
 fun isOverlapActiveAt(at: Instant): Boolean = allSessionStatesAt(at).count { it.isOpen } >= 2
 
+/**
+ * The overlapping instant range between two windows, or null if they don't intersect at all.
+ * Used to highlight overlap windows (the highest-volume, highest-volatility stretches) on the
+ * timeline graphic — not just detect that one is active ([isOverlapActiveAt]'s job).
+ */
+fun overlapRange(aStart: Instant, aEnd: Instant, bStart: Instant, bEnd: Instant): Pair<Instant, Instant>? {
+    val start = if (aStart.isAfter(bStart)) aStart else bStart
+    val end = if (aEnd.isBefore(bEnd)) aEnd else bEnd
+    return if (start.isBefore(end)) start to end else null
+}
+
 /** "2h 14m" / "45m" style, matching CalendarSheet.kt's own relativeCountdown formatting. */
 fun formatCountdown(duration: Duration): String {
     val totalMinutes = duration.toMinutes().coerceAtLeast(0)
