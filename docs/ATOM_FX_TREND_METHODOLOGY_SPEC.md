@@ -52,6 +52,121 @@ DECISION-003 — Stop basis: H1 pullback structural low − stop_buffer_atr×ATR
 DECISION-004 — Position sizing: OUT of v1. App emits entry/stop/target/R:R + pip distance;
               user sizes by own risk-% rule.                     Status: DECIDED (2026-09-11)
 DECISION-005 — Parameter defaults                    Status: PROPOSED → DECIDED after Task 5
+
+DECISION-006 — Unify D1 NY-close on one helper: scanner/extend/bb_touch.py's _d1_ny_close now
+              delegates to scanner/extend/agg_nyclose.aggregate_d1_nyclose_dated instead of
+              re-bucketing independently; date label standardized to the session's CLOSE day
+              (agg_nyclose's convention) instead of bb_touch's old OPEN-day label — same
+              bars/values, label shifts by exactly one calendar day.
+                                                                    Status: DECIDED (2026-09-11)
+
+DECISION-007 — Drop bars outside the real FX week [Sun 17:00 ET, Fri 17:00 ET) in the NY-close
+              extend path (scanner/extend/agg_nyclose.py, before grouping; shared by both
+              aggregate_d1_nyclose and aggregate_d1_nyclose_dated, so they cannot diverge).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: Twelvedata began emitting market-closed weekend bars for these pairs on 2026-01-11 —
+        a Sunday 00:00-16:59 ET pre-open block and a recurring Saturday 00:00-03:00 ET block.
+        Neither appears on any broker/TradingView daily; under the +7h close-day rule alone
+        they landed on their own phantom Saturday/Sunday D1 candles, breaking history
+        uniformity. A genuine Sunday 17:00-ET-or-later reopen is unaffected and still rolls
+        into Monday as before.
+Affected: scanner/extend/agg_nyclose.py (both aggregators); scanner/extend/bb_touch.py
+        inherits it via DECISION-006's delegation (bands/%B for any pair whose H1 history
+        contains these weekend bars); tools/bootstrap_d1_nyclose.py's per-pair summary now
+        also reports a phantom-Saturday count alongside phantom-Sunday.
+Evidence: manual H1 diagnostic on EUR/USD, 2026-09-12 — identical weekend blocks present via
+        both the "recent" and end_date-paginated fetch paths for the same calendar dates,
+        ruling out a pagination/fetch-path artifact; confirmed absent before 2026-01-11 via
+        the same paginated fetch style one week earlier.
+
+DECISION-008 — Backtest modeling assumptions (tools/backtest_trend_pullback.py, Task 5).
+                                                                    Status: DECIDED (2026-09-12)
+Decision: No look-ahead — at each step the detector sees only H1 bars up to and including the
+        current bar (a bounded rolling window, never anything later). Entry = the detector's
+        own returned `entry` (signal-bar close); stop/target = the detector's own outputs,
+        never recomputed by the backtest. Trade resolution walks forward bar by bar (H1):
+        LONG loses if bar.low <= stop, wins if bar.high >= target — a bar hitting BOTH
+        resolves as a STOP (conservative); SHORT mirrors. MAX_HOLD_BARS = 360 (~15 trading
+        days); if neither hits by then, exit at that bar's close, exit_reason="timeout". One
+        open position per pair at a time; scanning resumes on the bar after the exit bar.
+        Params = trend_pullback.PARAMS, the detector's own defaults — no sweep in this task.
+Reason: A baseline edge check must replay the SHIPPED detector faithfully (calling
+        evaluate_from_h1 itself, never a re-implementation of any gate) under assumptions a
+        reasonable trader would actually apply, without look-ahead and without tuning
+        parameters to the very sample being used to judge them.
+Affected: tools/backtest_trend_pullback.py only. No frozen file, scan_h1.py, or the detector
+        touched. Gates further work (Task 4 live wiring, DECISION-005 param ratification) on
+        review of this backtest's results — not run automatically as part of it.
+
+DECISION-009 — Gate D decoupled: the H1 entry trigger is now the swing-high/low break ALONE
+              (H1 close beyond the prior minor swing, body close only). The bullish/bearish
+              reversal candle (engulfing/pin) is recorded as context in the `trigger` output
+              field ("engulfing"/"pin" when the breaking bar happens to be one, else "break")
+              — it no longer has to land on the SAME bar as the break to count.
+                                                                    Status: DECIDED (2026-09-12)
+Reason: The original same-bar AND (spec §4 Gate D, pre-revision) requires one H1 bar to both
+        reverse the pullback AND already close back through the opposing swing extreme — in a
+        real pullback the reversal candle marks the LOW, while the break confirming the
+        pullback is over typically lands several bars later. The baseline backtest's --funnel
+        diagnostic found 0 of 78 Gate-D-reaching bars satisfied the same-bar AND. This task's
+        own re-verification independently sampled Gate-D-reaching bars from the 3 cached
+        pairs' real H1 history (EUR/USD, GBP/USD, USD/JPY), using the SAME rolling-window
+        evaluate_from_h1 call, re-deriving the break/candle booleans via the module's own
+        exported helpers (no gate reimplemented). A full exact (every-bar) re-scan proved too
+        heavy for this session (a background run was killed on low system memory); two
+        smaller sampled passes (every 25th bar across all 3 pairs, n=10; every 10th bar on
+        EUR/USD alone, n=7 — 17 Gate-D-reaching bars total, not a full census) gave:
+        break-alone passed 1/17 (5.9%); the old candle-requirement-alone passed 2/17 (11.8%);
+        BOTH together (today's actual AND, pre-fix) passed 0/17 (0%) — zero co-occurrence in
+        every sample checked, consistent with and corroborating the original 78-bar finding.
+        Break-alone and candle-alone each occur independently; neither sample ever found them
+        on the same bar — confirming the candle was the blocker, not a separate bug in the
+        break/swing-high logic. (Sample sizes are small by necessity, not by choice — the
+        qualitative finding, zero co-occurrence, is what both the 78-bar and 17-bar checks
+        agree on; the exact break-alone/candle-alone base rates would need a full scan to
+        pin down precisely, which the backtest itself will still do post-fix.)
+Affected: scanner/extend/trend_pullback.py (Gate D only — Gates A/B/C, DECISION-002/003/004,
+        risk outputs, and states are unchanged); tests/test_trend_pullback.py.
+
+DECISION-010 — Gate D changed again, SUPERSEDES DECISION-009: the H1 entry trigger is now
+              "enter WHILE STILL IN THE ZONE" — a body close past the prior H1 bar's own
+              high (LONG) / low (SHORT), evaluated on the same bar Gate C is true. The
+              DECISION-009 swing-high/low break is removed entirely (last_swing_high(h1) is
+              no longer needed for LONG's gate at all). The reversal candle (engulfing/pin)
+              stays context-only in `trigger` ("engulfing"/"pin" when applicable, else
+              "confirm" — renamed from DECISION-009's "break", since there is no break left).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: DECISION-009's break trigger only confirmed AFTER price had already closed back
+        beyond the H1 swing high/low it had to break — but `target` is `leg_high`/`leg_low`,
+        the SAME kind of level one timeframe up. By the time price broke its own H1 swing,
+        it had typically already eaten most of the distance up to `target`, so
+        `target - entry` collapsed toward zero and R:R could never clear `min_rr` — a
+        geometric incoherence between the trigger and the target, not a parameter-tuning
+        problem. The post-DECISION-009 backtest confirmed this directly: 4 of 78 candidates
+        reached Gate D, 0 fired, all 4 armed on R:R. Entering INSIDE the pullback zone instead
+        (a minimal "turning up" confirmation, not a break of anything) keeps the full
+        leg_high/leg_low distance available as reward against a stop that's still tight (just
+        below/above the pullback's own low/high) — the entry and the target are no longer
+        fighting over the same level.
+Affected: scanner/extend/trend_pullback.py (Gate D and the entry/trigger fields only — Gates
+        A/B/C, DECISION-002/003/004's stop/target formulas, min_rr, and states are unchanged);
+        tests/test_trend_pullback.py.
+
+DECISION-011 — Gate B simplified: dropped the "ADX rising" sub-condition. Gate B is now
+              `ADX(D1) >= adx_min` alone; `adx_rising_lookback` is removed from PARAMS (no
+              longer read anywhere).
+                                                                    Status: DECIDED (2026-09-12)
+Reason: Gate B required ADX RISING while Gate C requires price to be IN a pullback — a
+        pullback is momentum pausing, during which ADX typically DIPS. The two conditions
+        fought each other by construction: on the very bars where Gate C could be true, Gate B
+        was often false, which is a key cause of the funnel showing this strategy firing only
+        3 times in 2 years on EUR/USD. `ADX >= adx_min` alone already confirms the pair is in
+        a trending (not ranging) regime; requiring the slope to also be positive at the exact
+        moment price is pausing to pull back added no discriminating power, only false
+        negatives.
+Affected: scanner/extend/trend_pullback.py (Gate B and PARAMS only — Gates A/C/D,
+        DECISION-002/003/004/009/010, risk outputs, and states are unchanged);
+        tests/test_trend_pullback.py.
 ```
 
 ---
@@ -115,9 +230,13 @@ must pass. Each gate names its data source and its PROPOSED parameter.
 - Corroboration: `detect_structure(d1).direction == "bull"` (higher highs & higher lows).
 - *Basis:* price above both EMAs, 50 above 200, HH/HL structure.
 
-**Gate B — trend strength (anti-range filter).** On NY-close D1:
-- `ADX(D1) >= adx_min` AND ADX rising: `ADX[t] > ADX[t - adx_rising_lookback]`.
-- *Basis:* trade only when ADX confirms a trend, not a range.
+**Gate B — trend strength (anti-range filter, DECISION-011: dropped the rising sub-condition).**
+On NY-close D1:
+- `ADX(D1) >= adx_min`. (No ADX-rising sub-condition — see DECISION-011.)
+- *Basis:* trade only when ADX confirms a trend, not a range. ADX rising is deliberately NOT
+  required: it contradicted Gate C, which requires price to be IN a pullback — pullbacks are
+  momentum pausing, during which ADX typically dips. `ADX >= adx_min` alone already confirms
+  the trend regime.
 
 **Gate C — pullback present & of quality (DECISION-002).** On H4:
 - Retracement depth into the last completed H4 up-swing (from `swings.py`) lies in
@@ -128,12 +247,20 @@ must pass. Each gate names its data source and its PROPOSED parameter.
 - **DECISION-002 (DECIDED):** **both** the Fib-zone test **and** the EMA-distance test must
   pass (confluence → fewer, higher-quality signals; aligns Rule 3).
 
-**Gate D — H1 entry trigger (timing).** On H1:
-- A bullish reversal candle on the latest closed H1 bar: **engulfing** (body engulfs prior
-  body) **or** **pin/hammer** (lower wick ≥ 2× body, small upper wick), AND
-- decisive continuation: H1 `close >` the prior minor H1 swing high that preceded the pullback
-  (`swings.py`, `swing_n_h1`). A wick through it does not count — body close only.
-- *Basis:* enter on proof the pullback is over, not on the level alone.
+**Gate D — H1 entry trigger, "enter WHILE STILL IN THE ZONE" (DECISION-010, supersedes
+DECISION-009 — see the Decision Log for why the swing-high/low break was removed entirely,
+not just decoupled from the candle):
+- The gate: a minimal "pullback turning up" confirmation, evaluated on the SAME H1 bar Gate C
+  is true. H1 `close >` the PRIOR H1 bar's own high — body close only, no wick. (SHORT
+  mirrors: `close <` the prior H1 bar's own low.) There is no swing break to satisfy;
+  `last_swing_high(h1)` is no longer read for LONG's gate at all.
+- A bullish reversal candle — **engulfing** (body engulfs prior body) **or** **pin/hammer**
+  (lower wick ≥ 2× body, small upper wick) — is recorded as **context**, never a gate:
+  `trigger` is `"engulfing"` or `"pin"` when the confirming bar happens to be one, else
+  `"confirm"`.
+- *Basis:* enter where the reward (to `target = leg_high`/`leg_low`) is still fully intact,
+  not after price has already closed most of that distance by breaking its own H1 swing
+  first (DECISION-009's failure mode — see the Decision Log for the backtest evidence).
 
 **Alignment corroboration (reuse `pills`).** Reject the long if `pills.h4 == "bear_strong"` or
 `pills.d1` is bearish — a cheap consistency check against the existing engine; never the primary
@@ -149,7 +276,9 @@ ROADMAP §1). It never re-fires while still true.
 
 Emitted with the signal so the recommendation is act-ready; the app never sizes or executes.
 
-- **Entry:** current H1 close (and the H4 zone bounds for context).
+- **Entry (DECISION-010):** current H1 close — WHILE STILL IN the H4 pullback zone Gate C
+  qualified (and the H4 zone bounds for context), not after a swing break has already used up
+  most of the distance to target (see DECISION-010).
 - **Stop (DECISION-003, DECIDED):** `stop = min(pullback_leg_H1_lows) - stop_buffer_atr * ATR(H1)`
   — just below the pullback's own H1 swing low, minus the ATR buffer.
 - **Target 1:** the swing high the pullback originated from → defines R:R.
@@ -170,7 +299,7 @@ pairs.<PAIR>.trend_pullback: {
   direction:  "long" | "short" | null,
   entry:      float|null, stop: float|null, target: float|null, rr: float|null,
   adx: float, fib_pct: float|null, ema50_dist_atr: float|null,
-  trigger:    "engulfing" | "pin" | null,
+  trigger:    "engulfing" | "pin" | "confirm" | null,   // DECISION-010: context only, never a gate
   blocked_at: "A"|"B"|"C"|"D"|"rr"|null,     // first gate that failed, for UI transparency
   ts:         iso8601
 }
@@ -222,7 +351,7 @@ guards. **No task after Task 5 enables the push until the backtest is reviewed (
 | Param | Default | Source / note |
 |---|---|---|
 | `adx_min` | 22 | ADX 20–25 "trending" band |
-| `adx_rising_lookback` | 3 | ADX rising |
+| ~~`adx_rising_lookback`~~ | ~~3~~ | removed (DECISION-011) — Gate B is `ADX >= adx_min` only |
 | `ema50_slope_lookback` (D1) | 5 | trend, not fresh cross |
 | `pullback_fib_min` / `max` | 0.382 / 0.618 | classic retracement zone |
 | `fib_invalidation` | 0.786 | beyond = reversal risk |

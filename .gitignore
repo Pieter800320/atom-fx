@@ -12,3 +12,8 @@ app/build/
 captures/
 .externalNativeBuild/
 .idea/
+gradle/gradle-daemon-jvm.properties
+
+# Research branch — raw H1 bar cache (large, regenerable via tools/bootstrap_d1_nyclose.py
+# and the backtester's own fetch-and-cache path; the derived data/d1_nyclose/ IS committed)
+data/h1_cache/
