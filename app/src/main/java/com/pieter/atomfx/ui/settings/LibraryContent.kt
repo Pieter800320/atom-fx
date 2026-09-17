@@ -110,7 +110,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Momentum & Price Action",
         summary = "Market-structure events built from genuine swing highs/lows, not an indicator.",
         howItWorks = "Finds swing pivots (a bar strictly higher/lower than several bars on both sides), reads the trend from the last two swings (higher highs + higher lows = bull, the reverse = bear), then classifies the latest close. Breaking beyond the last swing in the trend's own direction is a BOS — continuation. Breaking the opposite way is a CHoCH — a potential reversal warning. A strength score, 0–1, from how far price broke past that swing relative to ATR, scales the pair's technical score up to +30% on a BOS or down to −60% on a CHoCH.",
-        whyItMatters = "The one purely price-action-based signal in the engine — no oscillator, just where price actually broke. A fresh BOS or CHoCH fires a Structure alert. Tap its Notification History card's book icon for the Structure Playbook, the deeper read on what a break implies and where it can mislead.",
+        whyItMatters = "The one purely price-action-based signal in the engine — no oscillator, just where price actually broke. A fresh BOS or CHoCH fires a Structure alert. Tap its Notification History card's book icon for the Structure Playbook, the deeper read on what a break implies and where it can mislead. The exact multiplier this produces for a given pair is on the Pair sheet's Breakdown → Structure tab, right below Strength (H4).",
     ),
     LibraryEntry(
         id = "adx",

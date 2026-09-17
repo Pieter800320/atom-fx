@@ -38,6 +38,10 @@ fun StructureTabContent(structure: StructureBlock?, colors: AtomColors) {
         SheetRow("Last event (H4)", h4?.event?.uppercase() ?: "—", colors)
         // Locale.US — see EntrySheet.kt's same fix.
         SheetRow("Strength (H4)", h4?.strength?.let { "%.2f".format(java.util.Locale.US, it) } ?: "—", colors)
+        // 2026-09-17 (full-system audit) — the multiplier this same event/strength produces
+        // (0.40-1.30, scanner/structure.py) was computed and documented in the Library, but
+        // never actually shown anywhere. Same row style, right after Strength.
+        SheetRow("Multiplier (H4)", h4?.multiplier?.let { "%.2fx".format(java.util.Locale.US, it) } ?: "—", colors)
 
         if (h4?.event == "CHoCH") {
             Text(
