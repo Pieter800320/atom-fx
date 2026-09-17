@@ -44,6 +44,7 @@ import com.pieter.atomfx.domain.SessionState
 import com.pieter.atomfx.domain.TradingSession
 import com.pieter.atomfx.domain.allSessionStatesAt
 import com.pieter.atomfx.domain.formatCountdown
+import com.pieter.atomfx.domain.overlapRange
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -57,11 +58,14 @@ import java.util.Locale
 // Item Library #05 — same slide-in side panel recipe Settings/Watchlist/Calendar already use.
 private const val PANEL_WIDTH_FRACTION = 0.82f
 
-// The rolling timeline window: 1h of look-back so the "now" marker isn't glued to the left edge,
-// plus 23h of look-ahead — 24h total, wide enough that every session's current-or-next window is
-// fully visible (each is ~9-10h long, recurring every 24h).
-private val LOOKBACK = Duration.ofHours(1)
-private const val WINDOW_HOURS = 24f
+// The rolling timeline window. LOOKBACK must cover the longest session's full duration (+1h
+// margin) -- 2026-09-17 bugfix: a fixed 1h lookback clipped a currently-OPEN session's true start
+// (e.g. New York, 6+ hours into its own session) off the left edge of the visible window, making
+// its bar look artificially short next to sessions that haven't opened yet and so show in full.
+// LOOKAHEAD is separate, generous enough that every session's NEXT occurrence is visible too.
+private val LOOKBACK = Duration.ofHours(TradingSession.entries.maxOf { it.closeHour - it.openHour } + 1L)
+private val LOOKAHEAD = Duration.ofHours(24)
+private val WINDOW_HOURS = (LOOKBACK + LOOKAHEAD).toMinutes() / 60f
 
 private val LOCAL_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
 
@@ -196,8 +200,22 @@ private fun sessionsSummary(states: List<SessionState>, now: Instant): String {
 @Composable
 private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: AtomColors) {
     val axisStart = now.minus(LOOKBACK)
+
+    fun hoursFromAxisStart(instant: Instant): Float =
+        (Duration.between(axisStart, instant).toMinutes() / 60.0)
+            .coerceIn(0.0, WINDOW_HOURS.toDouble())
+            .toFloat()
+
     Column(modifier = Modifier.fillMaxWidth()) {
         states.forEach { state ->
+            // 2026-09-17 bugfix — every OTHER session's window this one overlaps, so the shared
+            // stretch can be drawn in its own colour. Without this, an overlap (the highest-
+            // volume windows, the entire reason the header dot exists) was invisible on the
+            // graphic itself — only inferable by separately noticing two rows both say "Open".
+            val overlaps = states
+                .filter { it.session != state.session }
+                .mapNotNull { other -> overlapRange(state.windowStart, state.windowEnd, other.windowStart, other.windowEnd) }
+
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
                 Text(
                     text = state.session.displayName,
@@ -208,11 +226,6 @@ private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: At
                     val corner = CornerRadius(size.height / 2, size.height / 2)
                     drawRoundRect(color = colors.hairline, cornerRadius = corner)
 
-                    fun hoursFromAxisStart(instant: Instant): Float =
-                        (Duration.between(axisStart, instant).toMinutes() / 60.0)
-                            .coerceIn(0.0, WINDOW_HOURS.toDouble())
-                            .toFloat()
-
                     val startH = hoursFromAxisStart(state.windowStart)
                     val endH = hoursFromAxisStart(state.windowEnd)
                     if (endH > startH) {
@@ -222,6 +235,21 @@ private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: At
                             size = Size(size.width * ((endH - startH) / WINDOW_HOURS), size.height),
                             cornerRadius = corner,
                         )
+                    }
+
+                    // Overlap segments drawn on top, in the same green the header dot itself uses
+                    // for "worth a look" (HeaderGlyphWithDot's own colors.bull) — same meaning,
+                    // same colour, just on this graphic instead of the header.
+                    overlaps.forEach { overlap ->
+                        val oStartH = hoursFromAxisStart(overlap.first)
+                        val oEndH = hoursFromAxisStart(overlap.second)
+                        if (oEndH > oStartH) {
+                            drawRect(
+                                color = colors.bull,
+                                topLeft = Offset(size.width * (oStartH / WINDOW_HOURS), 0f),
+                                size = Size(size.width * ((oEndH - oStartH) / WINDOW_HOURS), size.height),
+                            )
+                        }
                     }
 
                     // "now" marker — always at the same fixed fraction (LOOKBACK / WINDOW_HOURS)
