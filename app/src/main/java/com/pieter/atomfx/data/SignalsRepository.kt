@@ -31,19 +31,37 @@ class SignalsRepository(context: Context, private val urlProvider: () -> String 
     private val cacheFile = File(context.filesDir, CACHE_FILE_NAME)
 
     suspend fun fetch(): SignalsResult = withContext(Dispatchers.IO) {
-        val body = runCatching { httpGet(urlProvider()).also { cacheFile.writeText(it) } }
+        val networkBody = runCatching { httpGet(urlProvider()) }
             .onFailure { android.util.Log.w("SignalsRepository", "fetch failed, falling back to cache", it) }
             .getOrNull()
-            ?: cacheFile.takeIf { it.exists() }?.readText()
-            ?: return@withContext SignalsResult.Unavailable
+        val networkSignals = networkBody?.let(::parseOrNull)
 
-        val signals = runCatching { json.decodeFromString(Signals.serializer(), body) }
-            .onFailure { android.util.Log.w("SignalsRepository", "parse failed", it) }
-            .getOrNull()
-            ?: return@withContext SignalsResult.Unavailable
+        // 2026-09-17 bugfix — the cache is only overwritten by a response that actually
+        // parsed. Previously the raw download was cached unconditionally before parsing was
+        // even attempted, so one malformed response (a single field of an unexpected type
+        // anywhere in the large, fast-changing signals.json shape) would both fail this fetch
+        // AND permanently poison the offline fallback until the next successful fetch — a
+        // transient bad field could blank the whole app rather than degrading to the last
+        // good snapshot the app already knows how to show (Stale). A parse failure now falls
+        // back to the cache exactly like a network failure already did.
+        val signals = if (networkSignals != null) {
+            cacheFile.writeText(networkBody)
+            networkSignals
+        } else {
+            if (networkBody != null) {
+                android.util.Log.w("SignalsRepository", "network response failed to parse, falling back to cache")
+            }
+            cacheFile.takeIf { it.exists() }?.readText()?.let(::parseOrNull)
+                ?: return@withContext SignalsResult.Unavailable
+        }
 
         if (isFresh(signals.updated)) SignalsResult.Fresh(signals) else SignalsResult.Stale(signals)
     }
+
+    private fun parseOrNull(body: String): Signals? =
+        runCatching { json.decodeFromString(Signals.serializer(), body) }
+            .onFailure { android.util.Log.w("SignalsRepository", "parse failed", it) }
+            .getOrNull()
 
     private fun isFresh(updated: String?): Boolean {
         val timestamp = updated ?: return false
