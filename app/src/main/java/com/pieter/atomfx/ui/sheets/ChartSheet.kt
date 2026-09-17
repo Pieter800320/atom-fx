@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -69,6 +68,10 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
     val base = pair.take(3)
     val quote = pair.takeLast(3)
 
+    // Hoisted above both cards below — one D1/H4/H1 choice drives RSI and MACD together.
+    var momentumTf by remember { mutableIntStateOf(1) } // H4 default, matching the CSM strip's own default
+    val momentumSeries = signals.pairs[pair]?.momentumSeries.orEmpty()[MOMENTUM_TF_KEYS[momentumTf]]
+
     Column(modifier = Modifier.fillMaxWidth()) {
         SheetTitle(pair, colors)
 
@@ -97,7 +100,17 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
             }
         }
 
-        MomentumCard(signals.pairs[pair]?.momentumSeries.orEmpty(), colors, modifier = Modifier.padding(top = 10.dp))
+        // 2026-09-18 (Pieter's restyle ask) — a bare full-width row, equal thirds, no card
+        // wrapper of its own; same look HOME's own D1/H4/H1 row has below the wheel.
+        ControlButtonRow(
+            labels = MOMENTUM_TF_LABELS,
+            selected = momentumTf,
+            colors = colors,
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            onSelect = { momentumTf = it },
+        )
+        RsiCard(momentumSeries, colors, modifier = Modifier.padding(top = 10.dp))
+        MacdCard(momentumSeries, colors, modifier = Modifier.padding(top = 10.dp))
 
         CurrencyPercentBCard(base, signals.percentBCurrency[base], colors, modifier = Modifier.padding(top = 10.dp))
         CurrencyPercentBCard(quote, signals.percentBCurrency[quote], colors, modifier = Modifier.padding(top = 10.dp))
@@ -138,52 +151,36 @@ private val MOMENTUM_TF_LABELS = listOf("D1", "H4", "H1")
 private val MOMENTUM_TF_KEYS = listOf("d1", "h4", "h1")
 
 /**
- * 2026-09-17 (Pieter's ask) — RSI + MACD stacked, one shared D1/H4/H1 row (same
- * `ControlButtonRow` the CSM strip uses) switching both charts at once rather than each carrying
- * its own TF picker. `scanner/extend/momentum_series.py`'s own doc comment covers where the data
- * comes from (the same frozen `_rsi`/`_macd` score.py already runs, just kept as a short series).
- * First two of an eventual four (%B/BandWidth to join once they're computed at H4/H1 too, not
- * just today's D1-only 12-period alert bands) — kept as its own card rather than merged into the
- * pair's %B card above, since that one is still D1-only and shouldn't gain a TF row that does
- * nothing to it yet.
+ * 2026-09-17 (Pieter's ask) — RSI, one of an eventual four glance-panel indicators (%B/BandWidth
+ * to join once they're computed at H4/H1 too, not just today's D1-only 12-period alert bands).
+ * Driven by [ChartSheet]'s own shared D1/H4/H1 row above both this and [MacdCard], not a picker
+ * of its own. Restyled 2026-09-18 (Pieter's ask) into its own card, same style the %B card above
+ * uses, rather than stacked with MACD under one shared "Momentum" heading.
  */
 @Composable
-private fun MomentumCard(byTf: Map<String, MomentumSeries>, colors: AtomColors, modifier: Modifier = Modifier) {
-    var selectedTf by remember { mutableIntStateOf(1) } // H4 default, matching the CSM strip's own default
-    val series = byTf[MOMENTUM_TF_KEYS[selectedTf]]
-
+private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Momentum", style = AtomType.Body.copy(color = colors.textPrimary))
-            ControlButtonRow(
-                labels = MOMENTUM_TF_LABELS,
-                selected = selectedTf,
-                colors = colors,
-                modifier = Modifier.width(150.dp),
-                onSelect = { selectedTf = it },
-            )
-        }
-
         Text(
             text = "RSI (14)" + (series?.rsi?.lastOrNull()?.let { " ${it.toInt()}" } ?: ""),
-            style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.padding(top = 12.dp),
+            style = AtomType.Body.copy(color = colors.textPrimary),
         )
         if (series == null || series.rsi.isEmpty()) {
             NotAvailableRow("RSI", colors)
         } else {
-            RsiOscillator(series.rsi, colors, modifier = Modifier.padding(top = 4.dp))
+            RsiOscillator(series.rsi, colors, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
         }
+    }
+}
 
-        Text(
-            text = "MACD (12, 26, 9)",
-            style = AtomType.Caption.copy(color = colors.textSecondary),
-            modifier = Modifier.padding(top = 14.dp),
-        )
+/** MACD sibling to [RsiCard] — see that card's own doc comment. */
+@Composable
+private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp)) {
+        Text(text = "MACD (12, 26, 9)", style = AtomType.Body.copy(color = colors.textPrimary))
         if (series == null || series.macdHistogram.isEmpty()) {
             NotAvailableRow("MACD", colors)
         } else {
-            MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, modifier = Modifier.padding(top = 4.dp))
+            MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 LegendItem("MACD", colors.textPrimary, colors)
                 LegendItem("Signal", colors.watch, colors)

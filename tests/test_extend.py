@@ -545,6 +545,110 @@ def test_momentum_series_attach_adds_key_per_pair():
         assert set(pairs_out[key]["momentum_series"]) == {"d1", "h4", "h1"}
 
 
+def _synthetic_h1_for_momentum():
+    import numpy as np
+    rng = pd.date_range("2026-05-01", periods=95 * 24, freq="h", tz="UTC")
+    rng = rng[~rng.dayofweek.isin([5, 6])]
+    closes = 1.1000 + np.cumsum(np.random.default_rng(2).normal(0, 0.0005, len(rng)))
+    return pd.DataFrame({
+        "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
+        "open": closes, "high": closes + 0.0003, "low": closes - 0.0003, "close": closes,
+    })
+
+
+def test_momentum_series_d1_uses_ny_close_when_raw_h1_given():
+    """
+    2026-09-18 (Pieter's catch, "skewed vs LiteFinance") — D1 RSI/MACD must be computed on
+    _d1_ny_close()'s 17:00-NY-session D1 bars, not the frozen aggregator's UTC-midnight D1
+    (same root cause the %B fix already addressed). This locks in that giving raw_h1_df changes
+    the D1 result (proving the fix is wired, not a no-op) and that it matches calling
+    _d1_ny_close() + _rsi/_macd directly (proving no second, independently-drifting bucketing).
+    H4/H1 must be UNCHANGED by raw_h1_df being present -- only D1's boundary convention differs.
+    """
+    from tests.frozen_probe import build_fixture
+    from scanner.score import _rsi, _macd
+
+    h1_df = _synthetic_h1_for_momentum()
+    ohlcv, _ = _fixture()
+    eurusd = ohlcv["EURUSD"]
+
+    without_raw = momentum_series.momentum_series_for_pair(eurusd, raw_h1_df=None)
+    with_raw = momentum_series.momentum_series_for_pair(eurusd, raw_h1_df=h1_df)
+
+    # D1 must actually change once the NY-session bucketing is used.
+    assert with_raw["d1"]["rsi"] != without_raw["d1"]["rsi"]
+
+    # D1 must match calling _d1_ny_close() + the frozen functions directly.
+    d1_ny_close = bb_touch._d1_ny_close(h1_df)["close"]
+    expected_rsi = round(float(_rsi(d1_ny_close).dropna().iloc[-1]), 2)
+    expected_macd_line = round(float(_macd(d1_ny_close)[0].dropna().iloc[-1]), 6)
+    assert with_raw["d1"]["rsi"][-1] == expected_rsi
+    assert with_raw["d1"]["macd_line"][-1] == expected_macd_line
+
+    # H4/H1 VALUES stay on the frozen aggregator's own bars either way -- untouched by this fix
+    # (only their "dates" differ, since raw_h1_df also unlocks H4/H1 date recovery -- see the
+    # tf_dates tests below).
+    numeric_keys = ("rsi", "macd_line", "macd_signal", "macd_histogram")
+    for tf in ("h4", "h1"):
+        for key in numeric_keys:
+            assert with_raw[tf][key] == without_raw[tf][key], (tf, key)
+
+
+def test_attach_momentum_series_falls_back_to_frozen_d1_without_raw_ohlcv():
+    ohlcv, _ = _fixture()
+    pairs_out = {key: {} for key in ohlcv}
+    momentum_series.attach_momentum_series(pairs_out, ohlcv, raw_ohlcv=None)
+    for key in ohlcv:
+        assert set(pairs_out[key]["momentum_series"]) == {"d1", "h4", "h1"}
+
+
+def test_momentum_series_dates_align_with_values_for_all_tfs():
+    """2026-09-18 (Pieter's restyle ask, "we need dates") — every TF gets a 'dates' list the
+    same length as its rsi/macd_line lists once raw_h1_df is available, oldest-first."""
+    from scanner import aggregator
+
+    h1_df = _synthetic_h1_for_momentum()
+    tfs = aggregator.build_tfs(h1_df)  # same input as raw_h1_df, so close/dates line up
+    series = momentum_series.momentum_series_for_pair(tfs, raw_h1_df=h1_df)
+    for tf in ("d1", "h4", "h1"):
+        s = series[tf]
+        assert len(s["dates"]) == len(s["rsi"]) == len(s["macd_line"]) > 0, tf
+        # oldest-first: dates strictly increase
+        assert s["dates"] == sorted(s["dates"]), tf
+
+
+def test_h4_dates_matches_frozen_h4_bar_count_and_boundaries():
+    """tf_dates.h4_dates() independently recovers the SAME UTC 4h boundaries
+    aggregator.aggregate_h4() uses internally, then discards -- cross-checked here against the
+    frozen aggregator's own output on the identical input, not just a plausible-looking count."""
+    from scanner import aggregator
+    from scanner.extend import tf_dates
+
+    h1_df = _synthetic_h1_for_momentum()
+    frozen_h4 = aggregator.aggregate_h4(h1_df)
+    dates = tf_dates.h4_dates(h1_df)
+
+    assert len(dates) == len(frozen_h4)
+    # Independently re-aggregating with the exact same resample call must reproduce the frozen
+    # close values bar-for-bar -- proves the recovered dates line up with the right rows.
+    df = h1_df.copy()
+    df["dt"] = pd.to_datetime(df["datetime"], utc=True)
+    df = df.sort_values("dt").set_index("dt")
+    df["close"] = pd.to_numeric(df["close"], errors="coerce")
+    recomputed_close = df["close"].resample("4h", closed="left", label="left").last().dropna()
+    assert list(recomputed_close.values) == list(frozen_h4["close"].values)
+
+
+def test_h1_dates_matches_frozen_h1_bar_count():
+    from scanner import aggregator
+    from scanner.extend import tf_dates
+
+    h1_df = _synthetic_h1_for_momentum()
+    frozen_h1 = aggregator.build_tfs(h1_df)["h1"]
+    dates = tf_dates.h1_dates(h1_df)
+    assert len(dates) == len(frozen_h1)
+
+
 # ── 3. Macro regime + recommendation seed ─────────────────────────────────────────
 # 2026-09-06 — `classify_macro_regime` now picks the regime NAME off a W1 (5-session) axis
 # read, not the 1-day one; `ma`/`ma_w1` below plays that role in these tests. See

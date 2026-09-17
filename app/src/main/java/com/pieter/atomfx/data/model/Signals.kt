@@ -157,6 +157,10 @@ data class PairBlock(
 
 @Serializable
 data class MomentumSeries(
+    // 2026-09-18 (restyle ask) — one ISO date per rsi/macd_line point, oldest-first. Recovered
+    // independently of the frozen aggregator's own (date-less) H4/D1 bars -- see
+    // `scanner/extend/tf_dates.py` and `momentum_series.py`'s own doc comment.
+    val dates: List<String> = emptyList(),
     val rsi: List<Double> = emptyList(),
     @SerialName("macd_line") val macdLine: List<Double> = emptyList(),
     @SerialName("macd_signal") val macdSignal: List<Double> = emptyList(),
