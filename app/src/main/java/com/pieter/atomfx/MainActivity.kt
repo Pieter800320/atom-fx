@@ -34,6 +34,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -69,6 +70,7 @@ import com.pieter.atomfx.data.SignalsRepository
 import com.pieter.atomfx.data.ThemeMode
 import com.pieter.atomfx.data.UserPreferences
 import com.pieter.atomfx.data.WatchlistStore
+import com.pieter.atomfx.domain.isOverlapActiveAt
 import com.pieter.atomfx.push.extractDeepLinkUri
 import com.pieter.atomfx.push.parseDeepLink
 import com.pieter.atomfx.ui.insights.InsightsScreen
@@ -76,6 +78,7 @@ import com.pieter.atomfx.ui.macro.MacroScreen
 import com.pieter.atomfx.ui.reading.ReadingTarget
 import com.pieter.atomfx.ui.reading.ReadingWindow
 import com.pieter.atomfx.ui.settings.SettingsScreen
+import com.pieter.atomfx.ui.sessions.SessionsSheet
 import com.pieter.atomfx.ui.sheets.BottomSheetHost
 import com.pieter.atomfx.ui.sheets.CalendarSheet
 import com.pieter.atomfx.ui.sheets.SheetTarget
@@ -89,8 +92,10 @@ import com.pieter.atomfx.ui.wheel.Freshness
 import com.pieter.atomfx.ui.wheel.WheelScreen
 import com.pieter.atomfx.ui.wheel.WheelScreenState
 import com.pieter.atomfx.ui.wheel.WheelViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
+import java.time.Instant
 import java.time.OffsetDateTime
 
 const val SIGNALS_TOPIC = "atomfx-signals"
@@ -240,6 +245,22 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
         // §12 always specified this as "the right edge panel"; it shipped as a bottom sheet like
         // everything else, this puts it back in line with that).
         var calendarOpen by remember { mutableStateOf(false) }
+        // 2026-09-17 (Pieter's ask) — the four FX trading sessions, same sibling side-panel recipe
+        // as Calendar/Watchlist above. Deliberately reads no `signals`/`loaded` at all — session
+        // hours are a fixed calendar convention, not a trading number, so this is a pure clock
+        // feature (see TradingSessions.kt's own doc comment on why Rule #1 doesn't apply here).
+        var sessionsOpen by remember { mutableStateOf(false) }
+        // Minute-granularity is plenty for a header glance indicator (the sheet itself ticks every
+        // second while actually open, in SessionsSheet.kt) — this just needs to flip the header dot
+        // on/off as an overlap window starts or ends.
+        var sessionClockNow by remember { mutableStateOf(Instant.now()) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                sessionClockNow = Instant.now()
+                delay(60_000)
+            }
+        }
+        val hasSessionOverlap = remember(sessionClockNow) { isOverlapActiveAt(sessionClockNow) }
         var activeAppSheet by remember { mutableStateOf<SheetTarget?>(null) }
         // The Reading Window (2026-09-04, Pieter's own framing) — "sheets inspect data, a window
         // is for study and reading." Deliberately its own top-level state, not folded into
@@ -265,9 +286,11 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     hasUnreadNotifications = hasUnreadNotifications,
                     hasImminentCalendarEvent = hasImminentCalendarEvent,
                     hasWatchlistItems = hasWatchlistItems,
+                    hasSessionOverlap = hasSessionOverlap,
                     onCalendarClick = { calendarOpen = true },
                     onWatchlistClick = { watchlistOpen = true },
                     onSettingsClick = { settingsOpen = true },
+                    onSessionsClick = { sessionsOpen = true },
                 )
                 HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                     // Design §17: only the Wheel tab is the no-scroll landing screen — Macro/
@@ -309,6 +332,16 @@ private fun AtomFxApp(deepLink: SheetTarget?) {
                     signals = loaded.signals,
                     colors = colors,
                     onClose = { calendarOpen = false },
+                )
+            }
+
+            // No `loaded != null` gate, unlike every sheet above — a pure clock feature needs no
+            // signals.json fetch to have completed first.
+            if (sessionsOpen) {
+                BackHandler { sessionsOpen = false }
+                SessionsSheet(
+                    colors = colors,
+                    onClose = { sessionsOpen = false },
                 )
             }
 
@@ -377,9 +410,11 @@ private fun AtomGearBar(
     hasUnreadNotifications: Boolean,
     hasImminentCalendarEvent: Boolean,
     hasWatchlistItems: Boolean,
+    hasSessionOverlap: Boolean,
     onCalendarClick: () -> Unit,
     onWatchlistClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onSessionsClick: () -> Unit,
 ) {
     val haptics = LocalHapticFeedback.current
     fun tap(action: () -> Unit) {
@@ -409,6 +444,14 @@ private fun AtomGearBar(
             )
             HeaderGlyphWithDot(showDot = hasImminentCalendarEvent, colors = colors, modifier = Modifier.padding(start = 16.dp)) {
                 CalendarGlyph(colors = colors, modifier = Modifier.pressWash { tap(onCalendarClick) })
+            }
+            // 2026-09-17 (Pieter's ask) — grouped next to Calendar, the header's other "when does
+            // something happen" glyph. Dot lights up on a session OVERLAP (London-NY, Tokyo-London)
+            // specifically, not just "any session open" — overlaps are the highest-volume windows,
+            // the moment actually worth a glance, and at least one session is open most of the day
+            // regardless, so "any session open" would light almost constantly and mean nothing.
+            HeaderGlyphWithDot(showDot = hasSessionOverlap, colors = colors, modifier = Modifier.padding(start = 14.dp)) {
+                SessionsGlyph(colors = colors, modifier = Modifier.pressWash { tap(onSessionsClick) })
             }
             // Signals Roadmap §5 (2026-09-09, Pieter's own call) — its own header icon, a sibling
             // to Settings' gear, not nested inside Settings.
@@ -508,6 +551,37 @@ private fun CalendarGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
                 cap = StrokeCap.Round,
             )
         }
+    }
+}
+
+// 2026-09-17 (Pieter's ask) — a clock face, same hand-drawn Canvas recipe as GearGlyph/
+// CalendarGlyph (one fixed box, same stroke width, same centring). Hands fixed at a
+// recognisable "clock" angle (10:10, the same convention watch-face photography uses because it
+// reads clearly and looks balanced) — not the actual current time; this glyph means "sessions",
+// the live detail lives behind it in SessionsSheet.kt, exactly like the calendar glyph next to it
+// doesn't animate today's date either.
+@Composable
+private fun SessionsGlyph(colors: AtomColors, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(HEADER_ICON_SIZE)) {
+        val stroke = size.minDimension * 0.11f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val radius = size.minDimension * 0.42f
+        drawCircle(color = colors.textSecondary, radius = radius, center = center, style = Stroke(width = stroke))
+        // Hour hand (short, ~10 o'clock) and minute hand (long, ~2 o'clock) — together read "10:10".
+        drawLine(
+            color = colors.textSecondary,
+            start = center,
+            end = Offset(center.x - radius * 0.38f, center.y - radius * 0.38f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = colors.textSecondary,
+            start = center,
+            end = Offset(center.x + radius * 0.5f, center.y - radius * 0.62f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
     }
 }
 

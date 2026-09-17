@@ -365,7 +365,12 @@ more. RECOMMENDATION content moved into the status-strip glyph row (§10) — th
 recommendation panel. CALENDAR is now `CalendarSheet.kt`, a regular bottom sheet opened from a
 header calendar icon (with an unread-event dot, same treatment as the gear/watchlist icons — see
 `ATOM_FX_BUILD_STATUS.md` §B "Header green dots"). Settings and Watchlist are reached the same
-icon-triggered way, as slide-in panels, not edge-swipe gestures. Kept below as a historical record.
+icon-triggered way, as slide-in panels, not edge-swipe gestures. **A fifth header icon, SESSIONS
+(added 2026-09-17, `SessionsSheet.kt`), joins this same group** — a clock glyph next to Calendar,
+opening the four FX trading sessions' current status/countdown as the same kind of slide-in panel;
+its dot lights on a session OVERLAP specifically (London-NY, Tokyo-London), not merely "any session
+open," since some session is open most of the day regardless and a dot lit almost constantly would
+mean nothing. Kept below as a historical record.
 
 - **Left — RECOMMENDATION** (the AI nucleus, §ai): headline, action chip (`TRADE`/`WATCH`/`STAND ASIDE`), primary pair + direction, confidence, rationale (40–60 words), invalidation line, and next catalyst. Sourced from `recommendation` (architecture §6); falls back to `deep_analysis` if absent.
 - **Right — CALENDAR / EVENTS**: high-impact events (currency chip, name, time, forecast vs previous, one-line note). Pairs whose currency has an event in the next 24h are flagged here and get a subtle rim on their node (spec §44/§60 calendar behaviour).
@@ -570,7 +575,7 @@ content, and the landing screen should still never *need* to scroll in practice*
 ever makes it visibly scroll on a real device, treat that as a regression to fix, not a new
 normal.
 
-- **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. Settings/Watchlist/Calendar are now icon-triggered slide-in panels (§12's own notice), not edge-summoned. Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
+- **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. Settings/Watchlist/Calendar/Sessions are now icon-triggered slide-in panels (§12's own notice), not edge-summoned. Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
 - **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, no longer count-capped since the 2026-09-17 score-floor change — see `ATOM_FX_BUILD_STATUS.md` §A — tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Setup wing (labelled "SETUP" on the wheel since 2026-09-09, internally still `WheelMode.OVERALL`; all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
 - **Tablet / landscape:** wheel ~60–65% width; a compact market summary on one side; factor summary on the other; sheets still available.
 
@@ -597,10 +602,12 @@ WheelCanvas         pair wheel, pairs-only (12 pairs, 4 corner buttons select th
                      Trend/Momentum/Volatility, labelled "SETUP" since 2026-09-09, was "OVERALL"),
                      nucleus/hub. No on-dial Currencies mode, currency wedges, or Currency Flow
                      ticker any more — all retired 2026-09-04, see `ATOM_FX_WHEEL_V2_SPEC.md` §12
-StatusStrip         ranked-pairs recommendation glyph row (signals.ranked.top, ≤3), tap-to-reflow panel
-HeaderBar           wordmark, freshness, updated, gear (regime name lives on the wheel's hub;
-                     its strength-word/flow-line lines were deliberately removed as clutter —
-                     see §20 item 2/3-4)
+StatusStrip         ranked-pairs recommendation glyph row (signals.ranked.top, no count cap since
+                     the 2026-09-17 score-floor change — was ≤3, corrected here same day), tap-to-
+                     reflow panel
+HeaderBar           wordmark, freshness, updated, calendar/sessions/watchlist/gear icons (regime
+                     name lives on the wheel's hub; its strength-word/flow-line lines were
+                     deliberately removed as clutter — see §20 item 2/3-4)
 CsmBarStrip         always-on Currency Strength Meter below the wheel, Strength/Flow toggle
 TimeframeButtons    D1/H4/H1 row below the CSM strip (drives the CSM strip only, not the wheel wings)
 MacroScreen         archetype banner + bias baskets + evidence axes + cross-asset dashboard
@@ -619,6 +626,11 @@ PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by PercentB
                      CurrencyPercentBCard (both per-pair, ChartSheet)
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
+SessionsSheet       Sydney/Tokyo/London/New York — 24h rolling timeline + per-session open/closed,
+                     exact device-local times, live countdown (2026-09-17). Pure clock feature, no
+                     signals.json involvement — each session's hours are computed in its own city's
+                     real IANA timezone (not a fixed UTC offset), so DST is handled by the platform's
+                     own timezone database, never hand-rolled
 FreshnessBadge      fresh / stale / unavailable
 Skeletons           wheel + sheet skeletons
 ```

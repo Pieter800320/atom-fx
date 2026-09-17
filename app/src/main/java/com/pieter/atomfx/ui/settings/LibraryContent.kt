@@ -30,6 +30,7 @@ data class LibraryEntry(
 val LIBRARY_CATEGORIES = listOf(
     "The Wheel", "Momentum & Price Action", "Currency Strength",
     "Setup Quality", "Regime & Macro", "Cross-Asset & Correlation", "Alerts & Recommendation",
+    "Market Hours",
 )
 
 // Signals Roadmap §5 — the reversal checklist is written out in full because it's deliberately
@@ -366,5 +367,13 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         summary = "A D1 candle wicks a 12-period, 2-sigma Bollinger Band — the touch alone is the whole alert, on purpose.",
         howItWorks = "Every hourly scan, each pair's current (possibly still-forming) D1 candle is checked against a 12-period SMA ±2 standard deviations — this D1 candle closes 17:00 New York, matching most retail charting platforms, not UTC midnight like the app's other D1 signals. A wick touch counts even if the candle closes back inside — the alert fires once, the moment a pair transitions from not-touching to touching either band, and won't fire again for the same ongoing touch. Band-width trend (expanding/converging/flat, vs. ~5 D1 bars ago) rides along in the notification for context.\n\n$BB_REVERSAL_HOW_TO_READ",
         whyItMatters = "$BB_REVERSAL_WHY_IT_MATTERS",
+    ),
+    LibraryEntry(
+        id = "trading-sessions",
+        term = "Trading Sessions",
+        category = "Market Hours",
+        summary = "When the four major FX centres — Sydney, Tokyo, London, New York — are open, in your own device's local time.",
+        howItWorks = "Each session is a fixed local-hours convention (Sydney 07:00-16:00, Tokyo 09:00-18:00, London 08:00-17:00, New York 08:00-17:00, each in that city's own time) computed off the real timezone of that city, not a fixed UTC offset — so London/New York's daylight saving and Tokyo's total lack of it are both handled correctly, year-round, without drifting. This is a pure clock feature: no signals.json field backs it, nothing here is a trading calculation.",
+        whyItMatters = "London-New York and Tokyo-London overlaps are this app's own header-dot trigger — the two windows each day when two sessions are open at once, historically the highest-volume, highest-volatility stretches. A single session being open doesn't light the dot (some session is open most of the day regardless, so that alone wouldn't mean much) — only an overlap does. Tap the header clock for the full breakdown: a 24h rolling timeline, exact open/close times, and a live countdown per session.",
     ),
 )
