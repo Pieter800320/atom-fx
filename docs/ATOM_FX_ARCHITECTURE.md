@@ -294,13 +294,27 @@ schema_version     integer — bump on any contract change; app checks it (§8.4
 ```
 
 Per-pair `momentum_series` is likewise added **inside the existing `pairs.<PAIR>` block**
-(2026-09-17, schema v8): `{"d1"|"h4"|"h1": {rsi:[float,…], macd_line:[float,…],
-macd_signal:[float,…], macd_histogram:[float,…]}}`. `scanner/extend/momentum_series.py` calls
-`score.py`'s own frozen `_rsi`/`_macd` per pair/timeframe and keeps a 50-point tail (oldest-first)
-instead of only the latest value `score.py` itself uses for scoring — genuinely new exposure, not
-a recompute, and no new OHLCV fetch (the same bars `score.py` already pulls for that pair/
-timeframe). First half of a planned 4-indicator glance panel (Design §19.4b) — %B standardised to
-20 periods and a numeric BandWidth series are the other two, deferred pending new backend work.
+(2026-09-17, schema v8; dates + D1 fix 2026-09-18, schema v9): `{"d1"|"h4"|"h1": {dates:[str,…],
+rsi:[float,…], macd_line:[float,…], macd_signal:[float,…], macd_histogram:[float,…]}}`.
+`scanner/extend/momentum_series.py` calls `score.py`'s own frozen `_rsi`/`_macd` per pair/
+timeframe and keeps a 90-point tail (oldest-first, up from 50) instead of only the latest value
+`score.py` itself uses for scoring — genuinely new exposure, not a recompute, and no new OHLCV
+fetch (the same bars `score.py` already pulls for that pair/timeframe). First half of a planned
+4-indicator glance panel (Design §19.4b) — %B standardised to 20 periods and a numeric BandWidth
+series are the other two, deferred pending new backend work.
+
+**2026-09-18 fix** (Pieter's catch, "skewed vs LiteFinance"): D1 specifically now runs on
+`_d1_ny_close()`'s 17:00-NY-session D1 bars (same call §4.2's `percent_b_currency`/`pctb_dates`
+entries already use), not the frozen aggregator's UTC-midnight D1 — the exact bug the %B fix
+already addressed once, now hit again since D1 momentum is a chart people compare directly
+against a retail platform's own D1 close. H4/H1 are unaffected (the frozen aggregator's own H4
+boundary already matches the data vendor's own bars exactly; any remaining H4/H1 gap against one
+specific broker is a different-data-vendor basis difference, not a bucketing bug). `dates` — one
+ISO date per rsi/macd_line point, oldest-first — comes from that same `_d1_ny_close()` call for
+D1, and from a new `scanner/extend/tf_dates.py` for H4/H1, which independently recovers just the
+timestamps the frozen aggregator discards (mirrors `aggregator.aggregate_h4()`'s own UTC-4h
+resample boundaries for H4, and `aggregator._prepare()`'s own parse/sort for H1) — the same
+"recover a date the frozen aggregator throws away" pattern `pctb_dates` already established.
 
 Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a new sub-key, so it travels with the pair (§5.3):
 ```json
