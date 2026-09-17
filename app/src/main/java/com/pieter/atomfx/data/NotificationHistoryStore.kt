@@ -108,18 +108,34 @@ class NotificationHistoryStore(context: Context) {
             structureKind = structureKind,
             timestamp = System.currentTimeMillis(),
         )
-        val next = (listOf(entry) + _state.value)
-            .filter { it.timestamp >= cutoff }
-            .take(MAX_RECORDS)
-        writeState(next)
+        // 2026-09-17 bugfix — synchronized on the class-wide WRITE_LOCK (not just this
+        // instance) and re-reading from disk (readState(), not `_state.value`) rather than
+        // trusting this instance's own in-memory snapshot. AtomFxMessagingService constructs a
+        // fresh NotificationHistoryStore per FCM message (its own doc comment above), and one
+        // scan can emit several alerts within milliseconds of each other (state_alerts_list).
+        // Without this, two near-simultaneous record() calls could both snapshot the same
+        // pre-write state and the second's write would silently clobber the first's — the
+        // popup notification still shows, but the entry vanishes from history.
+        synchronized(WRITE_LOCK) {
+            val next = (listOf(entry) + readState())
+                .filter { it.timestamp >= cutoff }
+                .take(MAX_RECORDS)
+            writeState(next)
+        }
     }
 
     fun markAllRead() {
-        if (_state.value.none { !it.read }) return
-        writeState(_state.value.map { it.copy(read = true) })
+        synchronized(WRITE_LOCK) {
+            val current = readState()
+            if (current.none { !it.read }) return
+            writeState(current.map { it.copy(read = true) })
+        }
     }
 
     private companion object {
         const val KEY_RECORDS = "records"
+        // Shared across every NotificationHistoryStore instance (a plain object, not
+        // per-instance) — see record()'s own comment for why a per-instance lock wouldn't help.
+        val WRITE_LOCK = Any()
     }
 }
