@@ -1,0 +1,71 @@
+======================================================================
+STEP 0 -- Schema
+======================================================================
+Source file: data/backtest/trades.csv
+Columns: ['pair', 'direction', 'entry', 'stop', 'target', 'planned_rr', 'realized_R', 'bars_held', 'exit_reason']
+Row count: 95
+First 3 rows:
+   pair direction   entry     stop  target  planned_rr  realized_R  bars_held exit_reason
+EUR/USD      long 1.13142 1.130140 1.13815    5.259151   -1.000000          6        stop
+EUR/USD      long 1.13156 1.128772 1.13815    2.363487    2.363487         16      target
+EUR/USD      long 1.17576 1.174807 1.17965    4.081112   -1.000000         21        stop
+
+Column mapping:
+  pair           -> "pair"
+  entry datetime -> ABSENT (no timestamp column in this file at all)
+  realized R     -> "realized_R" (used as written by the backtest, not recomputed)
+
+======================================================================
+SECTION A -- JPY vs non-JPY split
+======================================================================
+  JPY          n=  31  win%= 32.26  totR=    43.8  avgR=  1.41  PF=  3.08  maxCL=  8
+  non-JPY      n=  64  win%= 15.62  totR=   -22.4  avgR= -0.35  PF=  0.58  maxCL= 19
+  TOTAL        n=  95  win%= 21.05  totR=    21.3  avgR=  0.22  PF=  1.28  maxCL= 19
+
+  Per-pair breakdown:
+  AUD/JPY      n=   5  win%=  40.0  totR=    16.9  avgR=  3.37  PF=  6.62  maxCL=  2
+  AUD/USD      n=  10  win%=  10.0  totR=    -7.0  avgR=  -0.7  PF=  0.23  maxCL=  5
+  EUR/JPY      n=  10  win%=  40.0  totR=    15.1  avgR=  1.51  PF=  3.51  maxCL=  4
+  EUR/USD      n=  10  win%=  10.0  totR=    -6.6  avgR= -0.66  PF=  0.26  maxCL=  8
+  GBP/JPY      n=   8  win%=  25.0  totR=     0.1  avgR=  0.01  PF=  1.01  maxCL=  6
+  GBP/USD      n=  14  win%= 28.57  totR=     6.3  avgR=  0.45  PF=  1.63  maxCL=  5
+  NZD/JPY      n=   7  win%= 28.57  totR=    12.7  avgR=  1.82  PF=  3.55  maxCL=  2
+  NZD/USD      n=  11  win%=  9.09  totR=    -7.9  avgR= -0.72  PF=  0.21  maxCL=  9
+  USD/CAD      n=  12  win%=  8.33  totR=    -6.8  avgR= -0.56  PF=  0.38  maxCL= 10
+  USD/CHF      n=   7  win%= 28.57  totR=    -0.4  avgR= -0.06  PF=  0.92  maxCL=  3
+  USD/JPY      n=   1  win%=   0.0  totR=    -1.0  avgR=  -1.0  PF=  0.00  maxCL=  1
+
+======================================================================
+SECTION B -- Time / out-of-sample
+======================================================================
+  BLOCKED: data/backtest/trades.csv has no entry-datetime column.
+  Columns present: ['pair', 'direction', 'entry', 'stop', 'target', 'planned_rr', 'realized_R', 'bars_held', 'exit_reason']
+  Cannot identify per-year splits, a calendar-midpoint split, or a
+  chronological JPY/non-JPY breakdown within each half without a real
+  timestamp per trade. Not guessed at (e.g. via row order alone, which is
+  chronological WITHIN a pair but not a true global cross-pair sequence).
+  This constraint says do not re-run the backtest -- so this section is
+  left blocked rather than worked around. Fix would be adding an
+  entry-datetime (or entry_idx timestamp) column to the backtest's own
+  _TRADE_COLS/trade dict in tools/backtest_trend_pullback.py and re-running.
+
+======================================================================
+SECTION C -- Fat-tail / outlier robustness
+======================================================================
+  Full sample:        n=  95  totR=    21.3  avgR=  0.22
+  Excl. top 1 winner(s):  n=  94  totR=     4.3  avgR=  0.05  (baseline: n=95, totR=21.3, avgR=0.22)
+  Excl. top 3 winner(s):  n=  92  totR=   -19.1  avgR= -0.21  (baseline: n=95, totR=21.3, avgR=0.22)
+  Excl. top 5 winner(s):  n=  90  totR=   -31.3  avgR= -0.35  (baseline: n=95, totR=21.3, avgR=0.22)
+
+  Top-3 winners' share of total positive R: 41.9%  (top3_sum=40.39, total_positive_R=96.32)
+
+  R distribution:
+    min=-1.00  p25=-1.00  median=-1.00  p75=-1.00  max=17.07
+    R <= -0.9 (~full stop)     75
+    -0.9 < R <= 0               0
+    0 < R <= 3                 10
+    3 < R <= 10                 7
+    R > 10                      3
+
+  Single largest winner: R=17.07  pair=AUD/JPY  entry_date=N/A (no entry-datetime column in trades.csv)
+
