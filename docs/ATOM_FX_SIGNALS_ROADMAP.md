@@ -50,6 +50,13 @@ updated as each phase actually ships.
 > Regime covers the H4 flip + Archetype change — both merged per Pieter's call), and the strip as
 > `TfAlignmentStrip.kt` in the Pair sheet. Tests in `tests/test_extend.py`. Docs updated:
 > `ATOM_FX_ARCHITECTURE.md` §7, `ATOM_FX_DESIGN.md` §14.7, `LibraryContent.kt`.
+>
+> **§2.1's own alert (`potential_state`/"Setup alerts") retired outright 2026-09-17** — see
+> `ATOM_FX_BUILD_STATUS.md` §B: it fired on a pair's own `cont >= 45` alone, the loosest
+> single-factor bar in the app (a live check found 9/12 pairs cleared it in one scan), a
+> systematically noisier duplicate of Recommendation alerts' full weighted-composite gate.
+> Detector, test, and the whole Kotlin toggle chain removed. §2.1 below is historical record of
+> the original design, not current behavior.
 
 Every item in this phase reads data already computed every hour. No new fetch, no new
 indicator, no frozen file touched. The work is entirely: detect the transition, format the
@@ -395,10 +402,12 @@ slower-cadence `macro_assets`.
 
 ## 7. Cross-cutting engineering notes
 
-- `UserPreferences.kt`'s `NotificationPrefs` data class grows one boolean per new toggle
-  (Setup, Structure, Regime, Volatility, Alignment, Positioning, Reversal, Recommendation) —
-  plan the Settings NOTIFICATIONS group's layout for seven-plus rows before Phase 1 ships its
-  first four or five, rather than bolting rows on ad hoc each phase.
+- `UserPreferences.kt`'s `NotificationPrefs` data class grows one boolean per new toggle.
+  **Corrected 2026-09-17** — this list was stale on every count: current toggles are Gold
+  Signal, Level Alerts, Structure, Regime, Volatility, Alignment, Positioning, BB Touch,
+  Recommendation (9 total, plus the master on/off switch). "Setup" was retired outright
+  2026-09-17; "Reversal" never existed under that name (it's "BB Touch"); Gold Signal and
+  Level Alerts predate this note and were always missing from it.
 - Every new detector needs `prev` (the previous scan's full `signals.json`) available at the
   comparison point in `scan_h1.py` — confirm it's already in scope there (it is, for the
   preserved-keys block) before assuming a new load is needed.
