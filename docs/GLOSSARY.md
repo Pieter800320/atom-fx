@@ -135,3 +135,8 @@ Terms kept here for anyone chasing old references:
 - ~~Tradeable Now / Watch~~ — retired 2026-09-04. That job is now the status-strip glyph row
   (one small glyph per pair in `signals.ranked.top`) plus the wheel's own Setup wing — there is
   no standalone pill band any more.
+- **Sessions** (added 2026-09-17) — the header clock icon (`SessionsSheet.kt`), a side panel
+  showing the four FX trading sessions (Sydney/Tokyo/London/New York): a 24h rolling timeline,
+  each session's exact open/close in the device's own local time, and a live countdown. Its dot
+  lights on a session **overlap** (London-NY or Tokyo-London) specifically, not just "any session
+  open." Pure clock feature — no `signals.json` field backs it.
