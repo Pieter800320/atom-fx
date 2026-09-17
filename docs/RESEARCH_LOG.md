@@ -42,6 +42,36 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
 
 ## Parked ideas
+**Priority order (Pieter's call, 2026-09-17): CSM H1 flow extremes is Priority 1** — listed
+first below regardless of when it was added. Everything else here is unordered.
+- **[Priority 1] CSM H1 flow extremes, aligned with the recommendation/trend (Pieter's idea,
+  2026-09-17).** Observation: when one currency's H1 flow (`csm_delta.h1`) is near its extreme
+  high and the other leg's is near its extreme low, in the same direction the
+  recommendation/trend/momentum already point, that fast H1 read might catch a pullback
+  resuming into continuation before slower timeframes show it. **Two concrete risks to test
+  for, not assume away, before trusting this:**
+  (1) CSM is min-max normalised to 0-100 *every single scan* (`csm.py::_normalise`'s own doc
+  comment: "min-max rescaling always stretches whatever gap exists to fill exactly 0-100 every
+  scan") — some currency is ALWAYS near 100 and some ALWAYS near 0, even in a flat,
+  undifferentiated market. "Maximal/minimal" as stated doesn't distinguish a real divergence
+  from routine noise in a thin basket. The project already solved this exact problem for the
+  strength reading (`scanner/extend/csm_dispersion.py`, gates on `raw_spread`
+  percentile-ranked against its own rolling history, not a fixed threshold, since a raw
+  threshold "looks the same whether there's real cross-currency signal or none") — the same
+  dispersion-aware gating would need to apply to the delta/flow measure too, or the signal
+  fires constantly and mostly means nothing.
+  (2) A sharp flow spike on a fast timeframe (H1) is at least as consistent with short-term
+  exhaustion about to mean-revert as it is with genuine continuation starting — "fast" cuts
+  both ways, catches real shifts early AND catches noise early. This needs an actual empirical
+  test, not intuition, and is the same ambiguity (momentum vs. mean-reversion at an extreme)
+  that's historically hard to resolve without rigorous out-of-sample testing.
+  Also worth checking before building: how much `csm_delta` already overlaps with what
+  `rank_pairs()` itself scores (its `mom_dlt`/`csm` components) — if there's heavy overlap,
+  this gate may be a stricter/later read of the same signal the recommendation already uses,
+  not independent confirming evidence. Same cross-pair replay infrastructure cost as the
+  recommendation-glyph idea below (CSM needs all 12 pairs at once). Entry timing (at the flow
+  extreme itself, or once it starts reverting toward normal), and SL/TP, not yet specified.
+  Not pre-registered.
 - Trend-pullback exit-hypothesis retest: the target=leg_high exit produced lottery-ticket RRs
   (planned RR up to ~200:1). A different exit (fixed R multiple / trailing / partial profits)
   is a genuinely different hypothesis — test it with train/test separation, pre-registered,
@@ -75,31 +105,4 @@ file first to get current — then we plan the next experiment and hand Claude C
   needs precise SL/TP rules pinned down (which H4 candle, open vs. close, what distance) before
   it's testable, and any RR sweep must be pre-registered as a fixed set of values decided before
   running, not searched for after seeing results (this file's own "no tuning to a sample" rule).
-  Not pre-registered.
-- **CSM H1 flow extremes, aligned with the recommendation/trend (Pieter's idea, 2026-09-17).**
-  Observation: when one currency's H1 flow (`csm_delta.h1`) is near its extreme high and the
-  other leg's is near its extreme low, in the same direction the recommendation/trend/momentum
-  already point, that fast H1 read might catch a pullback resuming into continuation before
-  slower timeframes show it. **Two concrete risks to test for, not assume away, before trusting
-  this:**
-  (1) CSM is min-max normalised to 0-100 *every single scan* (`csm.py::_normalise`'s own doc
-  comment: "min-max rescaling always stretches whatever gap exists to fill exactly 0-100 every
-  scan") — some currency is ALWAYS near 100 and some ALWAYS near 0, even in a flat, undifferentiated
-  market. "Maximal/minimal" as stated doesn't distinguish a real divergence from routine noise in
-  a thin basket. The project already solved this exact problem for the strength reading
-  (`scanner/extend/csm_dispersion.py`, gates on `raw_spread` percentile-ranked against its own
-  rolling history, not a fixed threshold, since a raw threshold "looks the same whether there's
-  real cross-currency signal or none") — the same dispersion-aware gating would need to apply to
-  the delta/flow measure too, or the signal fires constantly and mostly means nothing.
-  (2) A sharp flow spike on a fast timeframe (H1) is at least as consistent with short-term
-  exhaustion about to mean-revert as it is with genuine continuation starting — "fast" cuts both
-  ways, catches real shifts early AND catches noise early. This needs an actual empirical test,
-  not intuition, and is the same ambiguity (momentum vs. mean-reversion at an extreme) that's
-  historically hard to resolve without rigorous out-of-sample testing.
-  Also worth checking before building: how much `csm_delta` already overlaps with what
-  `rank_pairs()` itself scores (its `mom_dlt`/`csm` components) — if there's heavy overlap, this
-  gate may be a stricter/later read of the same signal the recommendation already uses, not
-  independent confirming evidence. Same cross-pair replay infrastructure cost as the
-  recommendation-glyph idea above (CSM needs all 12 pairs at once). Entry timing (at the flow
-  extreme itself, or once it starts reverting toward normal), and SL/TP, not yet specified.
   Not pre-registered.
