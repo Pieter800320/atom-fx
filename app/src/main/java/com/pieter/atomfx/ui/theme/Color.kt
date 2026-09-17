@@ -63,6 +63,13 @@ data class AtomColors(
     // so mirroring this mechanically would make the active pill recede instead of stand out; it
     // just reuses `controlSurface`, i.e. no visible change from today.
     val controlSurfaceActive: Color,
+    // 2026-09-17 (full-system audit) — a named token for the modal dim/scrim behind a slide-in
+    // panel (Settings/Watchlist/Calendar), replacing three independent `Color.Black.copy(alpha =
+    // ...)` literals that had drifted into three separate files. Deliberately the same in both
+    // themes — a scrim dimming whatever's behind it is a "black at some alpha" convention
+    // regardless of light/dark, not a themed surface. Callers still apply their own alpha
+    // (`colors.scrim.copy(alpha = 0.6f * entrance.value)`) — this token only removes the literal.
+    val scrim: Color,
 )
 
 val DarkColors = AtomColors(
@@ -108,6 +115,7 @@ val DarkColors = AtomColors(
     wheelSane = Color(0xFF3B9EFF),
     // Dark theme: no visible change requested — same fill an active pill already had.
     controlSurfaceActive = Color(0xFF212C38),
+    scrim = Color.Black,
 )
 
 val LightColors = AtomColors(
@@ -153,6 +161,7 @@ val LightColors = AtomColors(
     // is whitest at its edge, which IS `surface` in light theme (pure white); an active TF pill
     // matches that exactly.
     controlSurfaceActive = Color(0xFFFFFFFF),
+    scrim = Color.Black,
 )
 
 // ── Wheel v2 helpers — derived from tokens, so light + dark both work (no literal hex) ─────────
@@ -161,3 +170,9 @@ val LightColors = AtomColors(
  *  (a saturated colour reads brighter against a near-black fill); never use in light theme, where
  *  the raw token is already tuned to sit on a light surface. */
 fun lighten(color: Color, amount: Float): Color = lerp(color, Color.White, amount.coerceIn(0f, 1f))
+
+/** Darkens [color] toward black by [amount] (0..1) — [lighten]'s counterpart, for the opposite
+ *  need (e.g. a light-theme-only border that must read darker than its own fill). Added
+ *  2026-09-17 so a caller needing this direction derives it from a token instead of reaching for
+ *  a literal `Color.Black`. */
+fun darken(color: Color, amount: Float): Color = lerp(color, Color.Black, amount.coerceIn(0f, 1f))

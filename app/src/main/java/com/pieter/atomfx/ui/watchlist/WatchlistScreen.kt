@@ -87,7 +87,7 @@ fun WatchlistScreen(signals: Signals, colors: AtomColors, onPairClick: (String) 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.6f * entrance.value))
+                .background(colors.scrim.copy(alpha = 0.6f * entrance.value))
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },

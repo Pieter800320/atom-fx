@@ -26,7 +26,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
@@ -39,6 +38,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.darken
 import kotlin.math.min
 import kotlinx.coroutines.launch
 
@@ -436,7 +436,7 @@ private fun DrawScope.taperedCornerPath(
 // [drawCornerButtons] already established (controlBorder reads too faint in light theme against a
 // flat colour fill).
 private fun wedgeBorderColor(isDark: Boolean, colors: AtomColors): Color =
-    if (isDark) colors.controlBorder else lerp(colors.controlBorder, Color.Black, 0.15f)
+    if (isDark) colors.controlBorder else darken(colors.controlBorder, 0.15f)
 
 private data class CornerButtonSpec(val label: String, val centerDeg: Float, val selected: Boolean, val flashKey: String)
 
