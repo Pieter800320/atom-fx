@@ -65,3 +65,18 @@ needs its own verification, not just a citation.
   whole-document staleness banner rather than a full rewrite — §1's table, §2's nav map, and §5
   are still not individually corrected; treat `ATOM_FX_BUILD_STATUS.md` §B and
   `ATOM_FX_DESIGN.md` §19 as current truth over that document's specifics until they are.
+- 2026-09-17 (same day, continued) — the doc-drift audit above was one slice of a full
+  four-area system audit (backend/scanner, Android data layer, Android UI, docs); the rest of
+  its findings landed as code fixes across the session, each with its own same-commit doc
+  update rather than deferred: `ATOM_FX_ARCHITECTURE.md` (stale `potential_state`/"Setup" push
+  type, missing `bb_touch`), `ATOM_FX_SIGNALS_ROADMAP.md` §7 (stale toggle list) and its own §2
+  banner (§2.1's retired alert), and `ATOM_FX_BUILD_STATUS.md` picked up several more corrections
+  in the same pass: its own "Audited 2026-09-10" banner understating a dozen+ edits since, outstanding
+  item 11 (`BreadthSheet.kt` cleanup — already done, never checked off), item 12
+  (`versionCode`/`versionName` — already bumped to 2/"0.2", the row was stale), a new item 13
+  logging the EXTEND-layer failure observability gap as an accepted limitation, and a new
+  Structure-multiplier row (Pair sheet Breakdown tab) with a matching `LibraryContent.kt`
+  update pointing at where that number now actually lives. Full list of code-side fixes (git
+  rebase conflict-resolution flag, recommendation bias-flip trigger, notification-history race,
+  signals-cache poisoning, literal-color tokens) is in `main`'s own commit history from this date
+  — not duplicated here since none of them changed a spec doc's own content.
