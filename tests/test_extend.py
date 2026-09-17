@@ -21,6 +21,7 @@ from scanner.extend import conviction
 from scanner.extend import bb_touch
 from scanner.extend import rotation, market_pulse
 from scanner import scan_h1
+from scanner import scan_news
 from scanner import csm
 import pandas as pd
 
@@ -717,6 +718,22 @@ def test_recommendation_narrated_bias_survives_hourly_reseed_across_a_flip():
     current_bias = recommendation.build_seed(signals)["bias"]
     bias_flipped = bool(rec.get("narrated_bias")) and current_bias != rec.get("narrated_bias")
     assert bias_flipped is True
+
+
+def test_recommendation_min_score_matches_across_scan_h1_and_scan_news():
+    """
+    2026-09-17 (full-system audit) — RECOMMENDATION_MIN_SCORE is deliberately a "small local
+    copy, not shared" in both scan_h1.py and scan_news.py (house style: not worth a shared
+    module for one number), which means nothing stops the two drifting apart if either is ever
+    re-tuned on its own (the Signals Roadmap's own note explicitly invites tuning: "a defensible
+    first pass... tune freely"). scan_h1.py's copy is authoritative for `ranked.top` itself;
+    scan_news.py's copy only affects its own internal context (the catalyst-check call), but a
+    mismatch would still mean the two scripts silently disagree about which pairs qualify as a
+    "setup" when reasoning about the same scan. This test is the drift guard house style doesn't
+    otherwise provide -- if you're re-tuning one, this failing is your reminder to check the
+    other.
+    """
+    assert scan_h1.RECOMMENDATION_MIN_SCORE == scan_news.RECOMMENDATION_MIN_SCORE
 
 
 def test_recommendation_stand_aside_when_no_setups():
