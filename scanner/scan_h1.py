@@ -89,13 +89,24 @@ PRESERVED_KEYS = (
 
 def load_signals():
     path = ROOT / "data" / "signals.json"
-    if path.exists():
-        try:
-            with open(path) as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
+    if not path.exists():
+        return {}
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception as e:
+        # 2026-09-17 (full-system audit) — this used to swallow ANY parse failure identically
+        # to "no prior scan ever ran," silently dropping every PRESERVED_KEYS field and
+        # disarming every edge-triggered alert (state_alerts.py, _recommendation_alerts) for
+        # this run, with no way to tell the difference after the fact except diffing against
+        # the previous commit. A corrupted signals.json is a real, previously-seen failure mode
+        # (see scan_h1.yml's own comment on the stash/rebase incident this guarded against) —
+        # loud beats silent here, even though the fallback behavior (treat as fresh) is
+        # unchanged, since there's no safe way to recover partial state from a broken file.
+        print(f"  [load_signals] ERROR: {path} exists but failed to parse ({e}) — "
+              f"treating as a fresh run. PRESERVED_KEYS and every edge-triggered alert are "
+              f"disarmed for this scan.")
+        return {}
 
 
 def save_signals(data: dict):
