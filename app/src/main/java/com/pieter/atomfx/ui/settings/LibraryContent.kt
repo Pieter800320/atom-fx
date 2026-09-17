@@ -158,6 +158,15 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         whyItMatters = "A currency-level read — %B stretched high and rolling over, CSM not confirming new strength — only becomes an actual pair-level candidate once you check whether that pair's OTHER leg agrees. Putting both currencies' own %B right on the pair sheet is where that comparison happens.",
     ),
     LibraryEntry(
+        id = "momentum-rsi-macd",
+        term = "Momentum — RSI & MACD",
+        category = "Momentum & Price Action",
+        summary = "RSI (14) and MACD (12, 26, 9), each as a chart across D1, H4, or H1 — not just the single latest reading the 5-State Score already uses internally.",
+        howItWorks = "Both are the same frozen Wilder-RSI and EMA-MACD the technical score already computes for every pair at every timeframe — this card only keeps a short run of past values instead of throwing them away after scoring, so they can be drawn as a line/histogram rather than read as one number. RSI: 0–100, with the standard 30/70 reference lines and a 50 centreline; no signal line, since plain RSI doesn't have one. MACD: the histogram (MACD line minus signal line) as bars, tinted by sign, with the MACD and signal lines themselves overlaid — the Y-axis auto-scales symmetrically around zero to whatever range the pair's own data spans.\n" +
+            "Shown long-press a wheel node: a Momentum card between the pair's own %B card and the two currency %B cards, with one D1/H4/H1 row switching both RSI and MACD together.",
+        whyItMatters = "RSI ≥70 or ≤30 reads as a bull/bear tilt the same way a %B band touch does — stretched, due to revert, not automatically \"trend over.\" MACD's histogram crossing zero is the earliest read of a momentum shift, before price itself confirms it. Reading them as a shape over time, not a single number, shows whether a stretched reading is fresh or already fading.",
+    ),
+    LibraryEntry(
         id = "csm",
         term = "CSM (Currency Strength Model)",
         category = "Currency Strength",

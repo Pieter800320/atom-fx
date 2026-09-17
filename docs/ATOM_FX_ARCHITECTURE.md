@@ -293,6 +293,15 @@ percent_b_currency {"<CUR>": {line:[float,…], signal:[float,…], dates:[str,�
 schema_version     integer — bump on any contract change; app checks it (§8.4)
 ```
 
+Per-pair `momentum_series` is likewise added **inside the existing `pairs.<PAIR>` block**
+(2026-09-17, schema v8): `{"d1"|"h4"|"h1": {rsi:[float,…], macd_line:[float,…],
+macd_signal:[float,…], macd_histogram:[float,…]}}`. `scanner/extend/momentum_series.py` calls
+`score.py`'s own frozen `_rsi`/`_macd` per pair/timeframe and keeps a 50-point tail (oldest-first)
+instead of only the latest value `score.py` itself uses for scoring — genuinely new exposure, not
+a recompute, and no new OHLCV fetch (the same bars `score.py` already pulls for that pair/
+timeframe). First half of a planned 4-indicator glance panel (Design §19.4b) — %B standardised to
+20 periods and a numeric BandWidth series are the other two, deferred pending new backend work.
+
 Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a new sub-key, so it travels with the pair (§5.3):
 ```json
 "structure": { "h4": {"direction":"bull","event":"BOS","strength":0.78,"multiplier":1.23},
