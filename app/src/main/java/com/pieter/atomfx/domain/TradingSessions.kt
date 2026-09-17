@@ -97,6 +97,35 @@ fun TradingSession.occurrencesOverlapping(windowStart: Instant, windowEnd: Insta
     return result
 }
 
+/**
+ * The best instant to anchor a 24h timeline graphic near [near], chosen so as few sessions as
+ * possible need drawing as two wrapped segments (occurrencesOverlapping's own "midnight-crossing"
+ * case) — 2026-09-17, Pieter's own design catch: a linear 24h axis always has exactly one seam,
+ * and whichever session is mid-session exactly there is the one that gets split; conventional FX
+ * session-hours graphics dodge this by anchoring at a session HANDOFF (one closing as another
+ * opens) instead of an arbitrary calendar midnight.
+ *
+ * With the standard hours in use, New York's close and Sydney's open land on the same instant
+ * today — by design, that's the whole point of "the market never sleeps" — but this is NOT a
+ * fixed, hardcodable fact: Sydney and New York observe daylight saving on opposite hemispheres'
+ * schedules, so the exact handoff can drift by an hour or so at some points in the year. Rather
+ * than hardcode "anchor at Sydney's open", this tries each session's own current-cycle open
+ * instant as a candidate and picks whichever leaves the fewest OTHER sessions still open at that
+ * exact moment — recomputed fresh every call, so it stays correct through any DST combination
+ * without needing to know which pair of sessions happens to hand off cleanly today.
+ */
+fun bestTimelineAnchor(near: Instant): Instant {
+    fun otherSessionsStraddling(candidate: Instant): Int =
+        TradingSession.entries.count { session ->
+            val state = session.stateAt(candidate)
+            // Genuinely mid-session at `candidate` -- not just another session that ALSO happens
+            // to open exactly there, which wouldn't need splitting either.
+            state.isOpen && state.windowStart.isBefore(candidate)
+        }
+    val candidates = TradingSession.entries.map { it.stateAt(near).windowStart }
+    return candidates.minByOrNull { otherSessionsStraddling(it) } ?: near
+}
+
 /** "2h 14m" / "45m" style, matching CalendarSheet.kt's own relativeCountdown formatting. */
 fun formatCountdown(duration: Duration): String {
     val totalMinutes = duration.toMinutes().coerceAtLeast(0)

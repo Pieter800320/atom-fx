@@ -44,6 +44,7 @@ import com.pieter.atomfx.domain.SessionState
 import com.pieter.atomfx.domain.TradingSession
 import com.pieter.atomfx.domain.allSessionStatesAt
 import com.pieter.atomfx.domain.formatCountdown
+import com.pieter.atomfx.domain.bestTimelineAnchor
 import com.pieter.atomfx.domain.occurrencesOverlapping
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
@@ -58,17 +59,18 @@ import java.util.Locale
 // Item Library #05 — same slide-in side panel recipe Settings/Watchlist/Calendar already use.
 private const val PANEL_WIDTH_FRACTION = 0.82f
 
-// 2026-09-17 (2nd pass, Pieter's own redesign) — a FIXED device-local calendar day (today's own
-// midnight to midnight), not a rolling "now +/- some window". Sessions recur at the same local
-// time every day, so on a fixed axis every session's bar sits at a constant position and any
-// overlap between two sessions is just two bars visibly sharing horizontal space -- no highlight
-// colour needed, no overlap-range computation needed, and it can't misrepresent a session's true
-// length the way clipping a rolling window could. The one thing a fixed day-axis has to handle
-// explicitly: a session whose own local hours cross the device's own midnight (with these
-// standard hours, that's Sydney's evening-opening session against most Western device timezones)
-// needs drawing as two segments, one at each edge of the bar -- see occurrencesOverlapping's own
-// doc comment. Was a rolling now-relative window with green overlap highlighting in the first two
-// passes; Pieter's own catch that neither actually made an overlap intuitively visible.
+// 2026-09-17 (3rd pass) — a FIXED 24h day, not a rolling "now +/- some window" (that was pass 2).
+// Sessions recur at the same local time every day, so on a fixed axis every session's bar sits at
+// a constant position and any overlap between two sessions is just two bars visibly sharing
+// horizontal space -- no highlight colour needed (pass 2 tried that; Pieter's own catch that it
+// still didn't read as intuitive as a real session clock).
+//
+// The axis start is NOT device-local midnight, though (Pieter's own design catch, pass 3) --
+// bestTimelineAnchor() instead anchors at a session HANDOFF (one closing as another opens), the
+// same trick conventional FX session-hours graphics use, so as few sessions as possible need
+// splitting across the seam. Splitting can still happen (occurrencesOverlapping's own doc
+// comment covers when and why), it's just minimised, not eliminated -- a linear axis representing
+// a cyclic 24h pattern always has exactly one seam somewhere.
 private const val DAY_HOURS = 24f
 
 private val LOCAL_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
@@ -203,8 +205,13 @@ private fun sessionsSummary(states: List<SessionState>, now: Instant): String {
 
 @Composable
 private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: AtomColors) {
-    val deviceZone = ZoneId.systemDefault()
-    val dayStart = now.atZone(deviceZone).toLocalDate().atStartOfDay(deviceZone).toInstant()
+    // bestTimelineAnchor() picks from each session's own CURRENT-CYCLE open instant, which can
+    // land up to ~24h either side of `now` (whichever session hasn't opened yet vs. one already
+    // open) -- step back a full day if it landed in the future, so the visible window always
+    // covers `now` (same wall-clock anchor, previous cycle; the anchor is chosen for how few
+    // sessions straddle it, a property that repeats identically every 24h).
+    var dayStart = bestTimelineAnchor(now)
+    if (dayStart.isAfter(now)) dayStart = dayStart.minus(Duration.ofHours(24))
     val dayEnd = dayStart.plus(Duration.ofHours(24))
 
     fun hourOfDay(instant: Instant): Float =
