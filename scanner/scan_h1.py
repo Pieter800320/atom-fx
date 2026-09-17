@@ -548,6 +548,7 @@ def main():
         from scanner.extend import csm_delta       as _csm_delta
         from scanner.extend import breadth         as _breadth
         from scanner.extend import structure_expose as _structure_expose
+        from scanner.extend import momentum_series  as _momentum_series
         from scanner.extend import bb_touch         as _bb_touch
         from scanner.extend import spark           as _spark
         from scanner.extend import potential       as _potential
@@ -562,6 +563,7 @@ def main():
         out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
         out["breadth"]       = _breadth.compute_breadth(ohlcv)
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
+        _momentum_series.attach_momentum_series(out["pairs"], ohlcv)    # pairs.<PAIR>.momentum_series
         _bb_touch.attach_bb_d1(out["pairs"], ohlcv, raw_ohlcv)          # pairs.<PAIR>.bb_d1
         out["percent_b_board"] = _bb_touch.compute_board_percent_b(out["pairs"])
         out["percent_b_currency"] = _bb_touch.compute_currency_percent_b(raw_ohlcv)

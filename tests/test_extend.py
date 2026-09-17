@@ -20,6 +20,7 @@ from scanner.extend import state_alerts
 from scanner.extend import conviction
 from scanner.extend import bb_touch
 from scanner.extend import rotation, market_pulse
+from scanner.extend import momentum_series
 from scanner import scan_h1
 from scanner import scan_news
 from scanner import csm
@@ -500,6 +501,48 @@ def test_spark_shape():
         for tf in ("d1", "h4", "h1"):
             assert 0 < len(tfs[tf]) <= cfg.SPARK_BARS, (key, tf, len(tfs[tf]))
             assert all(isinstance(x, float) for x in tfs[tf])
+
+
+def test_momentum_series_shape_and_values():
+    """
+    2026-09-17 (Pieter's ask, ChartSheet RSI/MACD) — momentum_series calls the SAME frozen
+    _rsi/_macd score.py already uses for its own scoring, just asking for more of their output
+    (a short series, not only the latest bar). This test locks in both the SHAPE (bounded-length
+    oldest-first lists, one set per TF) and that the values genuinely match calling score.py's
+    own frozen functions directly on the same closes -- not a second, independently-drifting
+    RSI/MACD implementation.
+    """
+    ohlcv, _ = _fixture()
+    eurusd = ohlcv["EURUSD"]
+    series = momentum_series.momentum_series_for_pair(eurusd)
+
+    for tf in ("d1", "h4", "h1"):
+        tf_series = series[tf]
+        for key in ("rsi", "macd_line", "macd_signal", "macd_histogram"):
+            values = tf_series[key]
+            assert 0 < len(values) <= momentum_series.SERIES_LOOKBACK, (tf, key, len(values))
+            assert all(isinstance(v, float) for v in values)
+        # RSI is always 0-100 by construction (Wilder's own formula) -- a real invariant, not
+        # just a shape check.
+        assert all(0.0 <= v <= 100.0 for v in tf_series["rsi"])
+
+    # Cross-check the most recent value against calling the frozen functions directly -- proves
+    # this is genuinely the same computation, not a parallel reimplementation that could drift.
+    from scanner.score import _rsi, _macd
+    close = eurusd["d1"]["close"]
+    expected_rsi = round(float(_rsi(close).dropna().iloc[-1]), 2)
+    expected_macd_line = round(float(_macd(close)[0].dropna().iloc[-1]), 6)
+    assert series["d1"]["rsi"][-1] == expected_rsi
+    assert series["d1"]["macd_line"][-1] == expected_macd_line
+
+
+def test_momentum_series_attach_adds_key_per_pair():
+    ohlcv, _ = _fixture()
+    pairs_out = {key: {} for key in ohlcv}
+    momentum_series.attach_momentum_series(pairs_out, ohlcv)
+    for key in ohlcv:
+        assert "momentum_series" in pairs_out[key]
+        assert set(pairs_out[key]["momentum_series"]) == {"d1", "h4", "h1"}
 
 
 # ── 3. Macro regime + recommendation seed ─────────────────────────────────────────
