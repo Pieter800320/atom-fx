@@ -203,6 +203,12 @@ data class StructureEntry(
     val direction: String? = null,
     val event: String? = null,
     val strength: Double? = null,
+    // 2026-09-17 (full-system audit) — `scanner/structure.py` already computes and writes this
+    // (0.40-1.30, scales the H4/D1 momentum score up on a same-direction BOS, down on a
+    // counter-trend CHoCH — see structure.py:112-116), and LibraryContent.kt already explains
+    // the concept to the user, but it was silently dropped here (`ignoreUnknownKeys`) with no
+    // UI ever showing the real per-pair value. Now surfaced in StructureSheet.kt.
+    val multiplier: Double? = null,
 )
 
 @Serializable
