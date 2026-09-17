@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-17T05:38:34.140485+00:00",
+  "updated": "2026-09-17T06:38:19.800268+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -3098,7 +3098,7 @@
     "score": 0.0,
     "signals": -1,
     "total": 1,
-    "stable": false
+    "stable": true
   },
   "macro": {
     "label": "Risk-On",
@@ -3121,19 +3121,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4330.5,
-      "delta_pct": -1.3,
+      "value": 4347.9,
+      "delta_pct": -0.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.31,
-      "delta_pct": -0.0,
+      "value": 100.17,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.532,
+      "value": 6.5345,
       "delta_pct": 1.6,
       "direction": "up",
       "label": "Copper"
@@ -3151,14 +3151,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 102.4,
-      "delta_pct": -0.0,
-      "direction": "flat",
+      "value": 100.96,
+      "delta_pct": -1.4,
+      "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 76206.0,
-      "delta_pct": 0.8,
+      "value": 76482.0,
+      "delta_pct": 1.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -3182,12 +3182,12 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.7,
+      "delta_pct": -1.3,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 1.2,
+      "delta_pct": 1.1,
       "label": "DXY"
     },
     "copper": {
@@ -3207,12 +3207,12 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -0.1,
+      "delta_pct": -1.5,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.3,
+      "delta_pct": -0.9,
       "label": "Bitcoin"
     },
     "curve": {
@@ -3222,11 +3222,11 @@
     }
   },
   "catalyst": {
-    "text": "NZDUSD SHORT invalidated: NZ GDP beat triggers NZD strength, contradicting short bias.",
-    "updated": "2026-09-17T04:38:17.843491+00:00"
+    "text": "NZDUSD SHORT invalidated: NZD pops on better-than-expected GDP data, contradicting bearish setup timing.",
+    "updated": "2026-09-17T06:38:19.800268+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: Gold falling and risk-off regime strongly confirm USD strength setup.\n\nNZDUSD SHORT: Risk-off favors USD but copper strength slightly challenges commodity currency weakness.\n\nGBPUSD SHORT: Risk-off confirms setup though positive momentum divergence creates minor internal conflict.",
+    "text": "AUDUSD SHORT: Gold weakness confirms USD bid, challenging AUD commodity link.\n\nEURUSD SHORT: Risk-on medium supports EUR, challenging pure USD strength narrative.\n\nNZDUSD SHORT: Gold falling confirms USD bid, NZD commodity exposure challenged.",
     "top": [
       {
         "pair": "AUDUSD",
@@ -3254,7 +3254,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-17T04:38:17.843491+00:00"
+    "updated": "2026-09-17T06:38:19.800268+00:00"
   },
   "calendar": {
     "events": [
@@ -3319,7 +3319,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-17T04:38:17.843491+00:00"
+    "updated": "2026-09-17T06:38:19.800268+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean risk-off tape: VIX up and equities softer point to caution, yet BTC firmer and gold flat, with DXY unchanged, blur the picture. Copper's strength and a sliding WTI add a commodity-market crosscurrent, while a steady US10Y offers little extra dollar support. The dominant theme remains central-bank repricing, with Fed hike expectations building ahead of US CPI and PPI, keeping the dollar bloc's tone firm against European currencies. The next major risk window is dense: US CPI at 08:30 ET, followed by the ECB, BoE, BoC and RBNZ decisions, any of which could reshape rate-differential sentiment quickly.",
@@ -3327,16 +3327,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hikes rates first time in three years; DXY strengthens",
-      "ECB hike looms as inflation risks rise; EUR under pressure",
-      "New Zealand GDP beats expectations; NZD pops higher"
+      "Fed hike bets rise; DXY strengthens as CPI takes center stage",
+      "New Zealand GDP beats expectations; NZD rallies on data",
+      "ECB rate hike looms while inflation risks persist globally"
     ],
     "themes": [
       "rates",
-      "rates",
-      "risk"
+      "risk",
+      "rates"
     ],
-    "updated": "2026-09-17T04:38:17.843491+00:00"
+    "updated": "2026-09-17T06:38:19.800268+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
