@@ -62,22 +62,39 @@ fun TradingSession.stateAt(at: Instant): SessionState {
 fun allSessionStatesAt(at: Instant): List<SessionState> = TradingSession.entries.map { it.stateAt(at) }
 
 /**
- * True when 2+ sessions are open at [at] — the highest-volume, highest-volatility windows
- * (London-NY and Tokyo-London are the only real overlaps this session set produces). Drives the
- * header glyph's "worth a glance" dot — Pieter's ask was "know when sessions start"; an overlap is
- * the moment that's most actionable to actually glance at, not just any single session being open.
+ * True when 2+ sessions are open at [at] — the highest-volume, highest-volatility windows.
+ * With the standard hours in use, every adjacent pair overlaps somewhat (Sydney-Tokyo,
+ * Tokyo-London, London-New York — corrected 2026-09-17; an earlier comment here claimed only
+ * the latter two existed, which the timeline graphic's own on-device testing disproved). Drives
+ * the header glyph's "worth a glance" dot — an overlap is the moment actually worth glancing at,
+ * not just any single session being open (something is open most of the day regardless).
  */
 fun isOverlapActiveAt(at: Instant): Boolean = allSessionStatesAt(at).count { it.isOpen } >= 2
 
 /**
- * The overlapping instant range between two windows, or null if they don't intersect at all.
- * Used to highlight overlap windows (the highest-volume, highest-volatility stretches) on the
- * timeline graphic — not just detect that one is active ([isOverlapActiveAt]'s job).
+ * Every occurrence of this session whose window intersects [windowStart, windowEnd) at all, each
+ * clipped to that range. A session recurs every 24h and lasts under 24h, so at most two
+ * occurrences can overlap any 24h window — one already under way whose start precedes
+ * [windowStart] (the previous cycle's tail) and/or one just starting whose end follows
+ * [windowEnd] (the next cycle's head). This is exactly what happens when a session's own local
+ * hours cross the reference window's day boundary (e.g. Sydney's evening-opening session,
+ * viewed against most Western device timezones' midnight) — 2026-09-17 (Pieter's own catch: a
+ * fixed calendar-day timeline needs this to draw that session as two segments, one at each edge
+ * of the bar, instead of silently dropping the wrapped portion).
  */
-fun overlapRange(aStart: Instant, aEnd: Instant, bStart: Instant, bEnd: Instant): Pair<Instant, Instant>? {
-    val start = if (aStart.isAfter(bStart)) aStart else bStart
-    val end = if (aEnd.isBefore(bEnd)) aEnd else bEnd
-    return if (start.isBefore(end)) start to end else null
+fun TradingSession.occurrencesOverlapping(windowStart: Instant, windowEnd: Instant): List<Pair<Instant, Instant>> {
+    val result = mutableListOf<Pair<Instant, Instant>>()
+    var probe = windowStart
+    var guard = 0
+    while (probe.isBefore(windowEnd) && guard < 4) {
+        val state = stateAt(probe)
+        if (state.windowStart.isBefore(windowEnd) && state.windowEnd.isAfter(windowStart)) {
+            result.add(state.windowStart to state.windowEnd)
+        }
+        probe = state.windowEnd.plusSeconds(1)
+        guard++
+    }
+    return result
 }
 
 /** "2h 14m" / "45m" style, matching CalendarSheet.kt's own relativeCountdown formatting. */

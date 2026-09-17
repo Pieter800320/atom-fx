@@ -44,7 +44,7 @@ import com.pieter.atomfx.domain.SessionState
 import com.pieter.atomfx.domain.TradingSession
 import com.pieter.atomfx.domain.allSessionStatesAt
 import com.pieter.atomfx.domain.formatCountdown
-import com.pieter.atomfx.domain.overlapRange
+import com.pieter.atomfx.domain.occurrencesOverlapping
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -58,14 +58,18 @@ import java.util.Locale
 // Item Library #05 — same slide-in side panel recipe Settings/Watchlist/Calendar already use.
 private const val PANEL_WIDTH_FRACTION = 0.82f
 
-// The rolling timeline window. LOOKBACK must cover the longest session's full duration (+1h
-// margin) -- 2026-09-17 bugfix: a fixed 1h lookback clipped a currently-OPEN session's true start
-// (e.g. New York, 6+ hours into its own session) off the left edge of the visible window, making
-// its bar look artificially short next to sessions that haven't opened yet and so show in full.
-// LOOKAHEAD is separate, generous enough that every session's NEXT occurrence is visible too.
-private val LOOKBACK = Duration.ofHours(TradingSession.entries.maxOf { it.closeHour - it.openHour } + 1L)
-private val LOOKAHEAD = Duration.ofHours(24)
-private val WINDOW_HOURS = (LOOKBACK + LOOKAHEAD).toMinutes() / 60f
+// 2026-09-17 (2nd pass, Pieter's own redesign) — a FIXED device-local calendar day (today's own
+// midnight to midnight), not a rolling "now +/- some window". Sessions recur at the same local
+// time every day, so on a fixed axis every session's bar sits at a constant position and any
+// overlap between two sessions is just two bars visibly sharing horizontal space -- no highlight
+// colour needed, no overlap-range computation needed, and it can't misrepresent a session's true
+// length the way clipping a rolling window could. The one thing a fixed day-axis has to handle
+// explicitly: a session whose own local hours cross the device's own midnight (with these
+// standard hours, that's Sydney's evening-opening session against most Western device timezones)
+// needs drawing as two segments, one at each edge of the bar -- see occurrencesOverlapping's own
+// doc comment. Was a rolling now-relative window with green overlap highlighting in the first two
+// passes; Pieter's own catch that neither actually made an overlap intuitively visible.
+private const val DAY_HOURS = 24f
 
 private val LOCAL_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
 
@@ -199,22 +203,22 @@ private fun sessionsSummary(states: List<SessionState>, now: Instant): String {
 
 @Composable
 private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: AtomColors) {
-    val axisStart = now.minus(LOOKBACK)
+    val deviceZone = ZoneId.systemDefault()
+    val dayStart = now.atZone(deviceZone).toLocalDate().atStartOfDay(deviceZone).toInstant()
+    val dayEnd = dayStart.plus(Duration.ofHours(24))
 
-    fun hoursFromAxisStart(instant: Instant): Float =
-        (Duration.between(axisStart, instant).toMinutes() / 60.0)
-            .coerceIn(0.0, WINDOW_HOURS.toDouble())
-            .toFloat()
+    fun hourOfDay(instant: Instant): Float =
+        (Duration.between(dayStart, instant).toMinutes() / 60.0).toFloat()
+
+    val nowX = hourOfDay(now).coerceIn(0f, DAY_HOURS) / DAY_HOURS
 
     Column(modifier = Modifier.fillMaxWidth()) {
         states.forEach { state ->
-            // 2026-09-17 bugfix — every OTHER session's window this one overlaps, so the shared
-            // stretch can be drawn in its own colour. Without this, an overlap (the highest-
-            // volume windows, the entire reason the header dot exists) was invisible on the
-            // graphic itself — only inferable by separately noticing two rows both say "Open".
-            val overlaps = states
-                .filter { it.session != state.session }
-                .mapNotNull { other -> overlapRange(state.windowStart, state.windowEnd, other.windowStart, other.windowEnd) }
+            // Every occurrence of THIS session touching today's device-local calendar day —
+            // usually one, but two when this session's own local hours cross the device's own
+            // midnight (see occurrencesOverlapping's own doc comment for why, and which session
+            // that is with the standard hours in use).
+            val occurrences = state.session.occurrencesOverlapping(dayStart, dayEnd)
 
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
                 Text(
@@ -226,36 +230,26 @@ private fun SessionTimeline(states: List<SessionState>, now: Instant, colors: At
                     val corner = CornerRadius(size.height / 2, size.height / 2)
                     drawRoundRect(color = colors.hairline, cornerRadius = corner)
 
-                    val startH = hoursFromAxisStart(state.windowStart)
-                    val endH = hoursFromAxisStart(state.windowEnd)
-                    if (endH > startH) {
-                        drawRoundRect(
-                            color = if (state.isOpen) colors.textPrimary else colors.textMuted,
-                            topLeft = Offset(size.width * (startH / WINDOW_HOURS), 0f),
-                            size = Size(size.width * ((endH - startH) / WINDOW_HOURS), size.height),
-                            cornerRadius = corner,
-                        )
-                    }
-
-                    // Overlap segments drawn on top, in the same green the header dot itself uses
-                    // for "worth a look" (HeaderGlyphWithDot's own colors.bull) — same meaning,
-                    // same colour, just on this graphic instead of the header.
-                    overlaps.forEach { overlap ->
-                        val oStartH = hoursFromAxisStart(overlap.first)
-                        val oEndH = hoursFromAxisStart(overlap.second)
-                        if (oEndH > oStartH) {
-                            drawRect(
-                                color = colors.bull,
-                                topLeft = Offset(size.width * (oStartH / WINDOW_HOURS), 0f),
-                                size = Size(size.width * ((oEndH - oStartH) / WINDOW_HOURS), size.height),
+                    occurrences.forEach { occurrence ->
+                        val occStart = occurrence.first
+                        val occEnd = occurrence.second
+                        val startH = hourOfDay(occStart).coerceIn(0f, DAY_HOURS)
+                        val endH = hourOfDay(occEnd).coerceIn(0f, DAY_HOURS)
+                        if (endH > startH) {
+                            // Currently-open only reads as "open" (bright) for the occurrence
+                            // actually covering `now` -- with two occurrences (the midnight-
+                            // crossing case), at most one of them is the live one.
+                            val isThisOccurrenceOpen = state.isOpen && !now.isBefore(occStart) && now.isBefore(occEnd)
+                            drawRoundRect(
+                                color = if (isThisOccurrenceOpen) colors.textPrimary else colors.textMuted,
+                                topLeft = Offset(size.width * (startH / DAY_HOURS), 0f),
+                                size = Size(size.width * ((endH - startH) / DAY_HOURS), size.height),
+                                cornerRadius = corner,
                             )
                         }
                     }
 
-                    // "now" marker — always at the same fixed fraction (LOOKBACK / WINDOW_HOURS)
-                    // since the axis itself rolls forward with `now` every tick.
-                    val nowX = size.width * (LOOKBACK.toMinutes() / 60f / WINDOW_HOURS)
-                    drawLine(color = colors.watch, start = Offset(nowX, 0f), end = Offset(nowX, size.height), strokeWidth = 2.5f)
+                    drawLine(color = colors.watch, start = Offset(size.width * nowX, 0f), end = Offset(size.width * nowX, size.height), strokeWidth = 2.5f)
                 }
             }
         }
