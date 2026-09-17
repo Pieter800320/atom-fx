@@ -12,21 +12,40 @@ this scan, to produce a short oldest-first SERIES per pair per timeframe. Same
 exact formula the score itself is built on; this only asks for more of its
 output, the way `bb_touch.py`'s own D1 %B series does for Bollinger Bands.
 
+2026-09-18 (Pieter's catch, "skewed vs LiteFinance") — D1 specifically is now
+run on `_d1_ny_close()`'s 17:00-New-York-session D1 bars, not the frozen
+aggregator's `ohlcv[key]["d1"]` (UTC-midnight boundary). Same root cause as the
+%B fix (`bb_touch.py`'s own doc comment): the frozen aggregator's own D1 is
+"acceptable for trend/momentum signals" internally, but wrong for a D1 chart
+compared directly against a retail platform's D1 close. H4/H1 are left as the
+frozen aggregator's own bars — H4 already matches the data vendor's own H4
+boundary exactly (`aggregator.py`'s own comment), and any remaining H4/H1 gap
+against a specific broker is a different-data-vendor basis difference, not a
+bucketing bug — there's no universal "correct" H4/H1 boundary to re-derive.
+
 Rule #1: `_rsi`/`_macd` are FROZEN (`scanner/score.py`, unedited). No new
 formula, no re-derived trading number — a pure read of more of an existing
-frozen function's own output.
+frozen function's own output, on the same NY-session D1 bars `bb_touch.py`
+already establishes as the correct D1 convention for this app.
+
+2026-09-18 (2nd, Pieter's restyle ask) — each series now carries its own
+`dates` (oldest-first, one per RSI/MACD point), from `tf_dates.py`'s
+independent H4/H1 label recovery plus `_d1_ny_close()`'s own D1 dates.
+`SERIES_LOOKBACK` 50 -> 90 (only a display cap, not a fetch limit — 5000 H1
+bars already covers ~208 D1 / ~1250 H4 / 5000 H1 bars, see `config.TF_BARS`).
 """
 from scanner.score import _rsi, _macd
+from scanner.extend.bb_touch import _d1_ny_close
+from scanner.extend import tf_dates
 
-# Bars of history to keep for the chart, oldest-first. Comfortably short of a
-# %B chart's ~56 D1 bars — RSI/MACD are shown at all three timeframes here (not
-# D1-only), so keeping each series compact matters more than reaching far back.
-SERIES_LOOKBACK = 50
+# Bars of history to keep for the chart, oldest-first. A display cap only —
+# see the module doc comment above for how much history is actually on hand.
+SERIES_LOOKBACK = 90
 
-_EMPTY = {"rsi": [], "macd_line": [], "macd_signal": [], "macd_histogram": []}
+_EMPTY = {"dates": [], "rsi": [], "macd_line": [], "macd_signal": [], "macd_histogram": []}
 
 
-def _series_for(close) -> dict:
+def _series_for(close, dates_full=None) -> dict:
     if close is None or len(close.dropna()) < 30:
         return dict(_EMPTY)
     rsi_s = _rsi(close).dropna()
@@ -34,26 +53,61 @@ def _series_for(close) -> dict:
     macd_line = macd_line.dropna()
     macd_signal = macd_signal.dropna()
     macd_hist = macd_hist.dropna()
+
+    # RSI drops exactly one leading row more than MACD (close.diff()'s own first NaN;
+    # _macd's ewm-based inputs never produce a NaN) -- align both to the shorter one so
+    # a single "dates" list can label both without an off-by-one.
+    n = min(len(rsi_s), len(macd_line), SERIES_LOOKBACK)
+
+    dates = []
+    if dates_full is not None and len(dates_full) == len(close):
+        dates = [str(d) for d in dates_full.tail(n)]
+
     return {
-        "rsi": [round(float(v), 2) for v in rsi_s.tail(SERIES_LOOKBACK)],
-        "macd_line": [round(float(v), 6) for v in macd_line.tail(SERIES_LOOKBACK)],
-        "macd_signal": [round(float(v), 6) for v in macd_signal.tail(SERIES_LOOKBACK)],
-        "macd_histogram": [round(float(v), 6) for v in macd_hist.tail(SERIES_LOOKBACK)],
+        "dates": dates,
+        "rsi": [round(float(v), 2) for v in rsi_s.tail(n)],
+        "macd_line": [round(float(v), 6) for v in macd_line.tail(n)],
+        "macd_signal": [round(float(v), 6) for v in macd_signal.tail(n)],
+        "macd_histogram": [round(float(v), 6) for v in macd_hist.tail(n)],
     }
 
 
-def momentum_series_for_pair(tfs: dict) -> dict:
+def momentum_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
     """tfs = ohlcv["EURUSD"] = {"d1": df, "h4": df, "h1": df}. Returns
-    {"d1": {...}, "h4": {...}, "h1": {...}}, each shaped like _EMPTY above."""
+    {"d1": {...}, "h4": {...}, "h1": {...}}, each shaped like _EMPTY above.
+
+    raw_h1_df, when given, is that pair's own raw H1 fetch (scan_h1.py's
+    raw_ohlcv[key]) — used to rebuild D1 on the NY-session boundary via
+    _d1_ny_close(), same pattern attach_bb_d1() below already uses, and to
+    recover H4/H1 dates the frozen aggregator itself discards (tf_dates.py).
+    Falls back to the frozen UTC-midnight ohlcv[key]["d1"] and no dates at all
+    when unavailable (tests/callers without H1 data on hand) — production
+    always has it.
+    """
     out = {}
     for tf in ("d1", "h4", "h1"):
-        df = tfs.get(tf) if tfs else None
-        close = df["close"] if df is not None else None
-        out[tf] = _series_for(close)
+        if raw_h1_df is not None:
+            if tf == "d1":
+                d1_ny = _d1_ny_close(raw_h1_df)
+                close, dates_full = d1_ny["close"], d1_ny["date"]
+            elif tf == "h4":
+                df = tfs.get(tf) if tfs else None
+                close = df["close"] if df is not None else None
+                dates_full = tf_dates.h4_dates(raw_h1_df)
+            else:
+                df = tfs.get(tf) if tfs else None
+                close = df["close"] if df is not None else None
+                dates_full = tf_dates.h1_dates(raw_h1_df)
+        else:
+            df = tfs.get(tf) if tfs else None
+            close = df["close"] if df is not None else None
+            dates_full = None
+        out[tf] = _series_for(close, dates_full)
     return out
 
 
-def attach_momentum_series(pairs_out: dict, ohlcv: dict) -> None:
+def attach_momentum_series(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:
     """Mutate pairs_out in place, adding a 'momentum_series' sub-key to each pair block."""
     for key, block in pairs_out.items():
-        block["momentum_series"] = momentum_series_for_pair(ohlcv.get(key))
+        raw_h1_df = raw_ohlcv.get(key) if raw_ohlcv else None
+        block["momentum_series"] = momentum_series_for_pair(ohlcv.get(key), raw_h1_df)
