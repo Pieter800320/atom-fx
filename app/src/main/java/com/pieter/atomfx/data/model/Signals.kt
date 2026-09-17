@@ -232,10 +232,17 @@ data class RecommendationBlock(
     @SerialName("generated_at") val generatedAt: String? = null,
 )
 
-/** `rank.py::rank_pairs` scored+sorted (never re-derived here), capped to the top 3 by
- *  `scan_news.py::call_ranked_analysis` — never all 12, whatever the number of pairs that pass
- *  its hard gate (directional D1 pill + cont >= 45). Home's per-pair Recommendation glyphs
- *  (`StatusStrip.kt`) read this list directly, one glyph per entry. */
+/** `rank.py::rank_pairs` scored+sorted (never re-derived here) — corrected 2026-09-17, this
+ *  previously said "capped to the top 3 by `scan_news.py::call_ranked_analysis`," which was
+ *  backwards on both counts. `scan_h1.py` is `top`'s sole writer (hourly, edge-triggered
+ *  `_recommendation_alerts`) — `scan_news.py` deliberately does NOT write `top`, only
+ *  `text`/`updated`, after a 2026-09-17 bugfix where it silently also wrote `top` on its own
+ *  ~2h cadence with no alert, letting a pair enter/exit with zero notification (see
+ *  `ATOM_FX_SIGNALS_ROADMAP.md` §5b's own bugfix note). And there's no top-3 cap any more either
+ *  — every pair scoring >= `RECOMMENDATION_MIN_SCORE` (6.5) qualifies, no upper bound. Home's
+ *  per-pair Recommendation glyphs (`StatusStrip.kt`) read this list directly, one glyph per
+ *  entry, with no count assumption. If you're about to touch how this field gets written,
+ *  read the bugfix note above first — `scan_h1.py` must stay the only writer. */
 @Serializable
 data class RankedBlock(
     val text: String? = null,
