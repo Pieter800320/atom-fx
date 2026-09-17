@@ -173,9 +173,11 @@ def resolve_trade(h1_df: pd.DataFrame, entry_idx: int, direction: str, entry: fl
     neither hits within max_hold_bars, exits at that bar's close as a timeout.
 
     Pure function of its inputs — no I/O, no clock — so it's unit-testable in isolation
-    (tests/test_backtest_trend_pullback.py) without needing evaluate_from_h1 at all.
+    (tests/test_backtest_trend_pullback.py) without needing evaluate_from_h1 at all. Deliberately
+    stays price-math only, no `datetime` column required of `h1_df` — the caller (which already
+    holds the full H1 frame) attaches entry_time/exit_time itself, keyed off `exit_idx` below.
 
-    Returns {"exit_idx", "exit_price", "exit_reason", "bars_held", "realized_R", "exit_time"}.
+    Returns {"exit_idx", "exit_price", "exit_reason", "bars_held", "realized_R"}.
     """
     n = len(h1_df)
     last_j = min(entry_idx + max_hold_bars, n - 1)
@@ -211,9 +213,6 @@ def resolve_trade(h1_df: pd.DataFrame, entry_idx: int, direction: str, entry: fl
     return {
         "exit_idx": exit_idx, "exit_price": exit_price,
         "exit_reason": exit_reason, "bars_held": bars_held, "realized_R": realized_R,
-        # 2026-09-17 (research-branch timestamp gap) — the H1 bar time is already available
-        # here via h1_df, so it costs nothing to carry out for the CSV writer.
-        "exit_time": h1_df.iloc[exit_idx]["datetime"],
     }
 
 
@@ -285,10 +284,13 @@ def simulate_pair(pair: str, h1_full: pd.DataFrame, window: int = WINDOW,
                 "stop": result["stop"], "target": result["target"], "planned_rr": result["rr"],
                 "realized_R": res["realized_R"], "bars_held": res["bars_held"],
                 "exit_reason": res["exit_reason"],
-                # 2026-09-17 (research-branch timestamp gap) — entry_time is the signal bar's
-                # own H1 timestamp (index i, the bar evaluate_from_h1 just fired on);
-                # exit_time comes from resolve_trade, which already has h1_df in scope.
-                "entry_time": h1_full.iloc[i]["datetime"], "exit_time": res["exit_time"],
+                # 2026-09-17 (research-branch timestamp gap; moved here from resolve_trade so
+                # that function stays pure price-math, no datetime column required of its
+                # h1_df argument) — entry_time is the signal bar's own H1 timestamp (index i,
+                # the bar evaluate_from_h1 just fired on); exit_time is keyed off resolve_trade's
+                # own exit_idx into the same h1_full frame this loop already holds.
+                "entry_time": h1_full.iloc[i]["datetime"],
+                "exit_time": h1_full.iloc[res["exit_idx"]]["datetime"],
             })
             i = res["exit_idx"] + 1   # one open position at a time; resume after the exit
         else:
