@@ -55,15 +55,23 @@ recomputes a trading number in Kotlin. If the app needs a value, expose it from 
 These are stated in `docs/ATOM_FX_DESIGN.md` — read them there, but the ones most often
 violated:
 
-- **§17 — the landing screen never scrolls.** The wheel is a centred square sized to
-  `min(width, height − chrome)`. Header, the status strip (the ranked-pairs recommendation glyph
-  row — this plus the wheel's own Setup wing are what "Tradeable Now" now is; there's no
-  standalone Tradeable Now card any more, retired 2026-09-04), the wheel dial (pairs-only, 4 corner
-  buttons select the wing — there's no on-dial Currencies mode or ticker any more, both retired
+- **§17 — the landing screen should never *need* to scroll.** Corrected 2026-09-17 — this used
+  to claim the wheel is sized to `min(width, height − chrome)` and the screen has zero scroll
+  capability; neither has been true since 2026-09-03 (`WheelScreen.kt`, a flagged, deliberate
+  Pieter-approved exception that was never synced to this doc until now — see
+  `ATOM_FX_DESIGN.md` §17 for the full story). What actually ships: the wheel is sized purely by
+  **width** (`aspectRatio(1f)`), and the landing column sits in a `verticalScroll` as a safety
+  net (also now load-bearing for drag-down-to-refresh) — verified on-device to never actually
+  scroll in normal use. Header, the status strip (the ranked-pairs recommendation glyph row —
+  this plus the wheel's own Setup wing are what "Tradeable Now" now is; there's no standalone
+  Tradeable Now card any more, retired 2026-09-04), the wheel dial (pairs-only, 4 corner buttons
+  select the wing — there's no on-dial Currencies mode or ticker any more, both retired
   2026-09-04, see `ATOM_FX_WHEEL_V2_SPEC.md` §12), the always-on CSM strip below it, and the
-  D1/H4/H1 timeframe row below that (drives the CSM strip only) are **all visible at once, no
-  vertical or horizontal scroll.** Never use `requiredSize()` / `verticalScroll()` to force the
-  wheel bigger than fits — the wheel shrinks to fit, the layout does not scroll.
+  D1/H4/H1 timeframe row below that (drives the CSM strip only) must **all still visibly fit on
+  one screen in normal use, with no vertical or horizontal scroll actually happening.** The wheel
+  itself must never shrink to make room for something else — if a future change makes this
+  screen visibly scroll on a real device, that's a regression to fix, not a green light to add
+  more scrolling content.
 - **§20 — the acceptance test.** The finished landing view must answer, with no sheet open:
   current regime, strong/weak currencies, leading/weakening currency, highest-potential pairs,
   developing pairs, ignorable pairs. Verify against this before declaring a UI task done.

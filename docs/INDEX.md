@@ -54,3 +54,14 @@ needs its own verification, not just a citation.
   prose had drifted into commit-message-style developer narration — "Pieter's own catch," change
   dates, bug-fix history — instead of plain trading explanation). Full Library and Playbook
   rewrite to match, same day.
+- 2026-09-17 — the deferred follow-up flagged above (§6/§6A, §14.2, and the Functional Spec's
+  pair-sheet tab list) resynced, found via a full 4-area audit, not another targeted grep — the
+  same failure mode this doc already warned about. `GLOSSARY.md`'s wheel/nav sections, and
+  `ATOM_FX_DESIGN.md` §6/§6A/§11/§12/§13.1/§14/§14.7/§17 corrected with inline "superseded"
+  notices (old content kept, not deleted, per this file's own established convention). Also fixed:
+  `CLAUDE.md` §3 and `ATOM_FX_DESIGN.md` §17 both still claimed the wheel is sized
+  `min(width, height-chrome)` with zero scroll — wrong since 2026-09-03 (`WheelScreen.kt`'s own
+  flagged exception, itself never synced here either). `ATOM_FX_FUNCTIONAL_SPEC.md` got a
+  whole-document staleness banner rather than a full rewrite — §1's table, §2's nav map, and §5
+  are still not individually corrected; treat `ATOM_FX_BUILD_STATUS.md` §B and
+  `ATOM_FX_DESIGN.md` §19 as current truth over that document's specifics until they are.
