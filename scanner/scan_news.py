@@ -1011,8 +1011,14 @@ def call_ranked_analysis(signals: dict) -> tuple:
     # Score floor, not a flat top-3 slice — see RECOMMENDATION_MIN_SCORE's own comment above.
     # `ranked` is already sorted by score descending (rank.py::rank_pairs), so this is a filter,
     # no re-sort needed. `build_haiku_prompt` above still narrates only its own top 3 (frozen,
-    # rank.py — unrelated to this list; the Haiku narrative text isn't rendered anywhere in the
-    # app today, only `top` is).
+    # rank.py — unrelated to this list). 2026-09-17 bugfix: this `top` is NOT written back into
+    # `signals["ranked"]["top"]` any more (see main(), below) — it's used only as this scan's own
+    # internal context (the catalyst-check call's "top setups" input + the console print). Before
+    # the fix, `main()` persisted it anyway, so `ranked.top` silently got two independent writers
+    # (this file on its own ~2h cadence, `scan_h1.py`'s edge-triggered ranking on its hourly one)
+    # with no comparison between them — a pair could enter/exit/flip here with zero notification,
+    # since only `scan_h1.py::_recommendation_alerts` ever fires the push. `scan_h1.py` is now
+    # `ranked.top`'s sole writer, matching what the Signals Roadmap §5b doc already claimed.
     top = [{"pair": r["pair"], "direction": r["direction"], "score": r["score"]}
            for r in ranked if r["score"] >= RECOMMENDATION_MIN_SCORE]
     return {"text": text, "top": top}, ranked
@@ -1126,7 +1132,15 @@ def main():
     signals["macro_assets"] = macro_assets
     signals["macro_assets_w1"] = macro_assets_w1
     signals["catalyst"]     = {"text": catalyst, "updated": now.isoformat()}
-    signals["ranked"]       = {**ranked_out, "updated": now.isoformat()}
+    # 2026-09-17 bugfix — `top` deliberately excluded: scan_h1.py's hourly, edge-triggered
+    # ranking (_recommendation_alerts) is `ranked.top`'s sole writer. This scan only refreshes
+    # the Haiku narrative fields; see call_ranked_analysis's own comment for the incident this
+    # fixes (silent, unalerted ranked.top changes on this scan's own ~2h cadence).
+    signals["ranked"] = {
+        **signals.get("ranked", {}),
+        "text":    ranked_out.get("text", ""),
+        "updated": now.isoformat(),
+    }
     signals["calendar"]     = {"events": events, "updated": now.isoformat()}
     if breaking_list:
         signals["breaking"] = {

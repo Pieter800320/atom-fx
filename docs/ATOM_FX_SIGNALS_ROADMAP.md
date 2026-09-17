@@ -367,6 +367,18 @@ slower-cadence `macro_assets`.
   row above.
 - **Rule #1 tier:** `rank.py` untouched, imported read-only. `scan_h1.py` is FROZEN-logic/EXTEND
   call-sites tier, same as every other addition to that file.
+- **Bugfix (2026-09-17) — `scan_news.py` was a second, silent writer.** The "safe because the
+  app only ever reads `top`... `text`/`updated` stay on `scan_news.py`'s own cadence" framing
+  above describes the *intent*, but the shipped `scan_news.py::main()` kept persisting
+  `ranked["top"]` too (from `call_ranked_analysis`'s own score-floored ranking, computed for the
+  catalyst-check call's context) — a second ~2h-cadence writer to a field only `scan_h1.py` was
+  meant to own, with no edge-trigger on that path at all. Real-world effect: a pair could
+  enter/exit/flip in `ranked.top` during a news scan with **zero notification, ever** — caught
+  live (Pieter: "5 chips appeared, no notification"), traced to `2bf1785` (a news-scan commit)
+  silently adding AUDUSD/USDCHF, with the next h1 scan seeing them as already-present and
+  correctly staying quiet. `scan_news.py` no longer writes `top` into `signals["ranked"]` (only
+  `text`/`updated`) — `scan_h1.py` is now `ranked.top`'s sole writer, matching this section's
+  original design.
 
 ---
 
