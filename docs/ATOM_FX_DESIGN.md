@@ -160,6 +160,15 @@ Four peer destinations in a **Material 3 bottom navigation bar**, and the body i
 
 ## 6. The Energy Wheel (the hero)
 
+**Superseded 2026-09-05/06/09 (the Simplification Rework) — corrected in this doc 2026-09-17.**
+Everything in §6.1–§6.9 and §6A below describes the *original* six-concentric-ring wheel plus a
+separate Currency Strength Wheel. Neither exists any more: there is one wheel, pairs-only, with
+4 selectable wings (Setup/Trend/Momentum/Volatility via the corner buttons) instead of six rings,
+and currency strength lives in the always-on `CsmBarStrip` below the wheel, not a second wheel or
+an on-dial mode (`ATOM_FX_WHEEL_V2_SPEC.md` §12 has the full rework spec; §19's component
+checklist below is current truth). Kept here, unedited, as a historical record of the original
+design rather than silently deleted — but do not build against anything in §6.1–§6A.
+
 Drawn on a Compose `Canvas`. Clean geometry, minimal text inside (spec §27, §133): only ring labels, pair nodes, pair names, potential numbers, subtle directional marks, and the central state. Everything else lives in sheets.
 
 ### 6.1 Geometry (deterministic — spec §62–§64)
@@ -337,6 +346,11 @@ they disagree.
 
 ## 11. Tradeable Now / Watch (spec §32–§34)
 
+**Retired 2026-09-04, corrected in this doc 2026-09-17.** There is no standalone pill band any
+more. That job is now the status-strip glyph row (§10's own "SUMMARY"/glyph-row supersession
+note, above) plus the wheel's own Setup wing — see §19's component checklist for current truth.
+Kept below as a historical record only.
+
 Bottom band above the nav. A horizontal **scrolling pill row**:
 - **Tradeable** (level 6 only): `EURUSD ↑ 86` pills, `bull`/`bear` tinted, ranked left→right by setup rank (ranking is separate from wheel position — spec §49). `A+` pills get a subtle brighter rim.
 - If none reach level 6: `NO A+ SETUPS` + a single muted `Closest: <pair> — Level 5/6` pill.
@@ -346,7 +360,12 @@ Bottom band above the nav. A horizontal **scrolling pill row**:
 
 ## 12. Edge panels (spec §44 style, Pieter's request)
 
-Two edge-drawn panels, summoned by an edge swipe or a header affordance; they overlay from the screen edge and dim the wheel behind.
+**Superseded — corrected in this doc 2026-09-17.** Neither panel is reached by an edge swipe any
+more. RECOMMENDATION content moved into the status-strip glyph row (§10) — there's no separate
+recommendation panel. CALENDAR is now `CalendarSheet.kt`, a regular bottom sheet opened from a
+header calendar icon (with an unread-event dot, same treatment as the gear/watchlist icons — see
+`ATOM_FX_BUILD_STATUS.md` §B "Header green dots"). Settings and Watchlist are reached the same
+icon-triggered way, as slide-in panels, not edge-swipe gestures. Kept below as a historical record.
 
 - **Left — RECOMMENDATION** (the AI nucleus, §ai): headline, action chip (`TRADE`/`WATCH`/`STAND ASIDE`), primary pair + direction, confidence, rationale (40–60 words), invalidation line, and next catalyst. Sourced from `recommendation` (architecture §6); falls back to `deep_analysis` if absent.
 - **Right — CALENDAR / EVENTS**: high-impact events (currency chip, name, time, forecast vs previous, one-line note). Pairs whose currency has an event in the next 24h are flagged here and get a subtle rim on their node (spec §44/§60 calendar behaviour).
@@ -375,11 +394,21 @@ Title, then content. Numbers tabular. No dense tables — use aligned rows and s
 
 ### 13.1 Ring → factor sheet routing
 
-Tap ring *N* → the corresponding factor sheet (§14). Tap nucleus → Regime sheet. Tap node → Pair sheet (§14.7).
+**Superseded — corrected in this doc 2026-09-17.** There are no rings to tap any more (§6's own
+notice). Current routing: tap nucleus/hub → Regime sheet (still current). Tap a pair node → Pair
+sheet (§14.7, rewritten below). Tap a currency in the `CsmBarStrip` → `CurrencyDetailSheet`. The
+six individual factor sheets in §14.1–§14.6 below no longer exist as separate tap targets —
+`BreadthSheet.kt` in particular is confirmed unreachable dead code
+(`ATOM_FX_BUILD_STATUS.md` outstanding item 11) since nothing can produce the `Ring` sheet target
+that used to route to it. Momentum/Structure content moved into the Pair sheet's own Breakdown
+tab (§14.7); Entry/Flow content was retired outright. Kept below as a historical record.
 
 ---
 
 ## 14. Bottom sheet contents (exact)
+
+**§14.1–§14.6 below are historical record, superseded — see §13.1's own notice.** Only §14.7
+(Pair sheet, rewritten 2026-09-17) reflects current behavior.
 
 Each factor sheet is a **teaching surface**: it explains that analytical layer so the user need not inspect individual pairs (spec §18). Contents below are canonical.
 
@@ -468,6 +497,17 @@ Answers "even though attractive, should I enter now?" Setup Score = frozen `rank
 
 ### 14.7 Pair sheet (spec §25–§26) — the most important surface
 
+**Rewritten 2026-09-17 to match what's actually shipped, reworked 2026-09-05/09 from the
+6-factor pass/fail WHY checklist below to 3 tabs** (`ATOM_FX_BUILD_STATUS.md` §B): **Overview**
+(5 informational consensus rows — Regime D1 / Trend H4 / Momentum H4 / Volatility D1 / Structure
+H4, real bull/bear/watch tints, no pass/fail gate glyphs any more), **Breakdown** (Momentum,
+Structure, Alignment sub-sections), **Correlation** (unchanged in spirit from the original spec
+below — correlated pairs so duplicate exposure is visible). `FlowSheet`/`BreadthSheet`/
+`EntrySheet`/`RecommendationSheet`/`CurrencyFlowSheet` are gone — deleted outright or orphaned.
+The 3-TF alignment strip and D1/H4/H1 sparkline row described below are still current. Everything
+from "Then, immediately" through the old tab list is historical record of the original spec, not
+current behavior.
+
 Header:
 ```
 EURUSD   EUR / USD
@@ -515,10 +555,24 @@ A reusable horizontally-scrollable, snap-friendly pill row used for: Tradeable N
 
 ## 17. Responsive & Android specifics (spec §43)
 
-- **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. No permanent side panels (edge panels are summoned). Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
-- **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, capped at 3, tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Setup wing (labelled "SETUP" on the wheel since 2026-09-09, internally still `WheelMode.OVERALL`; all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
+**Corrected 2026-09-17 — the "wheel sized to `min(width, height − chrome)`, screen never
+scrolls" rule below was superseded 2026-09-03 (`WheelScreen.kt`, Pieter, flagged in-code as a
+deliberate exception, never previously synced to this doc).** What actually ships: the wheel is
+sized purely from **width** (`aspectRatio(1f)`, not `min(width, height-chrome)`), staying the
+same size whether or not a taller panel is open, and the whole landing column sits in a
+`verticalScroll` as a safety net — not a designed everyday behavior. Verified on-device that this
+never actually scrolls in normal use (header, status strip, wheel, CSM strip, and D1/H4/H1 row
+all still fit in one screen); the scroll capability exists so nothing ever gets cut off or forces
+the wheel to shrink if content ever runs long, and it's also load-bearing for drag-down-to-refresh
+(2026-09-09, `PullToRefreshBox` nests inside this same scroll container). **The still-binding
+part of the original rule stands: never make the wheel itself shrink to accommodate other
+content, and the landing screen should still never *need* to scroll in practice** — if a change
+ever makes it visibly scroll on a real device, treat that as a regression to fix, not a new
+normal.
+
+- **Phone (primary), top to bottom:** header → status strip (the ranked-pairs recommendation glyph row — see below) → the wheel dial → the always-on Currency Strength Meter strip (Strength/Flow toggle) → D1/H4/H1 timeframe buttons. Settings/Watchlist/Calendar are now icon-triggered slide-in panels (§12's own notice), not edge-summoned. Wheel fits with **no horizontal scroll**; uses full dynamic viewport height minus insets; safe-area respected.
+- **There is no separate "Tradeable Now" card** (2026-09-04, Pieter's call — the standalone Tradeable Now/Watch card, and later the Strength/Potential ticker that replaced it, are both gone for good). That job is now served by two always-visible reads together: the status strip's ranked-pairs glyph row (`signals.ranked.top`, no longer count-capped since the 2026-09-17 score-floor change — see `ATOM_FX_BUILD_STATUS.md` §A — tap one to reflow open its Regime/Trend/Momentum/Volatility/Structure consensus + rank), and the wheel's own Setup wing (labelled "SETUP" on the wheel since 2026-09-09, internally still `WheelMode.OVERALL`; all 12 pairs at once, wedge size/colour = Continuation Score / Setup Band — see §20 and `ATOM_FX_WHEEL_V2_SPEC.md` §11).
 - **Tablet / landscape:** wheel ~60–65% width; a compact market summary on one side; factor summary on the other; sheets still available.
-- The wheel is always a centred square sized to `min(width, height − chrome)`.
 
 ---
 

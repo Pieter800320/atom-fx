@@ -3,6 +3,17 @@
 **Version:** 1.0 · Companion to `ATOM_FX_ARCHITECTURE.md` and `ATOM_FX_DESIGN.md`
 **Purpose:** the complete inventory of *what the app shows, where it lives, and how you reach it.* Nothing hand-wavy — every data element is placed on a specific surface with a specific component and interaction. Hand this to Claude Code alongside the architecture and design docs.
 
+**⚠ Whole-document staleness notice, added 2026-09-17.** This entire document predates the Wheel
+v2 rework and the Simplification Rework (2026-09-05/06/09) — it describes the original
+six-concentric-ring wheel, a separate Currency Strength Wheel/tab, and a 6-factor pass/fail
+pair-sheet WHY checklist, none of which exist any more. `INDEX.md` flagged this exact doc as
+known-stale on 2026-09-10 and deferred a resync that never happened; this notice and the §4 fix
+below are a partial catch-up, not a full one — §1's table, §2's nav map, §3A, and §5 below still
+describe the retired design and have **not** been individually corrected. For current truth on
+any of this, use `ATOM_FX_BUILD_STATUS.md` §B (what's actually shipped), `ATOM_FX_DESIGN.md` §19
+(current component checklist), and `GLOSSARY.md`'s "The wheel" section (corrected 2026-09-17)
+instead of trusting this document's specifics.
+
 ---
 
 ## 0. How to read this document
@@ -116,6 +127,11 @@ Everything here is answerable at a glance (the 12-question acceptance test). Top
 
 ## 3A. The Currency Strength Wheel (NEW — the `Currency` tab)
 
+**Retired 2026-09-04, corrected 2026-09-17 — this was never built as a second wheel/tab.**
+Currency strength lives in the always-on `CsmBarStrip` below the one pair wheel instead, with a
+Strength/Flow toggle. There is no `Currency` tab; the app has 3 tabs (Wheel/Home · Macro ·
+Insights). Kept below as a historical record of the original proposal.
+
 A companion radial to the pair wheel that makes **currency-level patterns** legible at a glance. It is a **pure consumer** of existing data (`csm`, `csm_delta`, `breadth`) — no new backend.
 
 **Why it exists.** A pair contains two currencies, so you cannot cleanly "group all the USDs" on the pair wheel, and its radius already means *potential*, not *strength*. The currency wheel solves that directly: one node per currency, radius = strength, so "USD weak / EUR strong" is an instant gestalt, and a whole **bloc blooming outward** reads as the market theme.
@@ -137,6 +153,15 @@ A companion radial to the pair wheel that makes **currency-level patterns** legi
 ---
 
 ## 4. The Pair sheet — the deepest surface
+
+**Superseded 2026-09-05/09, corrected 2026-09-17 — this is now a 3-tab sheet, not 7.** Reworked
+from the 6-factor pass/fail WHY checklist below to: **Overview** (5 informational consensus rows
+— Regime D1 / Trend H4 / Momentum H4 / Volatility D1 / Structure H4, real bull/bear/watch tints,
+no pass/fail gate glyphs), **Breakdown** (Momentum, Structure, Alignment sub-sections), and
+**Correlation** (§4.8 below is still roughly accurate in spirit). The Flow, Entry, and Macro tabs
+described below (§4.5, §4.6, §4.7) no longer exist as separate tabs — see
+`ATOM_FX_DESIGN.md` §14.7 (rewritten 2026-09-17) for the accurate current layout. §4.1's header
+and its 3-TF alignment strip / D1-H4-H1 line charts are still current.
 
 Opened by tapping a node. **Overview is default and already contains the "why".** Compact scrolling pill-tabs across the top: `Overview · Momentum · Structure · Flow · Entry · Macro · Correlation`.
 
@@ -169,6 +194,11 @@ Source: `potential.<PAIR>.factors` + the underlying values.
 ---
 
 ## 5. The six factor sheets (tap a ring)
+
+**Superseded — corrected 2026-09-17.** There are no rings and no per-factor sheets any more
+(`ATOM_FX_DESIGN.md` §13.1's own notice). Momentum/Structure content moved into the Pair sheet's
+Breakdown tab (§4 above); the rest was retired outright. `BreadthSheet.kt` specifically is
+confirmed unreachable dead code. Kept below as a historical record.
 
 Each teaches its analytical layer so you needn't inspect pairs one by one. Contents are canonical (full detail in Design §14). Quick map:
 

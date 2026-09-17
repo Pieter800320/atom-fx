@@ -39,16 +39,27 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   candidate. (It briefly also had an Insights-tab surface, same day — retired with the rest of
   "Whole Market Indicators" below, once this pair-level one proved to be the useful one.)
 
-## The wheels
+## The wheel
 
-- **Energy Wheel / pair wheel** — the landing wheel: 12 pairs at **fixed angles** (angle = identity),
-  **radius = Potential**, six confluence rings, factor-marker dots, nucleus, halo.
-- **Currency Strength Wheel / currency wheel** — the companion: 8 currencies at fixed angles,
-  **radius = CSM strength**, risk bloc on top, defensive bloc on bottom.
-- **Nucleus** — the pair wheel's centre: the market state (regime). Tappable → Regime/Macro sheet.
-- **Ring** — one of the six confluence levels: **1 Regime · 2 Currency Flow · 3 Breadth · 4 Momentum · 5 Structure · 6 Entry Setup** (this order, these names).
-- **Factor markers** — the six dots along a pair's radial path (R·F·B·M·S·E); bright = passed.
-- **Level** — 0–6, the count of consecutive factors a pair has passed (0 = nucleus).
+**(Updated 2026-09-17 — this section previously described the pre-Simplification-Rework wheel:
+a six-confluence-ring design with a separate Currency Strength Wheel. That design was retired
+2026-09-05/06/09; see `ATOM_FX_BUILD_STATUS.md` §B for the history if you're reading an old
+mockup or chat log that still uses the terms below this note.)**
+
+- **Energy Wheel / pair wheel** — the one landing wheel (there is no second, currency-only wheel
+  any more): 12 pairs at **fixed angles** (angle = identity, never re-ranked), wedge **radius =
+  the selected wing's value** for that pair. Four selectable wings, chosen via the 4 corner
+  buttons: **Setup** (Continuation Score, all TFs), **Trend** (ADX, fixed H4), **Momentum**
+  (H4 momentum oscillator, fixed H4), **Volatility** (ATR percentile, fixed D1).
+- **Currency strength** — has no wheel of its own and no on-dial mode on the pair wheel (both
+  retired 2026-09-04). Shown instead in the always-on `CsmBarStrip` below the wheel, with its
+  own Strength/Flow toggle.
+- **Nucleus / hub** — the wheel's centre: shows the **D1 Regime** (moved here from H4, 2026-09-09).
+- ~~Ring / Factor markers / Level~~ — the old six-confluence-factor system (R·F·B·M·S·E rings,
+  a 0–6 "level" count). Retired from the visible wheel in the Simplification Rework; the
+  underlying `Factor` enum and `PairNode.level/state/factorsPassed/blockedAt` fields still exist
+  in `WheelUiState.kt` as legacy/mostly-dead code (`factorsPassed` is still read for one glyph
+  dot color; the rest has no UI reader left) — don't build new behavior on these, use `cont`.
 
 ## Potential states
 
@@ -115,6 +126,12 @@ Terms kept here for anyone chasing old references:
 
 ## Navigation
 
-- **Bottom nav** — the four top-level tabs: **Wheel · Currency · Macro · Insights** (swipeable).
-- **Bottom sheet** — a detail surface that rises above a tab (pair sheet, factor sheets, currency detail).
-- **Tradeable Now / Watch** — the ranked pill band under the pair wheel.
+- **Bottom nav** — the three top-level tabs: **Wheel (Home) · Macro · Insights** (swipeable via
+  `HorizontalPager`). There is no separate Currency tab — currency strength lives in the
+  `CsmBarStrip` on the Wheel tab (see "The wheel", above). Corrected 2026-09-17; this previously
+  said four tabs including Currency, which hasn't existed since the 3-tab nav shipped.
+- **Bottom sheet** — a detail surface that rises above a tab (pair sheet, currency/cross-asset
+  sheet, calendar, etc.).
+- ~~Tradeable Now / Watch~~ — retired 2026-09-04. That job is now the status-strip glyph row
+  (one small glyph per pair in `signals.ranked.top`) plus the wheel's own Setup wing — there is
+  no standalone pill band any more.
