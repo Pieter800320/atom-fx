@@ -1,0 +1,13 @@
+{
+  "adx_min": 22,
+  "ema50_slope_lookback": 5,
+  "fib_min": 0.382,
+  "fib_max": 0.618,
+  "fib_invalidation": 0.786,
+  "ema50_near_atr": 1.0,
+  "swing_n_d1": 10,
+  "swing_n_h4": 5,
+  "swing_n_h1": 5,
+  "stop_buffer_atr": 0.5,
+  "min_rr": 2.0
+}
