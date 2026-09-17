@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-17T20:38:20.200477+00:00",
+  "updated": "2026-09-17T22:38:16.834926+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -10729,19 +10729,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4382.7,
+      "value": 4381.5,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.23,
+      "value": 100.24,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.612,
+      "value": 6.6145,
       "delta_pct": 2.8,
       "direction": "up",
       "label": "Copper"
@@ -10759,14 +10759,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 101.2,
-      "delta_pct": -1.2,
+      "value": 101.26,
+      "delta_pct": -1.1,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 76579.0,
-      "delta_pct": 0.6,
+      "value": 76344.0,
+      "delta_pct": 0.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -10795,12 +10795,12 @@
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 1.1,
+      "delta_pct": 1.2,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.2,
+      "delta_pct": 2.3,
       "label": "Copper"
     },
     "us10y": {
@@ -10820,7 +10820,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -0.9,
+      "delta_pct": -1.2,
       "label": "Bitcoin"
     },
     "curve": {
@@ -10830,11 +10830,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT accelerates: BoE policy divergence widens versus Fed hikes, GBP under pressure. EURUSD SHORT accelerates: Fed hike bets lift DXY, EUR weakens. USDCAD LONG neutral.",
-    "updated": "2026-09-17T20:38:20.200477+00:00"
+    "text": "GBPUSD SHORT and EURUSD SHORT accelerated by Fed hike odds lifting DXY, widening policy divergence with BoE/ECB.",
+    "updated": "2026-09-17T22:38:16.834926+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: WTI oil decline confirms CAD weakness thesis today.\n\nGBPUSD SHORT: Risk-off regime confirms sterling underperformance without specific macro driver.\n\nEURUSD SHORT: VIX decline and equity strength challenge euro bearish setup.",
+    "text": "USDCAD LONG: WTI collapse confirms CAD weakness, supports long USD setup.\n\nGBPUSD SHORT: Risk-off regime confirms short bias, no macro contradiction present.\n\nEURUSD SHORT: Risk-off favors USD strength, confirms European weakness narrative clearly.",
     "top": [
       {
         "pair": "GBPUSD",
@@ -10852,7 +10852,7 @@
         "score": 6.7
       }
     ],
-    "updated": "2026-09-17T20:38:20.200477+00:00"
+    "updated": "2026-09-17T22:38:16.834926+00:00"
   },
   "calendar": {
     "events": [
@@ -10917,7 +10917,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-17T20:38:20.200477+00:00"
+    "updated": "2026-09-17T22:38:16.834926+00:00"
   },
   "deep_analysis": {
     "text": "Risk appetite firmed as equities rallied and volatility eased sharply, yet gold's mild gain and a softer dollar index sit awkwardly against falling yields and a stronger equity tone, leaving cross-asset signals mixed rather than a clean risk-on confirmation. Bitcoin's modest advance and copper's strong bid lean constructive for growth-sensitive currencies, while oil's slip tempers commodity-bloc support. Headlines still frame the dollar around Fed hike expectations and policy divergence versus the BoE, keeping rate-path narratives central. The next major risk is US CPI, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the day.",
@@ -10926,15 +10926,15 @@
   "breaking": {
     "headlines": [
       "Fed hike bets rise as CPI takes center stage; USD strengthens",
-      "Fed-BoE policy divergence widens; DXY rallies as EUR/GBP weaken",
-      "US initial jobless claims 196K beat 208K estimate; supports Fed"
+      "Fed-BoE policy divergence widens; EUR/USD and GBP/USD weaken further",
+      "US jobless claims beat estimates at 196K versus 208K expected"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-17T20:38:20.200477+00:00"
+    "updated": "2026-09-17T22:38:16.834926+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
