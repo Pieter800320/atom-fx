@@ -47,3 +47,17 @@ file first to get current — then we plan the next experiment and hand Claude C
   is a genuinely different hypothesis — test it with train/test separation, pre-registered,
   never as a reactive tune of Strategy 1.
 - Strategy 2 and Strategy 3 from the original three-strategy set (not yet built).
+- **Breakout-and-retest (Pieter's idea, 2026-09-17).** Observation: after price breaks through
+  a level (bear case: breaks below the nearest swing low still above current price), it tends
+  to retrace back to retest exactly that broken level before continuing. Looks clearest on H4.
+  Proposed mechanism: track the most recent swing low price has closed below as an "unmitigated"
+  level; fire when price returns to touch it. `scanner/extend/swings.py`'s `find_swings`/
+  `last_swing_low`/`last_swing_high` (already on this branch, from Strategy 1) cover the level
+  detection — this is mostly reusing existing infrastructure, not new engineering. Open design
+  questions to pin down before pre-registering as an experiment: (1) **break definition** — close
+  below the level, or is a wick-only break enough; (2) **retest definition** — wick-touch fires
+  faster but noisier, a close back at/through the level is stricter; (3) **level lifecycle** — if
+  price breaks a second, lower level before ever retesting the first, does the first level stay
+  live or only the most recent one count; (4) **expiry** — does an unmitigated level go stale
+  after N bars, or stay valid indefinitely. Not pre-registered yet — do that (hypothesis, exact
+  params, pass/fail criteria) before running anything, per this file's own rule above.
