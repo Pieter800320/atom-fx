@@ -229,5 +229,14 @@ def build_recommendation(signals: dict, use_model: bool = True) -> dict | None:
         "next_catalyst": seed["next_catalyst"],
         "generated_at":  generated_at,
         "_narrated":     text.get("_narrated", False),
+        # 2026-09-17 bugfix — `bias` above is resynced to the current seed every hour
+        # regardless of whether a real narration happened, which made it useless as a
+        # "has the regime changed since we last actually said so" baseline (scan_news.py's
+        # own bias-flip trigger was comparing "now" against "now" and could never fire in
+        # the normal path). `narrated_bias` only moves when a narration actually lands —
+        # true model text, or the deterministic-fallback text carried forward unchanged —
+        # so it stays pinned to the pre-flip bias exactly while a real flip is still
+        # unreported, which is what scan_news.py needs to compare against instead of `bias`.
+        "narrated_bias": seed["bias"] if text.get("_narrated") else existing.get("narrated_bias"),
     }
     return rec

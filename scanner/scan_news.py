@@ -1194,12 +1194,16 @@ def main():
                 gold_is_new = True
 
         current_bias = _recommendation.build_seed(signals).get("bias")
-        bias_flipped = bool(prev_rec.get("bias")) and current_bias != prev_rec.get("bias")
+        # 2026-09-17 bugfix — compare against `narrated_bias` (set only when a narration
+        # actually lands), not `bias` (resynced every hour by scan_h1.py's own use_model=False
+        # call regardless of narration, which made this always compare "now" vs "now" and
+        # never fire in the normal path — see recommendation.py's own comment on the field).
+        bias_flipped = bool(prev_rec.get("narrated_bias")) and current_bias != prev_rec.get("narrated_bias")
 
         if gold_is_new:
             trigger = "gold signal"
         elif bias_flipped:
-            trigger = f"regime flip ({prev_rec.get('bias')} → {current_bias})"
+            trigger = f"regime flip ({prev_rec.get('narrated_bias')} → {current_bias})"
         elif rec_age_h >= 12:
             trigger = f"{rec_age_h:.1f}h since last narration"
         else:

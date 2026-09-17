@@ -680,6 +680,45 @@ def test_recommendation_seed_deterministic():
     assert rec["headline"] and rec["rationale"] and rec["invalidation"]
 
 
+def test_recommendation_narrated_bias_survives_hourly_reseed_across_a_flip():
+    """
+    2026-09-17 bugfix regression: `bias` is resynced to the current seed on every hourly
+    use_model=False call regardless of whether a narration happened, which made it useless as
+    scan_news.py's own "has the regime flipped since we last said so" baseline -- comparing
+    `bias` to itself always reads unchanged. `narrated_bias` must NOT move on an unnarrated
+    hourly refresh, even when the seed's own bias changes underneath it -- it should only move
+    when a narration actually lands (real model text, or a seed_unchanged carry-forward).
+    """
+    signals = {
+        "regime_h4": {"regime": "Risk-On", "confidence": "High"},
+        "potential": {"EURUSD": {"state": "tradeable", "level": 6, "direction": "bull"}},
+        "ranked": {"top": [{"pair": "EURUSD", "direction": "bull", "score": 7.3}]},
+        "gold_signal": {},
+        "calendar": {"events": []},
+        # An existing recommendation that WAS actually narrated under Risk-On.
+        "recommendation": {
+            "bias": "risk_on", "action": "trade", "primary_pair": "EURUSD", "direction": "bull",
+            "confidence": "High", "headline": "x", "rationale": "x", "invalidation": "x",
+            "next_catalyst": {}, "generated_at": "2026-09-17T00:00:00+00:00",
+            "_narrated": True, "narrated_bias": "risk_on",
+        },
+    }
+
+    # Regime flips to Risk-Off; scan_h1.py's own hourly use_model=False call fires next,
+    # before scan_news.py ever gets a chance to narrate the change.
+    signals["regime_h4"] = {"regime": "Risk-Off", "confidence": "High"}
+    rec = recommendation.build_recommendation(signals, use_model=False)
+
+    assert rec["bias"] == "risk_off"          # the number itself does update, as designed
+    assert rec["_narrated"] is False          # this was a template fallback, not a real narration
+    assert rec["narrated_bias"] == "risk_on"  # stays pinned to the pre-flip value
+
+    # scan_news.py's own gate (mirrors its inline comparison) now correctly detects the flip.
+    current_bias = recommendation.build_seed(signals)["bias"]
+    bias_flipped = bool(rec.get("narrated_bias")) and current_bias != rec.get("narrated_bias")
+    assert bias_flipped is True
+
+
 def test_recommendation_stand_aside_when_no_setups():
     signals = {
         "regime_h4": {"regime": "Ranging", "confidence": "Low"},
