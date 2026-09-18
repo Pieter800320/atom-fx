@@ -961,6 +961,40 @@ D1/H4/H1/M15, plus `percent_b_currency`): every card's grey footer renders with 
 narrowed tail, RSI's "Neutral" word, MACD's restored Signal/Histogram legend), and Currency %B's
 new header/footer/no-explainer render correctly with its own signal line still drawn.
 
+**2026-09-18 (5th) restyle — Pieter's ask, "what is the graph FOR?"** Talked through and agreed
+before any code changed (per this doc's own convention for a content decision, not a colour/
+layout one — still worth writing down here since it reshaped every footer built in the 4th pass
+above). Each card's footer now answers its own indicator's actual purpose, in words, rather than
+showing a supporting number:
+
+- **%B and RSI both ask "is this stretched or normal right now"** — %B by position within its
+  own bands, RSI by momentum velocity. %B's footer changed from the removed signal line's own
+  reading to a state word: "Stretched high"/"Stretched low" (bear/bull-tinted, off the exact
+  10/90 lines the chart already draws as dashed references — no new threshold) or "Normal range"
+  in between. New shared `percentBState` helper (`SheetComponents.kt`), used by both %B(20) and
+  Currency %B. RSI's Overbought/Oversold/Neutral footer (shipped in the 4th pass) already
+  answered this correctly — unchanged.
+- **BandWidth asks "is the market quiet or normal"** (volatility) — footer changed from
+  conditional ("In squeeze" only when true) to always-present: "Quiet (squeeze)" or "Normal".
+  Deliberately no third "Expanding" state — see `BandWidthCard`'s own doc comment
+  (`ChartSheet.kt`) for why that would need an untuned width-trend threshold this project has no
+  data to set yet, the same caution `bb_touch.py`'s own `width_trend` already flags about itself.
+- **MACD asks a genuinely different question — direction and turn, not stretch**: "which way is
+  momentum pointing, and is it building or fading." New `macdState` helper (`ChartSheet.kt`):
+  direction from the histogram's own sign (matching the bars' own bull/bear tint), "building"/
+  "fading" from a plain sign comparison of `abs(histogram)` bar-over-bar — deliberately not a
+  magnitude threshold, same reasoning as BandWidth's own restraint above.
+- **Currency %B got the same `percentBState` treatment as %B(20)**, added alongside its existing
+  %B/Signal legend rather than replacing it — that chart still draws two real lines (its own
+  signal line, unlike %B(20)'s removed one), so the legend still earns its place decoding them.
+
+Verified on-device with a deliberately constructed fixture (a quiet random walk followed by a
+sustained rally, and a second pair with an *accelerating* rally) to force each state to actually
+fire: "Stretched high" (bear-red) at %B=90, "Overbought" (bear-red) at RSI=99, "Bullish, fading"
+on a rally whose histogram was shrinking bar-over-bar, and "Bullish, building" on the
+accelerating one — all four confirmed rendering with the correct word and tint against real
+computed values, not just a passing unit test.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…

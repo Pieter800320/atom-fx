@@ -63,11 +63,20 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier
  * content, just restyled into the new footer panel). The old sentence-style explainer ("USD's own
  * %B, sign-corrected across every pair it trades...") is gone outright, not moved — Pieter's
  * explicit ask, "remove the explanatory text at the bottom completely."
+ *
+ * **2026-09-18 (3rd) — the footer also answers what this chart is FOR** (Pieter's own framing):
+ * the same "stretched or normal" question %B(20) asks, just at the currency level — is this
+ * currency itself stretched (crowded demand, or beaten down) against its own recent range. Same
+ * `percentBState` helper %B(20) uses (`SheetComponents.kt`), same 10/90 thresholds this chart's
+ * own dashed lines already draw. Unlike %B(20), the %B/Signal legend stays alongside it — this
+ * chart still draws two real lines (its own signal line is untouched, unlike %B(20)'s removed
+ * one), so the legend still earns its place decoding them.
  */
 @Composable
 fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, colors: AtomColors, modifier: Modifier = Modifier) {
     val reading = block?.line?.lastOrNull()?.let { "(12) ${it.toInt()}" } ?: "(12)"
     val hasData = block != null && block.line.isNotEmpty()
+    val state = percentBState(block?.line?.lastOrNull(), colors)
     IndicatorCard(
         name = "%B",
         reading = reading,
@@ -75,14 +84,17 @@ fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, colors: A
         modifier = modifier,
         footer = if (hasData) {
             {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    LegendItem("%B", colors.textSecondary, colors)
-                    LegendItem("Signal (SMA 12)", colors.watch, colors)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        LegendItem("%B", colors.textSecondary, colors)
+                        LegendItem("Signal (SMA 12)", colors.watch, colors)
+                    }
+                    state?.let { (word, tint) -> Text(text = word, style = AtomType.Caption.copy(color = tint)) }
                 }
             }
         } else null,
     ) {
-        if (!hasData || block == null) {
+        if (block == null || block.line.isEmpty()) {
             NotAvailableRow("$currency %B", colors)
         } else {
             PercentBOscillator(block.line, block.signal, colors, dates = block.dates)

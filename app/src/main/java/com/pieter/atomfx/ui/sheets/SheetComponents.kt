@@ -304,3 +304,23 @@ internal fun LegendItem(label: String, color: Color, colors: AtomColors) {
         Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
     }
 }
+
+/**
+ * The %B "state" read shared by both %B(20) (`ChartSheet.kt`) and Currency %B (12-period,
+ * `PercentBChart.kt`): is the value currently STRETCHED (pinned near/past one of its own band
+ * edges) or sitting in its NORMAL middle range — the actual question a %B chart exists to answer
+ * (2026-09-18, Pieter's own framing, "what is the graph FOR"), not just a supporting number.
+ *
+ * 10/90 is not a new invented threshold — it is the exact pair of dashed reference lines
+ * `PercentBOscillator` already draws on every %B chart, so the footer word and the lines on the
+ * chart itself always agree. Upper=bear/lower=bull matches the same convention already used
+ * elsewhere for a band read (the deferred 12-period pair %B card's own "touching upper/lower"
+ * wording, RSI's own overbought/oversold tint) — stretched toward the upper band reads as due a
+ * pullback (bear), stretched toward the lower band as due a bounce (bull).
+ */
+internal fun percentBState(value: Double?, colors: AtomColors): Pair<String, Color>? = when {
+    value == null -> null
+    value >= 90.0 -> "Stretched high" to colors.bear
+    value <= 10.0 -> "Stretched low" to colors.bull
+    else -> "Normal range" to colors.textMuted
+}
