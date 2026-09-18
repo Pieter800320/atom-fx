@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-18T14:00:09.901673+00:00",
+  "updated": "2026-09-18T15:00:04.612152+00:00",
   "regime_d1": {
     "regime": "Ranging",
     "confidence": "Low",
@@ -47529,69 +47529,69 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
+    "signals": -2,
+    "total": 2,
+    "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.56,
-      "delta_pct": 0.8,
+      "value": 15.47,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7637.76,
-      "delta_pct": 1.1,
-      "direction": "up",
+      "value": 7630.17,
+      "delta_pct": -0.1,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4394.6,
+      "value": 4393.4,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.55,
+      "value": 100.47,
       "delta_pct": 0.3,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6545,
-      "delta_pct": 1.0,
+      "value": 6.66,
+      "delta_pct": 1.1,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.982,
-      "delta_bp": 3.5,
-      "direction": "flat",
+      "value": 4.998,
+      "delta_bp": 5.1,
+      "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.965,
-      "delta_bp": 0.0,
+      "value": 3.978,
+      "delta_bp": 1.3,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 96.66,
-      "delta_pct": -5.2,
+      "value": 97.15,
+      "delta_pct": -4.7,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 78051.0,
-      "delta_pct": 2.2,
-      "direction": "flat",
+      "value": 80944.0,
+      "delta_pct": 5.9,
+      "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 101.7,
-      "delta_bp": 3.5,
+      "value": 102.0,
+      "delta_bp": 3.8,
       "direction": "up",
       "label": "10Y-3M"
     }
@@ -47599,17 +47599,17 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -1.8,
+      "delta_pct": -2.3,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": 0.6,
+      "delta_pct": -0.4,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -0.3,
+      "delta_pct": -0.4,
       "label": "Gold"
     },
     "dxy": {
@@ -47624,36 +47624,36 @@
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 0.7,
+      "delta_bp": 2.3,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 5.2,
+      "delta_bp": 6.5,
       "label": "US 3M"
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -3.4,
+      "delta_pct": -2.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 1.6,
+      "delta_pct": 5.3,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -4.5,
+      "delta_bp": -4.2,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT threatened: UK retail sales beat expectations; reduces BoE cut odds, supports GBP.",
-    "updated": "2026-09-18T12:38:19.596421+00:00"
+    "text": "GBPUSD SHORT invalidated: UK retail sales beat expectations, supporting GBP recovery against weakening shorts.",
+    "updated": "2026-09-18T15:00:04.612152+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: DXY rising confirms USD strength, challenging ranging regime bias.\n\nUSDCHF LONG: Risk-on low and DXY bid confirm CHF safe-haven demand simultaneously.\n\nGBPUSD SHORT: DXY rising confirms setup, but ranging regime constrains directional conviction strength.",
+    "text": "EURUSD SHORT: US 10Y strength confirms USD bid thesis clearly.\n\nGBPUSD SHORT: Rising US yields reinforce dollar strength confirmation signal.\n\nNZDUSD SHORT: Higher US rates support risk-off USD safe haven.",
     "top": [
       {
         "pair": "EURUSD",
@@ -47676,7 +47676,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-18T12:38:19.596421+00:00"
+    "updated": "2026-09-18T15:00:04.612152+00:00"
   },
   "calendar": {
     "events": [
@@ -47741,7 +47741,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-18T12:38:19.596421+00:00"
+    "updated": "2026-09-18T15:00:04.612152+00:00"
   },
   "deep_analysis": {
     "text": "Markets lean risk-on into the session, with equities firmer, VIX sharply lower, bitcoin higher, and yields easing, while gold's modest gain and flat DXY leave the safe-haven read inconclusive. This contradicts the broader H4 risk-off backdrop, suggesting sentiment is stabilizing after recent stress even as headline flow highlights building Fed hike bets and dollar strength against European currencies. Commodity-linked and risk-sensitive currencies could see support from the equity and crypto tone, though divergence with softer oil tempers enthusiasm for the dollar bloc. The next major risk is US CPI and PPI data, followed within hours by ECB, BoE, BoC and RBNZ rate decisions, all capable of resetting the dollar's near-term direction.",
@@ -47749,16 +47749,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise; USD strengthens amid Fed-BoE policy divergence widening",
-      "BoJ hike triggers yen slide; RBA adopts hawkish tilt in Asia-Pacific",
-      "UK retail sales unexpectedly rise August; department stores and non-store recovery"
+      "Fed hike bets rise; DXY strengthens as Fed-BoE policy divergence widens significantly",
+      "BOJ hike triggers yen weakness; RBA adopts hawkish tilt in Asia-Pacific",
+      "UK retail sales unexpectedly rise August; department stores and non-store sectors recover"
     ],
     "themes": [
       "rates",
       "rates",
       null
     ],
-    "updated": "2026-09-18T12:38:19.596421+00:00"
+    "updated": "2026-09-18T15:00:04.612152+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
