@@ -109,3 +109,20 @@ needs its own verification, not just a citation.
   entries; also caught and fixed the %B entry's own summary line, stale since the 20-period
   rework — it still said "D1 Bollinger Bands" while its own howItWorks correctly described the
   D1/H4/H1 20-period read).
+
+- 2026-09-18 (3rd) — the M15 Apps Script trigger went live and immediately surfaced a real
+  production bug: `scan_h1.py` rebuilds `pairs_out` fresh every run, and its
+  `attach_momentum_series`/`attach_bollinger_series` calls REPLACE each pair's whole series
+  dict (d1/h4/h1 only) — silently erasing the "m15" key `scan_m15.py` had just written on the
+  very next `scan_h1.py` run. Confirmed in production via GitHub's own commit history (a real
+  `chore: m15 scan` commit's data was gone by the following `h1 scan` commit) before being
+  fixed same-session. Fix: both `attach_*` functions take an optional `prev_pairs` argument
+  and carry the "m15" key forward; `m15_updated` (missed the first time) added to
+  `PRESERVED_KEYS`. `ATOM_FX_ARCHITECTURE.md` §4.2 and `ATOM_FX_BUILD_STATUS.md` (M15 row +
+  item 17, now resolved) both resynced same session with the full incident + fix writeup.
+  5 new regression tests, 97/97 extend suite green, Rule #1 holds. Lesson for future
+  cross-cadence keys (this file's own PRESERVED_KEYS comment already said this, and it still
+  got missed): a new key written outside `scan_h1.py`'s own run — at ANY nesting level, not
+  just top-level — needs its own explicit carry-forward path the same session it starts being
+  written, verified against a live production run, not just an isolated unit test of the
+  writer alone.

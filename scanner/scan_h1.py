@@ -82,6 +82,11 @@ PRESERVED_KEYS = (
     "catalyst", "ranked", "calendar", "week_ahead",
     "deep_analysis", "breaking", "last_alert", "gold_signal",
     "recommendation", "conviction",
+    # 2026-09-18 — caught live in production: this file's own comment above predicted this
+    # exact mistake. scan_m15.py (its own faster cadence, never invoked from here) writes
+    # this top-level timestamp; without it here, the very next scan_h1.py run silently
+    # dropped it, since `out` below only carries forward what's listed in this tuple.
+    "m15_updated",
 )
 
 
@@ -564,12 +569,18 @@ def main():
         out["currency_flow"] = _csm_delta.compute_currency_flow(csm, out["csm_delta"])
         out["breadth"]       = _breadth.compute_breadth(ohlcv)
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
-        _momentum_series.attach_momentum_series(out["pairs"], ohlcv, raw_ohlcv)  # pairs.<PAIR>.momentum_series
+        # prev.get("pairs") carries forward any "m15" key scan_m15.py wrote since our last
+        # run — this call still never computes or touches M15 data itself (see
+        # attach_momentum_series's own doc comment, momentum_series.py, for the 2026-09-18
+        # bug this fixes).
+        _momentum_series.attach_momentum_series(out["pairs"], ohlcv, raw_ohlcv, prev.get("pairs"))  # pairs.<PAIR>.momentum_series
         _bb_touch.attach_bb_d1(out["pairs"], ohlcv, raw_ohlcv)          # pairs.<PAIR>.bb_d1
         # pairs.<PAIR>.bollinger_series (2026-09-18) — the stock-standard 20-period %B/BandWidth
         # read the glance panel draws, deliberately SEPARATE from bb_d1's alert-specific
         # 12-period bands; see bollinger_series.py's own doc comment for why they coexist.
-        _bollinger_series.attach_bollinger_series(out["pairs"], ohlcv, raw_ohlcv)
+        # prev.get("pairs") — same "carry forward scan_m15.py's own m15 key" reasoning as the
+        # momentum_series call above.
+        _bollinger_series.attach_bollinger_series(out["pairs"], ohlcv, raw_ohlcv, prev.get("pairs"))
         out["percent_b_board"] = _bb_touch.compute_board_percent_b(out["pairs"])
         out["percent_b_currency"] = _bb_touch.compute_currency_percent_b(raw_ohlcv)
         out["spark"]         = _spark.compute_spark(ohlcv)

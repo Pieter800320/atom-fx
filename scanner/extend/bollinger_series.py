@@ -156,9 +156,21 @@ def bollinger_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
     return out
 
 
-def attach_bollinger_series(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:
+def attach_bollinger_series(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None,
+                             prev_pairs: dict | None = None) -> None:
     """Mutate pairs_out in place, adding a 'bollinger_series' sub-key to each pair
-    block — same pattern `attach_momentum_series`/`attach_bb_d1` already use."""
+    block — same pattern `attach_momentum_series`/`attach_bb_d1` already use.
+
+    2026-09-18 (bug found live in production, same day M15 shipped) — see
+    `attach_momentum_series`'s own doc comment (`momentum_series.py`) for the full story:
+    this function REPLACES the whole bollinger_series dict every call (d1/h4/h1 only),
+    which was silently erasing scan_m15.py's separately-written "m15" key on every
+    subsequent scan_h1.py run. `prev_pairs` (optional — `prev.get("pairs")`) carries that
+    key forward untouched; this function still never computes or touches M15 data itself."""
     for key, block in pairs_out.items():
         raw_h1_df = raw_ohlcv.get(key) if raw_ohlcv else None
-        block["bollinger_series"] = bollinger_series_for_pair(ohlcv.get(key), raw_h1_df)
+        series = bollinger_series_for_pair(ohlcv.get(key), raw_h1_df)
+        prev_m15 = ((prev_pairs or {}).get(key) or {}).get("bollinger_series", {}).get("m15")
+        if prev_m15:
+            series["m15"] = prev_m15
+        block["bollinger_series"] = series
