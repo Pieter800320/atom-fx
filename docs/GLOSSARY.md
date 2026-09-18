@@ -20,9 +20,10 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   outer bands; can read past 0 or 100, a real "walk along the band"). An SMA of %B itself, on the
   same period as the bands, is its signal line. **Two %B reads exist in this app, on purpose**
   (both real, neither superseding the other — they answer different questions):
-  - **%B (20), per-pair** — the stock-standard read, D1/H4/H1, `pairs.<PAIR>.bollinger_series.
-    <tf>.pctb`/`.pctb_sma` (`bollinger_series.py`, 2026-09-18). First card of the glance panel:
-    long-press a wheel node. This is the one to compare against a charting platform.
+  - **%B (20), per-pair** — the stock-standard read, D1/H4/H1/M15, `pairs.<PAIR>.
+    bollinger_series.<tf>.pctb`/`.pctb_sma` (`bollinger_series.py`, 2026-09-18). First card of
+    the glance panel: long-press a wheel node. This is the one to compare against a charting
+    platform. M15 (2026-09-18, 2nd) is fed by a separate, faster-cadence job — see below.
   - **%B (12), D1 only** — the **BB touch alert's** own bands (Pieter specified 12 explicitly,
     Signals Roadmap §5), `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma` (`bb_touch.py`). Its chart is
     **deferred, not deleted** (2026-09-18) pending a BB-touch-alert rework; the key is still
@@ -31,8 +32,10 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   Both build D1 on a 17:00-New-York close (retail-platform convention), **not** the UTC-midnight D1
   every other signal in the app uses — `bb_touch.py`'s own `_d1_ny_close()`, added 2026-09-10 after
   a live mismatch against LiteFinance's own %B reading. H4/H1 use the frozen aggregator's own bars.
+  M15 is a genuinely separate fetch (`scan_m15.py`, its own ~45-min cadence — Architecture §4.2),
+  not derived from H1 — it can be fresher than D1/H4/H1, or briefly lag them.
 - **BandWidth** — (upper − lower) ÷ middle × 100: how wide a pair's 20-period Bollinger bands are,
-  as a percentage of price, D1/H4/H1. `pairs.<PAIR>.bollinger_series.<tf>.bandwidth`
+  as a percentage of price, D1/H4/H1/M15. `pairs.<PAIR>.bollinger_series.<tf>.bandwidth`
   (`bollinger_series.py`, 2026-09-18) — the series form of the single number `bb_d1.width_pct`
   already reported. Second card of the glance panel: long-press a wheel node.
 - **Squeeze** — a bar whose BandWidth is the lowest in the trailing **125 bars**: John Bollinger's

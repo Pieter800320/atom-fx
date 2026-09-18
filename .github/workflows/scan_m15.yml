@@ -1,0 +1,48 @@
+name: "M15 Chart Scan"
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+# 2026-09-18 (Pieter's ask) — a genuinely separate, faster-cadence fetch feeding ONLY the
+# ChartSheet glance panel's M15 cards (pairs.<PAIR>.momentum_series.m15 /
+# .bollinger_series.m15). Never touches d1/h4/h1, never calls the frozen aggregator, never
+# feeds a score/alert/regime — scan_h1.py's own 2h cadence, fetch, and Rule #1 posture are
+# completely untouched by this workflow. See scanner/scan_m15.py's own module doc comment
+# for the full reasoning and the credit-budget math this cadence was chosen against.
+#
+# IMPORTANT — external scheduler setup still needed: this workflow is workflow_dispatch
+# only, same as scan_h1.yml/scan_news.yml — the actual trigger lives in the external Apps
+# Script scheduler, not in this repo. Whoever adds it MUST scope it to the same
+# weekday-only hours the existing scan_h1/scan_news triggers already use, at roughly a
+# 45-minute interval — a 7-day/week or more-frequent trigger burns real Twelvedata
+# credits (12 pairs/run) for no benefit on a closed weekend market, or risks tripping the
+# shared 800/day free-tier ceiling scan_h1.py also depends on.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+jobs:
+  scan_m15:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: pip install -r requirements.txt
+      - name: Run M15 chart scan
+        env:
+          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}
+        run: python -m scanner.scan_m15
+      - name: Commit data
+        # Same race-safe pattern scan_h1.yml/scan_news.yml already use (see either of
+        # their own comments for the full incident history) — this workflow writes to
+        # the same data/signals.json and can land close to either of theirs. Commit our
+        # own fresh output first, then rebase resolving any per-hunk conflict in favour
+        # of THIS run's own just-computed commit (-X theirs).
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/signals.json
+          git diff --cached --quiet || git commit -m "chore: m15 scan"
+          git pull --rebase -X theirs origin main
+          git push

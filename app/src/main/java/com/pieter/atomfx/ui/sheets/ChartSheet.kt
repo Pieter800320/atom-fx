@@ -99,8 +99,12 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
     }
 }
 
-private val TF_LABELS = listOf("D1", "H4", "H1")
-private val TF_KEYS = listOf("d1", "h4", "h1")
+// M15 added 2026-09-18 (Pieter's ask) — a genuinely separate, faster-cadence fetch
+// (scanner/scan_m15.py, its own ~45-min cadence, independent of scan_h1.py's 2h one).
+// Appended last, chronologically-coarse-to-fine, matching the wheel's own D1→H4→H1
+// convention. The default index below (1 = H4) is unaffected by the append.
+private val TF_LABELS = listOf("D1", "H4", "H1", "M15")
+private val TF_KEYS = listOf("d1", "h4", "h1", "m15")
 
 /**
  * %B — the stock-standard 20-period read (`scanner/extend/bollinger_series.py`), NOT the BB touch

@@ -22,6 +22,7 @@ from scanner.extend import bb_touch
 from scanner.extend import rotation, market_pulse
 from scanner.extend import momentum_series
 from scanner.extend import bollinger_series
+from scanner import scan_m15
 from scanner import scan_h1
 from scanner import scan_news
 from scanner import csm
@@ -803,6 +804,86 @@ def test_bollinger_series_too_little_history_fails_quiet():
     short = pd.Series([1.10 + i * 0.0001 for i in range(15)])
     assert bollinger_series._series_for(short) == bollinger_series._EMPTY
     assert bollinger_series._series_for(None) == bollinger_series._EMPTY
+
+
+# ── 2c. scan_m15 — M15 glance-panel chart scan (2026-09-18) ──────────────────────
+# A genuinely separate, faster-cadence fetch feeding ONLY momentum_series.m15/
+# bollinger_series.m15 — never d1/h4/h1, never the frozen aggregator. These lock in the
+# one thing most likely to go wrong: that merging M15 in NEVER clobbers what scan_h1.py
+# already wrote for d1/h4/h1.
+
+def _fake_m15_df(n=200, seed=11):
+    import numpy as np
+    rng = pd.date_range("2026-09-01", periods=n, freq="15min", tz="UTC")
+    closes = 1.10 + np.cumsum(np.random.default_rng(seed).normal(0, 0.0003, n))
+    return pd.DataFrame({
+        "datetime": rng.strftime("%Y-%m-%d %H:%M:%S"),
+        "open": closes, "high": closes + 0.0002, "low": closes - 0.0002, "close": closes,
+    })
+
+
+def test_m15_dates_share_index_with_close_for_series_for_alignment():
+    """momentum_series._series_for's own dates_full.tail(n) call needs a pandas object
+    sharing close's index -- this is the exact contract scan_m15._m15_dates promises."""
+    df = _fake_m15_df()
+    dates = scan_m15._m15_dates(df)
+    assert len(dates) == len(df) == len(df["close"])
+    assert hasattr(dates, "tail")  # must be a pandas Series, not a plain list
+    assert list(dates.index) == list(df["close"].index)
+    assert dates.tolist() == sorted(dates.tolist())  # oldest-first
+
+
+def test_m15_series_for_functions_produce_real_output_on_fake_m15_bars():
+    """Cross-check that momentum_series/bollinger_series's own _series_for genuinely
+    work on M15-shaped input (200 bars, 15min spacing) -- not just the d1/h4/h1 shapes
+    they were originally exercised against."""
+    df = _fake_m15_df()
+    close = df["close"].astype(float)
+    dates = scan_m15._m15_dates(df)
+
+    mom = momentum_series._series_for(close, dates)
+    assert 0 < len(mom["rsi"]) <= momentum_series.SERIES_LOOKBACK
+    assert len(mom["dates"]) == len(mom["rsi"])
+
+    boll = bollinger_series._series_for(close, dates)
+    assert 0 < len(boll["pctb"]) <= bollinger_series.SERIES_LOOKBACK
+    assert len(boll["dates"]) == len(boll["pctb"]) == len(boll["bandwidth"]) == len(boll["squeeze"])
+
+
+def test_m15_merge_never_clobbers_existing_d1_h4_h1():
+    """The exact risk this module's own doc comment calls out: merging M15 in must
+    leave scan_h1.py's own d1/h4/h1 keys byte-for-byte untouched."""
+    existing_momentum = {
+        "d1": {"dates": ["2026-09-01"], "rsi": [55.0], "macd_line": [0.001],
+               "macd_signal": [0.0005], "macd_histogram": [0.0005]},
+        "h4": {"dates": [], "rsi": [], "macd_line": [], "macd_signal": [], "macd_histogram": []},
+    }
+    existing_bollinger = {
+        "h1": {"dates": ["2026-09-01T00:00:00"], "pctb": [40.0], "pctb_sma": [42.0],
+               "bandwidth": [0.5], "squeeze": [False]},
+    }
+    block = {"momentum_series": dict(existing_momentum), "bollinger_series": dict(existing_bollinger)}
+
+    df = _fake_m15_df()
+    close = df["close"].astype(float)
+    dates = scan_m15._m15_dates(df)
+
+    # Same merge scan_m15.main()'s own loop body performs.
+    momentum = dict(block.get("momentum_series") or {})
+    momentum["m15"] = momentum_series._series_for(close, dates)
+    block["momentum_series"] = momentum
+
+    bollinger = dict(block.get("bollinger_series") or {})
+    bollinger["m15"] = bollinger_series._series_for(close, dates)
+    block["bollinger_series"] = bollinger
+
+    assert block["momentum_series"]["d1"] == existing_momentum["d1"]
+    assert block["momentum_series"]["h4"] == existing_momentum["h4"]
+    assert "m15" in block["momentum_series"] and block["momentum_series"]["m15"]["rsi"]
+
+    assert block["bollinger_series"]["h1"] == existing_bollinger["h1"]
+    assert "m15" in block["bollinger_series"] and block["bollinger_series"]["m15"]["pctb"]
+
 
 
 # ── 3. Macro regime + recommendation seed ─────────────────────────────────────────

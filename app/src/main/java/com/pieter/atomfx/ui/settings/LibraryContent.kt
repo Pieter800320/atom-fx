@@ -142,21 +142,21 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "percent-b",
         term = "%B",
         category = "Momentum & Price Action",
-        summary = "Where price sits inside its own D1 Bollinger Bands, on a 0–100 scale — 50 is the middle band, 0 and 100 are the outer bands.",
+        summary = "Where price sits inside its own Bollinger Bands, on a 0–100 scale — 50 is the middle band, 0 and 100 are the outer bands. Available on D1, H4, H1 and M15.",
         howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, using the same 12-period ±2σ D1 bands the Bollinger touch alert reads. A second line — a 12-period average of %B itself — smooths it out, the same way a signal line smooths any oscillator.\n" +
             "Can read below 0 or above 100: that means price closed outside its own bands, a real and meaningful reading, not an error.\n" +
-            "D1 here closes at 17:00 New York, matching most retail charting platforms — not UTC midnight like the app's other D1 signals — so this reads truer against a live broker chart during a fast move. H4 and H1 use the standard UTC boundaries.\n" +
+            "D1 here closes at 17:00 New York, matching most retail charting platforms — not UTC midnight like the app's other D1 signals — so this reads truer against a live broker chart during a fast move. H4 and H1 use the standard UTC boundaries. M15 runs on its own separate, faster-cadence fetch (~45 min) rather than the app's usual 2h scan, so it can lag the other three timeframes by up to that long, and vice versa.\n" +
             "Two different %B readings exist in this app, on purpose. This one is the textbook 20-period read, so it matches what any charting platform shows. The Bollinger touch alert runs on 12-period bands instead — a deliberately tighter, more sensitive setting for catching band touches, not a different formula.\n" +
-            "Shown long-press a wheel node: the first of four indicator cards, with one D1/H4/H1 row driving all four.",
+            "Shown long-press a wheel node: the first of four indicator cards, with one D1/H4/H1/M15 row driving all four.",
         whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
     ),
     LibraryEntry(
         id = "bandwidth",
         term = "BandWidth",
         category = "Momentum & Price Action",
-        summary = "How wide a pair's Bollinger Bands are, as a percentage of price — a direct read of how volatile it currently is. Available on D1, H4 and H1.",
+        summary = "How wide a pair's Bollinger Bands are, as a percentage of price — a direct read of how volatile it currently is. Available on D1, H4, H1 and M15.",
         howItWorks = "(upper band − lower band) ÷ middle band × 100, on the same standard 20-period bands %B uses, drawn as a line over time. Rising means the bands are expanding — volatility building; falling means they are converging — the market going quiet.\n" +
-            "The chart has no fixed scale, because there is no universal \"wide\" or \"narrow\": a BandWidth of 1.0 is ordinary on D1 and wide on H1, and it differs by pair too. The shape is the read, not the absolute number.\n" +
+            "The chart has no fixed scale, because there is no universal \"wide\" or \"narrow\": a BandWidth of 1.0 is ordinary on D1 and wide on H1 or M15, and it differs by pair too. The shape is the read, not the absolute number.\n" +
             "Squeeze marks — amber dots and a shaded column — flag bars where BandWidth is at its lowest in the past 125 bars. That is Bollinger's own published definition of a squeeze, not a level tuned here.",
         whyItMatters = "A squeeze says a move is being coiled, not which way it will break — that is what the direction indicators are for. It also changes how to read a band touch: a touch on expanding bands is a breakout already running, and fading it is dangerous; a touch on converging bands is the better reversal candidate.",
     ),
@@ -173,10 +173,10 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "momentum-rsi-macd",
         term = "Momentum — RSI & MACD",
         category = "Momentum & Price Action",
-        summary = "RSI (14) and MACD (12, 26, 9), each its own chart across D1, H4, or H1 — not just the single latest reading the 5-State Score already uses internally.",
+        summary = "RSI (14) and MACD (12, 26, 9), each its own chart across D1, H4, H1 or M15 — not just the single latest reading the 5-State Score already uses internally.",
         howItWorks = "Both are the same frozen Wilder-RSI and EMA-MACD the technical score already computes for every pair at every timeframe — this card only keeps a short run of past values instead of throwing them away after scoring, so they can be drawn as a line/histogram rather than read as one number. RSI: 0–100, with the standard 30/70 reference lines and a 50 centreline (the band between 30/70 shaded so a stretched reading stands out); no signal line, since plain RSI doesn't have one. MACD: the histogram (MACD line minus signal line) as bars, tinted by sign, with the MACD and signal lines themselves overlaid — the histogram gets its own vertical scale, independent of the MACD/signal lines, since a histogram (a difference of two similarly-sized series) is mathematically much smaller than either line on its own and would otherwise read flat.\n" +
-            "D1 specifically is built on the same 17:00-New-York session close the %B chart already uses (not the UTC-midnight day every other D1 signal in this app reads) — so it lines up with a retail platform's own D1 close, the same fix already applied to %B once. H4/H1 use the frozen aggregator's own UTC-boundary bars; a small remaining gap against any one specific broker's own H4/H1 candles is a different-data-vendor basis difference, not a bug.\n" +
-            "Shown long-press a wheel node: the third and fourth of four indicator cards, below %B and BandWidth, with one full-width D1/H4/H1 row driving all four together. Each chart also shows its own date labels along the bottom.",
+            "D1 specifically is built on the same 17:00-New-York session close the %B chart already uses (not the UTC-midnight day every other D1 signal in this app reads) — so it lines up with a retail platform's own D1 close, the same fix already applied to %B once. H4/H1 use the frozen aggregator's own UTC-boundary bars; a small remaining gap against any one specific broker's own H4/H1 candles is a different-data-vendor basis difference, not a bug. M15 is fetched entirely separately, on its own faster (~45 min) cadence, rather than the app's usual 2h scan — it can be fresher than D1/H4/H1, or briefly lag them, depending on when each last ran.\n" +
+            "Shown long-press a wheel node: the third and fourth of four indicator cards, below %B and BandWidth, with one full-width D1/H4/H1/M15 row driving all four together. Each chart also shows its own date labels along the bottom.",
         whyItMatters = "RSI ≥70 or ≤30 reads as a bull/bear tilt the same way a %B band touch does — stretched, due to revert, not automatically \"trend over.\" MACD's histogram crossing zero is the earliest read of a momentum shift, before price itself confirms it. Reading them as a shape over time, not a single number, shows whether a stretched reading is fresh or already fading.",
     ),
     LibraryEntry(

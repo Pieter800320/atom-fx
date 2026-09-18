@@ -84,7 +84,7 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 10       # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 11       # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).
@@ -109,3 +109,11 @@ SCHEMA_VERSION = 10       # bump whenever a key is added or a shape changes
 # 4-indicator glance panel (Design §19.4b). Deliberately NOT a re-parameterisation of bb_d1,
 # which stays 12-period and D1-only because the BB touch alert is built on it — the two read
 # different periods on purpose, see scanner/extend/bollinger_series.py's own doc comment.
+# 2026-09-18 (2nd): +pairs.<PAIR>.momentum_series.m15, +pairs.<PAIR>.bollinger_series.m15,
+# +m15_updated (all additive) — scanner/scan_m15.py, a new NEW-tier orchestrator (no frozen
+# ancestor, same shape as scan_cot.py) on its own faster cadence, feeding ONLY the ChartSheet
+# glance panel's M15 option. Deliberately does not touch d1/h4/h1 or scan_h1.py's own 144/day
+# fetch at all — see scan_m15.py's own doc comment for why M15 needed a genuinely separate
+# fetch (you cannot derive 15-minute resolution from the existing 60-minute H1 fetch) and a
+# separate cadence (Pieter wanted the M15 chart meaningfully fresher than the app's existing
+# 2h cadence, without speeding up scoring/alerts, which would be a much bigger decision).
