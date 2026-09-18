@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-18T20:00:11.304290+00:00",
+  "updated": "2026-09-18T21:00:04.577869+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -47523,51 +47523,51 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -2,
-    "total": 2,
+    "signals": -1,
+    "total": 1,
     "stable": true
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -1,
+    "signals": -3,
     "total": 3,
-    "confidence": "Low",
+    "confidence": "High",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.04,
-      "delta_pct": -2.6,
+      "value": 14.81,
+      "delta_pct": -4.1,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7642.54,
-      "delta_pct": 0.1,
+      "value": 7650.5,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4422.0,
-      "delta_pct": 0.5,
-      "direction": "up",
+      "value": 4415.6,
+      "delta_pct": 0.4,
+      "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.23,
-      "delta_pct": 0.0,
+      "value": 100.21,
+      "delta_pct": -0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.699,
-      "delta_pct": 1.7,
+      "value": 6.7145,
+      "delta_pct": 1.9,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 5.002,
-      "delta_bp": 5.5,
+      "value": 4.998,
+      "delta_bp": 5.1,
       "direction": "up",
       "label": "US 10Y"
     },
@@ -47578,20 +47578,20 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 95.6,
-      "delta_pct": -6.2,
+      "value": 95.37,
+      "delta_pct": -6.4,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80913.0,
-      "delta_pct": 5.9,
+      "value": 81138.0,
+      "delta_pct": 6.2,
       "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 102.4,
-      "delta_bp": 4.2,
+      "value": 102.0,
+      "delta_bp": 3.8,
       "direction": "up",
       "label": "10Y-3M"
     }
@@ -47599,17 +47599,17 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -5.1,
+      "delta_pct": -6.5,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": -0.2,
+      "delta_pct": -0.1,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.3,
+      "delta_pct": 0.2,
       "label": "Gold"
     },
     "dxy": {
@@ -47619,12 +47619,12 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 3.5,
+      "delta_pct": 3.8,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 2.7,
+      "delta_bp": 2.3,
       "label": "US 10Y"
     },
     "us3m": {
@@ -47634,26 +47634,26 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -4.4,
+      "delta_pct": -4.7,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 5.3,
+      "delta_pct": 5.6,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -3.8,
+      "delta_bp": -4.2,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT at risk: UK retail sales beat contradicts weakness narrative; supports GBP upside.",
-    "updated": "2026-09-18T19:00:01.995785+00:00"
+    "text": "EURUSD SHORT accelerated: Fed hike odds lifting DXY, EUR weakening under policy pressure from divergence.",
+    "updated": "2026-09-18T21:00:04.577869+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y rally confirms USD strength bias today.\n\nNZDUSD SHORT: Rising US rates support risk-off driven short setup.\n\nGBPUSD SHORT: US Treasury surge reinforces macro risk-off positioning.",
+    "text": "USDCAD LONG: Macro confirms setup via dual USD bid and CAD weakness drivers.\n\nEURUSD SHORT: Macro confirms setup through US 10Y rising supporting USD strength.\n\nNZDUSD SHORT: Macro confirms setup but limited catalyst since NZD lacks oil sensitivity.",
     "top": [
       {
         "pair": "USDCAD",
@@ -47671,7 +47671,7 @@
         "score": 6.6
       }
     ],
-    "updated": "2026-09-18T19:00:01.995785+00:00"
+    "updated": "2026-09-18T21:00:04.577869+00:00"
   },
   "calendar": {
     "events": [
@@ -47736,7 +47736,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-18T19:00:01.995785+00:00"
+    "updated": "2026-09-18T21:00:04.577869+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold's mild gain and VIX's drop point to risk-on, echoed by BTC's strong rally and steady equities, yet a firm US10Y and flat DXY keep dollar support intact, while crude's sharp slide hints at demand concerns. Headlines lean on rising Fed hike bets and dollar-supportive policy divergence against a softening BoE, framing a tug-of-war between risk appetite and rate expectations. The dollar bloc and risk-sensitive currencies face conflicting pulls into today's US CPI release, the next major catalyst likely to sharpen directional conviction after this ambiguous cross-asset session.",
@@ -47744,16 +47744,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike bets rise; USD strengthens amid Fed-BoE policy divergence",
-      "BoJ hike and RBA hawkish tilt shift Asia-Pacific dynamics",
-      "UK retail sales unexpectedly rise; inflation pressure eases in Japan"
+      "Fed hike odds lift DXY as EUR and GBP weaken significantly",
+      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
+      "BOJ hike triggers yen slide; markets reassess rate expectations"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-18T19:00:01.995785+00:00"
+    "updated": "2026-09-18T21:00:04.577869+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
