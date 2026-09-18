@@ -80,3 +80,17 @@ needs its own verification, not just a citation.
   rebase conflict-resolution flag, recommendation bias-flip trigger, notification-history race,
   signals-cache poisoning, literal-color tokens) is in `main`'s own commit history from this date
   — not duplicated here since none of them changed a spec doc's own content.
+
+- 2026-09-18 — the 4-indicator ChartSheet glance panel completed (%B-20 + BandWidth joining
+  RSI/MACD), new EXTEND module `scanner/extend/bollinger_series.py`, schema v10. Docs resynced in
+  the same session per this repo's own rule: `ATOM_FX_DESIGN.md` §19.4a (superseded banner — the
+  12-period pair %B card is deferred, not deleted, and Currency %B moved to `CurrencyDetailSheet`)
+  and §19.4b (rewritten opening + the two new indicators' spec + `ChartCommon.kt`),
+  `ATOM_FX_ARCHITECTURE.md` §4.2 (the `bollinger_series` contract, and why it is deliberately NOT a
+  re-parameterisation of `bb_touch.py`), `GLOSSARY.md` (%B split into its two real reads, new
+  BandWidth and Squeeze entries, Currency %B's new home), `ATOM_FX_BUILD_STATUS.md` (new row, three
+  amended rows, new outstanding item 16 logging the BB-touch-alert rework Pieter flagged to
+  discuss), and `LibraryContent.kt` (rewritten %B entry, new BandWidth entry, corrected placements
+  for Currency %B and RSI/MACD). One stale comment found and fixed in passing:
+  `PercentBOscillator.kt` still cited `ui/insights/PercentBBoardChart.kt` as a caller — a file
+  deleted with the Insights %B picker and absent from the repo, checked rather than assumed.

@@ -131,6 +131,16 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
             }
             ScrollingPills(pills = pills, colors = colors)
         }
+
+        // 2026-09-18 (Pieter's call) — Currency %B, at the bottom of this sheet. Moved here from
+        // ChartSheet, where it sat as a base/quote pair next to the pair's own %B; that pair %B
+        // card is now deferred, so the comparison it was placed for isn't on that sheet any more
+        // and a currency-level read belongs on the currency's own surface. Deliberately last: it
+        // is a supporting chart-shaped read, not the headline CSM/breadth answer this sheet opens
+        // with. See `PercentBChart.kt`'s own doc comment.
+        SheetDivider(colors)
+        Text(text = "%B", style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(bottom = 8.dp))
+        CurrencyPercentBCard(currency, signals.percentBCurrency[currency], colors)
     }
 }
 

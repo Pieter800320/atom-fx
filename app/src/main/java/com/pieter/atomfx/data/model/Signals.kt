@@ -153,6 +153,26 @@ data class PairBlock(
     // timeframe; a missing key (rather than an empty object) means that TF's history was too
     // short to compute — same "match the backend's null case exactly" convention bb_d1 uses.
     @SerialName("momentum_series") val momentumSeries: Map<String, MomentumSeries> = emptyMap(),
+    // 2026-09-18 (Pieter's ask) — the other half of the glance panel: stock-standard 20-period
+    // %B + a numeric BandWidth series, per timeframe. Deliberately a SEPARATE key from `bbD1`
+    // above, which stays 12-period and D1-only because the BB touch alert is built on it —
+    // `scanner/extend/bollinger_series.py`'s own doc comment has the full reasoning.
+    @SerialName("bollinger_series") val bollingerSeries: Map<String, BollingerSeries> = emptyMap(),
+)
+
+/** `pairs.<PAIR>.bollinger_series.<d1|h4|h1>` (schema v10) — see `scanner/extend/
+ *  bollinger_series.py`. `pctb`/`bandwidth`/`squeeze` are the same length and share an index;
+ *  `pctbSma` is shorter by its own 20-bar smoothing window and right-aligns under `pctb`'s tail,
+ *  the same contract `PercentBOscillator` already draws `bbD1.pctbSma` under. `squeeze` marks
+ *  bars where BandWidth is at its lowest in 125 bars (Bollinger's own published definition —
+ *  Pieter's explicit call over inventing an untuned percentile). */
+@Serializable
+data class BollingerSeries(
+    val dates: List<String> = emptyList(),
+    val pctb: List<Double> = emptyList(),
+    @SerialName("pctb_sma") val pctbSma: List<Double> = emptyList(),
+    val bandwidth: List<Double> = emptyList(),
+    val squeeze: List<Boolean> = emptyList(),
 )
 
 @Serializable

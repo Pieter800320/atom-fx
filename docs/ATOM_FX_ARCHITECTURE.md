@@ -300,8 +300,7 @@ rsi:[float,…], macd_line:[float,…], macd_signal:[float,…], macd_histogram:
 timeframe and keeps a 90-point tail (oldest-first, up from 50) instead of only the latest value
 `score.py` itself uses for scoring — genuinely new exposure, not a recompute, and no new OHLCV
 fetch (the same bars `score.py` already pulls for that pair/timeframe). First half of a planned
-4-indicator glance panel (Design §19.4b) — %B standardised to 20 periods and a numeric BandWidth
-series are the other two, deferred pending new backend work.
+4-indicator glance panel (Design §19.4b) — completed 2026-09-18 by `bollinger_series` below.
 
 **2026-09-18 fix** (Pieter's catch, "skewed vs LiteFinance"): D1 specifically now runs on
 `_d1_ny_close()`'s 17:00-NY-session D1 bars (same call §4.2's `percent_b_currency`/`pctb_dates`
@@ -315,6 +314,29 @@ D1, and from a new `scanner/extend/tf_dates.py` for H4/H1, which independently r
 timestamps the frozen aggregator discards (mirrors `aggregator.aggregate_h4()`'s own UTC-4h
 resample boundaries for H4, and `aggregator._prepare()`'s own parse/sort for H1) — the same
 "recover a date the frozen aggregator throws away" pattern `pctb_dates` already established.
+
+Per-pair `bollinger_series` is likewise added **inside the existing `pairs.<PAIR>` block**
+(2026-09-18, schema v10): `{"d1"|"h4"|"h1": {dates:[str,…], pctb:[float,…], pctb_sma:[float,…],
+bandwidth:[float,…], squeeze:[bool,…]}}`. `scanner/extend/bollinger_series.py` computes
+**standard 20-period ±2σ** Bollinger bands over the closes already fetched this scan and keeps a
+90-point oldest-first tail of three derived series: %B ((close − lower) ÷ (upper − lower) × 100,
+not clamped — a real walk along the band pierces 0/100), a 20-period SMA of %B as its signal line,
+and BandWidth ((upper − lower) ÷ middle × 100). `squeeze` marks bars where BandWidth is at its
+lowest in the trailing 125 bars (Bollinger's own published definition; a bar without a full
+lookback behind it reads `false` rather than being judged on a shorter window). `pctb`,
+`bandwidth` and `squeeze` share one index and one `dates` list; `pctb_sma` is shorter by its own
+smoothing window and right-aligns under `pctb`'s tail, the same contract `bb_d1.pctb_sma` already
+uses. Bar conventions match `momentum_series` exactly — D1 on `_d1_ny_close()`'s 17:00-New-York
+session bars, H4/H1 on the frozen aggregator's own bars, dates via `tf_dates.py`.
+
+**This is deliberately NOT a re-parameterisation of `bb_d1`.** `bb_touch.py` stays 12-period and
+D1-only because the BB touch alert is built on it and Pieter specified that 12 explicitly (Signals
+Roadmap §5); this module is the stock-standard read a chart can be compared against a retail
+platform with. The two coexist by design and must not be "unified" — changing `bb_touch.py`'s
+period to serve a chart would move an alert's own firing numbers, which is precisely the kind of
+change Rule #1's EXTEND tier exists to prevent (§3: never modify a lower tier to make a higher-tier
+feature easier). A test (`test_bollinger_series_does_not_disturb_bb_d1`) asserts `bb_d1` is
+byte-identical before and after this module runs.
 
 Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a new sub-key, so it travels with the pair (§5.3):
 ```json

@@ -1,7 +1,5 @@
 package com.pieter.atomfx.ui.chart
 
-import android.graphics.Paint
-import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,20 +12,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 
 /**
- * 2026-09-10 (Pieter's ask) — a 12-period Bollinger %B oscillator: the raw %B line, its own
- * 12-period SMA as a signal line, a centre line at 50, and dashed threshold lines at 10/90
+ * 2026-09-10 (Pieter's ask) — a Bollinger %B oscillator: the raw %B line, its own SMA as a
+ * signal line, a centre line at 50, and dashed threshold lines at 10/90
  * (tunable — Pieter is still watching real data to see which levels hold up, so these are display
  * reference lines only, not a backend gate). `line`/`signal` are oldest-first; `signal` is shorter
  * than `line` by its own smoothing window and right-aligns under `line`'s most recent points —
@@ -42,9 +33,15 @@ private val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d"
  * clutter" convention (RotationChart's own single "CSM →" label) rather than one per bar. Empty
  * or length-mismatched silently draws no date row at all — never a misaligned guess.
  *
- * Shared by the per-pair chart (`ui/sheets/PercentBChart.kt`) and the market-wide "Board %B"
- * chart (`ui/insights/PercentBBoardChart.kt`) — same drawing, different data source, so this is
- * the one place the visual actually lives (avoids two near-identical Canvas blocks drifting).
+ * Deliberately period-agnostic: it draws whatever line/signal pair it is handed. Two different
+ * band periods feed it today — ChartSheet's glance-panel %B (standard 20-period,
+ * `bollinger_series.py`) and Currency %B (12-period, `bb_touch.py`) — so each CALLER names its own
+ * period in its legend rather than this primitive assuming one. One place the visual lives, which
+ * is what stops near-identical Canvas blocks drifting apart.
+ *
+ * **Corrected 2026-09-18:** this comment used to cite `ui/insights/PercentBBoardChart.kt` as the
+ * second caller. That file was deleted outright with the Insights %B picker (Design §19.4) and
+ * does not exist anywhere in the repo — checked, not assumed.
  */
 @Composable
 fun PercentBOscillator(
@@ -100,25 +97,8 @@ fun PercentBOscillator(
             drawCircle(color = colors.watch, radius = 3.dp.toPx(), center = Offset(px(n - 1), py(signal.last())))
         }
 
-        if (hasDates) {
-            val labelPaint = Paint().apply {
-                isAntiAlias = true
-                textSize = 9.dp.toPx()
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
-                color = colors.textMuted.toArgb()
-            }
-            val nativeCanvas = drawContext.canvas.nativeCanvas
-            val labelY = padTop + plotH + dateRowHeight - 4.dp.toPx()
-            val indices = listOf(0, n / 2, n - 1)
-            indices.forEachIndexed { pos, i ->
-                val text = runCatching { LocalDate.parse(dates[i]).format(DATE_FORMAT) }.getOrNull() ?: return@forEachIndexed
-                labelPaint.textAlign = when (pos) {
-                    0 -> Paint.Align.LEFT
-                    indices.size - 1 -> Paint.Align.RIGHT
-                    else -> Paint.Align.CENTER
-                }
-                nativeCanvas.drawText(text, px(i), labelY, labelPaint)
-            }
-        }
+        // 2026-09-18 — was an inline copy of this exact loop; now the one shared helper in
+        // `ChartCommon.kt` that every glance-panel chart draws its date row with.
+        if (hasDates) drawDateRow(dates, ::px, padTop + plotH + dateRowHeight - 4.dp.toPx(), colors)
     }
 }

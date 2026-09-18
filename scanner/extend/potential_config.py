@@ -84,7 +84,7 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 9        # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 10       # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).
@@ -101,3 +101,11 @@ SCHEMA_VERSION = 9        # bump whenever a key is added or a shape changes
 # news_corroboration, +macro_regime.secondary.distinct_axes (both additive); primary's own
 # `confidence` can now read Low on a tied axis-count where it previously read Medium/High —
 # same field, materially different meaning in the tied case, flag if anything caches/diffs it.
+# (v7/v8/v9's own notes were never added to this list — v8 added pairs.<PAIR>.momentum_series,
+# v9 added its `dates` and moved D1 onto the NY 17:00 close. Recorded here for the record rather
+# than back-dated into the sequence above.)
+# 2026-09-18: +pairs.<PAIR>.bollinger_series.<d1|h4|h1> (dates/pctb/pctb_sma/bandwidth/squeeze) —
+# all additive. The stock-standard 20-period %B and a numeric BandWidth series, completing the
+# 4-indicator glance panel (Design §19.4b). Deliberately NOT a re-parameterisation of bb_d1,
+# which stays 12-period and D1-only because the BB touch alert is built on it — the two read
+# different periods on purpose, see scanner/extend/bollinger_series.py's own doc comment.

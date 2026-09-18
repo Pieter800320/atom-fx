@@ -550,6 +550,7 @@ def main():
         from scanner.extend import structure_expose as _structure_expose
         from scanner.extend import momentum_series  as _momentum_series
         from scanner.extend import bb_touch         as _bb_touch
+        from scanner.extend import bollinger_series as _bollinger_series
         from scanner.extend import spark           as _spark
         from scanner.extend import potential       as _potential
         from scanner.extend import macro_regime    as _macro_regime
@@ -565,6 +566,10 @@ def main():
         _structure_expose.attach_structure(out["pairs"], pair_scores)   # pairs.<PAIR>.structure
         _momentum_series.attach_momentum_series(out["pairs"], ohlcv, raw_ohlcv)  # pairs.<PAIR>.momentum_series
         _bb_touch.attach_bb_d1(out["pairs"], ohlcv, raw_ohlcv)          # pairs.<PAIR>.bb_d1
+        # pairs.<PAIR>.bollinger_series (2026-09-18) — the stock-standard 20-period %B/BandWidth
+        # read the glance panel draws, deliberately SEPARATE from bb_d1's alert-specific
+        # 12-period bands; see bollinger_series.py's own doc comment for why they coexist.
+        _bollinger_series.attach_bollinger_series(out["pairs"], ohlcv, raw_ohlcv)
         out["percent_b_board"] = _bb_touch.compute_board_percent_b(out["pairs"])
         out["percent_b_currency"] = _bb_touch.compute_currency_percent_b(raw_ohlcv)
         out["spark"]         = _spark.compute_spark(ohlcv)
