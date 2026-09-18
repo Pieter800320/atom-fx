@@ -52,7 +52,7 @@ fun PercentBOscillator(
     modifier: Modifier = Modifier,
 ) {
     if (line.size < 2) {
-        Box(modifier = modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = modifier.fillMaxWidth().height(BASE_CHART_HEIGHT), contentAlignment = Alignment.Center) {
             Text(text = "Not available yet", style = AtomType.Body.copy(color = colors.textMuted))
         }
         return
@@ -60,12 +60,11 @@ fun PercentBOscillator(
 
     val n = line.size
     val hasDates = dates.size == n
-    val chartHeight = if (hasDates) 178.dp else 160.dp
 
-    Canvas(modifier = modifier.fillMaxWidth().height(chartHeight)) {
+    Canvas(modifier = modifier.fillMaxWidth().height(chartHeight(hasDates))) {
         val padTop = 10f
         val padBottom = 10f
-        val dateRowHeight = if (hasDates) 18.dp.toPx() else 0f
+        val dateRowHeight = if (hasDates) DATE_ROW_HEIGHT.toPx() else 0f
         val plotH = size.height - padTop - padBottom - dateRowHeight
         fun py(v: Double): Float = (padTop + (1.0 - v.coerceIn(0.0, 100.0) / 100.0) * plotH).toFloat()
 
@@ -82,10 +81,19 @@ fun PercentBOscillator(
             moveTo(px(0), py(line[0]))
             for (i in 1 until n) lineTo(px(i), py(line[i]))
         }
-        drawPath(linePath, color = colors.textSecondary, style = Stroke(width = 1.5.dp.toPx()))
-        drawCircle(color = colors.textSecondary, radius = 3.dp.toPx(), center = Offset(px(n - 1), py(line.last())))
+        // 2026-09-18 (Pieter's restyle ask) — white, matching every other glance-panel line;
+        // was textSecondary (a grey).
+        drawPath(linePath, color = colors.textPrimary, style = Stroke(width = 1.5.dp.toPx()))
+        val endpoint = Offset(px(n - 1), py(line.last()))
+        // 2026-09-18 — glow to match RSI/MACD/BandWidth's own endpoint treatment; %B was the one
+        // chart still missing it.
+        glowDot(endpoint, colors.textPrimary, 8.dp.toPx())
+        drawCircle(color = colors.textPrimary, radius = 3.dp.toPx(), center = endpoint)
 
         // signal is shorter than line by its own smoothing window — right-align under line's tail.
+        // 2026-09-18 (Pieter's restyle ask) — ChartSheet's own %B(20) card no longer passes a
+        // signal series at all (empty list), so this branch only still fires for Currency %B
+        // (CurrencyDetailSheet), which keeps its own signal line untouched.
         if (signal.size >= 2) {
             val offset = n - signal.size
             val signalPath = Path().apply {

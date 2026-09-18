@@ -92,13 +92,14 @@ fun BandWidthChart(
             moveTo(px(0), py(values[0]))
             for (i in 1 until n) lineTo(px(i), py(values[i]))
         }
-        // The line itself takes the watch tint only when the CURRENT bar is a squeeze — the same
-        // "colour the line by its latest state" rule `RsiOscillator` uses for overbought/oversold,
-        // so a glance at any panel chart answers "is it stretched/quiet right now?" the same way.
-        val squeezedNow = hasSqueeze && squeeze.last()
-        val lineColor = if (squeezedNow) colors.watch else colors.textSecondary
-        drawPath(path, color = lineColor, style = Stroke(width = 1.2.dp.toPx()))
+        // 2026-09-18 (Pieter's restyle ask, 2nd) — always white, matching every other
+        // glance-panel line. Was watch-tinted whenever the current bar was a squeeze; the
+        // shaded column + dots below already carry that read on their own.
+        drawPath(path, color = colors.textPrimary, style = Stroke(width = 1.2.dp.toPx()))
 
+        // Squeeze markers stay watch-tinted — they're an annotation on top of the line (which
+        // bars/bars are a 125-bar low), not the line's own reading, so they keep their own colour
+        // even though the line itself no longer changes colour.
         if (hasSqueeze) {
             squeeze.forEachIndexed { i, flagged ->
                 if (flagged) drawCircle(color = colors.watch, radius = 2.dp.toPx(), center = Offset(px(i), py(values[i])))
@@ -106,8 +107,8 @@ fun BandWidthChart(
         }
 
         val endpoint = Offset(px(n - 1), py(values.last()))
-        glowDot(endpoint, lineColor, 8.dp.toPx())
-        drawCircle(color = lineColor, radius = 3.dp.toPx(), center = endpoint)
+        glowDot(endpoint, colors.textPrimary, 8.dp.toPx())
+        drawCircle(color = colors.textPrimary, radius = 3.dp.toPx(), center = endpoint)
 
         if (hasDates) drawDateRow(dates, ::px, padTop + plotH + dateRowHeight - 4.dp.toPx(), colors)
     }

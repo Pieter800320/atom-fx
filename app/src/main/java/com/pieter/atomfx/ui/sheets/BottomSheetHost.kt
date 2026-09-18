@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -66,7 +67,16 @@ fun BottomSheetHost(
     onNavigate: (SheetTarget) -> Unit,
     onOpenReading: (ReadingTarget) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // 2026-09-18 (Pieter's ask) — ChartSheet's own tall, scrollable glance panel made an
+    // accidental swipe-to-scroll dismiss the whole sheet instead. confirmValueChange gates only
+    // gesture/state-machine-driven transitions (drag, sheetState.hide()) — it does NOT gate
+    // onDismissRequest below (back-press, scrim tap both still call onDismiss directly, untouched)
+    // — so this blocks just the flick-dismiss, not every way out. ChartSheet's own "Close" text
+    // is the new explicit way to leave it.
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { newValue -> !(target is SheetTarget.Chart && newValue == SheetValue.Hidden) },
+    )
     val maxSheetHeight = (LocalConfiguration.current.screenHeightDp * MAX_SHEET_HEIGHT_FRACTION).dp
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -90,7 +100,7 @@ fun BottomSheetHost(
                     if (node != null) PairSheet(node, wheelState.nodes, signals, colors)
                 }
 
-                is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors)
+                is SheetTarget.Chart -> ChartSheet(target.pair, signals, colors, onClose = onDismiss)
                 is SheetTarget.Currency -> CurrencyDetailSheet(target.code, signals, colors, onPairClick = { onNavigate(SheetTarget.Node(it)) })
                 is SheetTarget.CrossAsset -> CrossAssetSheet(target.id, signals, colors)
             }

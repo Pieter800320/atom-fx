@@ -21,7 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.BollingerSeries
 import com.pieter.atomfx.data.model.MomentumSeries
@@ -32,6 +35,7 @@ import com.pieter.atomfx.ui.chart.PercentBOscillator
 import com.pieter.atomfx.ui.chart.RsiOscillator
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import com.pieter.atomfx.ui.theme.pressWash
 
 // Same card shape/fill Pair sheet's own Spark3Row cards use.
 private val CARD_SHAPE = RoundedCornerShape(14.dp)
@@ -47,12 +51,10 @@ private val EXTRA_RISE = 50.dp
  *
  * **2026-09-18 — the glance panel is now complete and this sheet holds only it.** Pieter's own
  * four standard indicators, "each gives one a different view on a certain market dimension," all
- * driven by one shared D1/H4/H1 row: **%B** (where price sits in its bands), **BandWidth** (how
- * wide those bands are), **RSI** (momentum extremity) and **MACD** (momentum direction/turn).
- * %B and BandWidth complete the set; RSI/MACD shipped first (2026-09-17) so the visual result
- * could be judged before the rest was built.
+ * driven by one shared D1/H4/H1/M15 row: **%B** (where price sits in its bands), **BandWidth**
+ * (how wide those bands are), **RSI** (momentum extremity) and **MACD** (momentum direction/turn).
  *
- * Two things moved OFF this sheet in the same change, both Pieter's call:
+ * Two things moved OFF this sheet in an earlier change, both Pieter's call:
  *
  * - **The pair's own 12-period D1 %B card is deferred, not discarded.** It is the chart of the BB
  *   *touch alert's* own bands (`bb_touch.py`, 12-period by Pieter's explicit spec), a different
@@ -61,24 +63,49 @@ private val EXTRA_RISE = 50.dp
  *   (`PercentBChart.kt`) are both left intact and untouched — Pieter has a BB-touch-alert rework
  *   to discuss, and that is where this card is expected to come back.
  * - **The base/quote Currency %B cards moved to `CurrencyDetailSheet`**, at the bottom, one card
- *   on each currency's own sheet. They were added here (2026-09-10) so a "is USD stretched?" read
- *   sat next to the pair's own %B; with the pair %B card deferred, the comparison they existed
- *   for isn't on this sheet any more, and a currency-level read belongs on the currency's own
- *   surface. That is now Currency %B's only UI surface.
+ *   on each currency's own sheet. A currency-level read belongs on the currency's own surface,
+ *   not this pair-specific one; that is now Currency %B's only UI surface.
+ *
+ * **2026-09-18 (2nd) restyle — Pieter's ask, "let them all look similar."** Every card now shares
+ * one visual template: a black plot area (`colors.ground`) with a grey header strip
+ * (`colors.surfaceRaised` — the same "frame" grey the app's own card/grouping surfaces already
+ * use elsewhere, e.g. Tradeable Now) reading `[name in white][period/reading, smaller and grey]`.
+ * Every line across every chart is white now, except MACD's own signal line (still `watch`) — RSI
+ * no longer tints bull/bear, %B's own SMA signal line is gone entirely (BandWidth's squeeze
+ * dots/column keep their `watch` tint; they're an annotation on the line, not the line itself).
+ * %B's threshold-line treatment (plain dashed 10/90 + solid 50, no shading) is now RSI's too — the
+ * shaded 30/70 band it used to have is gone. This sheet also can no longer be swipe-dismissed
+ * (`BottomSheetHost.kt`'s own `confirmValueChange`) — a tall scrollable panel made an accidental
+ * swipe-to-scroll dismiss the whole sheet; a "Close" text (top right, next to the pair name) is
+ * the explicit way out now, back-press/scrim-tap still work as before.
  *
  * Every chart reads its series straight from `signals.json` — no on-device indicator math
  * (Architecture §8.3). `pair` is always a plain 6-char code throughout this app.
  */
 @Composable
-fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
-    // Hoisted above every card — one D1/H4/H1 choice drives all four indicators together.
+fun ChartSheet(pair: String, signals: Signals, colors: AtomColors, onClose: () -> Unit) {
+    // Hoisted above every card — one D1/H4/H1/M15 choice drives all four indicators together.
     var tf by remember { mutableIntStateOf(1) } // H4 default, matching the CSM strip's own default
     val tfKey = TF_KEYS[tf]
     val momentum = signals.pairs[pair]?.momentumSeries.orEmpty()[tfKey]
     val bollinger = signals.pairs[pair]?.bollingerSeries.orEmpty()[tfKey]
 
+    val haptics = LocalHapticFeedback.current
     Column(modifier = Modifier.fillMaxWidth()) {
-        SheetTitle(pair, colors)
+        SheetTitle(
+            pair,
+            colors,
+            trailingContent = {
+                Text(
+                    text = "Close",
+                    style = AtomType.Body.copy(color = colors.textSecondary),
+                    modifier = Modifier.pressWash {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClose()
+                    }.padding(horizontal = 4.dp, vertical = 4.dp),
+                )
+            },
+        )
 
         // 2026-09-18 (Pieter's restyle ask) — a bare full-width row, equal thirds, no card
         // wrapper of its own; same look HOME's own D1/H4/H1 row has below the wheel.
@@ -90,7 +117,7 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors) {
             onSelect = { tf = it },
         )
 
-        PercentBCard(pair, bollinger, colors, modifier = Modifier.padding(top = 10.dp))
+        PercentBCard(bollinger, colors, modifier = Modifier.padding(top = 10.dp))
         BandWidthCard(bollinger, colors, modifier = Modifier.padding(top = 10.dp))
         RsiCard(momentum, colors, modifier = Modifier.padding(top = 10.dp))
         MacdCard(momentum, colors, modifier = Modifier.padding(top = 10.dp))
@@ -110,28 +137,20 @@ private val TF_KEYS = listOf("d1", "h4", "h1", "m15")
  * %B — the stock-standard 20-period read (`scanner/extend/bollinger_series.py`), NOT the BB touch
  * alert's own 12-period bands; see this file's own doc comment for why the two coexist. Same
  * `PercentBOscillator` drawing every %B chart in the app shares.
+ *
+ * 2026-09-18 (2nd, Pieter's restyle ask) — the pair name is gone from this card's own header
+ * (the sheet's own title already names the pair, right above); the signal (SMA) line is gone too
+ * (an empty list is passed for it — see `PercentBOscillator`'s own doc comment) — %B is now a
+ * single white line, endpoint glowing to match the other three charts.
  */
 @Composable
-private fun PercentBCard(pair: String, series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    IndicatorCard(colors, modifier) {
-        // Same "identity primary, reading secondary" split the currency cards use — the pair is
-        // this card's own identity, the %B number a supporting reading, so they don't read as one
-        // run (Pieter's ask, 2026-09-17).
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = pair, style = AtomType.Body.copy(color = colors.textPrimary))
-            Text(
-                text = "%B (20)" + (series?.pctb?.lastOrNull()?.let { " ${it.toInt()}" } ?: ""),
-                style = AtomType.Caption.copy(color = colors.textSecondary),
-            )
-        }
+private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
+    val reading = series?.pctb?.lastOrNull()?.let { "(20) ${it.toInt()}" } ?: "(20)"
+    IndicatorCard(name = "%B", reading = reading, colors = colors, modifier = modifier) {
         if (series == null || series.pctb.isEmpty()) {
             NotAvailableRow("Bollinger %B", colors)
         } else {
-            PercentBOscillator(series.pctb, series.pctbSma, colors, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LegendItem("%B", colors.textSecondary, colors)
-                LegendItem("Signal (SMA 20)", colors.watch, colors)
-            }
+            PercentBOscillator(series.pctb, emptyList(), colors, dates = series.dates)
         }
     }
 }
@@ -140,30 +159,26 @@ private fun PercentBCard(pair: String, series: BollingerSeries?, colors: AtomCol
  * BandWidth — the volatility view: how wide the same 20-period bands are, as a series rather than
  * `bb_d1`'s single `width_pct` number plus an expanding/converging word. Squeeze bars (lowest
  * BandWidth in 125 bars, Bollinger's own definition) are flagged by the backend and marked on the
- * chart; the header says so in words when the current bar is one.
+ * chart; the header's trailing badge says so in words when the current bar is one.
  */
 @Composable
 private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    IndicatorCard(colors, modifier) {
-        val squeezedNow = series?.squeeze?.lastOrNull() == true
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = "BandWidth", style = AtomType.Body.copy(color = colors.textPrimary))
-                Text(
-                    text = series?.bandwidth?.lastOrNull()?.let { "%.2f%%".format(java.util.Locale.US, it) } ?: "",
-                    style = AtomType.Caption.copy(color = colors.textSecondary),
-                )
-            }
-            if (squeezedNow) {
-                Text(text = "In squeeze", style = AtomType.Body.copy(color = colors.watch))
-            }
-        }
+    val squeezedNow = series?.squeeze?.lastOrNull() == true
+    val reading = series?.bandwidth?.lastOrNull()?.let { "%.2f%%".format(java.util.Locale.US, it) }
+    IndicatorCard(
+        name = "BandWidth",
+        reading = reading,
+        colors = colors,
+        modifier = modifier,
+        headerTrailing = if (squeezedNow) {
+            { Text(text = "In squeeze", style = AtomType.Caption.copy(color = colors.watch)) }
+        } else null,
+    ) {
         if (series == null || series.bandwidth.isEmpty()) {
             NotAvailableRow("BandWidth", colors)
         } else {
-            BandWidthChart(series.bandwidth, colors, squeeze = series.squeeze, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
+            BandWidthChart(series.bandwidth, colors, squeeze = series.squeeze, dates = series.dates)
             Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LegendItem("BandWidth", colors.textSecondary, colors)
                 LegendItem("Squeeze (125-bar low)", colors.watch, colors)
             }
         }
@@ -171,35 +186,33 @@ private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier
 }
 
 /**
- * RSI (14). 2026-09-17 (Pieter's ask); restyled 2026-09-18 into its own card. Driven by
- * [ChartSheet]'s own shared D1/H4/H1 row, not a picker of its own.
+ * RSI (14). 2026-09-17 (Pieter's ask); restyled 2026-09-18 into its own card, and again
+ * 2026-09-18 (2nd) to match %B's own threshold-line/white-line template exactly. Driven by
+ * [ChartSheet]'s own shared D1/H4/H1/M15 row, not a picker of its own.
  */
 @Composable
 private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    IndicatorCard(colors, modifier) {
-        Text(
-            text = "RSI (14)" + (series?.rsi?.lastOrNull()?.let { " ${it.toInt()}" } ?: ""),
-            style = AtomType.Body.copy(color = colors.textPrimary),
-        )
+    val reading = series?.rsi?.lastOrNull()?.let { "(14) ${it.toInt()}" } ?: "(14)"
+    IndicatorCard(name = "RSI", reading = reading, colors = colors, modifier = modifier) {
         if (series == null || series.rsi.isEmpty()) {
             NotAvailableRow("RSI", colors)
         } else {
-            RsiOscillator(series.rsi, colors, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
+            RsiOscillator(series.rsi, colors, dates = series.dates)
         }
     }
 }
 
-/** MACD sibling to [RsiCard] — see that card's own doc comment. */
+/** MACD sibling to [RsiCard] — see that card's own doc comment. Its own signal line is the one
+ * line in the whole glance panel that stays `watch`-tinted rather than going white (Pieter's
+ * restyle ask) — MACD is the one chart with two overlaid lines that need telling apart. */
 @Composable
 private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    IndicatorCard(colors, modifier) {
-        Text(text = "MACD (12, 26, 9)", style = AtomType.Body.copy(color = colors.textPrimary))
+    IndicatorCard(name = "MACD", reading = "(12, 26, 9)", colors = colors, modifier = modifier) {
         if (series == null || series.macdHistogram.isEmpty()) {
             NotAvailableRow("MACD", colors)
         } else {
-            MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, dates = series.dates, modifier = Modifier.padding(top = 8.dp))
+            MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, dates = series.dates)
             Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LegendItem("MACD", colors.textPrimary, colors)
                 LegendItem("Signal", colors.watch, colors)
                 LegendItem("Histogram", colors.bull, colors)
             }
@@ -207,14 +220,38 @@ private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modi
     }
 }
 
-/** The one card shell all four glance-panel indicators share — same surface/shape/padding, so
- * they read as one panel rather than four separately-styled charts. */
+/**
+ * The one card shell all four glance-panel indicators share (2026-09-18, 2nd — Pieter's ask,
+ * "let them all look similar"): a grey header strip (`colors.surfaceRaised`, the same "frame"
+ * grey the app's own card/grouping surfaces use elsewhere) holding `[name][reading]`, above a
+ * black plot area (`colors.ground`) — same two-tone "window" every card in this panel now uses.
+ * `headerTrailing` is the one per-card escape hatch (BandWidth's "In squeeze" badge).
+ */
 @Composable
-private fun IndicatorCard(colors: AtomColors, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = modifier.fillMaxWidth().background(colors.surfaceRaised, CARD_SHAPE).padding(horizontal = 14.dp, vertical = 14.dp),
-        content = content,
-    )
+private fun IndicatorCard(
+    name: String,
+    colors: AtomColors,
+    reading: String? = null,
+    modifier: Modifier = Modifier,
+    headerTrailing: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(modifier = modifier.fillMaxWidth().clip(CARD_SHAPE).background(colors.ground)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(text = name, style = AtomType.Body.copy(color = colors.textPrimary))
+                if (reading != null) {
+                    Text(text = reading, style = AtomType.Caption.copy(color = colors.textSecondary))
+                }
+            }
+            headerTrailing?.invoke()
+        }
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp), content = content)
+    }
 }
 
 @Composable

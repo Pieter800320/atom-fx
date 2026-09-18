@@ -870,6 +870,50 @@ Two things worth knowing about reading the M15 cards once data exists:
   visible 90-point tail has a full 125-bar squeeze lookback behind it, unlike D1's own ~208-bar
   total history (§19.4b's BandWidth note above still applies to D1 specifically).
 
+**2026-09-18 (3rd) restyle — Pieter's ask, "let them all look similar."** Every glance-panel card
+now shares one visual template instead of four independently-evolved looks:
+
+- **Two-tone card.** A grey header strip (`colors.surfaceRaised` — the same "frame" grey the
+  app's own card/grouping surfaces already use elsewhere, e.g. Tradeable Now) reading
+  `[name, white, Body]  [period/reading, smaller, grey, Caption]`, above a black plot area
+  (`colors.ground`). `ui/sheets/ChartSheet.kt::IndicatorCard` — one shell, four callers.
+- **Identity moved up.** The pair name is gone from the %B card's own header (the sheet's own
+  title already names the pair, directly above) — %B's header now reads just `%B (20) 74`.
+- **Thresholds unified, %B the template.** RSI's shaded 30/70 band is gone; RSI's dashed-line
+  treatment now matches %B's exactly (plain dashed reference lines + solid centreline, no fill).
+- **Every line is white**, except MACD's own signal line (`watch`, unchanged — MACD is the one
+  chart with two overlaid lines that need telling apart). RSI no longer tints bull/bear at
+  overbought/oversold — the 30/70 dashed lines already carry that read, tinting the line on top
+  was one signal too many. BandWidth's line no longer tints `watch` when the current bar is a
+  squeeze either — its own squeeze dots/column keep their `watch` tint (an annotation on the
+  line, not the line's own reading).
+- **%B's own signal (SMA) line is gone** from this card specifically — an empty list is passed
+  to the shared `PercentBOscillator` rather than the real `pctbSma` series (that primitive stays
+  period-agnostic and un-changed in shape; Currency %B, a different sheet, still passes its own
+  signal series and still shows it). %B is a single white line now, endpoint glowing to match
+  the other three charts (it was the one chart still missing that treatment).
+- **M15 date bug fixed.** The shared date-row helper (`ui/chart/ChartCommon.kt::drawDateRow`)
+  tried `LocalDate.parse` on every date string — correct for D1/H4/H1's plain dates, but M15's
+  own dates (`scan_m15.py`'s `_m15_dates()`) are full ISO datetimes with a time component, which
+  that parse throws on. The failure was caught and silently swallowed, so every M15 chart's date
+  row was rendering nothing at all — not a crash, just quietly empty. Fixed: a bare date is tried
+  first; a datetime falls through to a clock-time label instead (`HH:mm`), converted UTC → the
+  device's own timezone via the same `atZone(UTC).withZoneSameInstant(systemDefault())` pattern
+  every other UTC timestamp in this app already uses (MainActivity's header clock,
+  InsightsScreen, SessionsSheet) — not a new convention.
+- **Legend rows trimmed.** %B's legend (which only ever explained %B vs. its now-removed signal
+  line) and BandWidth's/MACD's own "this is the main line" entries are gone — a plain white line
+  needs no legend when the card's own header already names it, the same reasoning RSI's card
+  (which never had a legend) already followed. BandWidth keeps its "Squeeze" entry; MACD keeps
+  "Signal"/"Histogram" — those are still colour-coded reads that need explaining.
+- **Sheet no longer swipe-dismissible.** `BottomSheetHost.kt`'s `confirmValueChange` blocks the
+  drag-to-hidden transition specifically for `SheetTarget.Chart` — this panel's own tall,
+  scrollable content made an accidental swipe-to-scroll dismiss the whole sheet. Back-press and
+  scrim-tap are a *separate* dismiss path (`onDismissRequest`, untouched) and still work exactly
+  as before; a new "Close" text (top right, next to the pair name, `SheetTitle`'s own
+  `trailingContent` slot, haptic on tap) is the explicit way out. Verified on-device: a fast
+  flick-down no longer dismisses the sheet (it scrolls the content instead), back-press and the
+  new Close text both still do.
 
 ---
 
