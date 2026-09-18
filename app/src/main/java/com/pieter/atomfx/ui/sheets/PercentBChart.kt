@@ -14,6 +14,7 @@ import com.pieter.atomfx.data.model.PercentBBoardBlock
 import com.pieter.atomfx.ui.chart.PercentBOscillator
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
+import kotlin.math.roundToInt
 
 /**
  * 2026-09-10 (Pieter's ask) — the per-pair Bollinger %B oscillator over `bb_touch.py`'s own
@@ -78,7 +79,11 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier
  */
 @Composable
 fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val reading = block?.line?.lastOrNull()?.let { "(12) ${it.toInt()}" } ?: "(12)"
+    // Bug fix 2026-09-18 (audit) — .toInt() truncates toward zero rather than rounding, so a
+    // value like 89.7 displayed as "89". .roundToInt() rounds to nearest, matching what a reader
+    // expects "the value" to mean; percentBState (the footer text) already reads the raw
+    // un-rounded value, so this only changes the header number, never the footer's judgment.
+    val reading = block?.line?.lastOrNull()?.let { "(12) ${it.roundToInt()}" } ?: "(12)"
     IndicatorCard(
         name = "%B",
         reading = reading,

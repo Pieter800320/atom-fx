@@ -27,6 +27,7 @@ import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 // Pieter, 2026-09-06 — "let the sheet come up slightly higher, maybe 8mm": ModalBottomSheet sizes
 // itself to content (BottomSheetHost's own doc comment), so there's no separate "sheet height" to
@@ -160,7 +161,12 @@ private val TF_KEYS = listOf("d1", "h4", "h1", "m15")
  */
 @Composable
 private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val reading = series?.pctb?.lastOrNull()?.let { "(20) ${it.toInt()}" } ?: "(20)"
+    // Bug fix 2026-09-18 (audit) — .toInt() TRUNCATES toward zero, not rounds, so a value
+    // like 89.7 displayed as "89" instead of the correct "90" (a systematic downward bias,
+    // since every value here is positive). .roundToInt() rounds to nearest, matching what a
+    // reader actually expects "the value" to mean. The footer state (percentBState) already
+    // reads the raw un-rounded value directly, so this display fix doesn't touch that logic.
+    val reading = series?.pctb?.lastOrNull()?.let { "(20) ${it.roundToInt()}" } ?: "(20)"
     IndicatorCard(
         name = "%B",
         reading = reading,
@@ -231,7 +237,8 @@ private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier
  */
 @Composable
 private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val reading = series?.rsi?.lastOrNull()?.let { "(14) ${it.toInt()}" } ?: "(14)"
+    // Bug fix 2026-09-18 (audit) — see PercentBCard's own comment on the same .toInt() issue.
+    val reading = series?.rsi?.lastOrNull()?.let { "(14) ${it.roundToInt()}" } ?: "(14)"
     val last = series?.rsi?.lastOrNull()
     val state: Pair<String, Color>? = when {
         last == null -> null
@@ -297,12 +304,24 @@ private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modi
  * caution `BandWidthCard`'s own doc comment gives for not inventing a width-trend threshold.
  * Needs at least 2 histogram points for the building/fading half; falls back to direction alone
  * when there's only 1.
+ *
+ * **Bug fixed 2026-09-18 (audit)** — a bar where the sign just flipped (the previous bar was
+ * the opposite direction) used to fall through to the plain `abs(last) > abs(prev)` comparison
+ * too, which compares the tail end of the OLD direction's own strength against the start of the
+ * NEW one — two unrelated numbers. That could read "fading" at the exact moment a fresh cross
+ * forms, the single most significant MACD event and the one time "building" is obviously the
+ * right word (the histogram is, by definition, moving away from zero in a brand-new direction).
+ * A sign flip now always reads "building"; the magnitude comparison only applies when both bars
+ * agree on direction, where "shrinking back toward zero vs. growing away from it" is a
+ * meaningful comparison in the first place.
  */
-private fun macdState(histogram: List<Double>, colors: AtomColors): Pair<String, Color>? {
+internal fun macdState(histogram: List<Double>, colors: AtomColors): Pair<String, Color>? {
     val last = histogram.lastOrNull() ?: return null
     val direction = if (last >= 0.0) "Bullish" to colors.bull else "Bearish" to colors.bear
     val momentum = if (histogram.size >= 2) {
-        if (abs(last) > abs(histogram[histogram.size - 2])) "building" else "fading"
+        val prev = histogram[histogram.size - 2]
+        val justCrossed = (last >= 0.0) != (prev >= 0.0)
+        if (justCrossed || abs(last) > abs(prev)) "building" else "fading"
     } else null
     val text = if (momentum != null) "${direction.first}, $momentum" else direction.first
     return text to direction.second
