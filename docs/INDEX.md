@@ -152,3 +152,12 @@ needs its own verification, not just a citation.
   "%B" section label in `CurrencyDetailSheet.kt` removed too. `ATOM_FX_DESIGN.md` §19.4b,
   `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s four affected entries resynced same
   session.
+
+- 2026-09-18 (6th) — glance-panel footers reworked to answer "what is the graph FOR" (Pieter's
+  ask, agreed per card before any code changed): %B/RSI both ask "stretched or normal" (new
+  shared `percentBState` helper, reused by Currency %B); BandWidth asks "quiet or normal"
+  (always-present state word, no invented "Expanding" state); MACD asks "which way, building or
+  fading" (new `macdState` helper, sign comparison only, no tuned threshold). `ATOM_FX_DESIGN.md`
+  §19.4b, `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s four affected entries resynced
+  same session. Verified on-device with a fixture built specifically to force each state
+  (a sustained rally vs. an accelerating one, to separate "fading" from "building").

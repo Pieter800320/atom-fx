@@ -28,6 +28,7 @@ import com.pieter.atomfx.ui.chart.RsiOscillator
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
+import kotlin.math.abs
 
 // Pieter, 2026-09-06 — "let the sheet come up slightly higher, maybe 8mm": ModalBottomSheet sizes
 // itself to content (BottomSheetHost's own doc comment), so there's no separate "sheet height" to
@@ -76,6 +77,18 @@ private val EXTRA_RISE = 50.dp
  * existing legends moved into it rather than floating unstyled below the chart; %B and RSI, which
  * had nothing there before, each gained one useful reading of their own (see each card's own doc
  * comment for why that specific one).
+ *
+ * **2026-09-18 (4th) — Pieter's ask, "what is the graph FOR?"** Talked through before building,
+ * per card: %B and RSI both ask "is this stretched or normal right now" (position-in-band vs.
+ * momentum-velocity); BandWidth asks "is the market quiet or normal" (volatility); MACD asks
+ * "which way is momentum pointing, and is it building or fading" — a genuinely different,
+ * directional question, not a stretched/normal one. Every footer now answers its own card's
+ * question directly, in words, rather than showing a bare supporting number: %B's footer became
+ * "Stretched high/low"/"Normal range" (was the removed signal line's own reading); BandWidth's
+ * became "Quiet (squeeze)"/"Normal" (was conditional, only shown when squeezed); MACD's gained
+ * "Bullish/Bearish, building/fading" alongside its existing legend; RSI's Overbought/Oversold/
+ * Neutral was already the right answer, unchanged. See each card's own doc comment for the exact
+ * thresholds — all reused from what the chart already draws, nothing new invented.
  *
  * Every chart reads its series straight from `signals.json` — no on-device indicator math
  * (Architecture §8.3). `pair` is always a plain 6-char code throughout this app.
@@ -141,20 +154,22 @@ private val TF_KEYS = listOf("d1", "h4", "h1", "m15")
  * (an empty list is passed for it — see `PercentBOscillator`'s own doc comment) — %B is now a
  * single white line, endpoint glowing to match the other three charts.
  *
- * 2026-09-18 (3rd) — the footer shows that removed signal's own reading as plain text (no dot —
- * nothing on the chart is that colour any more), so the number the line used to carry is still
- * one glance away even though the line itself isn't drawn.
+ * **2026-09-18 (4th) — the footer answers what %B is actually FOR** (Pieter's own framing,
+ * talked through before building): not a supporting number, but whether price is currently
+ * *stretched* (pinned near/past one of its own bands) or in its *normal* middle range. See
+ * `percentBState`'s own doc comment (`SheetComponents.kt`) for the exact thresholds — the same
+ * 10/90 dashed lines already drawn on this chart, nothing new invented.
  */
 @Composable
 private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
     val reading = series?.pctb?.lastOrNull()?.let { "(20) ${it.toInt()}" } ?: "(20)"
-    val signalReading = series?.pctbSma?.lastOrNull()?.let { "Signal (SMA 20) ${it.toInt()}" }
+    val state = percentBState(series?.pctb?.lastOrNull(), colors)
     IndicatorCard(
         name = "%B",
         reading = reading,
         colors = colors,
         modifier = modifier,
-        footer = signalReading?.let { text -> { Text(text = text, style = AtomType.Caption.copy(color = colors.textSecondary)) } },
+        footer = state?.let { (word, tint) -> { Text(text = word, style = AtomType.Caption.copy(color = tint)) } },
     ) {
         if (series == null || series.pctb.isEmpty()) {
             NotAvailableRow("Bollinger %B", colors)
@@ -170,10 +185,15 @@ private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier:
  * BandWidth in 125 bars, Bollinger's own definition) are flagged by the backend and marked on the
  * chart.
  *
- * 2026-09-18 (3rd) — the "In squeeze" live-state word moved out of the header's trailing slot and
- * into the footer, next to the "Squeeze" legend it was always paired with in spirit — every
- * glance-panel card's live-state word now lives in the same place (the footer), not split between
- * two different spots depending on which card you're looking at.
+ * **2026-09-18 (4th) — the footer answers what BandWidth is actually FOR**: is the market
+ * currently *quiet* (a squeeze — bands compressed, a move may be coiling) or in its *normal*
+ * state. Always one or the other now (was conditional — "In squeeze" only appeared when true,
+ * nothing otherwise), matching RSI's own "always says something" footer. Deliberately NOT a third
+ * "Expanding" state — that would need a new width-trend threshold this project has no tuned value
+ * for yet (the same caution `bb_touch.py`'s own `width_trend` already flags about itself); the
+ * squeeze flag is backend-computed, not invented here, so it's the one state this footer can
+ * claim honestly. The "Squeeze" legend (left) still explains the amber dots/column on the chart;
+ * the state word (right) is the new purpose-answer.
  */
 @Composable
 private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
@@ -189,14 +209,13 @@ private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier
             {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     LegendItem("Squeeze (125-bar low)", colors.watch, colors)
-                    if (squeezedNow) {
-                        Text(text = "In squeeze", style = AtomType.Caption.copy(color = colors.watch))
-                    }
+                    val (word, tint) = if (squeezedNow) "Quiet (squeeze)" to colors.watch else "Normal" to colors.textMuted
+                    Text(text = word, style = AtomType.Caption.copy(color = tint))
                 }
             }
         } else null,
     ) {
-        if (!hasData || series == null) {
+        if (series == null || series.bandwidth.isEmpty()) {
             NotAvailableRow("BandWidth", colors)
         } else {
             BandWidthChart(series.bandwidth, colors, squeeze = series.squeeze, dates = series.dates)
@@ -243,12 +262,18 @@ private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modif
  * MACD sibling to [RsiCard] — see that card's own doc comment. Its own signal line is the one
  * line in the whole glance panel that stays `watch`-tinted rather than going white (Pieter's
  * restyle ask) — MACD is the one chart with two overlaid lines that need telling apart. The
- * Signal/Histogram legend (2026-09-18, 3rd) now lives in the footer rather than floating
- * unstyled below the chart, same as every other card's own footer.
+ * Signal/Histogram legend (2026-09-18, 3rd) lives in the footer rather than floating unstyled
+ * below the chart, same as every other card's own footer.
+ *
+ * **2026-09-18 (4th) — the footer answers what MACD is actually FOR**, a genuinely different
+ * question from the other three cards: not "is this stretched," but "which way is momentum
+ * pointing, and is it building or fading" — see [macdState]'s own doc comment for the exact read.
  */
 @Composable
 private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
-    val hasData = series != null && series.macdHistogram.isNotEmpty()
+    val histogram = series?.macdHistogram
+    val hasData = !histogram.isNullOrEmpty()
+    val state = histogram?.let { macdState(it, colors) }
     IndicatorCard(
         name = "MACD",
         reading = "(12, 26, 9)",
@@ -256,17 +281,41 @@ private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modi
         modifier = modifier,
         footer = if (hasData) {
             {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    LegendItem("Signal", colors.watch, colors)
-                    LegendItem("Histogram", colors.bull, colors)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                        LegendItem("Signal", colors.watch, colors)
+                        LegendItem("Histogram", colors.bull, colors)
+                    }
+                    state?.let { (word, tint) -> Text(text = word, style = AtomType.Caption.copy(color = tint)) }
                 }
             }
         } else null,
     ) {
-        if (!hasData || series == null) {
+        if (series == null || series.macdHistogram.isEmpty()) {
             NotAvailableRow("MACD", colors)
         } else {
             MacdOscillator(series.macdLine, series.macdSignal, series.macdHistogram, colors, dates = series.dates)
         }
     }
+}
+
+/**
+ * MACD's own "what is this graph for" read (2026-09-18, Pieter's own framing, talked through
+ * before building): direction from the histogram's own sign (same bull/bear convention the bars
+ * themselves are already tinted with — positive = MACD above signal = bullish momentum), plus
+ * whether that momentum is *building* or *fading* — the absolute histogram value growing away
+ * from zero vs. shrinking back toward it, bar over bar. Deliberately a plain sign comparison
+ * (`abs(last) > abs(prev)`), not a magnitude threshold — no new tuned number invented, the same
+ * caution `BandWidthCard`'s own doc comment gives for not inventing a width-trend threshold.
+ * Needs at least 2 histogram points for the building/fading half; falls back to direction alone
+ * when there's only 1.
+ */
+private fun macdState(histogram: List<Double>, colors: AtomColors): Pair<String, Color>? {
+    val last = histogram.lastOrNull() ?: return null
+    val direction = if (last >= 0.0) "Bullish" to colors.bull else "Bearish" to colors.bear
+    val momentum = if (histogram.size >= 2) {
+        if (abs(last) > abs(histogram[histogram.size - 2])) "building" else "fading"
+    } else null
+    val text = if (momentum != null) "${direction.first}, $momentum" else direction.first
+    return text to direction.second
 }
