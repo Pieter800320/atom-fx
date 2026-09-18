@@ -49,13 +49,9 @@ fun RsiOscillator(values: List<Double>, colors: AtomColors, dates: List<String> 
         val stepX = size.width / (n - 1)
         fun px(i: Int): Float = i * stepX
 
-        // Pieter's restyle ask — "the area between the thresholds can be darker."
-        drawRect(
-            color = colors.scrim.copy(alpha = 0.35f),
-            topLeft = Offset(0f, py(70.0)),
-            size = Size(size.width, py(30.0) - py(70.0)),
-        )
-
+        // 2026-09-18 (Pieter's restyle ask, 2nd — "%B is the template") — the shaded band
+        // between 30/70 is gone; dashed-line-only now matches %B's own threshold treatment
+        // exactly, so every glance-panel chart's reference lines look the same.
         val dash = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 5.dp.toPx()))
         listOf(30.0, 70.0).forEach { threshold ->
             drawLine(colors.hairlineStrong, Offset(0f, py(threshold)), Offset(size.width, py(threshold)), strokeWidth = 1.dp.toPx(), pathEffect = dash)
@@ -66,20 +62,13 @@ fun RsiOscillator(values: List<Double>, colors: AtomColors, dates: List<String> 
             moveTo(px(0), py(values[0]))
             for (i in 1 until n) lineTo(px(i), py(values[i]))
         }
-        // Overbought/oversold reads as a bear/bull tilt (>=70 stretched up, due to revert; <=30
-        // stretched down) — same "upper touch = bear, lower touch = bull" convention ChartSheet's
-        // own %B touch colouring already uses, so the two charts agree on what a stretched
-        // reading means.
-        val last = values.last()
-        val lineColor = when {
-            last >= 70.0 -> colors.bear
-            last <= 30.0 -> colors.bull
-            else -> colors.textSecondary
-        }
-        drawPath(path, color = lineColor, style = Stroke(width = 1.2.dp.toPx()))
-        val endpoint = Offset(px(n - 1), py(last))
-        glowDot(endpoint, lineColor, 8.dp.toPx())
-        drawCircle(color = lineColor, radius = 3.dp.toPx(), center = endpoint)
+        // 2026-09-18 (Pieter's restyle ask, 2nd) — always white, matching every other
+        // glance-panel line. Was bear/bull-tinted at >=70/<=30; the 30/70 dashed lines
+        // already carry that read, tinting the line itself on top was one signal too many.
+        drawPath(path, color = colors.textPrimary, style = Stroke(width = 1.2.dp.toPx()))
+        val endpoint = Offset(px(n - 1), py(values.last()))
+        glowDot(endpoint, colors.textPrimary, 8.dp.toPx())
+        drawCircle(color = colors.textPrimary, radius = 3.dp.toPx(), center = endpoint)
 
         if (hasDates) drawDateRow(dates, ::px, padTop + plotH + dateRowHeight - 4.dp.toPx(), colors)
     }

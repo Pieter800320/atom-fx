@@ -126,3 +126,16 @@ needs its own verification, not just a citation.
   just top-level — needs its own explicit carry-forward path the same session it starts being
   written, verified against a live production run, not just an isolated unit test of the
   writer alone.
+
+- 2026-09-18 (4th) — glance-panel visual unification (Pieter's ask, "let them all look
+  similar"): one two-tone card shell across %B/BandWidth/RSI/MACD, %B/RSI's threshold-line
+  styling unified, every line white except MACD's own signal line, %B's signal line removed
+  from this card, %B's endpoint now glows, and a real bug fixed in the same pass — M15's date
+  row was silently rendering nothing (`LocalDate.parse` throwing on M15's full-datetime
+  strings, the failure swallowed) — now falls through to a device-local clock-time label.
+  ChartSheet can no longer be swipe-dismissed; a new "Close" text is the explicit way out,
+  back-press/scrim-tap untouched. `ATOM_FX_DESIGN.md` §19.4b and `ATOM_FX_BUILD_STATUS.md`
+  resynced same session. Also fixed in passing: `LibraryContent.kt`'s %B entry still opened
+  with "12-period ±2σ D1 bands" — stale since the 20-period rework, contradicting its own
+  later sentence, never caught until this pass touched the same paragraph; RSI's entry still
+  described the shaded 30/70 band this restyle removed.

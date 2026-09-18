@@ -12,6 +12,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.ui.theme.AtomColors
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -29,6 +32,9 @@ import java.util.Locale
 internal val BASE_CHART_HEIGHT = 168.dp
 internal val DATE_ROW_HEIGHT = 18.dp
 internal val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
+// M15's own dates (scan_m15.py's _m15_dates) are full ISO datetimes, not plain dates — a
+// separate clock-time format for that case, below.
+internal val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
 
 internal fun chartHeight(hasDates: Boolean): Dp =
     if (hasDates) BASE_CHART_HEIGHT + DATE_ROW_HEIGHT else BASE_CHART_HEIGHT
@@ -46,6 +52,27 @@ internal fun DrawScope.glowDot(center: Offset, color: Color, radiusPx: Float) {
     drawContext.canvas.nativeCanvas.drawCircle(center.x, center.y, radiusPx, paint)
 }
 
+/**
+ * One bar's own date label — D1/H4/H1's dates are plain calendar dates ("2026-09-18"), M15's are
+ * full ISO datetimes ("2026-09-18T14:30:00", scan_m15.py's own `_m15_dates()`). Tried as a plain
+ * date first (the common case); a datetime falls through to a clock-time label instead, converted
+ * UTC -> the device's own timezone — the same `atZone(UTC).withZoneSameInstant(systemDefault())`
+ * conversion every other UTC timestamp in this app already goes through (MainActivity's header
+ * clock, InsightsScreen, SessionsSheet) — not a new convention.
+ *
+ * **2026-09-18 fix (Pieter's catch, "would M15 require TIME?") — yes.** `LocalDate.parse` on an
+ * M15 datetime string throws (no bare-date format matches a string with a time component); the
+ * old code caught that, returned null, and silently skipped the label — every M15 chart was
+ * drawing its date row with nothing in it, not a crash, just quietly empty.
+ */
+private fun formatDateLabel(raw: String): String? =
+    runCatching { LocalDate.parse(raw).format(DATE_FORMAT) }.getOrNull()
+        ?: runCatching {
+            LocalDateTime.parse(raw).atZone(ZoneOffset.UTC)
+                .withZoneSameInstant(ZoneId.systemDefault())
+                .format(TIME_FORMAT)
+        }.getOrNull()
+
 /** Three sparse date labels (oldest/middle/newest) below the plot — same convention and layout
  * `PercentBOscillator.kt` already uses, rather than one label per bar. */
 internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labelY: Float, colors: AtomColors) {
@@ -59,7 +86,7 @@ internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labe
     val nativeCanvas = drawContext.canvas.nativeCanvas
     val indices = listOf(0, n / 2, n - 1)
     indices.forEachIndexed { pos, i ->
-        val text = runCatching { LocalDate.parse(dates[i]).format(DATE_FORMAT) }.getOrNull() ?: return@forEachIndexed
+        val text = formatDateLabel(dates[i]) ?: return@forEachIndexed
         labelPaint.textAlign = when (pos) {
             0 -> Paint.Align.LEFT
             indices.size - 1 -> Paint.Align.RIGHT
