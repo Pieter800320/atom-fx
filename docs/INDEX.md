@@ -169,3 +169,13 @@ needs its own verification, not just a citation.
   direct consequence. `ATOM_FX_DESIGN.md` §19.4b, `ATOM_FX_BUILD_STATUS.md`, and
   `LibraryContent.kt`'s five affected entries resynced same session. Verified on-device against
   the same purpose-built fixture as the previous pass.
+
+- 2026-09-18 (8th) — two small, unrelated UI asks: RSI's dashed reference lines now draw at the
+  same pixel height as %B's own (new shared `THRESHOLD_LINE_LOW`/`_HIGH`, `ChartCommon.kt`, 10/90
+  — RSI's real 30/70 threshold is untouched everywhere it actually matters, the value line and
+  Overbought/Oversold footer state both still read it correctly; only the two drawn lines moved);
+  and `CurrencyDetailSheet` reordered to Conviction · Breadth (H4) · Expressed By · Drivers (was
+  Breadth · Conviction · Drivers · Expressed By). `ATOM_FX_DESIGN.md` (§19.4b's own restyle
+  history, the sheet-inventory table, and the §20 acceptance-test mention — the inventory line
+  was also missing Conviction from its list entirely, caught in the same pass),
+  `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s RSI entry resynced same session.
