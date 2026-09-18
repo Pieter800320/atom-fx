@@ -138,8 +138,11 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
         // and a currency-level read belongs on the currency's own surface. Deliberately last: it
         // is a supporting chart-shaped read, not the headline CSM/breadth answer this sheet opens
         // with. See `PercentBChart.kt`'s own doc comment.
+        //
+        // 2026-09-18 (2nd) — the outer "%B" section-header caption (matching DRIVERS/EXPRESSED
+        // BY's own label convention above) is gone: once the card itself got its own makeover
+        // (grey header strip reading "%B (12) <value>"), that outer label just duplicated it.
         SheetDivider(colors)
-        Text(text = "%B", style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(bottom = 8.dp))
         CurrencyPercentBCard(currency, signals.percentBCurrency[currency], colors)
     }
 }

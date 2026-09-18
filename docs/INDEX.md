@@ -139,3 +139,16 @@ needs its own verification, not just a citation.
   with "12-period ±2σ D1 bands" — stale since the 20-period rework, contradicting its own
   later sentence, never caught until this pass touched the same paragraph; RSI's entry still
   described the shaded 30/70 band this restyle removed.
+
+- 2026-09-18 (5th) — glance-panel footer uniformity + Currency %B's own makeover (Pieter's ask,
+  "every chart should have some sort of info at the bottom" and "give the currency %B 12 graph
+  the same makeover"). `IndicatorCard`/`LegendItem` moved from `ChartSheet.kt` to
+  `SheetComponents.kt` (shared across two files now, same "don't let two copies drift"
+  reasoning as `ChartCommon.kt`'s own extraction). New footer content: %B shows its removed
+  signal line's own reading as text, RSI spells out Overbought/Oversold/Neutral in words,
+  BandWidth's and MACD's existing legends restyled into the new footer panel. Currency %B
+  (`PercentBChart.kt`, `CurrencyDetailSheet`) got the identical card shell, its currency-code
+  header dropped, its old sentence-style explainer removed outright, and a now-redundant outer
+  "%B" section label in `CurrencyDetailSheet.kt` removed too. `ATOM_FX_DESIGN.md` §19.4b,
+  `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s four affected entries resynced same
+  session.

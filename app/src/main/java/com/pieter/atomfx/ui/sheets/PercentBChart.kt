@@ -1,19 +1,13 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.BbD1
 import com.pieter.atomfx.data.model.PercentBBoardBlock
@@ -50,7 +44,9 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier
 /**
  * A single currency's own `percent_b_currency` read — its %B sign-corrected across every pair it
  * trades, not just one (see `bb_touch.compute_currency_percent_b`'s own doc comment for why the
- * quote-side mirror matters). Same `PercentBOscillator` drawing as every other %B chart.
+ * quote-side mirror matters). Same `PercentBOscillator` drawing as every other %B chart, and
+ * (2026-09-18, unlike ChartSheet's own %B(20) card) still draws its own real signal line — that
+ * removal was specific to the glance panel, not asked for here.
  *
  * Lives at the bottom of `CurrencyDetailSheet` as of 2026-09-18 (Pieter's call). It was
  * introduced on `ChartSheet` (2026-09-10) as a base/quote pair, sitting next to the pair's own %B
@@ -58,39 +54,38 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier
  * pair %B card was deferred, the comparison it existed for wasn't on that sheet any more, and a
  * currency-level read belongs on the currency's own surface. This is Currency %B's only UI
  * surface.
+ *
+ * **2026-09-18 (2nd) — "the same makeover" (Pieter's own words) as ChartSheet's own four cards**:
+ * the shared `IndicatorCard` shell (`SheetComponents.kt`) — black plot area, grey header strip
+ * reading `%B (12) <value>` (the currency code dropped, the exact same reasoning that dropped the
+ * pair name from ChartSheet's %B card — `CurrencyDetailSheet`'s own title already names the
+ * currency, directly above this card), and a grey footer holding the %B/Signal legend (unchanged
+ * content, just restyled into the new footer panel). The old sentence-style explainer ("USD's own
+ * %B, sign-corrected across every pair it trades...") is gone outright, not moved — Pieter's
+ * explicit ask, "remove the explanatory text at the bottom completely."
  */
 @Composable
 fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, colors: AtomColors, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        if (block == null || block.line.isEmpty()) {
+    val reading = block?.line?.lastOrNull()?.let { "(12) ${it.toInt()}" } ?: "(12)"
+    val hasData = block != null && block.line.isNotEmpty()
+    IndicatorCard(
+        name = "%B",
+        reading = reading,
+        colors = colors,
+        modifier = modifier,
+        footer = if (hasData) {
+            {
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    LegendItem("%B", colors.textSecondary, colors)
+                    LegendItem("Signal (SMA 12)", colors.watch, colors)
+                }
+            }
+        } else null,
+    ) {
+        if (!hasData || block == null) {
             NotAvailableRow("$currency %B", colors)
-            return@Column
+        } else {
+            PercentBOscillator(block.line, block.signal, colors, dates = block.dates)
         }
-        // 2026-09-17 (Pieter's ask) — "NZD %B 14" read as one run; the currency code (the card's
-        // own identity) and the %B reading (a supporting number, not the headline) split into two
-        // styles so they're visually distinct, the same "identity primary, reading secondary"
-        // pairing MetricCell's label/value split uses elsewhere.
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = currency, style = AtomType.Body.copy(color = colors.textPrimary))
-            Text(text = "%B ${block.line.last().toInt()}", style = AtomType.Caption.copy(color = colors.textSecondary))
-        }
-        PercentBOscillator(block.line, block.signal, colors, dates = block.dates, modifier = Modifier.padding(top = 8.dp))
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            LegendItem("%B", colors.textSecondary, colors)
-            LegendItem("Signal (SMA 12)", colors.watch, colors)
-        }
-        Text(
-            text = "$currency's own %B, sign-corrected across every pair it trades — not just one.",
-            style = AtomType.Caption.copy(color = colors.textMuted),
-            modifier = Modifier.padding(top = 6.dp),
-        )
-    }
-}
-
-@Composable
-private fun LegendItem(label: String, color: Color, colors: AtomColors) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(modifier = Modifier.padding(top = 3.dp).size(8.dp).background(color, CircleShape))
-        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
     }
 }
