@@ -915,6 +915,52 @@ now shares one visual template instead of four independently-evolved looks:
   flick-down no longer dismisses the sheet (it scrolls the content instead), back-press and the
   new Close text both still do.
 
+**2026-09-18 (4th) restyle — Pieter's ask, "every chart should have some sort of info at the
+bottom, for uniformity," plus the same card makeover for Currency %B.**
+
+- **`IndicatorCard` (`SheetComponents.kt`) gained a `footer` slot** — a third, grey
+  (`surfaceRaised`) strip below the black plot area, matching the header's own treatment. Moved
+  here from `ChartSheet.kt` (where it started) once `PercentBChart.kt`'s Currency %B card needed
+  the identical shell too — same "second file needed it, don't let two copies drift" reasoning
+  `ChartCommon.kt`'s own extraction already established. `LegendItem` moved alongside it, folding
+  in what had been two near-identical `private` copies.
+- **BandWidth and MACD's existing legends moved into the new footer** (were floating, unstyled,
+  directly below the chart) — content unchanged. BandWidth's "In squeeze" live-state word also
+  moved out of the header's trailing slot into the footer, next to its own "Squeeze" legend —
+  every card's live-state word now lives in the same place, not split between two different spots
+  depending on which card you're looking at.
+- **%B and RSI, which had no footer at all before, each gained one:**
+  - %B's footer shows the removed signal line's own reading as plain text — "Signal (SMA 20)
+    68" — no dot (nothing on the chart is that colour any more), just the number the line used to
+    carry, still one glance away.
+  - RSI's footer spells out the same overbought/oversold/neutral read the 30/70 dashed lines
+    already show visually, in words — "Overbought"/"Oversold" (bear/bull-tinted, the same
+    upper-is-bear/lower-is-bull convention the deferred 12-period %B card's own "touching"
+    wording and BandWidth's squeeze already agree on) or "Neutral" (muted) when in the 30–70
+    band — always present, never blank, so every card's footer is genuinely always there.
+- **Currency %B (`PercentBChart.kt::CurrencyPercentBCard`, `CurrencyDetailSheet`) got "the same
+  makeover"** (Pieter's own words): the identical `IndicatorCard` shell — black plot area, grey
+  header reading `%B (12) <value>` (the currency code dropped, same reasoning that dropped the
+  pair name from ChartSheet's own %B card — `CurrencyDetailSheet`'s own title already names the
+  currency, directly above), grey footer holding the existing %B/Signal(SMA 12) legend. The old
+  sentence-style explainer ("USD's own %B, sign-corrected across every pair it trades...") is
+  gone outright, not moved — Pieter's explicit ask. The redundant outer "%B" section-header
+  caption `CurrencyDetailSheet.kt` printed above the card (matching its DRIVERS/EXPRESSED BY
+  convention) is also gone — once the card's own header said "%B", that outer label just
+  duplicated it. Unlike ChartSheet's own %B(20) card, Currency %B's chart is otherwise untouched
+  — it still draws its own real signal line (12-period, `PercentBOscillator`'s own signal
+  parameter, still period-agnostic and unchanged in shape); that line's removal was specific to
+  the glance panel, never asked for here.
+- Every chart's own date/time row (`ChartCommon.kt::drawDateRow`) stays exactly where it always
+  was — inside the chart's own black Canvas, not moved into either grey strip (Pieter's explicit
+  "keep the dates/times on the black background piece").
+
+Verified on-device against a full synthetic fixture (real `_series_for` output across
+D1/H4/H1/M15, plus `percent_b_currency`): every card's grey footer renders with real content
+(%B's Signal reading, BandWidth's Squeeze legend + a genuine squeeze catching a deliberately
+narrowed tail, RSI's "Neutral" word, MACD's restored Signal/Histogram legend), and Currency %B's
+new header/footer/no-explainer render correctly with its own signal line still drawn.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…

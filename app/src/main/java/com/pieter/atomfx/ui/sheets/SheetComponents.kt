@@ -5,17 +5,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -238,5 +242,65 @@ fun SheetTabs(tabs: List<String>, selected: Int, colors: AtomColors, onSelect: (
                 )
             }
         }
+    }
+}
+
+// 2026-09-18 — the shell every %B/BandWidth/RSI/MACD glance-panel card shares (ChartSheet.kt),
+// and (2026-09-18, 2nd) Currency %B's own card (PercentBChart.kt) too, once it got "the same
+// makeover" (Pieter's own words). Moved here from ChartSheet.kt when a second file needed it —
+// same reasoning ChartCommon.kt's own extraction doc comment gives: the alternative was a second
+// copy drifting out of step.
+private val INDICATOR_CARD_SHAPE = RoundedCornerShape(14.dp)
+
+/**
+ * A two-tone "window" card: a grey header strip (`colors.surfaceRaised` — the same "frame" grey
+ * the app's own card/grouping surfaces already use elsewhere, e.g. Tradeable Now) reading
+ * `[name, white][reading, smaller grey]`, a black plot area (`colors.ground`) for [content], and
+ * (2026-09-18, 2nd — Pieter's ask, "every chart should have some sort of info at the bottom, for
+ * uniformity") an optional matching grey footer strip below it. [headerTrailing] and [footer] are
+ * both plain composable slots — each caller builds whatever row/text makes sense inside (a
+ * dot-legend, a single reading, a state word), rather than this shell imposing one fixed layout
+ * on content that doesn't all take the same shape.
+ */
+@Composable
+internal fun IndicatorCard(
+    name: String,
+    colors: AtomColors,
+    reading: String? = null,
+    modifier: Modifier = Modifier,
+    headerTrailing: (@Composable () -> Unit)? = null,
+    footer: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(modifier = modifier.fillMaxWidth().clip(INDICATOR_CARD_SHAPE).background(colors.ground)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(text = name, style = AtomType.Body.copy(color = colors.textPrimary))
+                if (reading != null) {
+                    Text(text = reading, style = AtomType.Caption.copy(color = colors.textSecondary))
+                }
+            }
+            headerTrailing?.invoke()
+        }
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp), content = content)
+        if (footer != null) {
+            Box(modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp)) {
+                footer()
+            }
+        }
+    }
+}
+
+/** Shared by every [IndicatorCard] footer/legend row — was two near-identical `private` copies
+ * (`ChartSheet.kt`, `PercentBChart.kt`) before 2026-09-18's shared-shell extraction. */
+@Composable
+internal fun LegendItem(label: String, color: Color, colors: AtomColors) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(modifier = Modifier.padding(top = 3.dp).size(8.dp).background(color, CircleShape))
+        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted))
     }
 }
