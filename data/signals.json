@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-18T21:00:04.577869+00:00",
+  "updated": "2026-09-18T23:00:10.036913+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -47548,7 +47548,7 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4415.6,
+      "value": 4415.9,
       "delta_pct": 0.4,
       "direction": "flat",
       "label": "Gold"
@@ -47560,8 +47560,8 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7145,
-      "delta_pct": 1.9,
+      "value": 6.7155,
+      "delta_pct": 2.0,
       "direction": "up",
       "label": "Copper"
     },
@@ -47578,13 +47578,13 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 95.37,
-      "delta_pct": -6.4,
+      "value": 95.47,
+      "delta_pct": -6.3,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81138.0,
+      "value": 81175.0,
       "delta_pct": 6.2,
       "direction": "up",
       "label": "Bitcoin"
@@ -47634,7 +47634,7 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -4.7,
+      "delta_pct": -4.6,
       "label": "WTI Oil"
     },
     "btc": {
@@ -47649,11 +47649,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT accelerated: Fed hike odds lifting DXY, EUR weakening under policy pressure from divergence.",
-    "updated": "2026-09-18T21:00:04.577869+00:00"
+    "text": "EURUSD SHORT accelerated: Fed hike odds lift DXY, EUR weakens as policy divergence widens with BoE.",
+    "updated": "2026-09-18T23:00:10.036913+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup via dual USD bid and CAD weakness drivers.\n\nEURUSD SHORT: Macro confirms setup through US 10Y rising supporting USD strength.\n\nNZDUSD SHORT: Macro confirms setup but limited catalyst since NZD lacks oil sensitivity.",
+    "text": "USDCAD LONG: Macro strongly confirms setup via rising US yields and falling oil.\n\nEURUSD SHORT: Macro strongly confirms setup via US Treasury yields rising sharply today.\n\nNZDUSD SHORT: Macro confirms setup though risk-on macro somewhat contradicts pure risk-off positioning.",
     "top": [
       {
         "pair": "USDCAD",
@@ -47671,7 +47671,7 @@
         "score": 6.6
       }
     ],
-    "updated": "2026-09-18T21:00:04.577869+00:00"
+    "updated": "2026-09-18T23:00:10.036913+00:00"
   },
   "calendar": {
     "events": [
@@ -47736,7 +47736,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-18T21:00:04.577869+00:00"
+    "updated": "2026-09-18T23:00:10.036913+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold's mild gain and VIX's drop point to risk-on, echoed by BTC's strong rally and steady equities, yet a firm US10Y and flat DXY keep dollar support intact, while crude's sharp slide hints at demand concerns. Headlines lean on rising Fed hike bets and dollar-supportive policy divergence against a softening BoE, framing a tug-of-war between risk appetite and rate expectations. The dollar bloc and risk-sensitive currencies face conflicting pulls into today's US CPI release, the next major catalyst likely to sharpen directional conviction after this ambiguous cross-asset session.",
@@ -47746,14 +47746,14 @@
     "headlines": [
       "Fed hike odds lift DXY as EUR and GBP weaken significantly",
       "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
-      "BOJ hike triggers yen slide; markets reassess rate expectations"
+      "DXY holds above 100 as EUR and GBP face policy tests"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      "usd"
     ],
-    "updated": "2026-09-18T21:00:04.577869+00:00"
+    "updated": "2026-09-18T23:00:10.036913+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
