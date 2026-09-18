@@ -161,3 +161,11 @@ needs its own verification, not just a citation.
   §19.4b, `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s four affected entries resynced
   same session. Verified on-device with a fixture built specifically to force each state
   (a sustained rally vs. an accelerating one, to separate "fading" from "building").
+
+- 2026-09-18 (7th) — glance-panel footers simplified: nothing but the state word, right-aligned
+  (Pieter's ask). `IndicatorCard`'s `footer` slot (free-form composable) became `footerState`
+  (a plain `Pair<String, Color>?`), rendered as one right-aligned `Text`. Every card's own
+  legend (BandWidth's Squeeze, MACD's Signal/Histogram, Currency %B's %B/Signal) removed as a
+  direct consequence. `ATOM_FX_DESIGN.md` §19.4b, `ATOM_FX_BUILD_STATUS.md`, and
+  `LibraryContent.kt`'s five affected entries resynced same session. Verified on-device against
+  the same purpose-built fixture as the previous pass.

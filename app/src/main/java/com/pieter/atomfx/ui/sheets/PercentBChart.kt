@@ -68,31 +68,23 @@ fun PercentBChart(bbD1: BbD1?, colors: AtomColors, modifier: Modifier = Modifier
  * the same "stretched or normal" question %B(20) asks, just at the currency level — is this
  * currency itself stretched (crowded demand, or beaten down) against its own recent range. Same
  * `percentBState` helper %B(20) uses (`SheetComponents.kt`), same 10/90 thresholds this chart's
- * own dashed lines already draw. Unlike %B(20), the %B/Signal legend stays alongside it — this
- * chart still draws two real lines (its own signal line is untouched, unlike %B(20)'s removed
- * one), so the legend still earns its place decoding them.
+ * own dashed lines already draw.
+ *
+ * **2026-09-18 (4th) — the %B/Signal legend that used to sit alongside this word is gone**
+ * (Pieter's explicit ask: nothing in the footer but the state text itself, right-aligned) — even
+ * though, unlike %B(20), this chart still draws two real lines (its own signal line is
+ * untouched). The amber signal line goes unexplained by a legend now — the state word is the one
+ * thing the footer says, same as every other glance-panel card.
  */
 @Composable
 fun CurrencyPercentBCard(currency: String, block: PercentBBoardBlock?, colors: AtomColors, modifier: Modifier = Modifier) {
     val reading = block?.line?.lastOrNull()?.let { "(12) ${it.toInt()}" } ?: "(12)"
-    val hasData = block != null && block.line.isNotEmpty()
-    val state = percentBState(block?.line?.lastOrNull(), colors)
     IndicatorCard(
         name = "%B",
         reading = reading,
         colors = colors,
         modifier = modifier,
-        footer = if (hasData) {
-            {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        LegendItem("%B", colors.textSecondary, colors)
-                        LegendItem("Signal (SMA 12)", colors.watch, colors)
-                    }
-                    state?.let { (word, tint) -> Text(text = word, style = AtomType.Caption.copy(color = tint)) }
-                }
-            }
-        } else null,
+        footerState = percentBState(block?.line?.lastOrNull(), colors),
     ) {
         if (block == null || block.line.isEmpty()) {
             NotAvailableRow("$currency %B", colors)

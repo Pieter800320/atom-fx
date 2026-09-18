@@ -1,8 +1,6 @@
 package com.pieter.atomfx.ui.sheets
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -163,13 +161,12 @@ private val TF_KEYS = listOf("d1", "h4", "h1", "m15")
 @Composable
 private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
     val reading = series?.pctb?.lastOrNull()?.let { "(20) ${it.toInt()}" } ?: "(20)"
-    val state = percentBState(series?.pctb?.lastOrNull(), colors)
     IndicatorCard(
         name = "%B",
         reading = reading,
         colors = colors,
         modifier = modifier,
-        footer = state?.let { (word, tint) -> { Text(text = word, style = AtomType.Caption.copy(color = tint)) } },
+        footerState = percentBState(series?.pctb?.lastOrNull(), colors),
     ) {
         if (series == null || series.pctb.isEmpty()) {
             NotAvailableRow("Bollinger %B", colors)
@@ -192,28 +189,27 @@ private fun PercentBCard(series: BollingerSeries?, colors: AtomColors, modifier:
  * "Expanding" state — that would need a new width-trend threshold this project has no tuned value
  * for yet (the same caution `bb_touch.py`'s own `width_trend` already flags about itself); the
  * squeeze flag is backend-computed, not invented here, so it's the one state this footer can
- * claim honestly. The "Squeeze" legend (left) still explains the amber dots/column on the chart;
- * the state word (right) is the new purpose-answer.
+ * claim honestly.
+ *
+ * **2026-09-18 (6th) — the "Squeeze" legend that used to sit alongside this word is gone**
+ * (Pieter's explicit ask: nothing in the footer but the state text itself, right-aligned). The
+ * amber dots/column on the chart go unexplained by a legend now — the state word is the one
+ * thing the footer says.
  */
 @Composable
 private fun BandWidthCard(series: BollingerSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
     val squeezedNow = series?.squeeze?.lastOrNull() == true
     val reading = series?.bandwidth?.lastOrNull()?.let { "%.2f%%".format(java.util.Locale.US, it) }
     val hasData = series != null && series.bandwidth.isNotEmpty()
+    val state = if (hasData) {
+        if (squeezedNow) "Quiet (squeeze)" to colors.watch else "Normal" to colors.textMuted
+    } else null
     IndicatorCard(
         name = "BandWidth",
         reading = reading,
         colors = colors,
         modifier = modifier,
-        footer = if (hasData) {
-            {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    LegendItem("Squeeze (125-bar low)", colors.watch, colors)
-                    val (word, tint) = if (squeezedNow) "Quiet (squeeze)" to colors.watch else "Normal" to colors.textMuted
-                    Text(text = word, style = AtomType.Caption.copy(color = tint))
-                }
-            }
-        } else null,
+        footerState = state,
     ) {
         if (series == null || series.bandwidth.isEmpty()) {
             NotAvailableRow("BandWidth", colors)
@@ -248,7 +244,7 @@ private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modif
         reading = reading,
         colors = colors,
         modifier = modifier,
-        footer = state?.let { (word, tint) -> { Text(text = word, style = AtomType.Caption.copy(color = tint)) } },
+        footerState = state,
     ) {
         if (series == null || series.rsi.isEmpty()) {
             NotAvailableRow("RSI", colors)
@@ -261,35 +257,27 @@ private fun RsiCard(series: MomentumSeries?, colors: AtomColors, modifier: Modif
 /**
  * MACD sibling to [RsiCard] — see that card's own doc comment. Its own signal line is the one
  * line in the whole glance panel that stays `watch`-tinted rather than going white (Pieter's
- * restyle ask) — MACD is the one chart with two overlaid lines that need telling apart. The
- * Signal/Histogram legend (2026-09-18, 3rd) lives in the footer rather than floating unstyled
- * below the chart, same as every other card's own footer.
+ * restyle ask) — MACD is the one chart with two overlaid lines that need telling apart.
  *
  * **2026-09-18 (4th) — the footer answers what MACD is actually FOR**, a genuinely different
  * question from the other three cards: not "is this stretched," but "which way is momentum
  * pointing, and is it building or fading" — see [macdState]'s own doc comment for the exact read.
+ *
+ * **2026-09-18 (6th) — the Signal/Histogram legend that used to sit alongside this word is gone**
+ * (Pieter's explicit ask: nothing in the footer but the state text itself, right-aligned). The
+ * amber Signal line and green/red Histogram bars go unexplained by a legend now — the state word
+ * is the one thing the footer says.
  */
 @Composable
 private fun MacdCard(series: MomentumSeries?, colors: AtomColors, modifier: Modifier = Modifier) {
     val histogram = series?.macdHistogram
-    val hasData = !histogram.isNullOrEmpty()
     val state = histogram?.let { macdState(it, colors) }
     IndicatorCard(
         name = "MACD",
         reading = "(12, 26, 9)",
         colors = colors,
         modifier = modifier,
-        footer = if (hasData) {
-            {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        LegendItem("Signal", colors.watch, colors)
-                        LegendItem("Histogram", colors.bull, colors)
-                    }
-                    state?.let { (word, tint) -> Text(text = word, style = AtomType.Caption.copy(color = tint)) }
-                }
-            }
-        } else null,
+        footerState = state,
     ) {
         if (series == null || series.macdHistogram.isEmpty()) {
             NotAvailableRow("MACD", colors)
