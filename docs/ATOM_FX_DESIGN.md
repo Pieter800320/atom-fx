@@ -1031,6 +1031,24 @@ Verified on-device: %B's own dashed lines unchanged; RSI's now visibly sit at th
 relocated upper dashed line while still reading "Overbought" in the footer, exactly the
 documented trade-off.
 
+**2026-09-18 (8th) — the 7th pass reverted, Pieter's catch watching it live: "the line is not
+adapting to the thresholds that were widened."** The trade-off the 7th pass documented and
+accepted in the abstract didn't hold up on real data: real RSI(14) rarely swings below 10 or
+above 90 (it typically lives in the 20–80 range), unlike %B, which legitimately pierces near
+0/100 often (price walking the band). So on a live chart, RSI's line almost never reached the
+widened 10/90 lines at all — it looked like the line was simply ignoring its own thresholds,
+not like a deliberate shared visual rhythm. Reverted: `RsiOscillator` draws its own real 30/70
+dashed lines again (a local `listOf(30.0, 70.0)`, not `THRESHOLD_LINE_LOW`/`_HIGH`); the two
+charts' reference bands are visually uneven again (as before the 7th pass), but RSI's line now
+actually crosses its own dashed lines at genuine extremes. `THRESHOLD_LINE_LOW`/`_HIGH`
+(`ChartCommon.kt`) stays, now describing only %B's own real 10/90 band (its original purpose
+before the 7th pass reused it). The Overbought/Oversold/Neutral footer state was never affected
+either way — it always read RSI's real 30/70, regardless of where the dashed lines were drawn.
+`LibraryContent.kt`'s RSI & MACD entry and `ATOM_FX_BUILD_STATUS.md` updated to match. Presented
+as a genuine design trade-off (per §1's "ask before inventing... thresholds" rule) rather than
+silently re-decided — Pieter chose "revert to real 30/70" over keeping 10/90-with-a-rescaled-line
+or leaving it as-is.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…
