@@ -71,8 +71,11 @@ fun PercentBOscillator(
         val stepX = size.width / (n - 1)
         fun px(i: Int): Float = i * stepX
 
+        // 2026-09-18 — THRESHOLD_LINE_LOW/_HIGH (ChartCommon.kt): the one source of truth these
+        // values now come from, since RSI's own dashed lines are drawn at these same values too
+        // (matching this chart's own pixel height on Pieter's ask) — was a local 10.0/90.0 literal.
         val dash = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 5.dp.toPx()))
-        listOf(10.0, 90.0).forEach { threshold ->
+        listOf(THRESHOLD_LINE_LOW, THRESHOLD_LINE_HIGH).forEach { threshold ->
             drawLine(colors.hairlineStrong, Offset(0f, py(threshold)), Offset(size.width, py(threshold)), strokeWidth = 1.dp.toPx(), pathEffect = dash)
         }
         drawLine(colors.hairlineStrong, Offset(0f, py(50.0)), Offset(size.width, py(50.0)), strokeWidth = 1.dp.toPx())

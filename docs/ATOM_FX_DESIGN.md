@@ -613,8 +613,11 @@ TimeframeButtons    D1/H4/H1 row below the CSM strip (drives the CSM strip only,
 MacroScreen         archetype banner + bias baskets + evidence axes + cross-asset dashboard
 InsightsScreen      recommendation card + theme-tagged news + calendar + brief
 BottomSheetHost     draggable sheet host (rises above any tab)
-CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a CSM-strip bar tap), then
-                     that currency's own %B chart last (§19.4a, moved here 2026-09-18)
+CurrencyDetailSheet CSM 3-TF, then (a CSM-strip bar tap) Conviction · Breadth (H4) · Expressed
+                     By · Drivers (reordered 2026-09-18, Pieter's ask — was Breadth · Conviction
+                     · Drivers · Expressed By; this line's own list was also missing Conviction
+                     entirely until this pass caught it), then that currency's own %B chart last
+                     (§19.4a, moved here 2026-09-18)
 RegimeSheet         hub tap — D1 regime detail
 PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Overview (5 consensus
                      rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
@@ -1009,6 +1012,25 @@ produces, nothing else. `LegendItem` (`SheetComponents.kt`) stays — the deferr
 same purpose-built fixture as the 5th pass: every state word now renders alone, flush right,
 against the black plot area — no legend, no dot, on all five cards.
 
+**2026-09-18 (7th) — Pieter's ask, "give the RSI thresholds the same vertical height as %B's."**
+New shared `THRESHOLD_LINE_LOW`/`_HIGH` (`ChartCommon.kt`, 10/90) — RSI's own dashed reference
+lines now draw at these values instead of RSI's own literal 30/70, so they sit at the exact same
+pixel height as %B's own dashed lines (both charts share `chartHeight`/`py()`'s identical
+formula, so 10/90 vs. 30/70 previously put the two charts' reference bands at genuinely
+different heights — 80% vs. 40% of the way from the 50 centreline to the edge). Deliberately
+**not** a rescale of RSI's own domain — the value line still plots true 0–100 readings unchanged,
+and the Overbought/Oversold/Neutral footer state still reads RSI's real 30/70. Only the two
+drawn lines moved; they're now a purely visual reference band shared across the panel, decoupled
+from RSI's own literal threshold — the line can visibly cross into "Overbought" before it reaches
+the (relocated) dashed line, and the footer word is the accurate read, not the line's position
+against the dashes. `PercentBOscillator.kt` switched to the same shared constants too (was its
+own local `10.0`/`90.0` literal), so the two can never drift apart independently again.
+
+Verified on-device: %B's own dashed lines unchanged; RSI's now visibly sit at the same height
+(compared side-by-side against the same fixture) — confirmed RSI=99 correctly renders above the
+relocated upper dashed line while still reading "Overbought" in the footer, exactly the
+documented trade-off.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…
@@ -1033,7 +1055,7 @@ against the black plot area — no legend, no dot, on all five cards.
 11. Is the entry location good? — the Volatility row (ATR percentile sane band) together with the Structure row (a recent BOS/CHoCH), the two Overview rows that speak to entry timing since the old dedicated Entry tab was folded into them.
 
 **One tap on the hub, a currency, or a pair node answers:**
-12. What exactly is happening at this analytical layer? — the hub opens RegimeSheet, a currency wedge opens CurrencyDetailSheet (CSM 3-TF, breadth, drivers, expressing pairs), a pair node opens its PairSheet — each a full breakdown of that one layer.
+12. What exactly is happening at this analytical layer? — the hub opens RegimeSheet, a currency wedge opens CurrencyDetailSheet (CSM 3-TF, then Conviction, breadth, expressing pairs, drivers, then its own %B chart), a pair node opens its PairSheet — each a full breakdown of that one layer.
 
 If the UI answers all twelve elegantly — restrained, precise, information-dense, no arcade — the redesign succeeds. Do not sacrifice analytical accuracy for visual simplicity; the wheel makes the existing system *easier to understand*, not simpler (spec §70).
 

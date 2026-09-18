@@ -85,6 +85,15 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
             CcyTfSquare("H1", signals.csm["h1"]?.get(currency), signals.csmDelta["h1"]?.get(currency), colors, Modifier.weight(1f))
         }
 
+        // 2026-09-18 (Pieter's ask) — reordered to Conviction · Breadth (H4) · Expressed By ·
+        // Drivers (was Breadth · Conviction · Drivers · Expressed By). The CSM squares above and
+        // the %B card below are untouched — only these four middle sections moved.
+        val convictionEntry = signals.conviction?.currencies?.get(currency)
+        if (convictionEntry?.conviction != null) {
+            SheetDivider(colors)
+            ConvictionSection(convictionEntry, signals.conviction?.cotStale == true, colors)
+        }
+
         SheetDivider(colors)
         if (breadth?.pct != null) {
             val bandLabel = listOfNotNull("${breadth.support}/${breadth.total}", breadth.band, breadthDirWord).joinToString(" · ")
@@ -98,19 +107,6 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
         } else {
             NotAvailableRow("Breadth (H4)", colors)
         }
-
-        val convictionEntry = signals.conviction?.currencies?.get(currency)
-        if (convictionEntry?.conviction != null) {
-            SheetDivider(colors)
-            ConvictionSection(convictionEntry, signals.conviction?.cotStale == true, colors)
-        }
-
-        SheetDivider(colors)
-        Text(text = "DRIVERS", style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(bottom = 8.dp))
-        Text(
-            text = CCY_DRIVERS[currency] ?: "—",
-            style = AtomType.Body.copy(color = colors.textSecondary),
-        )
 
         val expressingPairs = CSM_STRENGTH_PAIRS.filter { it.take(3) == currency || it.takeLast(3) == currency }
         if (expressingPairs.isNotEmpty()) {
@@ -131,6 +127,13 @@ fun CurrencyDetailSheet(currency: String, signals: Signals, colors: AtomColors, 
             }
             ScrollingPills(pills = pills, colors = colors)
         }
+
+        SheetDivider(colors)
+        Text(text = "DRIVERS", style = AtomType.Caption.copy(color = colors.textSecondary), modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+            text = CCY_DRIVERS[currency] ?: "—",
+            style = AtomType.Body.copy(color = colors.textSecondary),
+        )
 
         // 2026-09-18 (Pieter's call) — Currency %B, at the bottom of this sheet. Moved here from
         // ChartSheet, where it sat as a base/quote pair next to the pair's own %B; that pair %B
