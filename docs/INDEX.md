@@ -179,3 +179,20 @@ needs its own verification, not just a citation.
   history, the sheet-inventory table, and the §20 acceptance-test mention — the inventory line
   was also missing Conviction from its list entirely, caught in the same pass),
   `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s RSI entry resynced same session.
+
+- 2026-09-18 (9th) — a requested "indepth audit" of the glance-panel graphs for genuine bugs,
+  ranked and fixed. **(1) MACD's `macdState()` could misread "fading" at a fresh bullish/bearish
+  cross** — it compared `abs(last) > abs(prev)` without first checking the sign had actually
+  flipped, so a small new bar on the other side of zero from a larger old one read as shrinking
+  momentum instead of a fresh turn. Fixed: a sign-flip check now forces "building" on any cross.
+  **(2) three header "reading" numbers used `.toInt()` (truncates toward zero) instead of
+  `.roundToInt()`** (`ChartSheet.kt`'s %B/RSI cards, `PercentBChart.kt`'s Currency %B card) — a
+  systematic downward-biased display only; the underlying threshold/state logic already read the
+  raw value. Also hardened (low severity, not currently reachable): `PercentBOscillator.kt`'s
+  signal-line right-align offset now also guards `signal.size <= n`. New `ChartSheetTest.kt` (6
+  cases) locks in the sign-flip fix. `ATOM_FX_BUILD_STATUS.md` and `LibraryContent.kt`'s RSI &
+  MACD entry resynced same session. Verified on-device against **live production data**, not a
+  synthetic fixture — EURUSD's real H4 MACD happened to be mid-cross at verification time and
+  correctly showed "Bullish, building." One pre-existing, unrelated `WheelMapperTest` failure
+  (Setup/Trend wing regime mapping, nothing to do with charts) was found during the full test run
+  and flagged to Pieter rather than fixed here — out of this audit's scope.

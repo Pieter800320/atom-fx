@@ -97,7 +97,13 @@ fun PercentBOscillator(
         // 2026-09-18 (Pieter's restyle ask) — ChartSheet's own %B(20) card no longer passes a
         // signal series at all (empty list), so this branch only still fires for Currency %B
         // (CurrencyDetailSheet), which keeps its own signal line untouched.
-        if (signal.size >= 2) {
+        //
+        // 2026-09-18 (audit, defensive) — guard `signal.size <= n` as well as `>= 2`: the offset
+        // below (`n - signal.size`) would go negative and draw off-canvas if a caller ever passed
+        // a signal series longer than the line it rides under. Not reachable today (the backend's
+        // own construction keeps signal.size <= line.size), but cheap to make impossible rather
+        // than merely true by convention.
+        if (signal.size in 2..n) {
             val offset = n - signal.size
             val signalPath = Path().apply {
                 moveTo(px(offset), py(signal[0]))
