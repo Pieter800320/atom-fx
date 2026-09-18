@@ -338,6 +338,43 @@ change Rule #1's EXTEND tier exists to prevent (§3: never modify a lower tier t
 feature easier). A test (`test_bollinger_series_does_not_disturb_bb_d1`) asserts `bb_d1` is
 byte-identical before and after this module runs.
 
+**M15 addition (2026-09-18, schema v11).** Both `momentum_series` and `bollinger_series` above
+gained a fourth key, `"m15"`, shaped identically to their `"d1"`/`"h4"`/`"h1"` siblings — but
+written by a **genuinely separate orchestrator on its own cadence**, `scanner/scan_m15.py`, not
+by `scan_h1.py`. Pieter wanted the ChartSheet glance panel's M15 option meaningfully fresher
+(~45 min) than the rest of the app's existing 2h `scan_h1.py` cadence, without moving that
+cadence, its fetch, or its Rule #1 posture at all — see `scan_m15.py`'s own module doc comment
+for the full reasoning and the credit-budget math (12 wheel pairs × ~32 runs/day ≈ 384
+credits/day, on top of `scan_h1.py`'s unchanged 144/day; 528/800, chosen deliberately over a
+tighter 30-min/720-day cadence to leave real margin for manual dispatches and retries).
+
+Why a second fetch rather than deriving M15 from the existing H1 one: 15-minute resolution
+cannot be manufactured out of 60-minute bars. `scan_m15.py` is a **100% NEW-tier orchestrator**
+(no frozen ancestor, same shape as `scan_cot.py`) that loads the current `signals.json`, fetches
+M15 OHLCV for the 12 wheel pairs only (not the 6 `CSM_EXTRA` pairs — this is chart-only, no
+CSM/scoring use), and **merges** a new `"m15"` key into each pair's *existing*
+`momentum_series`/`bollinger_series` maps — it never replaces the whole map, so `d1`/`h4`/`h1`
+(scan_h1.py's own, on its own cadence) are left byte-for-byte untouched (verified end-to-end
+against a real `signals.json` snapshot before shipping). It runs the same frozen `_rsi`/`_macd`
+and the same EXTEND-tier band math already used for the other three timeframes — no second,
+independently-drifting implementation.
+
+A new top-level `m15_updated` field (ISO timestamp) tracks the last successful M15 refresh,
+**deliberately separate from `updated`** — `updated` drives the app's own staleness check
+(§8.4) against the WHOLE `scan_h1.py` dataset (alerts, regime, CSM, everything); bumping it from
+`scan_m15.py` would tell the app the entire scan is fresher than it actually is when only the
+M15 chart data changed. `m15_updated` is not yet surfaced in the app UI — kept in the model
+(`Signals.m15Updated`) so a future staleness indicator doesn't need a schema change to add one.
+
+**Operational dependency, not yet satisfied:** `scan_m15.py` runs via
+`.github/workflows/scan_m15.yml` (`workflow_dispatch` only, same as every other workflow here).
+The actual ~45-min trigger has to be added to the **external Apps Script scheduler** (not in
+this repo) — **and must be scoped to the same weekday-only hours the existing scan_h1/scan_news
+triggers already use**, or it burns real Twelvedata credits fetching a closed weekend market for
+nothing. Until that trigger exists, `momentum_series.m15`/`bollinger_series.m15` simply never
+appear, and the app's ChartSheet M15 cards show "Not available yet" — the same fail-quiet
+convention every other missing-history case here already uses, not a bug.
+
 Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a new sub-key, so it travels with the pair (§5.3):
 ```json
 "structure": { "h4": {"direction":"bull","event":"BOS","strength":0.78,"multiplier":1.23},

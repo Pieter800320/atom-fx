@@ -94,3 +94,18 @@ needs its own verification, not just a citation.
   for Currency %B and RSI/MACD). One stale comment found and fixed in passing:
   `PercentBOscillator.kt` still cited `ui/insights/PercentBBoardChart.kt` as a caller — a file
   deleted with the Insights %B picker and absent from the repo, checked rather than assumed.
+
+- 2026-09-18 (2nd) — M15 added to the ChartSheet glance panel (Pieter's ask, "just as a
+  chart"), fed by a genuinely separate, faster-cadence (~45 min) job — `scanner/scan_m15.py`,
+  schema v11 — rather than folding into scan_h1.py's own 2h fetch (explicitly evaluated and
+  rejected: it would either leave M15 just as stale as everything else, or require speeding up
+  the whole scoring/alert pipeline, a materially bigger decision Pieter didn't ask for tonight).
+  Docs resynced same session: `ATOM_FX_ARCHITECTURE.md` §4.2 (the new contract, the credit-
+  budget math, the `m15_updated` field and why it's separate from `updated`), `ATOM_FX_DESIGN.md`
+  §19.4b (the TF row + a new M15 subsection), `GLOSSARY.md` (%B/BandWidth TF lists), 
+  `ATOM_FX_BUILD_STATUS.md` (new row, flagged **not yet live** — new outstanding item 17: the
+  external Apps Script trigger for `scan_m15.yml` still needs to be added by Pieter, weekday-only,
+  ~45-min cadence — this repo cannot configure it), and `LibraryContent.kt` (%B/BandWidth/RSI-MACD
+  entries; also caught and fixed the %B entry's own summary line, stale since the 20-period
+  rework — it still said "D1 Bollinger Bands" while its own howItWorks correctly described the
+  D1/H4/H1 20-period read).

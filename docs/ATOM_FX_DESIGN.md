@@ -621,9 +621,11 @@ PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Over
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
 ChartSheet          long-press a wheel node: the complete 4-indicator glance panel (§19.4b) and
-                     nothing else — a bare full-width D1/H4/H1 row driving four cards in order,
+                     nothing else — a bare full-width D1/H4/H1/M15 row driving four cards in order,
                      %B (20) · BandWidth · RSI · MACD. The old 12-period D1 %B card is deferred and
-                     the Currency %B cards moved to CurrencyDetailSheet (both 2026-09-18, §19.4a)
+                     the Currency %B cards moved to CurrencyDetailSheet (both 2026-09-18, §19.4a).
+                     M15 (2026-09-18, 2nd) is fed by a genuinely separate scan_m15.py job on its
+                     own ~45-min cadence — Architecture §4.2 has the full reasoning
 PercentBOscillator  shared %B + signal-line chart, period-agnostic (§19.4a) — draws ChartSheet's
                      20-period pair %B and CurrencyDetailSheet's 12-period Currency %B
 BandWidthChart      §19.4b BandWidth line + squeeze marks (ui/chart/BandWidthChart.kt)
@@ -771,7 +773,7 @@ computes — deliberately ahead of the other two, "ship RSI and MACD first, then
 look like." %B-20 and BandWidth followed once their genuinely new backend calculation existed
 (`scanner/extend/bollinger_series.py`).
 
-`ChartSheet.kt` holds the panel and nothing else: a bare full-width D1/H4/H1 row driving four
+`ChartSheet.kt` holds the panel and nothing else: a bare full-width D1/H4/H1/M15 row driving four
 cards in a fixed order — **%B (20)** (where price sits in its bands) · **BandWidth** (how wide
 those bands are) · **RSI** (momentum extremity) · **MACD** (momentum direction/turn). The two
 Bollinger reads lead because they share a band calculation and read as a pair; the two momentum
@@ -846,6 +848,28 @@ helpers in `MomentumOscillators.kt`; a third and fourth chart needing them made 
 alternative to a second copy drifting out of step. Nothing about the drawing changed in the move,
 and `PercentBOscillator.kt` was pointed at the shared date row at the same time (it had its own
 identical inline copy).
+
+**M15 (2026-09-18, 2nd — Pieter's ask, "just as a chart" on the pair bottom sheets).** Appended
+last to the TF row, chronologically coarse-to-fine matching the wheel's own D1→H4→H1 convention.
+Unlike D1/H4/H1, M15 is **not** part of `scan_h1.py`'s own 2h scan at all — it's fed by
+`scanner/scan_m15.py`, a genuinely separate fetch on its own faster (~45 min) cadence, because
+Pieter specifically wanted the M15 chart fresher than the app's existing cadence and 15-minute
+resolution cannot be derived from the existing 60-minute H1 fetch. See Architecture §4.2 for the
+full data-contract reasoning, the credit-budget math the cadence was chosen against, and the
+**outstanding operational dependency**: the actual trigger still needs to be added to the
+external Apps Script scheduler before M15 data ever appears. Until then the M15 cards show "Not
+available yet" — same fail-quiet convention as any other missing-history case, not a bug.
+
+Two things worth knowing about reading the M15 cards once data exists:
+- **M15 can be fresher than D1/H4/H1, or briefly lag them** — the two fetches run on
+  independent schedules (~45 min vs. ~2h), so which one is more current at any given moment
+  depends on when each last ran. There's no UI indicator for this yet (`Signals.m15Updated`
+  exists in the model for a future one — Architecture §4.2).
+- **M15's squeeze detection has fuller coverage than D1's.** `scan_m15.py` fetches 1500 M15 bars
+  per pair (chosen for chart warm-up, not FROZEN EMA200 needs) — enough that every bar in the
+  visible 90-point tail has a full 125-bar squeeze lookback behind it, unlike D1's own ~208-bar
+  total history (§19.4b's BandWidth note above still applies to D1 specifically).
+
 
 ---
 

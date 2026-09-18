@@ -13,6 +13,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Signals(
     val updated: String? = null,
+    // 2026-09-18 — scanner/scan_m15.py's own freshness marker, separate from `updated`
+    // above on purpose: `updated` drives the app's staleness check (Architecture §8.4)
+    // against the WHOLE scan_h1.py dataset (alerts, regime, CSM, everything); this one
+    // tracks only the last successful M15 chart refresh, on its own faster cadence.
+    // Not surfaced in the UI yet — kept in the model so a future staleness indicator on
+    // the M15 glance-panel cards doesn't need a schema change to add one.
+    @SerialName("m15_updated") val m15Updated: String? = null,
     @SerialName("regime_d1") val regimeD1: RegimeBlock? = null,
     @SerialName("regime_h4") val regimeH4: RegimeBlock? = null,
     @SerialName("regime_h1") val regimeH1: RegimeBlock? = null,
