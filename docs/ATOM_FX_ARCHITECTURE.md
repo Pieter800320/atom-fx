@@ -366,14 +366,34 @@ A new top-level `m15_updated` field (ISO timestamp) tracks the last successful M
 M15 chart data changed. `m15_updated` is not yet surfaced in the app UI — kept in the model
 (`Signals.m15Updated`) so a future staleness indicator doesn't need a schema change to add one.
 
-**Operational dependency, not yet satisfied:** `scan_m15.py` runs via
-`.github/workflows/scan_m15.yml` (`workflow_dispatch` only, same as every other workflow here).
-The actual ~45-min trigger has to be added to the **external Apps Script scheduler** (not in
-this repo) — **and must be scoped to the same weekday-only hours the existing scan_h1/scan_news
-triggers already use**, or it burns real Twelvedata credits fetching a closed weekend market for
-nothing. Until that trigger exists, `momentum_series.m15`/`bollinger_series.m15` simply never
-appear, and the app's ChartSheet M15 cards show "Not available yet" — the same fail-quiet
-convention every other missing-history case here already uses, not a bug.
+**Apps Script trigger — live as of 2026-09-18.** Pieter added a second, finer-grained
+(`everyMinutes(15)`) trigger to the existing scheduler project alongside the original hourly
+one, self-pacing to ~45 min via a stored last-dispatch timestamp (Apps Script's `timeBased()`
+triggers don't support a 45-min interval directly). Confirmed firing in production: a real
+`chore: m15 scan` commit from `github-actions[bot]` landed in `data/signals.json` history.
+
+**Bug found via that same live check, same day, and fixed before it could cause lasting data
+loss:** `scan_h1.py` rebuilds `pairs_out` completely fresh every run and
+`attach_momentum_series`/`attach_bollinger_series` **replace** each pair's whole
+`momentum_series`/`bollinger_series` dict (`d1`/`h4`/`h1` only) — with no knowledge of the
+`"m15"` key `scan_m15.py` had just written. The very next `scan_h1.py` run (its own unrelated
+2h cadence) was silently erasing every M15 series `scan_m15.py` had produced since — confirmed
+in production: the `m15 scan` commit's own data was gone by the time the following `h1 scan`
+commit landed. Same bug at the top level: `m15_updated` was never added to `PRESERVED_KEYS`, so
+it was being dropped on every `scan_h1.py` run too — this file's own comment right above that
+tuple predicts exactly this mistake ("a new cross-cadence key needs adding here the same
+session it starts being written, not after").
+
+**Fixed** by having `attach_momentum_series`/`attach_bollinger_series` accept an optional
+`prev_pairs` argument (`prev.get("pairs")`, already in scope in `scan_h1.py`) and carry forward
+whatever `"m15"` key is already there before overwriting the rest — these two EXTEND-tier
+functions still never compute or touch M15 data themselves, only preserve it. `m15_updated`
+added to `PRESERVED_KEYS`. The only touch to `scan_h1.py` itself is passing one already-in-scope
+argument at each of the two existing call-sites — no calculation or firing condition changed,
+the same category of call-site-level addition §3's own nuance for this file already permits.
+Regression-tested (`test_momentum_series_attach_preserves_m15_from_prev_pairs`,
+`test_bollinger_series_attach_preserves_m15_from_prev_pairs`) and verified against a simulated
+replay of the exact production sequence that exposed it.
 
 Per-pair structure is added **inside the existing `pairs.<PAIR>` block** as a new sub-key, so it travels with the pair (§5.3):
 ```json

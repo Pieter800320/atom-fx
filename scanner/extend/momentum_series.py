@@ -106,8 +106,22 @@ def momentum_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
     return out
 
 
-def attach_momentum_series(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None) -> None:
-    """Mutate pairs_out in place, adding a 'momentum_series' sub-key to each pair block."""
+def attach_momentum_series(pairs_out: dict, ohlcv: dict, raw_ohlcv: dict | None = None,
+                            prev_pairs: dict | None = None) -> None:
+    """Mutate pairs_out in place, adding a 'momentum_series' sub-key to each pair block.
+
+    2026-09-18 (bug found live in production, same day M15 shipped) — this function REPLACES
+    the whole momentum_series dict every call, d1/h4/h1 only. scan_m15.py (its own faster
+    cadence, never invoked from here) separately writes an "m15" key into that same dict —
+    every subsequent scan_h1.py run was silently erasing it, since scan_h1.py's own pairs_out
+    is built fresh each run with no memory of what scan_m15.py had just added. `prev_pairs`
+    (optional — the previous scan's own signals.json "pairs" block, i.e. `prev.get("pairs")`)
+    is used ONLY to carry that "m15" key forward untouched; this function still never computes
+    or touches M15 data itself — see scan_m15.py's own module doc comment for that."""
     for key, block in pairs_out.items():
         raw_h1_df = raw_ohlcv.get(key) if raw_ohlcv else None
-        block["momentum_series"] = momentum_series_for_pair(ohlcv.get(key), raw_h1_df)
+        series = momentum_series_for_pair(ohlcv.get(key), raw_h1_df)
+        prev_m15 = ((prev_pairs or {}).get(key) or {}).get("momentum_series", {}).get("m15")
+        if prev_m15:
+            series["m15"] = prev_m15
+        block["momentum_series"] = series

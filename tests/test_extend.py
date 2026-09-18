@@ -547,6 +547,40 @@ def test_momentum_series_attach_adds_key_per_pair():
         assert set(pairs_out[key]["momentum_series"]) == {"d1", "h4", "h1"}
 
 
+def test_momentum_series_attach_carries_forward_m15_without_prev_pairs():
+    """No prev_pairs given -- must not add an 'm15' key (nothing to carry forward), and
+    must not raise."""
+    ohlcv, _ = _fixture()
+    pairs_out = {key: {} for key in ohlcv}
+    momentum_series.attach_momentum_series(pairs_out, ohlcv)
+    for key in ohlcv:
+        assert "m15" not in pairs_out[key]["momentum_series"]
+
+
+def test_momentum_series_attach_preserves_m15_from_prev_pairs():
+    """2026-09-18 regression test -- the exact bug caught live in production: scan_h1.py
+    rebuilds pairs_out fresh every run, and this function REPLACES momentum_series wholesale
+    (d1/h4/h1 only). Without prev_pairs, a previous scan_m15.py run's own "m15" key would be
+    silently erased on the very next scan_h1.py run. This proves prev_pairs carries it
+    forward untouched, and that a pair scan_m15.py never reached (no prior "m15" key) is
+    unaffected -- no phantom "m15" key invented for it."""
+    ohlcv, _ = _fixture()
+    some_key = next(iter(ohlcv))
+    other_key = next(k for k in ohlcv if k != some_key)
+    fake_m15 = {"dates": ["2026-09-18T12:00:00"], "rsi": [61.0],
+                "macd_line": [0.001], "macd_signal": [0.0008], "macd_histogram": [0.0002]}
+    prev_pairs = {some_key: {"momentum_series": {"d1": {}, "h4": {}, "h1": {}, "m15": fake_m15}}}
+
+    pairs_out = {key: {} for key in ohlcv}
+    momentum_series.attach_momentum_series(pairs_out, ohlcv, prev_pairs=prev_pairs)
+
+    assert pairs_out[some_key]["momentum_series"]["m15"] == fake_m15
+    # d1/h4/h1 for that same pair must still be THIS run's own freshly computed values,
+    # not prev's stale ones -- only "m15" is carried forward.
+    assert pairs_out[some_key]["momentum_series"]["d1"] != {}
+    assert "m15" not in pairs_out[other_key]["momentum_series"]
+
+
 def _synthetic_h1_for_momentum():
     import numpy as np
     rng = pd.date_range("2026-05-01", periods=95 * 24, freq="h", tz="UTC")
@@ -786,6 +820,23 @@ def test_bollinger_series_attach_adds_key_per_pair():
     for key in ohlcv:
         assert "bollinger_series" in pairs_out[key]
         assert set(pairs_out[key]["bollinger_series"]) == {"d1", "h4", "h1"}
+
+
+def test_bollinger_series_attach_preserves_m15_from_prev_pairs():
+    """Same 2026-09-18 regression this file's momentum_series test above covers, for
+    bollinger_series's own sibling attach function."""
+    ohlcv, _ = _fixture()
+    some_key = next(iter(ohlcv))
+    other_key = next(k for k in ohlcv if k != some_key)
+    fake_m15 = {"dates": ["2026-09-18T12:00:00"], "pctb": [55.0], "pctb_sma": [50.0],
+                "bandwidth": [0.4], "squeeze": [False]}
+    prev_pairs = {some_key: {"bollinger_series": {"d1": {}, "h4": {}, "h1": {}, "m15": fake_m15}}}
+
+    pairs_out = {key: {} for key in ohlcv}
+    bollinger_series.attach_bollinger_series(pairs_out, ohlcv, prev_pairs=prev_pairs)
+
+    assert pairs_out[some_key]["bollinger_series"]["m15"] == fake_m15
+    assert "m15" not in pairs_out[other_key]["bollinger_series"]
 
 
 def test_bollinger_series_does_not_disturb_bb_d1():
