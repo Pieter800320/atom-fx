@@ -613,20 +613,24 @@ TimeframeButtons    D1/H4/H1 row below the CSM strip (drives the CSM strip only,
 MacroScreen         archetype banner + bias baskets + evidence axes + cross-asset dashboard
 InsightsScreen      recommendation card + theme-tagged news + calendar + brief
 BottomSheetHost     draggable sheet host (rises above any tab)
-CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a currency wedge tap)
+CurrencyDetailSheet CSM 3-TF + breadth + drivers + expressing pairs (a CSM-strip bar tap), then
+                     that currency's own %B chart last (§19.4a, moved here 2026-09-18)
 RegimeSheet         hub tap — D1 regime detail
 PairSheet           header (Setup Band + Continuation Score + rank) + tabs: Overview (5 consensus
                      rows) · Breakdown (Momentum, Structure, Alignment) · Correlation
 ScrollingPills      shared pill row (recommendation glyphs, calendar chips, sheet tabs, TF toggles)
 LineChart           native Compose close-price sparkline, D1/H4/H1 (no candles)
-ChartSheet          long-press a wheel node: per-pair %B oscillator + value/touch-state header
-                     (§19.4a, no D1/H4/H1 switcher, %B is D1-only), a bare full-width D1/H4/H1 row,
-                     then separate RSI and MACD cards (§19.4b, both driven by that one row), then
-                     the pair's own base/quote Currency %B cards below it
-PercentBOscillator  shared %B + signal-line chart (§19.4a) — used by PercentBChart and
-                     CurrencyPercentBCard (both per-pair, ChartSheet)
+ChartSheet          long-press a wheel node: the complete 4-indicator glance panel (§19.4b) and
+                     nothing else — a bare full-width D1/H4/H1 row driving four cards in order,
+                     %B (20) · BandWidth · RSI · MACD. The old 12-period D1 %B card is deferred and
+                     the Currency %B cards moved to CurrencyDetailSheet (both 2026-09-18, §19.4a)
+PercentBOscillator  shared %B + signal-line chart, period-agnostic (§19.4a) — draws ChartSheet's
+                     20-period pair %B and CurrencyDetailSheet's 12-period Currency %B
+BandWidthChart      §19.4b BandWidth line + squeeze marks (ui/chart/BandWidthChart.kt)
 RsiOscillator/
 MacdOscillator      §19.4b momentum charts (ui/chart/MomentumOscillators.kt), ChartSheet only
+ChartCommon.kt      the glance panel's shared chart primitives (heights, endpoint glow, date row) —
+                     extracted 2026-09-18 when a third and fourth chart needed them
 SettingsScreen      theme · notifications (+ send-test, history) · data source · optional PAT
                      (price-level alerts, disabled placeholder) · about/legend
 SessionsSheet       Sydney/Tokyo/London/New York — 24h rolling timeline + per-session open/closed,
@@ -704,7 +708,26 @@ that fed only this card (`rotation`/`pulse`/`breadthThrust`/`percentBBoard`, plu
 computes and publishes `rotation`/`pulse`/`breadth_thrust`/`percent_b_board` in `signals.json`
 (Architecture §4.2) — nothing server-side was touched — the app simply no longer reads them.
 
-### 19.4a %B (Bollinger), per-pair (long-press → ChartSheet, moved 2026-09-10)
+### 19.4a %B (Bollinger) — the 12-period reads (moved again 2026-09-18)
+
+> **Superseded in part, 2026-09-18.** Everything below describes the **12-period** %B charts,
+> and it was accurate until the 4-indicator glance panel was completed. Two changes, both
+> Pieter's call:
+>
+> - **The pair's own 12-period D1 %B card is deferred, not deleted.** ChartSheet now shows the
+>   stock-standard **20-period** %B instead (§19.4b), because a glance panel should show the
+>   textbook read a trader can compare against any platform — and two %B charts on one sheet,
+>   on different periods, invite a comparison that means nothing. The 12-period read is the BB
+>   *touch alert's* own band math and stays exactly as specced here; `bb_touch.py`,
+>   `pairs.<PAIR>.bb_d1` and `PercentBChart.kt` are all untouched and still in the repo,
+>   pending a BB-touch-alert rework Pieter has flagged to discuss. Do not delete them as dead
+>   code — that decision has already been taken the other way.
+> - **The Currency %B cards moved to `CurrencyDetailSheet`**, one card at the bottom of each
+>   currency's own sheet, still on 12-period bands and still `PercentBOscillator`. The
+>   base/quote pairing described below existed so the currency read sat beside the pair's own
+>   %B; with that card deferred the comparison isn't on this sheet any more, and a
+>   currency-level read belongs on the currency's own surface. Still Currency %B's only UI
+>   surface.
 
 Lives on `ChartSheet.kt`, opened by a long-press on a wheel node — not a `PairSheet.kt` Breakdown
 section any more (it started there earlier the same day, then Pieter's own follow-up ask moved
@@ -741,12 +764,19 @@ any of this useful. `base`/`quote` come from the plain 6-char pair code (`pair.t
 
 ### 19.4b Momentum — RSI/MACD, per-pair (long-press → ChartSheet, added 2026-09-17, restyled 2026-09-18)
 
-Sits between the pair's own %B card (§19.4a) and the two Currency %B cards on the same
-`ChartSheet.kt` — first half of a planned 4-indicator glance panel Pieter asked for ("a set of
-standard indicators... each gives one a different view on a certain market dimension"; the other
-two, %B standardised to 20 periods and BandWidth as a numeric series, wait on genuinely new
-backend calculation and were deliberately deferred — "ship RSI and MACD first, then I can see
-what they look like," since those two are pure exposure of values `score.py` already computes).
+**Completed 2026-09-18.** This section now covers the whole 4-indicator glance panel Pieter
+asked for ("a set of standard indicators... each gives one a different view on a certain market
+dimension"). RSI and MACD shipped first (2026-09-17) — pure exposure of values `score.py` already
+computes — deliberately ahead of the other two, "ship RSI and MACD first, then I can see what they
+look like." %B-20 and BandWidth followed once their genuinely new backend calculation existed
+(`scanner/extend/bollinger_series.py`).
+
+`ChartSheet.kt` holds the panel and nothing else: a bare full-width D1/H4/H1 row driving four
+cards in a fixed order — **%B (20)** (where price sits in its bands) · **BandWidth** (how wide
+those bands are) · **RSI** (momentum extremity) · **MACD** (momentum direction/turn). The two
+Bollinger reads lead because they share a band calculation and read as a pair; the two momentum
+reads follow for the same reason. Every card is the same shell (`IndicatorCard`) so the four read
+as one panel rather than four separately-styled charts.
 
 **Restyled 2026-09-18** (Pieter's ask, comparing the first cut against LiteFinance's own panel:
 "they look somewhat different... very flat"). RSI and MACD now each get their own card — was one
@@ -779,6 +809,43 @@ scoring, kept as history instead of discarded after the latest value is read, pl
 just the timestamps the frozen aggregator discards, the same "recover what the frozen aggregator
 throws away" pattern `pctb_dates` already established). No on-device RSI/MACD math
 (Architecture §8.3).
+
+**%B (20) and BandWidth (added 2026-09-18)** — `scanner/extend/bollinger_series.py`, a new EXTEND
+module deliberately separate from `bb_touch.py`. Both read
+`pairs.<PAIR>.bollinger_series.<d1|h4|h1>`; no on-device band math (Architecture §8.3). Same bar
+conventions `momentum_series` already established: D1 on the 17:00-New-York session close, H4/H1 on
+the frozen aggregator's own bars, dates via `tf_dates.py`.
+
+- **%B (20)** — standard 20-period ±2σ bands, plus a 20-period SMA of %B itself as the signal line.
+  Drawn with the same shared `PercentBOscillator` every %B chart in the app uses (10/90 dashed
+  reference lines, 50 centreline, 0–100 clamped for display only). The card header splits
+  "EURUSD" (identity, Body) from "%B (20) 21" (reading, Caption), the same identity-primary
+  pairing the Currency %B cards use. **Why 20 when `bb_d1` is 12:** the alert's period is the
+  alert's own parameter (Pieter specified 12 explicitly); a glance panel's job is the textbook
+  read that matches any charting platform. Neither is "the right one" — they answer different
+  questions, and `bollinger_series.py` exists so that neither has to move for the other.
+- **BandWidth** — (upper − lower) ÷ middle × 100, the same formula `bb_d1.width_pct` already
+  reports as a single number, kept as a series instead. **No fixed Y domain** — BandWidth's
+  typical range differs by pair and by timeframe, so the axis is scaled to the visible window's
+  own min/max (padded 8%) rather than to invented "wide"/"narrow" levels this project has no data
+  to place. The shape is the read.
+  - **Squeeze marks** are Bollinger's own published definition — BandWidth at its lowest in the
+    trailing 125 bars — flagged per bar by the backend, never recomputed on device. Pieter's
+    explicit call (2026-09-18) over inventing a percentile cut-off, the same caution
+    `bb_touch.py` already flags about its own untuned `width_trend` numbers. Drawn as a soft
+    full-height column (`watchSoft`) behind the line plus a dot on it (`watch`), with an
+    "In squeeze" header word when the current bar qualifies. `watch` is deliberate: a squeeze is
+    "worth attention, no verdict yet, no direction implied," which is exactly that token's job.
+  - Known and accepted: 5000 H1 bars is only ~208 D1 bars, so a 125-bar lookback leaves ~84 D1
+    bars able to carry a verdict. The oldest few points of a 90-point D1 window always read
+    not-a-squeeze — fail-quiet, not a miss.
+
+`ui/chart/ChartCommon.kt` (2026-09-18) holds the primitives all four charts share — base height,
+date-row height/format, the endpoint glow dot, the three-label date row. These began as private
+helpers in `MomentumOscillators.kt`; a third and fourth chart needing them made a shared home the
+alternative to a second copy drifting out of step. Nothing about the drawing changed in the move,
+and `PercentBOscillator.kt` was pointed at the shared date row at the same time (it had its own
+identical inline copy).
 
 ---
 

@@ -277,6 +277,12 @@ Six-Factor engine is trend-following; this is mean-reversion.
 - **Bands: 12-period SMA ± 2σ** — not the original `fx_technical/scanner/bb.py` port's
   20-period default. Pieter specified 12-period explicitly; this is a deliberate parameter
   choice, not an oversight.
+  - **Note (2026-09-18):** a 20-period Bollinger read now also exists in the app, as the glance
+    panel's %B/BandWidth charts (`scanner/extend/bollinger_series.py`, Design §19.4b). That is a
+    **separate module on its own key** (`pairs.<PAIR>.bollinger_series`), added precisely so this
+    alert's 12-period bands never had to move to serve a chart. Do not "unify" the two by
+    re-parameterising `bb_touch.py` — that would change this alert's own firing behaviour, and
+    `tests/test_extend.py::test_bollinger_series_does_not_disturb_bb_d1` guards against it.
 - **Trigger:** a wick touch (high >= upper band, or low <= lower band) on the current
   (possibly still-forming) D1 candle — checked every hourly scan for fastest latency, not
   gated on candle close. Edge-triggered per this doc's own §1 rule: fires once on the

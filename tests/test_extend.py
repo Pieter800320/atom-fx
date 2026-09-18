@@ -21,6 +21,7 @@ from scanner.extend import conviction
 from scanner.extend import bb_touch
 from scanner.extend import rotation, market_pulse
 from scanner.extend import momentum_series
+from scanner.extend import bollinger_series
 from scanner import scan_h1
 from scanner import scan_news
 from scanner import csm
@@ -647,6 +648,161 @@ def test_h1_dates_matches_frozen_h1_bar_count():
     frozen_h1 = aggregator.build_tfs(h1_df)["h1"]
     dates = tf_dates.h1_dates(h1_df)
     assert len(dates) == len(frozen_h1)
+
+
+# ── 2b. Bollinger series — 20-period %B / BandWidth glance panel (2026-09-18) ────
+# The second half of Design §19.4b's 4-indicator panel. These lock in the two things most
+# likely to go wrong later: that this module is genuinely the STANDARD 20-period read (not
+# bb_touch's alert-specific 12), and that it never disturbs bb_d1's own numbers.
+
+def test_bollinger_series_shape_and_alignment():
+    ohlcv, _ = _fixture()
+    series = bollinger_series.bollinger_series_for_pair(ohlcv["EURUSD"])
+
+    for tf in ("d1", "h4", "h1"):
+        s_tf = series[tf]
+        n = len(s_tf["pctb"])
+        assert 0 < n <= bollinger_series.SERIES_LOOKBACK, (tf, n)
+        # pctb / bandwidth / squeeze share the band math, so they are the same length by
+        # construction; pctb_sma is shorter by its own smoothing window and right-aligns.
+        assert len(s_tf["bandwidth"]) == n, tf
+        assert len(s_tf["squeeze"]) == n, tf
+        assert 0 < len(s_tf["pctb_sma"]) <= n, tf
+        assert all(isinstance(v, float) for v in s_tf["pctb"]), tf
+        assert all(isinstance(v, bool) for v in s_tf["squeeze"]), tf
+        # BandWidth is (upper-lower)/middle*100 -- always positive on real price data.
+        assert all(v > 0 for v in s_tf["bandwidth"]), tf
+
+
+def test_bollinger_series_uses_20_period_not_bb_touch_12():
+    """The whole reason this module exists: a STOCK-STANDARD 20-period read, so a value here
+    can be compared straight against a retail platform. Cross-checked against the band math
+    computed inline at 20, and asserted to DIFFER from bb_touch's own 12-period %B on the same
+    closes -- proving the two really are separate reads and one didn't quietly become the other."""
+    ohlcv, _ = _fixture()
+    closes = ohlcv["EURUSD"]["d1"]["close"].astype(float).reset_index(drop=True)
+
+    sma = closes.rolling(20).mean()
+    std = closes.rolling(20).std()
+    upper, lower = sma + 2.0 * std, sma - 2.0 * std
+    expected_pctb = round(float(((closes - lower) / (upper - lower) * 100).dropna().iloc[-1]), 2)
+    expected_bw = round(float(((upper - lower) / sma * 100).dropna().iloc[-1]), 4)
+
+    series = bollinger_series.bollinger_series_for_pair(ohlcv["EURUSD"])
+    assert series["d1"]["pctb"][-1] == expected_pctb
+    assert series["d1"]["bandwidth"][-1] == expected_bw
+
+    # And it is genuinely NOT bb_touch's 12-period number.
+    bb12 = bb_touch.compute_bb_d1(ohlcv["EURUSD"]["d1"])
+    assert series["d1"]["pctb"][-1] != bb12["pctb"][-1]
+    assert bollinger_series.BB_PERIOD == 20 and bb_touch.BB_PERIOD == 12
+
+
+def test_bollinger_squeeze_marks_only_the_125_bar_low():
+    """Pieter's call (2026-09-18): Bollinger's own published Squeeze -- BandWidth at its lowest
+    reading in the trailing SQUEEZE_LOOKBACK bars -- not a tuned percentile. A bar without a
+    full lookback behind it must read False rather than be judged on a shorter window."""
+    ohlcv, _ = _fixture()
+    series = bollinger_series.bollinger_series_for_pair(ohlcv["EURUSD"])
+
+    for tf in ("d1", "h4", "h1"):
+        bw = series[tf]["bandwidth"]
+        sq = series[tf]["squeeze"]
+        for i, flagged in enumerate(sq):
+            if not flagged:
+                continue
+            # Every flagged bar must be <= every one of the SQUEEZE_LOOKBACK-1 bars before it
+            # that are inside this window (the window can reach back past the display tail, so
+            # this checks the visible portion -- a strict superset check would need the raw
+            # series, which is deliberately not exposed).
+            start = max(0, i - bollinger_series.SQUEEZE_LOOKBACK + 1)
+            assert bw[i] <= min(bw[start:i + 1]) + 1e-9, (tf, i)
+
+
+def test_bollinger_series_squeeze_fires_on_a_constructed_low():
+    """A hand-built series whose most recent bar is unambiguously the narrowest in >125 bars
+    must flag squeeze -- proving the detector fires at all, not just that it never false-fires."""
+    import numpy as np
+    rng = np.random.default_rng(7)
+    # Wide, noisy band for most of the history, then a much quieter (but NOT perfectly flat)
+    # tail. Deliberately not zero-volatility: a dead-flat run drives std to 0, which makes %B
+    # itself 0/0 -> NaN and drops those bars from the aligned output entirely. Real price never
+    # does that, and a squeeze in the real world is "very quiet", not "motionless".
+    noisy = 1.10 + np.cumsum(rng.normal(0, 0.004, 370))
+    quiet = noisy[-1] + np.cumsum(rng.normal(0, 0.00002, 40))
+    series = bollinger_series._series_for(pd.Series(np.concatenate([noisy, quiet])))
+
+    bw, sq = series["bandwidth"], series["squeeze"]
+    # The bar holding the narrowest BandWidth on the chart is necessarily the lowest in its own
+    # trailing window too (410 bars of history behind a 90-bar window -- every visible bar has a
+    # full lookback), so it MUST be flagged. Asserting on the minimum rather than on the final
+    # bar: the quiet stretch bottoms out and then ticks fractionally wider, exactly as a real
+    # squeeze does, so "the last bar is the low" is not actually what this detector claims.
+    assert sq[bw.index(min(bw))] is True
+    assert any(sq[-40:]), "the quiet tail should register as a squeeze"
+    # ...and the wide, noisy stretch must NOT be flagged -- a detector that fires everywhere
+    # would pass the assertions above while being useless.
+    assert not any(sq[:20])
+
+
+def test_bollinger_series_dates_align_with_values_for_all_tfs():
+    from scanner import aggregator
+
+    h1_df = _synthetic_h1_for_momentum()
+    tfs = aggregator.build_tfs(h1_df)
+    series = bollinger_series.bollinger_series_for_pair(tfs, raw_h1_df=h1_df)
+    for tf in ("d1", "h4", "h1"):
+        s_tf = series[tf]
+        assert len(s_tf["dates"]) == len(s_tf["pctb"]) > 0, tf
+        assert s_tf["dates"] == sorted(s_tf["dates"]), tf
+
+
+def test_bollinger_series_d1_uses_ny_close_when_raw_h1_given():
+    """Same D1 boundary convention momentum_series and bb_d1 already use -- 17:00 New York, not
+    the frozen aggregator's UTC midnight. H4/H1 values must be unchanged by raw_h1_df."""
+    h1_df = _synthetic_h1_for_momentum()
+    ohlcv, _ = _fixture()
+    eurusd = ohlcv["EURUSD"]
+
+    without_raw = bollinger_series.bollinger_series_for_pair(eurusd, raw_h1_df=None)
+    with_raw = bollinger_series.bollinger_series_for_pair(eurusd, raw_h1_df=h1_df)
+
+    assert with_raw["d1"]["pctb"] != without_raw["d1"]["pctb"]
+    d1_ny_close = bb_touch._d1_ny_close(h1_df)["close"]
+    expected = bollinger_series._series_for(d1_ny_close)
+    assert with_raw["d1"]["pctb"] == expected["pctb"]
+    assert with_raw["d1"]["bandwidth"] == expected["bandwidth"]
+
+    for tf in ("h4", "h1"):
+        for key in ("pctb", "pctb_sma", "bandwidth", "squeeze"):
+            assert with_raw[tf][key] == without_raw[tf][key], (tf, key)
+
+
+def test_bollinger_series_attach_adds_key_per_pair():
+    ohlcv, _ = _fixture()
+    pairs_out = {key: {} for key in ohlcv}
+    bollinger_series.attach_bollinger_series(pairs_out, ohlcv)
+    for key in ohlcv:
+        assert "bollinger_series" in pairs_out[key]
+        assert set(pairs_out[key]["bollinger_series"]) == {"d1", "h4", "h1"}
+
+
+def test_bollinger_series_does_not_disturb_bb_d1():
+    """Rule #1-adjacent guard: the BB touch alert reads bb_d1. Attaching the new 20-period
+    series must leave bb_d1 byte-identical -- the two must never become coupled."""
+    ohlcv, _ = _fixture()
+    pairs_out = {key: {} for key in ohlcv}
+    bb_touch.attach_bb_d1(pairs_out, ohlcv)
+    before = {key: dict(block["bb_d1"]) for key, block in pairs_out.items() if block["bb_d1"]}
+    bollinger_series.attach_bollinger_series(pairs_out, ohlcv)
+    after = {key: block["bb_d1"] for key, block in pairs_out.items() if block["bb_d1"]}
+    assert before == after
+
+
+def test_bollinger_series_too_little_history_fails_quiet():
+    short = pd.Series([1.10 + i * 0.0001 for i in range(15)])
+    assert bollinger_series._series_for(short) == bollinger_series._EMPTY
+    assert bollinger_series._series_for(None) == bollinger_series._EMPTY
 
 
 # ── 3. Macro regime + recommendation seed ─────────────────────────────────────────

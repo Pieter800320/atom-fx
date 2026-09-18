@@ -16,13 +16,29 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
 - **CSM** — Currency Strength Model, 0–100 per currency, over 8 currencies / 16 pairs, D1/H4/H1.
 - **CSM Delta** — change in CSM over a defined lookback: "getting stronger/weaker" (the flow signal).
 - **Breadth** — how many of a currency's relationships agree with its move (broad vs narrow).
-- **%B** — 0–100, where price sits inside its own 12-period D1 Bollinger Bands (50 = middle band,
-  0/100 = the outer bands; can read past 0 or 100, a real "walk along the band"). A 12-period SMA
-  of %B itself is its signal line. This D1 closes 17:00 New York (retail-platform convention),
-  **not** the UTC-midnight D1 every other signal in the app uses — `bb_touch.py`'s own
-  `_d1_ny_close()`, added 2026-09-10 after a live mismatch against LiteFinance's own %B reading.
-  `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma`, long-press a wheel node (ChartSheet) — moved off the pair
-  sheet's Breakdown tab 2026-09-10.
+- **%B** — 0–100, where price sits inside its own Bollinger Bands (50 = middle band, 0/100 = the
+  outer bands; can read past 0 or 100, a real "walk along the band"). An SMA of %B itself, on the
+  same period as the bands, is its signal line. **Two %B reads exist in this app, on purpose**
+  (both real, neither superseding the other — they answer different questions):
+  - **%B (20), per-pair** — the stock-standard read, D1/H4/H1, `pairs.<PAIR>.bollinger_series.
+    <tf>.pctb`/`.pctb_sma` (`bollinger_series.py`, 2026-09-18). First card of the glance panel:
+    long-press a wheel node. This is the one to compare against a charting platform.
+  - **%B (12), D1 only** — the **BB touch alert's** own bands (Pieter specified 12 explicitly,
+    Signals Roadmap §5), `pairs.<PAIR>.bb_d1.pctb`/`.pctb_sma` (`bb_touch.py`). Its chart is
+    **deferred, not deleted** (2026-09-18) pending a BB-touch-alert rework; the key is still
+    computed every scan and still drives the alert and Currency %B.
+
+  Both build D1 on a 17:00-New-York close (retail-platform convention), **not** the UTC-midnight D1
+  every other signal in the app uses — `bb_touch.py`'s own `_d1_ny_close()`, added 2026-09-10 after
+  a live mismatch against LiteFinance's own %B reading. H4/H1 use the frozen aggregator's own bars.
+- **BandWidth** — (upper − lower) ÷ middle × 100: how wide a pair's 20-period Bollinger bands are,
+  as a percentage of price, D1/H4/H1. `pairs.<PAIR>.bollinger_series.<tf>.bandwidth`
+  (`bollinger_series.py`, 2026-09-18) — the series form of the single number `bb_d1.width_pct`
+  already reported. Second card of the glance panel: long-press a wheel node.
+- **Squeeze** — a bar whose BandWidth is the lowest in the trailing **125 bars**: John Bollinger's
+  own published definition, chosen (Pieter, 2026-09-18) over inventing an untuned percentile.
+  `pairs.<PAIR>.bollinger_series.<tf>.squeeze`, one bool per bar. Marked on the BandWidth chart.
+  Says a move is being coiled, **not** which way it will break — no direction is implied.
 - **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
   `percent_b_board`, computed every scan — **no UI surface any more** (lived on the Insights tab's
   Market Indicators card until that card was retired 2026-09-10, see "Whole Market Indicators"
@@ -33,10 +49,12 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   catch), one line+signal per currency (same 8 as CSM). Built the same way CSM's own
   `compute_csm_d1` corrects currency strength from a mixed pair set, mirrored around 100 instead
   of negated (since %B is a 0-100 position, not a signed return). `signals.json` key
-  `percent_b_currency`. Shown long-press a wheel node (ChartSheet) — the pair's own two currencies
-  (base + quote), right alongside that pair's own %B, so a currency-level "USD looks fragile" read
-  can be checked against whether the pair's OTHER leg agrees before treating it as a trade
-  candidate. (It briefly also had an Insights-tab surface, same day — retired with the rest of
+  `percent_b_currency`, built on the 12-period D1 bands. Shown at the **bottom of
+  `CurrencyDetailSheet`** (tap a bar on the CSM strip) as of 2026-09-18 — was a base/quote pair on
+  ChartSheet from 2026-09-10, moved when that sheet's own pair %B card was deferred and the
+  side-by-side comparison it was placed for no longer existed there. Still its only UI surface: a
+  currency-level "USD looks fragile" read, to be checked against whether a specific pair's OTHER
+  leg agrees before treating it as a trade candidate. (It briefly also had an Insights-tab surface, same day — retired with the rest of
   "Whole Market Indicators" below, once this pair-level one proved to be the useful one.)
 
 ## The wheel

@@ -2,6 +2,11 @@
 __pycache__/
 *.pyc
 
+# Local H1 bar cache (per-pair OHLCV pulled for on-device debugging/verification) — not
+# something the scan bot commits, and not needed to reproduce a scan (data/signals.json is
+# the committed artifact).
+data/h1_cache/
+
 # Android / Gradle
 local.properties
 .gradle/
