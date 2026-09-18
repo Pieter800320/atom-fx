@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-17T22:38:16.834926+00:00",
+  "updated": "2026-09-18T00:38:18.602805+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -10729,20 +10729,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4381.5,
-      "delta_pct": -0.1,
+      "value": 4392.6,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.24,
+      "value": 100.23,
       "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6145,
-      "delta_pct": 2.8,
+      "value": 6.6295,
+      "delta_pct": 3.1,
       "direction": "up",
       "label": "Copper"
     },
@@ -10759,14 +10759,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 101.26,
-      "delta_pct": -1.1,
+      "value": 100.88,
+      "delta_pct": -1.5,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 76344.0,
-      "delta_pct": 0.3,
+      "value": 76339.0,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -10790,7 +10790,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -0.6,
+      "delta_pct": -0.3,
       "label": "Gold"
     },
     "dxy": {
@@ -10800,7 +10800,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.3,
+      "delta_pct": 2.5,
       "label": "Copper"
     },
     "us10y": {
@@ -10815,7 +10815,7 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -1.2,
+      "delta_pct": -1.6,
       "label": "WTI Oil"
     },
     "btc": {
@@ -10830,11 +10830,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT and EURUSD SHORT accelerated by Fed hike odds lifting DXY, widening policy divergence with BoE/ECB.",
-    "updated": "2026-09-17T22:38:16.834926+00:00"
+    "text": "GBPUSD SHORT accelerates: BoE policy divergence with Fed widens, supporting short thesis. EURUSD SHORT accelerates: Fed hike odds lift DXY, EUR weakens. USDCAD LONG: No conflicting catalyst identified.",
+    "updated": "2026-09-18T00:38:18.602805+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: WTI collapse confirms CAD weakness, supports long USD setup.\n\nGBPUSD SHORT: Risk-off regime confirms short bias, no macro contradiction present.\n\nEURUSD SHORT: Risk-off favors USD strength, confirms European weakness narrative clearly.",
+    "text": "USDCAD LONG: WTI oil falling confirms CAD weakness, strengthens setup.\n\nGBPUSD SHORT: Risk-off regime confirms short bias, no macro conflict.\n\nEURUSD SHORT: Risk-off supports shorts but copper strength challenges EUR.",
     "top": [
       {
         "pair": "GBPUSD",
@@ -10852,7 +10852,7 @@
         "score": 6.7
       }
     ],
-    "updated": "2026-09-17T22:38:16.834926+00:00"
+    "updated": "2026-09-18T00:38:18.602805+00:00"
   },
   "calendar": {
     "events": [
@@ -10917,7 +10917,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-17T22:38:16.834926+00:00"
+    "updated": "2026-09-18T00:38:18.602805+00:00"
   },
   "deep_analysis": {
     "text": "Risk appetite firmed as equities rallied and volatility eased sharply, yet gold's mild gain and a softer dollar index sit awkwardly against falling yields and a stronger equity tone, leaving cross-asset signals mixed rather than a clean risk-on confirmation. Bitcoin's modest advance and copper's strong bid lean constructive for growth-sensitive currencies, while oil's slip tempers commodity-bloc support. Headlines still frame the dollar around Fed hike expectations and policy divergence versus the BoE, keeping rate-path narratives central. The next major risk is US CPI, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the day.",
@@ -10926,15 +10926,15 @@
   "breaking": {
     "headlines": [
       "Fed hike bets rise as CPI takes center stage; USD strengthens",
-      "Fed-BoE policy divergence widens; EUR/USD and GBP/USD weaken further",
-      "US jobless claims beat estimates at 196K versus 208K expected"
+      "Fed-BoE policy divergence widens; dollar strengthens against EUR and GBP",
+      "Japan August headline CPI misses at 1.9% versus 2% expected"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-17T22:38:16.834926+00:00"
+    "updated": "2026-09-18T00:38:18.602805+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
