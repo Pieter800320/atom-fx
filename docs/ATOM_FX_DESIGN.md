@@ -995,6 +995,20 @@ on a rally whose histogram was shrinking bar-over-bar, and "Bullish, building" o
 accelerating one — all four confirmed rendering with the correct word and tint against real
 computed values, not just a passing unit test.
 
+**2026-09-18 (6th) restyle — Pieter's ask, "remove any text on the footers except the state
+describing text, and right align it."** The footer contract itself simplified: `IndicatorCard`'s
+`footer` slot (a free-form composable — a caller could put anything in it) became `footerState`
+(a plain `Pair<String, Color>?`), rendered internally as one right-aligned `Text` in a
+`Box(contentAlignment = Alignment.CenterEnd)`. Every caller's own legend is gone as a direct
+consequence, not a separate ask: BandWidth's "Squeeze (125-bar low)" legend, MACD's "Signal"/
+"Histogram" legend, and Currency %B's "%B"/"Signal (SMA 12)" legend are all removed outright —
+the footer now holds exactly the state word this pass's own "what is the graph FOR" answer
+produces, nothing else. `LegendItem` (`SheetComponents.kt`) stays — the deferred 12-period pair
+%B card (`PercentBChart.kt::PercentBChart`, still unused, still not restyled at all per its own
+"do not delete, do not touch" note) is its one remaining caller. Verified on-device against the
+same purpose-built fixture as the 5th pass: every state word now renders alone, flush right,
+against the black plot area — no legend, no dot, on all five cards.
+
 ---
 
 ## 20. Acceptance test (spec §69) — the design is done when…

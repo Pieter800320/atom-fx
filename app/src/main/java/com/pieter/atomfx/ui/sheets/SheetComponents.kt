@@ -257,10 +257,15 @@ private val INDICATOR_CARD_SHAPE = RoundedCornerShape(14.dp)
  * the app's own card/grouping surfaces already use elsewhere, e.g. Tradeable Now) reading
  * `[name, white][reading, smaller grey]`, a black plot area (`colors.ground`) for [content], and
  * (2026-09-18, 2nd — Pieter's ask, "every chart should have some sort of info at the bottom, for
- * uniformity") an optional matching grey footer strip below it. [headerTrailing] and [footer] are
- * both plain composable slots — each caller builds whatever row/text makes sense inside (a
- * dot-legend, a single reading, a state word), rather than this shell imposing one fixed layout
- * on content that doesn't all take the same shape.
+ * uniformity") an optional matching grey footer strip below it, holding [footerState].
+ *
+ * **2026-09-18 (6th) — the footer simplified down to exactly one thing.** It started as a plain
+ * composable slot (a dot-legend, a reading, a state word — whatever a caller wanted); once every
+ * card's footer settled on answering "what is this graph FOR" in one state word (2026-09-18,
+ * 5th — see this file's own `percentBState`), the legends explaining chart colours (BandWidth's
+ * "Squeeze", MACD's "Signal"/"Histogram", Currency %B's "%B"/"Signal") were the one thing left
+ * that wasn't that answer — removed outright (Pieter's explicit ask), not folded in. The footer
+ * is now just `footerState`, right-aligned.
  */
 @Composable
 internal fun IndicatorCard(
@@ -269,7 +274,7 @@ internal fun IndicatorCard(
     reading: String? = null,
     modifier: Modifier = Modifier,
     headerTrailing: (@Composable () -> Unit)? = null,
-    footer: (@Composable () -> Unit)? = null,
+    footerState: Pair<String, Color>? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(modifier = modifier.fillMaxWidth().clip(INDICATOR_CARD_SHAPE).background(colors.ground)) {
@@ -287,9 +292,12 @@ internal fun IndicatorCard(
             headerTrailing?.invoke()
         }
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp), content = content)
-        if (footer != null) {
-            Box(modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp)) {
-                footer()
+        if (footerState != null) {
+            Box(
+                modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Text(text = footerState.first, style = AtomType.Caption.copy(color = footerState.second))
             }
         }
     }
