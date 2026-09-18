@@ -40,24 +40,15 @@ internal fun chartHeight(hasDates: Boolean): Dp =
     if (hasDates) BASE_CHART_HEIGHT + DATE_ROW_HEIGHT else BASE_CHART_HEIGHT
 
 /**
- * The dashed reference-line pair every 0-100 glance-panel oscillator draws — shared here so
- * %B and RSI's own lines are drawn at the exact same pixel height, not independently by two
- * files that could drift apart.
+ * %B's own real dashed-threshold band (10/90) — extracted here so the value has one source of
+ * truth instead of a local literal in `PercentBOscillator.kt`.
  *
- * 2026-09-18 (Pieter's ask, "the RSI thresholds should appear the same distance from the
- * centre line as %B's") — %B's own bands (10/90) and RSI's own industry-standard bands (30/70)
- * are genuinely different numbers; drawn on the same 0-100 domain and the same plot height
- * (both charts share `chartHeight`/`py()`'s own formula), 10/90 sits 80% of the way from the
- * 50 centreline to the edge, 30/70 only 40% — visually uneven across two charts sitting one
- * above the other in the same panel. Both now draw their dashed lines at THESE_VALUES, so the
- * two always match pixel-for-pixel, regardless of which real threshold either indicator uses.
- *
- * This is a **purely visual** reference band now, decoupled from RSI's own real overbought/
- * oversold definition — RSI's actual value line still plots true 0-100 readings unchanged, and
- * the Overbought/Oversold/Neutral footer state (`RsiCard`, `ChartSheet.kt`) still correctly
- * reads the real 30/70 values. Only the drawn lines moved; the line and the footer state can
- * legitimately say "Overbought" before the (relocated) dashed line is reached — the dashed line
- * is a shared visual rhythm across the panel now, not a literal per-indicator threshold marker.
+ * **2026-09-18 (later restyle, reverted 9th same day)** — briefly reused by RSI too, so both
+ * charts' dashed lines matched pixel-for-pixel regardless of each indicator's own real threshold
+ * (Pieter's ask, panel-wide visual consistency). Reverted the same day: real RSI(14) rarely
+ * swings below 10 or above 90, so on live data its line almost never reached the widened lines —
+ * looked like the line was ignoring its own thresholds. RSI now draws its own real 30/70 again
+ * (`MomentumOscillators.kt`); this constant describes only %B's own real band once more.
  */
 internal const val THRESHOLD_LINE_LOW = 10.0
 internal const val THRESHOLD_LINE_HIGH = 90.0

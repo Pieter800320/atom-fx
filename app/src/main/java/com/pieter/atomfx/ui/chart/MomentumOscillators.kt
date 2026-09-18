@@ -26,13 +26,16 @@ import kotlin.math.abs
  * fabricated one would make this look like a different indicator than the one traders already
  * know. 2026-09-17 (Pieter's ask, ChartSheet glance panel); restyled 2026-09-18.
  *
- * **Dashed reference lines (2026-09-18, later restyle) — drawn at `THRESHOLD_LINE_LOW`/`_HIGH`
- * (`ChartCommon.kt`, 10/90), not RSI's own literal 30/70.** Pieter's ask: the same on-screen
- * height as %B's own dashed lines, panel-wide visual consistency over per-indicator numeric
- * accuracy for these two specific reference lines. RSI's real 30/70 threshold is untouched
- * everywhere it actually matters — the value line below still plots true 0-100 readings, and
- * the Overbought/Oversold/Neutral footer state (`RsiCard`, `ChartSheet.kt`) still reads the
- * real 30/70. See `THRESHOLD_LINE_LOW`'s own doc comment for the full reasoning.
+ * **Dashed reference lines draw at RSI's own real 30/70 (reverted 2026-09-18, 9th).** A same-day
+ * earlier restyle briefly moved these to `THRESHOLD_LINE_LOW`/`_HIGH` (10/90, matching %B's own
+ * dashed-line pixel height) for panel-wide visual consistency — but real RSI(14) rarely swings
+ * below 10 or above 90 (it typically lives in 20-80), so on live data the line almost never
+ * reached the widened lines, making the chart look like it was ignoring its own thresholds
+ * (Pieter's catch, watching it live). Reverted: the lines are RSI's real 30/70 again, so the line
+ * visibly crosses them at genuine overbought/oversold extremes, same as any standard RSI chart —
+ * traded panel-wide symmetry with %B for the line actually meaning something against its own
+ * lines. The Overbought/Oversold/Neutral footer state (`RsiCard`, `ChartSheet.kt`) was always
+ * reading the real 30/70 regardless of where the lines were drawn; unaffected either way.
  */
 @Composable
 fun RsiOscillator(values: List<Double>, colors: AtomColors, dates: List<String> = emptyList(), modifier: Modifier = Modifier) {
@@ -60,11 +63,10 @@ fun RsiOscillator(values: List<Double>, colors: AtomColors, dates: List<String> 
         // between 30/70 is gone; dashed-line-only now matches %B's own threshold treatment
         // exactly, so every glance-panel chart's reference lines look the same.
         //
-        // 2026-09-18 (later restyle) — drawn at THRESHOLD_LINE_LOW/_HIGH (10/90), not RSI's own
-        // 30/70, so the lines sit at the same pixel height as %B's own dashed lines — see this
-        // file's own doc comment on RsiOscillator for the full reasoning.
+        // 2026-09-18 (9th, reverted) — back to RSI's own real 30/70 (briefly 10/90 earlier the
+        // same day) — see this file's own doc comment on RsiOscillator for why.
         val dash = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 5.dp.toPx()))
-        listOf(THRESHOLD_LINE_LOW, THRESHOLD_LINE_HIGH).forEach { threshold ->
+        listOf(30.0, 70.0).forEach { threshold ->
             drawLine(colors.hairlineStrong, Offset(0f, py(threshold)), Offset(size.width, py(threshold)), strokeWidth = 1.dp.toPx(), pathEffect = dash)
         }
         drawLine(colors.hairlineStrong, Offset(0f, py(50.0)), Offset(size.width, py(50.0)), strokeWidth = 1.dp.toPx())

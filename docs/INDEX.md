@@ -196,3 +196,19 @@ needs its own verification, not just a citation.
   correctly showed "Bullish, building." One pre-existing, unrelated `WheelMapperTest` failure
   (Setup/Trend wing regime mapping, nothing to do with charts) was found during the full test run
   and flagged to Pieter rather than fixed here — out of this audit's scope.
+
+- 2026-09-18 (10th) — RSI's dashed thresholds reverted to its own real 30/70, undoing the 8th
+  entry's pixel-height match to %B. Pieter's catch, watching it live: "it seems as if the line is
+  not adapting to the thresholds that were widened." Real RSI(14) rarely swings below 10 or above
+  90 (typically 20-80), unlike %B, which legitimately pierces near 0/100 often — so on live data
+  the line almost never reached the widened 10/90 lines, looking like it was ignoring its own
+  thresholds. Presented as a genuine trade-off (revert / keep 10/90 and rescale the line / leave
+  as-is) rather than silently re-decided; Pieter chose the revert. `RsiOscillator`
+  (`MomentumOscillators.kt`) draws its own real `30.0`/`70.0` again; `THRESHOLD_LINE_LOW`/`_HIGH`
+  (`ChartCommon.kt`) reverts to describing only %B's own real band. RSI's value line and its
+  Overbought/Oversold/Neutral footer state were unaffected either way. `ATOM_FX_DESIGN.md`
+  §19.4b (8th), `ATOM_FX_BUILD_STATUS.md`, and `LibraryContent.kt`'s RSI & MACD entry resynced
+  same session. Verified on-device against live production data (device briefly on a secure
+  lockscreen mid-session, unlocked before verification): EURUSD H4, same RSI=41 reading as the
+  previous pass's screenshot — dashed lines now visibly closer to the centreline and the line's
+  own Sep 15 dip clearly pierces the lower one, a real crossing at a real extreme.
