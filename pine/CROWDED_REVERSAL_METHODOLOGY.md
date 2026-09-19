@@ -465,3 +465,11 @@ level's distance, because a stretched bar's last level is naturally far away.
 are too few flags to say anything. What the test exposed: at a flag, the previous level is usually far away (91% of flags had it
 3-5 ATR from the close) and 55% of flags timed out inside 20 bars. Not tested: longer horizons, other definitions of
 support/resistance, tighter stops, and any discretionary reading of a chart.
+
+### Caveat added 2026-09-19 — the bar timestamps behind every experiment above
+Twelvedata's hourly forex timestamps are **Australia/Sydney local time** (UTC+10 in AEST, UTC+11 in AEDT), not UTC (found by matching five
+TradingView candles; `BUILD_STATUS.md` item 18). Every store used here was built assuming UTC, so the "17:00 New York close" D1 and the "New York-session" /
+"UTC" H4 blocks in Experiments 2-7 were really cut at other times (D1 about 10 hours off, H4 blocks 2 hours off the NY grid), and the "native daily UTC"
+bars are Twelvedata's own day boundary. The candles themselves are real; only their boundaries were misplaced. The reversal-odds conclusions are about
+generic 4-hour and daily candles and are unlikely to hinge on where exactly the boundary sits, but that has NOT been re-tested. Re-running the primary
+tests on correctly aligned bars is the honest check before anything is built on them.
