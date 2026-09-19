@@ -40,6 +40,110 @@ file first to get current — then we plan the next experiment and hand Claude C
 | # | Strategy | Hypothesis | Status | Result | Verdict | Pointers |
 |---|----------|-----------|--------|--------|---------|----------|
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
+| 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 2" below; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
+
+## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
+
+**Written and committed BEFORE any score-gradient number has been computed on real data.**
+
+### What the indicator is
+`pine/crowded_reversal.pine` (methodology: `pine/CROWDED_REVERSAL_METHODOLOGY.md`): eight
+boolean factors (%B, z-score, ATR stretch, RSI + RSI tier, regular divergence, volatility
+climax, COT positioning) each add a fixed weight to a top score and a bottom score (0-100), and a
+debounced ADX >= 30 + EMA200-slope regime filter can zero the counter-trend side. Ported factor-by-factor
+to Python (`scanner/extend/crowded_reversal.py`, 36+ tests). All Pine defaults, unchanged — nothing here is fit.
+
+### Hypothesis
+H1: within a pair and a side, the probability that price REVERSES rises with that side's score.
+H0: no relationship. Direction of the expected reversal: bottom score -> up, top score -> down.
+
+### Definition of "reversal" (the barrier race — unchanged from the plan Pieter approved)
+From a bar's close, with A = ATR(14) at that bar, barriers at close +/- 1.0 x A; walk the next
+20 bars' high/low. Bottom side: up-barrier first = reversal. Top side: down-barrier first = reversal.
+A bar touching BOTH barriers cannot be sequenced from D1 OHLC and resolves as CONTINUATION; no barrier
+within 20 bars = timeout = NOT a reversal (kept in the denominator). The same function scores every bar.
+Bars without 20 forward bars, or without ATR, are excluded everywhere.
+
+### Primary test — the score gradient (this replaced the flagged-event test as primary; see "Why")
+- Observations: every valid bar x {bottom, top}. x = that side's score (0-100), y = reversal (0/1).
+- **Slope** = pooled within-(pair x side) OLS slope of y on x, reported per +20 score points.
+  Fixed effects mean a pair's drift or up/down asymmetry cannot produce a fake gradient.
+- **rho** = within-stratum correlation of y with x (scale-free; used to compare predictors).
+- **Buckets** (fixed edges, left-closed): [0,10) [10,20) [20,30) [30,40) [40,50) [50,60) [60,100];
+  reversal rate, like-for-like baseline (the stratum's own mean), lift.
+- **Inference:** month-clustered bootstrap, 5000 resamples, seed 20260919. Calendar months are resampled
+  with replacement and every statistic, including each stratum's baseline, is recomputed from the resample.
+  The SAME resamples are used for every statistic, so all differences below are paired.
+- **Arms:** regime filter `suppress` (Pine default) and `off`. Same thresholds, weights, data.
+
+### Gates (per arm; ALL must hold for PASS, else FAIL; fixed now, never adjusted after seeing results)
+1. Evaluation window >= 48 calendar months, otherwise INCONCLUSIVE.
+2. Slope per +20 points **>= 0.02** (~ +6 points of reversal probability at a score of 60).
+3. 95% CI lower bound of the slope **> 0**.
+4. Slope **> 0 in both halves** of the evaluation window (split at the middle month).
+5. Slope **> 0 excluding the JPY crosses**.
+6. Slope **> 0 in every leave-one-pair-out** run (no single pair carries the result).
+7. Composite rho **beats the best single factor's rho** (each factor's own weighted contribution on the
+   same 0-100 scale), point estimate; the paired CI of the difference is reported.
+
+### The ADX question (Pieter distrusts ADX as a reversal filter)
+Decided by the data, by rule: slope(suppress) - slope(off), paired month-clustered 95% CI.
+CI lower > 0 -> the filter improves the gradient (evidence for keeping it). CI upper < 0 -> it worsens it
+(evidence against). CI includes 0 -> **no demonstrated value**: the data cannot justify the filter, and it
+stays an untested assumption rather than a validated component. No arm is chosen post hoc.
+
+### Secondary (informational, no gates): flagged events at score >= 60
+De-clustered (a new flag opens no event until the previous event's race has resolved), per pair; like-for-like
+measured baseline (same pair, same direction, same window, same tie/timeout rules); lift and month-clustered CI.
+Read as INCONCLUSIVE below 100 events. Pre-registered expectation: it will be below 100 (see below).
+
+### Data
+- Price: Twelvedata H1, paged backwards, aggregated to the 17:00 America/New_York-close D1 with
+  `scanner.extend.agg_nyclose` (same code as the live scanner) -> `data/d1_nyclose_long/`,
+  `tools/fetch_d1_deep.py`. Depth is the provider's: EUR/USD H1 begins 2020-01-30 (404 before), ~6.6 years.
+  Evaluation starts 260 bars after each pair's first bar (EMA200/ADX/z warm-up) and only where the COT
+  percentile exists.
+- COT: CFTC Legacy futures-only, Non-Commercial long/short, 8 contracts, 2006-2026
+  (`tools/fetch_cot_legacy.py` -> `data/cot_legacy/legacy_nc.csv`, sha256 recorded in params.json).
+  Alignment: bar in calendar week k reads the report with as-of date = Tuesday of week k-1 (published
+  Friday k-1) — never a report dated in week k or later (unit-tested). COT percentile: 156 weeks, computed on a
+  Mon-Fri calendar as the Pine does; reproduced TradingView's diagnostic label to ~0.3 percentile points on
+  2026-09-19 (net positions matched exactly).
+- 12 pairs: EURUSD GBPUSD USDJPY USDCAD NZDUSD AUDUSD USDCHF EURJPY GBPJPY CADJPY AUDJPY NZDJPY. D1 only.
+  H4 is out of scope for this experiment (no deeper intraday history than ~3 years is available).
+
+### Why the primary test changed from the flagged-event test (disclosed, before any gradient run)
+1. Count-only estimate (no outcomes) on 19 years of UTC daily data: ~41 (filter on) / ~91 (filter off)
+   de-clustered composite events over 211 pair-years — under the 100-event floor even in the best case,
+   and a 5-point lift is undetectable at n = 40-90 (interval about +/-10 points).
+2. Twelvedata's daily bars are UTC-based and disagree with the 17:00 NY close (median 13-20 pips per bar;
+   `timezone` has no effect on daily bars). On the 2-year overlap the indicator's factors agree on which days
+   are "on" only 27-72% of the time, composite score correlation 0.69, and only 1 of 4 flags coincided. UTC
+   daily bars would test a different indicator than the one on TradingView — so they are NOT used.
+3. Hence: NY-close history only (~6.6 yr), and a test that uses every bar rather than a rare threshold.
+Approved by Pieter 2026-09-19 (option C).
+
+### What has already been seen (full disclosure)
+- The plumbing smoke run on the ~2-year cache showed 4 flagged events (2 reversal, 2 continuation) — a
+  plumbing check by design, recorded as such in `data/backtest/crowded_reversal_smoke_2026-09/`.
+  That window overlaps the last 2 years of this experiment's window.
+- The count-only power estimate and the flag-agreement measurement described above (no outcomes).
+- NO score-gradient statistic, bucket table, or slope has been computed on any real data before this entry.
+- A plumbing smoke of the gradient code on the ~2-year cache WILL be run after this commit, labelled
+  PLUMBING ONLY, and will not change any parameter or gate above.
+
+### Known limits (stated in advance)
+One macro-regime era (~2020-2026, incl. the 2022 USD surge) — a pass says nothing about earlier regimes.
+Bars overlap, so observations are serially dependent; the month-clustered bootstrap absorbs same-month
+dependence but not every cross-pair dependency (shared USD/JPY legs, shared COT legs). D1 OHLC cannot
+sequence intrabar (tie -> continuation, applied to every bar alike).
+
+### Reproduce
+```
+py -m tools.fetch_cot_legacy 2006
+set TWELVEDATA_KEY=...   (never in chat or git)      py -m tools.fetch_d1_deep
+py -m tools.backtest_crowded_reversal --tag exp2_2026-09 --mode full --data-dir data/d1_nyclose_long
+```
 
 ## Parked ideas
 **Priority order (Pieter's call, 2026-09-17): CSM H1 flow extremes is Priority 1** — listed
