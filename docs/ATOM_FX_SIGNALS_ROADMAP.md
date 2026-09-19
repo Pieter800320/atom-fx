@@ -395,6 +395,196 @@ slower-cadence `macro_assets`.
 
 ---
 
+## 5c. Crowd score — a context chart (Phase 1), then optional alerts (Phase 2)
+
+> **DRAFT for Pieter's review, 2026-09-19 — no code written.** Everything in ⚠ needs a decision
+> before implementation starts. Nothing here is built; the design is deliberately written down
+> first, per this doc's convention and `CLAUDE.md` §1.
+
+### What it is, and what the evidence says (stated up front, and repeated in the in-app Library)
+
+The Crowded Market indicator (Pine on `main`: `pine/crowded_reversal.pine`; methodology
+`pine/CROWDED_REVERSAL_METHODOLOGY.md`): eight weighted yes/no conditions — %B outside its bands,
+z-score, ATR-stretch, RSI, RSI extreme tier, regular divergence, volatility climax, and COT
+positioning — add to a **top score** and a **bottom score**, each 0–100. Top = price looks stretched
+up and crowded long; bottom = the mirror. A score of 60 is the indicator's own flag line.
+
+**It is context, not a signal.** Four pre-registered, run-once studies (`docs/RESEARCH_LOG.md` on the
+`research` branch, Experiments 2–5) found: a small but real tendency for reversals to become more
+likely as the D1 score rises in **2021–2026**; **no** such tendency in 2009–2020, **none on H4**, and
+flagged bars (score ≥ 60) did **not** reach the previous support/resistance more often than
+comparable bars. D1 flags at 60 were too rare (~25–32 events) to conclude anything on their own. So
+the app presents the score as "how many stretch and crowding conditions coincide right now" and
+never as a probability or an entry. This wording constraint applies to the card, the Library entry,
+and — in Phase 2 — every notification.
+
+### Naming (Glossary rule: one name per concept, no synonyms)
+
+⚠ Proposed: **Crowd score** — shown as two readings, **Crowd top** and **Crowd bottom**. It must not
+reuse *Potential*, *Setup Rank* or *Continuation score* (all existing 0–100 numbers, all
+different). "Crowded Market — Reversal Conditions" stays as the indicator's TradingView title and
+is quoted once in the Library for cross-reference. **`GLOSSARY.md` gets the new entry in the same
+change that ships the key** (§9).
+
+### Phase 1 scope — and what is deliberately NOT in it
+
+In: a backend series per pair for D1 and H4, and one chart card on the long-press sheet.
+**Not in Phase 1:** any push notification (Phase 2), any Settings toggle, any wheel/landing-screen
+element (§17's no-scroll invariant is untouched — this lives only in a sheet), a regime filter
+(see below), M15/H1 (no evidence, and H1/M15 bars are not what was tested).
+
+### 1. Backend (EXTEND — Rule #1 safe: reads frozen OHLCV only, writes one new key, no frozen file touched)
+
+**1.1 New module `scanner/extend/crowd_score.py`** — the tested port of the Pine logic. The research
+work lives on the `research` branch (`scanner/extend/crowded_reversal.py`, Pine primitives
+reproduced factor by factor, with its tests); `main` must not depend on that branch, so the module
+and its tests are **copied to `main` as new files**, not imported. Parameters are the Pine defaults,
+verbatim. The **regime filter is not ported** — it is Off by default because the study found it
+made the score a worse predictor, so ADX and EMA200 are not computed at all (shorter warm-up, less
+code). The trend-shading background of the TradingView version is therefore out of scope too.
+
+**1.2 Bars** (from the H1 already fetched this scan — `raw_ohlcv`, 5000 H1 bars, no new API cost):
+- **D1:** 17:00 America/New_York close, closed-market bars dropped — the convention the studies used.
+- **H4:** the app's own UTC 4-hour blocks, closed-market bars dropped, the Sunday-reopen and
+  Friday-close stub blocks **kept** (as the app's aggregator and the tested H4 did).
+- **Completed bars only.** The still-forming bar is never scored (no repaint; the tested definition).
+  ⚠ Consequence: this series' right edge can lag the sibling cards by up to one bar. Alternative
+  considered and rejected: scoring the forming bar — untested and it repaints.
+- **History is sufficient but tight on D1:** 5000 H1 ≈ 208 D1 bars (`scanner/config.py`), and the
+  slowest input is the 100-bar z-score, leaving ~108 scoreable D1 bars against the 90-point tail.
+  H4 (~830 blocks) has ample room. Points without every input are omitted, never faked.
+
+**1.3 COT — a new data path, the largest new dependency.** The indicator uses CFTC's **Legacy
+futures-only, Non-Commercial long/short** report (8 contracts: EUR GBP JPY CHF CAD AUD NZD, and the
+ICE Dollar Index for USD). The app's existing COT job (`scan_cot.py`, `cot.py`) uses the **TFF**
+report (leveraged funds) for Conviction — a different series; the two **coexist and must not be
+unified** (same reasoning as the two %B reads). New: a committed store
+`data/cot_legacy/legacy_nc.csv` (~8,600 rows, 2006→, ~400 KB) plus a weekly refresh (CFTC publishes
+Fridays; append the newest report, keep the file on any fetch failure). Alignment is the tested,
+unit-tested rule: **a bar in calendar week *k* reads the report dated the Tuesday of week *k−1*** —
+never one dated in week *k* or later. Percentile: 156 weeks on a Mon–Fri calendar; the two legs of a
+pair combine with the quote leg inverted and are averaged. **A pair whose COT cannot be resolved
+still gets a score, with COT's weight left in the denominator (ceiling 75) and `cot_ok: false`** —
+exactly the Pine's own graceful fallback. ⚠ How the card shows that state: see decision 6.
+
+**1.4 Contract** — a new block **inside the existing `pairs.<PAIR>`**, same shape family as
+`bollinger_series`/`momentum_series`, **`schema_version` 11 → 12**:
+
+```
+pairs.<PAIR>.crowd_series = {
+  "d1" | "h4": {
+     dates:  [str, …],      # bar labels, oldest-first, ≤ 90 points, same date format as the sibling series
+     top:    [float, …],    # 0-100, the top score per completed bar
+     bottom: [float, …],    # 0-100, the bottom score per completed bar
+     latest: { bar_date: str, top: float, bottom: float,
+               top_on: [str, …], bottom_on: [str, …],     # which of the 8 conditions are on, by name
+               cot_pctl: float | null, cot_ok: bool, cot_asof: str | null }
+  }
+}
+```
+
+`latest` carries the state Phase 2's alert and its message body need, so the contract does not
+change again later. **A free forward record:** the scan bot already commits `data/signals.json`
+every scan, so git history now accumulates real, dated, out-of-sample `latest` scores from the day
+this ships — a script can rebuild an honest forward test later. No extra logging writer is added.
+
+**1.5 Call-site:** one `attach_crowd_series(...)` call in `scan_h1.py` beside `attach_bollinger_series`
+(pure additive call-site; no calculation or firing condition changes). `scan_m15.py` never touches
+this key, and `scan_h1.py` rebuilds `pairs_out` fresh each run, so the **cross-cadence carry-forward
+trap** (`INDEX.md`, 2026-09-18 3rd) does not apply — but the tests below assert it anyway.
+A module failure leaves the key absent for that pair and the scan continues (same posture as every
+other EXTEND module; the known observability gap is `BUILD_STATUS.md` outstanding item 13).
+
+### 2. App (Kotlin/Compose) — a pure consumer: it draws the series and computes nothing
+
+**2.1 Model** (`data/model/Signals.kt`): `CrowdSeries` + `PairSignals.crowdSeries`, tolerant of an
+absent key (older cached JSON, or a pair whose module failed) — absent means no card.
+
+**2.2 The card `CrowdScoreCard`** — added to `ChartSheet.kt` **below MACD**, "under the long-press
+graphs". It uses the shared two-tone `IndicatorCard` shell (grey `surfaceRaised` header strip, black
+`ground` plot area, grey footer strip) and the shared `ChartCommon.kt` helpers, so it reads as the
+fifth card of one panel. The D1/H4/H1/M15 row already drives every card: **the card shows on D1 and
+H4 and is hidden on H1 and M15** (no data, no evidence there). ⚠ Hiding shifts the sheet's height
+when the row changes; the alternative (an empty card reading "not computed on this timeframe") was
+judged noisier.
+
+- **Header:** `Crowd score` (white, Body) · `Top 42 · Bottom 0` (grey, Caption) — both latest values.
+- **Plot:** y-axis fixed 0–100. **Two lines: top in `colors.bear` (red), bottom in `colors.bull`
+  (green)** — TradingView's red/green, as requested. ⚠ This is a deliberate exception to the
+  "every line is white" rule (`DESIGN.md` §19.4b, 3rd restyle), justified the same way MACD's signal
+  line is: two overlaid lines must be tellable apart. A **dashed reference line at 60** (the
+  indicator's own flag line, the app's existing dashed-reference style). No other reference lines.
+  Endpoint glow as on the sibling cards. A small dot on each bar where a side first reaches ≥ 60
+  (TradingView's ▼ TOP / ▲ BOTTOM labels are too wide for 90 points; the value is in the header).
+- **Footer state word** (right-aligned, nothing else — the 6th/7th restyle rule), answering "is the
+  market crowded to one side right now?" using **only the 60 line the chart already draws — no new
+  threshold**: **Crowded top** (`bear`) if top ≥ 60 · **Crowded bottom** (`bull`) if bottom ≥ 60 ·
+  **Mixed** (`watch`) if both ≥ 60 · **Not crowded** (`neutral`) otherwise.
+- **Dates** via the shared `drawDateRow`. **Theming:** tokens only, no literal hex; verified in light
+  and dark. **Haptics (§16):** the card has no tappable element in Phase 1, so no new haptic wiring;
+  the existing TF row keeps its own.
+
+**2.3 In-app Library** (`LibraryContent.kt`, prose per `ATOM_FX_LIBRARY_STYLE.md`, in the same change):
+a "Crowd score" entry — what the eight conditions are, how to read top/bottom, the 60 line, the COT
+input's weekly lag, and the evidence paragraph above in plain words.
+
+### 3. Findings and decisions for Pieter ⚠
+
+1. **Weekend bars in the app's existing series (a real finding, separate from this feature).** The
+   live `signals.json` D1 series contain **Saturday and Sunday dates with real values** (90 points
+   spanning exactly 90 calendar days; e.g. EURUSD %B is 32 on Friday, 35 on Saturday and −10 on
+   Sunday), and the H4 series contain Saturday blocks. Twelvedata began emitting market-closed
+   weekend bars on 2026-01-11 (recorded as `DECISION-007` in the `research` branch's
+   `scanner/extend/agg_nyclose.py`, which documents the failure and its fix — dropping bars outside
+   the real FX week, [Sunday 17:00 ET, Friday 17:00 ET)). That fix exists **only on the `research`
+   branch, not on `main`**; `main`'s docs do not mention it. So the current %B, BandWidth, RSI and MACD cards, and the BB
+   touch alert's bands, are computed with those bars in the window. I have **not** measured how much
+   this moves the numbers. **This spec does not change any shipped number**: the Crowd score uses
+   filtered bars (the tested definition), so its dates will not line up with the sibling cards over a
+   weekend. Whether to bring the same filter to the shared series is a separate, Rule-#1-style
+   decision (it would move numbers an alert fires on) — recommended as its own item, not folded in here.
+2. **Naming** — "Crowd score / Crowd top / Crowd bottom", or another term?
+3. **Hide on H1/M15** (recommended), or show an empty card?
+4. **Red/green lines** on this one card (recommended, matches TradingView), or white with a legend?
+5. **Completed bars only** (recommended, tested) or include the forming bar (untested, repaints)?
+6. **COT unavailable:** the score still shows with a 75 ceiling (Pine's own behaviour). ⚠ Should the
+   card say so (e.g. the footer reads "No COT" in `textMuted` in place of the state word), or stay
+   silent? Recommended: say so — a capped score silently reads as "less crowded".
+7. **Parity with TradingView is close, not exact.** D1 should match a TradingView D1 chart within a
+   few points (same NY-close convention; percentile window differs by ~0.3 points; bar feeds differ).
+   **H4 will not match TradingView's H4**, which aligns blocks to the New York session while the app
+   uses UTC blocks — the app's own convention, chosen deliberately (Pieter, 2026-09-19).
+
+### 4. Phase 2 — alerts (outline only; its own spec after Phase 1 has been watched live)
+
+An edge-triggered `crowd_score` push type in `state_alerts.py` using the `latest` block, a Settings
+toggle and a **minimum-level setting** (any / 20 / 40 / 60) per timeframe, and a message that always
+states the level and which conditions are on. Measured volume on 2021–2026 data, filter off, rising
+edge into each level, across all 12 pairs: **D1** ≈ 267 / 162 / 36 / 6 a year for >0 / ≥20 / ≥40 / ≥60;
+**H4** ≈ 1,400 / 990 / 264 / 31 a year (H4 "any level" ≈ 5 pushes per trading day). Score > 0 is present
+on ~40% of bars and mostly means a single condition is on. Default state, cooldown and level-escalation
+rules are decided then.
+
+### 5. Verification — Phase 1 is done when
+
+- **Python:** the ported module's parity tests pass on `main` (Pine primitives, divergence latch,
+  COT no-look-ahead alignment); the last-90 scores computed from a 5000-H1 window agree with the same
+  bars computed from full history within tolerance (the short-warm-up check); series shape, absent-COT
+  behaviour, and completed-bars-only are asserted; **`bb_d1`, `bollinger_series` and `momentum_series`
+  are byte-identical before and after** (the `test_bollinger_series_does_not_disturb_bb_d1` pattern);
+  the `prev`-carry-forward across a `scan_m15` run is asserted; `python -m tests.test_rule1_frozen`
+  and `python -m tests.test_extend` green.
+- **App:** `./gradlew assembleDebug` compiles; a unit test for the footer-state function; **on
+  device**, a fixture that forces each footer state (Crowded top / Crowded bottom / Mixed / Not
+  crowded / No COT) and the card appearing on D1/H4 and disappearing on H1/M15, in light and dark.
+- **Docs, same session:** `ARCHITECTURE.md` §4.2 (contract, v12), `DESIGN.md` §19.4b (card), `GLOSSARY.md`,
+  `BUILD_STATUS.md` (row), `LibraryContent.kt`, this section flipped from DRAFT to shipped.
+
+### 6. Relative size
+
+Backend: medium (port + tests are done and move over; the Legacy COT store and weekly refresh are the
+new work). App: medium-small (one card on an existing shell). The alert phase is separate.
+
 ## 6. Suggested order
 
 1. **Phase 1** (§2) — all six items plus the strip, one implementation session, ships together
@@ -402,6 +592,8 @@ slower-cadence `macro_assets`.
 2. **Phase 3** (§4, COT) — biggest standalone value-add, no frozen-file risk, but budget real
    time for it.
 3. **Phase 4** (§5, Bollinger) — second signal class, rounds out the engine.
+3b. **Crowd score** (§5c, added 2026-09-19, DRAFT) — Phase 1 (backend series + one chart card) after
+   Pieter's review of §5c's ⚠ decisions; its alerts (Phase 2) only after Phase 1 has been watched live.
 4. **Phase 2** (§3, Rate Differential) — last, and only after the FROZEN-TOUCH conversation in
    §3's callout has actually happened. Do not let "it's just 5% weight" make this feel smaller
    than it is — it is the only item here that can invalidate the Rule #1 golden test.
@@ -456,6 +648,10 @@ roadmap become the only place a shipped feature is documented:
   term (verbatim naming, per that doc's own rule).
 - Phase 5b → hourly `ranked.top` re-rank + `recommendation` alert type, documented in
   `ATOM_FX_ARCHITECTURE.md` §4.1/§7 and this section.
+- §5c Crowd score → `crowd_series` contract + schema v12 in `ATOM_FX_ARCHITECTURE.md` §4.2; the
+  card in `ATOM_FX_DESIGN.md` §19.4b; new terms in `GLOSSARY.md`; a `BUILD_STATUS.md` row; a
+  `LibraryContent.kt` entry. If Phase 2 ships: the new alert type in `ARCHITECTURE.md` §7 and this
+  doc's toggle list (§7).
 - Each phase should also get a new entry in `LibraryContent.kt` (`app/src/main/java/.../ui/
   settings/`) — the in-app study library should stay in lockstep with what's actually shipped,
   not just what existed at the time it was first written.
