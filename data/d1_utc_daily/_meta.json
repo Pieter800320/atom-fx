@@ -1,0 +1,79 @@
+{
+  "pairs": {
+    "EURUSD": {
+      "rows": 5000,
+      "first": "2007-10-29",
+      "last": "2026-09-19",
+      "weekend_rows": 100
+    },
+    "GBPUSD": {
+      "rows": 5000,
+      "first": "2007-11-30",
+      "last": "2026-09-19",
+      "weekend_rows": 110
+    },
+    "USDJPY": {
+      "rows": 5000,
+      "first": "2008-01-14",
+      "last": "2026-09-19",
+      "weekend_rows": 126
+    },
+    "USDCAD": {
+      "rows": 5000,
+      "first": "2008-02-12",
+      "last": "2026-09-19",
+      "weekend_rows": 146
+    },
+    "NZDUSD": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "AUDUSD": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "USDCHF": {
+      "rows": 5000,
+      "first": "2008-01-22",
+      "last": "2026-09-19",
+      "weekend_rows": 132
+    },
+    "EURJPY": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "GBPJPY": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "CADJPY": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "AUDJPY": {
+      "rows": 5000,
+      "first": "2008-02-13",
+      "last": "2026-09-19",
+      "weekend_rows": 147
+    },
+    "NZDJPY": {
+      "rows": 5000,
+      "first": "2008-03-05",
+      "last": "2026-09-19",
+      "weekend_rows": 162
+    }
+  },
+  "source": "Twelvedata time_series interval=1day outputsize=5000 order=ASC timezone=UTC",
+  "convention": "UTC-based native daily bars, weekend fragments included (NOT 17:00 NY close)",
+  "fetched_utc": "2026-09-19T08:33:53+00:00"
+}
