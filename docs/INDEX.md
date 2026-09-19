@@ -244,3 +244,5 @@ needs its own verification, not just a citation.
   frozen D1 scorer keeps its >= 210 bars with no extra API credits; `scan_h1.py`'s fetch loop, `scan_m15.py` and `scan_cot.py`
   were touched at their call-sites only, plus a one-scan migration guard. Also corrected: `scan_h1` runs every ~2 hours, not
   hourly (roadmap §5c, architecture §4.2).
+
+- 2026-09-19 (5th) — **Crowd score alerts (Roadmap §5c Phase 2) built.** `state_alerts.py::_crowd_score_alerts` (`crowd_score` push: rising into a higher band on a completed D1/H4 bar), the per-timeframe minimum level (Any/20/40/60) applied on the device (`push/CrowdAlertFilter.kt`), Settings rows (off by default; D1 40 / H4 60 once on), history label, guidance, Library entry. Judgment calls and measured volumes in `ATOM_FX_SIGNALS_ROADMAP.md` §5c §4; `ARCHITECTURE.md` §7, `FUNCTIONAL_SPEC.md` §9, `GLOSSARY.md`, `BUILD_STATUS.md` updated.

@@ -49,6 +49,8 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   (10), speculators at a three-year extreme in the weekly COT report (25). `pairs.<PAIR>.crowd_series.<d1|h4>`
   (`crowd_score.py`, 2026-09-19, schema v12); the dashed **60** line is the indicator's own flag line, and the
   ChartSheet card's footer reads **Crowded top / Crowded bottom / Mixed / Not crowded / No COT** off it.
+  The optional **Crowd score alert** (`type: "crowd_score"`) fires when a side's score rises into a higher band
+  (>0 / 20 / 40 / 60); each person sets a minimum level per timeframe (Any / 20 / 40 / 60).
   **Context, not a signal** — testing found a small D1 tendency in 2021–2026 only. **Not** *Potential*,
   *Setup Rank* or *Continuation score* (all different 0–100 numbers). D1 on the 17:00-New-York close; **H4 on
   New York-session blocks (TradingView's alignment), not the UTC blocks the other H4 cards use**. Its COT input

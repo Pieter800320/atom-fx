@@ -333,7 +333,7 @@ Your requirement: no candlesticks, but a simple line to see up/down at a glance 
 | Setting | What it does | Needs a key? |
 |---|---|---|
 | **Theme** | System / Dark / Light override | No |
-| **Notifications** | Toggle push; "send test"; per-type toggles (gold signal, level alerts; future: level-6 advance — off by default, see §12) | No |
+| **Notifications** | Toggle push; "send test"; per-type toggles (gold signal, level alerts; future: level-6 advance — off by default, see §12); **Crowd score alerts** (off by default) with a per-timeframe minimum level, Any / 20 / 40 / 60 (defaults D1 40, H4 60) | No |
 | **Data source** | The `signals.json` URL (pre-filled to your repo raw/Pages); refresh cadence | No |
 | **Price-level alerts (optional)** | Enable drawing alerts that sync to the repo | **GitHub PAT** (optional; only if you want cross-device level alerts written to `data/level_alerts.json`) |
 | **Freshness / diagnostics** | Last update, next expected scan, schema version, "force refresh" | No |
