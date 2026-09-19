@@ -308,10 +308,16 @@ quoteShortSym = quoteShortOverride != "" ? quoteShortOverride : "COT:" + quoteCo
 f_cotDiagLeg(_ccy, _mapped, _longSym, _shortSym, _net, _pctl) =>
     _mapped ? _ccy + ": " + _longSym + " / " + _shortSym + "\n    net=" + str.tostring(_net, "#") + "   pctl=" + str.tostring(_pctl, "#.#") : _ccy + ": no CFTC code mapped"
 
+// Offset test: the SAME weekly request the script uses for the base LONG leg, with and without the
+// [1]. Shows how many reports back the script's [1] + lookahead_off combination really lands.
+diagRawL0 = baseMapped ? request.security(baseLongSym, "W", close,    lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true) : na
+diagRawL1 = baseMapped ? request.security(baseLongSym, "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true) : na
+
 cotDiagText = "COT diagnostic (NaN = did not resolve)\n" +
      f_cotDiagLeg(baseCcy,  baseMapped,  baseLongSym,  baseShortSym,  baseNet,  baseNormPctl)  + "\n" +
      f_cotDiagLeg(quoteCcy, quoteMapped, quoteLongSym, quoteShortSym, quoteNet, quoteNormPctl) + "\n" +
-     "combined pctl=" + str.tostring(cotCombinedPctl, "#.#")
+     "combined pctl=" + str.tostring(cotCombinedPctl, "#.#") + "\n" +
+     "offset test, base LONG: W close=" + str.tostring(diagRawL0, "#") + "   W close[1]=" + str.tostring(diagRawL1, "#")
 cotDiagLbl = showCotDiag and barstate.islast ? label.new(bar_index, low, cotDiagText, style = label.style_label_upper_left, color = color.new(color.blue, 20), textcolor = color.white, size = size.small) : na
 label.delete(cotDiagLbl[1])
 
