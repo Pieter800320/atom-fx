@@ -224,7 +224,7 @@ needs its own verification, not just a citation.
 
 - 2026-09-19 (2nd) — Crowd score spec (`ATOM_FX_SIGNALS_ROADMAP.md` §5c) updated with Pieter's decisions on all
   seven points: names agreed; card hidden on H1/M15; red/green lines; completed bars only with "on time" defined
-  (first hourly scan after each close, not real-time); "No COT" footer; **H4 aligned to TradingView's New York-session
+  (first scan after each close — scans run every ~2 hours, so up to ~2 h later; not real-time); "No COT" footer; **H4 aligned to TradingView's New York-session
   blocks** (verified from a TradingView screenshot — the live candle's countdown showed a 21:00 UTC close), D1 stays
   NY-close. The weekend-bar follow-up was **measured** and recorded as `ATOM_FX_BUILD_STATUS.md` outstanding item 18
   (28% of D1 rows since 2026-01-12 are market-closed-only bars; BB touch state differs on 17.3% of comparable days;
