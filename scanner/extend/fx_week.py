@@ -44,7 +44,7 @@ NY_CLOSE_HOUR = 17
 PIPELINE_ROWS = 5000          # real H1 rows handed to the pipeline (the frozen code was written against 5,000)
 STORE_ROWS = 6000             # real H1 rows kept per pair in the history store
 SOURCE_TZ = "Australia/Sydney"    # the timezone Twelvedata's raw hourly labels are in (DST-aware: +10 AEST / +11 AEDT)
-BARS_CONVENTION = "fx_week_v2"    # v2 = labels converted to true UTC AND closed-market rows dropped; written to signals.json
+BARS_CONVENTION = "fx_week_v3"    # v2 = labels converted to true UTC + closed-market rows dropped; v3 = + D1/H4 aggregated on the New York trading clock
 _COLS = ["datetime", "open", "high", "low", "close"]
 
 
@@ -85,6 +85,19 @@ def to_utc_labels(labels, source_tz: str = SOURCE_TZ) -> pd.Series:
     ts = pd.to_datetime(pd.Series(labels))
     loc = ts.dt.tz_localize(source_tz, ambiguous=False, nonexistent="shift_forward")
     return loc.dt.tz_convert("UTC").dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def to_trading_clock(h1_df: pd.DataFrame) -> pd.DataFrame:
+    """True-UTC H1 rows -> the same rows with `datetime` re-labelled as NEW YORK wall time + 7 hours.
+
+    The frozen aggregator groups H1 bars by the calendar date of the label (D1) and by 4-hour label blocks (H4). On this clock those groups are exactly
+    the broker/TradingView conventions, with NO frozen file edited: label midnight = 17:00 New York (so D1 is the 17:00 NY close and the Sunday session
+    rolls into Monday — no Sunday stub candle), and H4 blocks start at 17, 21, 01, 05, 09, 13 New York (TradingView's alignment; no 1-hour Friday or
+    3-hour Sunday stub blocks). DST-aware. Used ONLY to build the D1 and H4 frames; H1 and everything that needs real UTC keeps the UTC labels."""
+    out = h1_df.copy()
+    ny = pd.to_datetime(out["datetime"], utc=True).dt.tz_convert(NY).dt.tz_localize(None) + pd.Timedelta(hours=7)
+    out["datetime"] = ny.dt.strftime("%Y-%m-%d %H:%M:%S").to_numpy()
+    return out
 
 
 def normalize_frame(df: pd.DataFrame, source_tz: str = SOURCE_TZ) -> pd.DataFrame:
