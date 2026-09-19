@@ -246,3 +246,5 @@ needs its own verification, not just a citation.
   hourly (roadmap §5c, architecture §4.2).
 
 - 2026-09-19 (5th) — **Crowd score alerts (Roadmap §5c Phase 2) built.** `state_alerts.py::_crowd_score_alerts` (`crowd_score` push: rising into a higher band on a completed D1/H4 bar), the per-timeframe minimum level (Any/20/40/60) applied on the device (`push/CrowdAlertFilter.kt`), Settings rows (off by default; D1 40 / H4 60 once on), history label, guidance, Library entry. Judgment calls and measured volumes in `ATOM_FX_SIGNALS_ROADMAP.md` §5c §4; `ARCHITECTURE.md` §7, `FUNCTIONAL_SPEC.md` §9, `GLOSSARY.md`, `BUILD_STATUS.md` updated.
+
+- 2026-09-19 (6th) — **Library unified with `ATOM_FX_LIBRARY_STYLE.md` (BUILD_STATUS item 19).** 23 of the 35 entries rewritten (dates and narration out, lists on lines, ceilings respected); the Playbooks audited and found clean of displayed narration. Two content fixes rode along (Regime entry's "four votes", State-Transition entry's stale alert list).

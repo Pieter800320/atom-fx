@@ -207,18 +207,24 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     labels (open date vs the Crowd score's trading day) are unchanged; the app's Library text describing D1 conventions was not
     re-audited for this change.
 
-19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` (raised by Pieter,
-    2026-09-19; not started).** The style guide is binding (no dates, no change history, no developer
-    narration, answer first, lists for list-shaped things, soft length ceilings). A quick scan found **5 of
-    the 35 `LibraryContent.kt` entries** carry dates or narration in the strings users actually see (12 dated
-    strings — e.g. the %B, BandWidth and RSI/MACD entries still quote restyle-pass numbers like "2026-09-18,
-    4th"), and the three Playbook files (`AlertPlaybookContent.kt`, `RegimePlaybookContent.kt`,
-    `TechnicalRegimePlaybookContent.kt`) contain more date strings (some may be comments, not displayed text).
-    The scan did NOT check the length ceilings (summary ≤ 20 words, howItWorks ≤ 60, whyItMatters ≤ 40) or list
-    formatting — a full pass should. History that is worth keeping belongs in the `.kt` file's own comments and
-    git, not in the string. The new "Crowd score" entry was written to the guide and can serve as the template.
-    Every entry rewritten needs the same review the guide's §4 checklist describes.
-
+19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
+    Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
+    entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24
+    with issues**; 23 were rewritten (facts kept, narration and dates cut, list-shaped content put on lines,
+    Home/alert behaviour moved from `whyItMatters` into `howItWorks`), including the dated %B, BandWidth, RSI/MACD,
+    Currency %B and State-Transition entries. **After the pass: 0 dates, names or history in any displayed
+    string; 10 entries still run a few words over a soft ceiling** (`continuation` and `conviction` are
+    irreducible lists of weights and inputs; `crowd-score` is a list of eight conditions; the rest are 1–5
+    words over). Two content corrections rode along: the Regime entry said "Four votes" but lists three plus an
+    override, and the State-Transition entry named the H4 regime and "five" alerts where the alert reads the D1
+    regime and lists four (it now points at the separate BB touch, Recommendation, Crowd score, Positioning and
+    Gold Signal entries). Checked in the app on a physical device (list lines render as separate lines). **Playbooks:**
+    the same scan of `AlertPlaybookContent.kt`, `RegimePlaybookContent.kt` and `TechnicalRegimePlaybookContent.kt`
+    found **no dates, names or history in any displayed string** (the dated text is in code comments). Ten `coreStory` /
+    `mechanism` / `relationToOtherSystems` fields run 90–123 words, but the guide sets no ceiling for a Playbook's
+    story field (only for `howItWorks`'s equivalent), so they were left as they are. **Still open:** a
+    human read of the rewritten entries for tone (the checklist's "would a first-time reader understand this" test
+    is not scriptable).
 
 ---
 
