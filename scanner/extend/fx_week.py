@@ -1,6 +1,11 @@
 """
 ATOM FX — real-FX-week bars  (EXTEND; the fix for BUILD_STATUS outstanding item 18)
 
+TIMESTAMPS FIRST (2026-09-19). Twelvedata's hourly forex `datetime` labels are Australia/Sydney LOCAL time (UTC+10 in AEST, UTC+11 in AEDT), NOT UTC —
+matched against five TradingView candles (errors 0.8-6.8 pips at that offset vs 25-129 unshifted). Everything below (the week rule, the frozen aggregator's
+D1/H4 boundaries, the Crowd score's New York bars) is written for UTC, so `to_utc_labels` converts the labels FIRST and every frame leaving this module is
+in true UTC. See BUILD_STATUS item 18 and scanner/FROZEN.md.
+
 THE PROBLEM. Since 2026-01-11 Twelvedata returns market-closed bars every weekend — a flat-ish Sunday pre-open block
 and a recurring Saturday block. Every downstream number (the frozen aggregator's D1/H4, pills, ADX, regime, CSM, the
 EXTEND chart series and the BB touch alert) was being computed with them in the window. Measured 2026-09-19 on the same
@@ -38,7 +43,8 @@ NY = "America/New_York"
 NY_CLOSE_HOUR = 17
 PIPELINE_ROWS = 5000          # real H1 rows handed to the pipeline (the frozen code was written against 5,000)
 STORE_ROWS = 6000             # real H1 rows kept per pair in the history store
-BARS_CONVENTION = "fx_week_v1"    # written to signals.json; is_migration_scan() compares against it
+SOURCE_TZ = "Australia/Sydney"    # the timezone Twelvedata's raw hourly labels are in (DST-aware: +10 AEST / +11 AEDT)
+BARS_CONVENTION = "fx_week_v2"    # v2 = labels converted to true UTC AND closed-market rows dropped; written to signals.json
 _COLS = ["datetime", "open", "high", "low", "close"]
 
 
@@ -73,9 +79,32 @@ def is_migration_scan(prev) -> bool:
 # ----------------------------------------------------------------------------------------
 # the persistent H1 history
 # ----------------------------------------------------------------------------------------
-def _clean(df: pd.DataFrame) -> pd.DataFrame:
+def to_utc_labels(labels, source_tz: str = SOURCE_TZ) -> pd.Series:
+    """Naive local-time labels in `source_tz` -> true-UTC 'YYYY-MM-DD HH:MM:SS' strings. DST-aware. The one ambiguous local hour a year
+    (and the skipped one) falls on a weekend when the market is closed; ambiguous is read as standard time, skipped shifts forward."""
+    ts = pd.to_datetime(pd.Series(labels))
+    loc = ts.dt.tz_localize(source_tz, ambiguous=False, nonexistent="shift_forward")
+    return loc.dt.tz_convert("UTC").dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def normalize_frame(df: pd.DataFrame, source_tz: str = SOURCE_TZ) -> pd.DataFrame:
+    """A raw fetched frame (any extra columns kept) -> labels in true UTC, sorted, de-duplicated, closed-market rows dropped."""
+    if df is None or len(df) == 0:
+        return df
+    out = df.copy()
+    if source_tz:
+        out["datetime"] = to_utc_labels(out["datetime"], source_tz).to_numpy()
+    out = out.sort_values("datetime").drop_duplicates(subset="datetime", keep="last")
+    return drop_closed(out)
+
+
+def _clean(df: pd.DataFrame, source_tz=None) -> pd.DataFrame:
+    """`source_tz` None = labels are already UTC (the persistent store); a zone name = convert from it first."""
     out = df[_COLS].copy()
-    out["datetime"] = pd.to_datetime(out["datetime"], utc=True).dt.strftime("%Y-%m-%d %H:%M:%S")
+    if source_tz:
+        out["datetime"] = to_utc_labels(out["datetime"], source_tz).to_numpy()
+    else:
+        out["datetime"] = pd.to_datetime(out["datetime"], utc=True).dt.strftime("%Y-%m-%d %H:%M:%S")
     for c in ("open", "high", "low", "close"):
         out[c] = pd.to_numeric(out[c], errors="coerce")
     return out.dropna(subset=["open", "close"])
@@ -104,12 +133,12 @@ def merge_history(history: pd.DataFrame, fresh: pd.DataFrame, store_rows: int = 
 
 
 def prepare_h1(key: str, fresh_df: pd.DataFrame, use_store: bool = True, store_dir=None, persist: bool = True,
-               pipeline_rows: int = PIPELINE_ROWS, store_rows: int = STORE_ROWS) -> pd.DataFrame:
+               pipeline_rows: int = PIPELINE_ROWS, store_rows: int = STORE_ROWS, source_tz=SOURCE_TZ) -> pd.DataFrame:
     """The frame every downstream calculation should be built from for this pair: real FX week only, newest
     `pipeline_rows` rows. With `use_store` the older rows come from (and the fresh rows are appended to) the pair's
-    persistent history. NEVER raises — see the module doc."""
+    persistent history. `source_tz` is the zone the fetched labels are in (Sydney); the returned frame is in true UTC. NEVER raises."""
     try:
-        fresh = _clean(fresh_df)
+        fresh = _clean(fresh_df, source_tz)
         if use_store:
             merged = merge_history(load_history(key, store_dir), drop_closed(fresh), store_rows)
             if persist:
@@ -122,7 +151,7 @@ def prepare_h1(key: str, fresh_df: pd.DataFrame, use_store: bool = True, store_d
     except Exception as e:                                # noqa: BLE001 — degrade, never break a scan
         print(f"  ⚠ fx_week {key}: {type(e).__name__}: {e} — using the fetched rows with closed-market bars dropped")
         try:
-            return drop_closed(fresh_df)
+            return normalize_frame(fresh_df, source_tz)
         except Exception:                                 # noqa: BLE001
             return fresh_df
 

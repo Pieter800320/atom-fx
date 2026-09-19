@@ -7,7 +7,7 @@ work already fetched — and every scan_h1 run then extends it. No API call is m
 
     py -m tools.seed_h1_history <dir containing <PAIR>_deep_h1.csv files>
 
-Only the 12 wheel pairs are seeded (the CSM-only pairs do not need the depth). Each file is filtered to the real FX week and
+Only the 12 wheel pairs are seeded (the CSM-only pairs do not need the depth). Labels are converted from Twelvedata's Sydney time to true UTC first. Each file is filtered to the real FX week and
 trimmed to the newest STORE_ROWS rows. The first scan after the seed overlaps it (the fetch window is ~30 weeks), so the store
 stays contiguous.
 """
@@ -32,7 +32,7 @@ def main(src_dir: str) -> None:
             print(f"{key}: {path.name} not found - skipped")
             continue
         raw = pd.read_csv(path)
-        merged = fx_week.merge_history(fx_week.load_history(key), fx_week._clean(raw), fx_week.STORE_ROWS)
+        merged = fx_week.merge_history(fx_week.load_history(key), fx_week._clean(raw, source_tz=fx_week.SOURCE_TZ), fx_week.STORE_ROWS)
         fx_week._write_history(key, merged)
         print(f"{key}: {len(raw)} raw rows -> {len(merged)} real-FX-week rows, {merged['datetime'].iloc[0]} .. {merged['datetime'].iloc[-1]}")
 
