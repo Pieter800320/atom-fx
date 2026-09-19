@@ -54,10 +54,19 @@ from push.alert_helpers         import send_push_alert, send_push_level_alert, s
 # 2026-09-19 (Pieter's explicit sign-off on this frozen-number change — see scanner/FROZEN.md and ARCHITECTURE.md
 # §2's Rule #1 note; BUILD_STATUS.md outstanding item 18) — real-FX-week bars. Guarded so a broken module can never
 # take the scan down: without it the scan simply runs on the fetched rows exactly as it did before.
+# 2026-09-19 KILL SWITCH (BUILD_STATUS item 18 reopened): DISABLED. Found the same day it shipped: Twelvedata's hourly
+# forex timestamps are NOT UTC — they are Australia/Sydney local time (UTC+10 in AEST, UTC+11 in AEDT), confirmed against
+# five TradingView candles (errors 0.8-6.8 pips at that offset vs 25-129 pips at none). This module's real-FX-week rule is
+# written in New York/UTC time, so on the raw timestamps it would drop real Friday trading and keep weekend quotes. It stays
+# off until the timestamps are converted to true UTC first (needs Pieter's sign-off: it changes every D1/H4 number).
+_FX_WEEK_ENABLED = False
 try:
+    if not _FX_WEEK_ENABLED:
+        raise RuntimeError("fx_week disabled by kill switch")
     from scanner.extend import fx_week as _fx_week
 except Exception as _fx_import_err:                       # noqa: BLE001
-    print(f"⚠ fx_week unavailable ({type(_fx_import_err).__name__}: {_fx_import_err}) — using fetched rows as-is")
+    if _FX_WEEK_ENABLED:
+        print(f"⚠ fx_week unavailable ({type(_fx_import_err).__name__}: {_fx_import_err}) — using fetched rows as-is")
     _fx_week = None
 
 # Extra pairs needed for CSM 16-pair set (not in main PAIRS list)
