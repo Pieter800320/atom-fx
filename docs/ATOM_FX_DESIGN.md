@@ -1051,6 +1051,29 @@ or leaving it as-is.
 
 ---
 
+**Crowd score card (2026-09-19, Pieter's ask — "a graph that looks exactly like the indicator on TradingView, under the
+long-press graphs").** The fifth card of the panel, below MACD, built on the same `IndicatorCard` shell
+(`ui/sheets/ChartSheet.kt::CrowdScoreCard`, chart `ui/chart/CrowdScoreChart.kt`, footer `crowdState` in
+`SheetComponents.kt`). Spec and decisions: `ATOM_FX_SIGNALS_ROADMAP.md` §5c.
+
+- **Shown on D1 and H4 only; hidden on H1/M15** and whenever the series is absent or too short (never an empty card).
+- **Header:** `Crowd score` (white, Body) · `Top 42 · Bottom 0` (grey, Caption) — the newest completed bar.
+- **Plot:** y fixed 0–100. Two lines — **top in `bear`, bottom in `bull`** (TradingView's red/green; an agreed exception
+  to the "every line is white" rule, for the same reason MACD's signal line is coloured: two overlaid lines must be
+  tellable apart). Top is drawn first and bottom second, so when both sit at 0 the baseline reads green, as on TradingView.
+  One **dashed reference at 60** (the indicator's own flag line, the app's dashed-reference style; no other reference
+  lines). A small dot on each bar where a side first reaches 60 (TradingView's ▼ TOP / ▲ BOTTOM flags — the text labels
+  are too wide for this many bars). Endpoint glow as on the sibling cards. Date row via `drawDateRow`.
+- **Footer (one right-aligned state word, no legend):** `Crowded top` (`bear`) if top ≥ 60 · `Crowded bottom` (`bull`) if
+  bottom ≥ 60 · `Mixed` (`watch`) if both · `Not crowded` (`neutral`) otherwise · **`No COT` (`textMuted`) instead of any of
+  those** when the COT input is unavailable (the score is then capped at 75 and would silently read as "less crowded").
+  Every word reads off the 60 line the chart draws — no new threshold. Unit-tested (`CrowdScoreTest`).
+- **Bars differ from the cards above:** the series is completed bars only (its right edge can lag by up to one bar); D1 is
+  labelled by NY-close trading day; **H4 uses New York-session blocks (TradingView's alignment), 1–2 h away from the UTC
+  blocks the other H4 cards use.** The Library entry says so. D1 carries ~50 points, H4 up to 90.
+- **No tappable element** in this card, so no new haptic wiring (§16); tokens only, no literal hex, both themes.
+- **Context, not a signal** — see the Library entry's evidence paragraph.
+
 ## 20. Acceptance test (spec §69) — the design is done when…
 
 > Rewritten 2026-09-10 against the Simplification Rework's current vocabulary (Setup Bands, the

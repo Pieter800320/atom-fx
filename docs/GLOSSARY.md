@@ -42,6 +42,17 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   own published definition, chosen (Pieter, 2026-09-18) over inventing an untuned percentile.
   `pairs.<PAIR>.bollinger_series.<tf>.squeeze`, one bool per bar. Marked on the BandWidth chart.
   Says a move is being coiled, **not** which way it will break — no direction is implied.
+- **Crowd score** — 0–100, **two readings** per pair per timeframe: **Crowd top** (price stretched up
+  and crowded long) and **Crowd bottom** (the mirror). Eight weighted yes/no conditions add points to each:
+  price beyond its 20-period Bollinger band (10), z-score ≥ 2 (8), ≥ 3 ATRs from the 50-period average (7),
+  RSI beyond 70/30 (12, +3 beyond 80/20), price/RSI divergence (25), a volatility spike through the band
+  (10), speculators at a three-year extreme in the weekly COT report (25). `pairs.<PAIR>.crowd_series.<d1|h4>`
+  (`crowd_score.py`, 2026-09-19, schema v12); the dashed **60** line is the indicator's own flag line, and the
+  ChartSheet card's footer reads **Crowded top / Crowded bottom / Mixed / Not crowded / No COT** off it.
+  **Context, not a signal** — testing found a small D1 tendency in 2021–2026 only. **Not** *Potential*,
+  *Setup Rank* or *Continuation score* (all different 0–100 numbers). D1 on the 17:00-New-York close; **H4 on
+  New York-session blocks (TradingView's alignment), not the UTC blocks the other H4 cards use**. Its COT input
+  is the CFTC **Legacy** report, a different series from the **TFF** report Conviction uses — the two coexist.
 - **Board %B** — the market-wide average of every pair's own %B/signal line. `signals.json` key
   `percent_b_board`, computed every scan — **no UI surface any more** (lived on the Insights tab's
   Market Indicators card until that card was retired 2026-09-10, see "Whole Market Indicators"
