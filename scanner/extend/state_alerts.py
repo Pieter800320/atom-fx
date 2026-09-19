@@ -27,9 +27,18 @@ real scan while only 3 cleared Recommendation's, confirming Setup was the system
 noisier, redundant duplicate rather than a genuinely distinct signal. Kotlin-side toggle/
 guidance/label wiring removed alongside this — see that session's own commit for the full
 list of touchpoints.
+
+2026-09-19 (Pieter's ask, Signals Roadmap §5c Phase 2) — `_crowd_score_alerts` (`type: "crowd_score"`), the Crowd
+score's rising-into-a-higher-band alert. The one detector here whose threshold the USER sets: the backend fires on
+every rise into a higher band (any / 20 / 40 / 60) for every pair, timeframe and side and ships the levels in the
+push `data`; the app applies each person's minimum level (the push is a shared topic, so a per-user filter can only
+live client-side — the same reason every toggle here does).
 """
 
 _ATR_SPIKE_THRESHOLD = 90
+_CROWD_BANDS = (20, 40, 60)            # the app's minimum-level choices (any = 0); band 0 = score of 0
+_CROWD_TFS = (("d1", "D1"), ("h4", "H4"))
+_CROWD_SIDES = (("top", "top", "bear"), ("bottom", "bottom", "bull"))   # (series key, word, direction)
 _ALIGNED_PILLS = ("bull_strong", "bear_strong")
 
 
@@ -182,6 +191,62 @@ def _bb_touch_alerts(out: dict, prev: dict) -> list:
     return alerts
 
 
+def _crowd_band(score) -> int:
+    """0 for a score of 0 (nothing on), 1 for 0 < s < 20, 2 for [20, 40), 3 for [40, 60), 4 for >= 60 (the flag line)."""
+    if score is None or score <= 0:
+        return 0
+    return 1 + sum(score >= b for b in _CROWD_BANDS)
+
+
+def _crowd_score_alerts(out: dict, prev: dict) -> list:
+    """
+    Signals Roadmap §5c Phase 2 — fires when a pair's Crowd top or bottom score, on the newest COMPLETED D1 or H4 bar,
+    sits in a HIGHER band than it did at the previous scan (bands: >0, >=20, >=40, >=60). Rising edge only — falling,
+    holding or a same-band wobble never fire — and a first sighting (no previous `latest`) never fires, like every
+    detector here. Because it reads completed bars, a bar's score never changes after the fact, so there is nothing to
+    debounce: "did the latest bar land in a higher band than the last one" is the whole rule.
+
+    The user's minimum level (any / 20 / 40 / 60 per timeframe) is applied by the app, not here: this fires for every
+    rise and puts `level`, `prev_level`, `timeframe` and `side` in the push data. Direction follows the BB-touch
+    convention (a crowded top = potential downside = "bear"); it is context, never an instruction.
+    """
+    alerts = []
+    for pair, block in out.get("pairs", {}).items():
+        series = block.get("crowd_series") or {}
+        prev_series = (prev.get("pairs", {}).get(pair, {}).get("crowd_series")) or {}
+        for tf, tf_word in _CROWD_TFS:
+            latest = (series.get(tf) or {}).get("latest")
+            prev_latest = (prev_series.get(tf) or {}).get("latest")
+            if not latest or not prev_latest:
+                continue
+            for key, word, direction in _CROWD_SIDES:
+                new, old = latest.get(key), prev_latest.get(key)
+                if new is None or old is None or _crowd_band(new) <= _crowd_band(old):
+                    continue
+                on = latest.get(f"{key}_on") or []
+                if latest.get("cot_ok") and latest.get("cot_pctl") is not None:
+                    cot_line = f"COT {latest['cot_pctl']:.0f}th percentile (report of {latest.get('cot_asof') or 'unknown date'})"
+                else:
+                    cot_line = "No COT for this pair — the score is capped at 75"
+                alerts.append({
+                    "type": "crowd_score",
+                    "pair": pair,
+                    "msg": (
+                        f"<b>{pair} — Crowd Alert</b>\n"
+                        f"{tf_word} Crowd {word} {new:.0f} (was {old:.0f}) · context, not a signal\n"
+                        f"On: {', '.join(on) if on else 'none listed'}\n"
+                        f"{cot_line}"
+                    ),
+                    "deeplink": f"atomfx://pair/{pair}",
+                    "direction": direction,
+                    "timeframe": tf,
+                    "side": key,
+                    "level": round(float(new), 1),
+                    "prev_level": round(float(old), 1),
+                })
+    return alerts
+
+
 def _tf_alignment_alerts(out: dict, prev: dict) -> list:
     alerts = []
     for pair, block in out.get("pairs", {}).items():
@@ -214,4 +279,5 @@ def compute_state_alerts(out: dict, prev: dict) -> list:
     alerts += _volatility_spike_alerts(out, prev)
     alerts += _tf_alignment_alerts(out, prev)
     alerts += _bb_touch_alerts(out, prev)
+    alerts += _crowd_score_alerts(out, prev)
     return alerts

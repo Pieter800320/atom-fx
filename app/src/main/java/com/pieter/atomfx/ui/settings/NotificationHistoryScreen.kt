@@ -216,6 +216,7 @@ private fun alertTypeLabel(type: String): String = when (type) {
     // "recommendation" happened to look right via the same fallback but wasn't explicit.
     "bb_touch" -> "BB TOUCH"
     "recommendation" -> "RECOMMENDATION"
+    "crowd_score" -> "CROWD SCORE"
     else -> type.uppercase()
 }
 

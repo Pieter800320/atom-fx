@@ -1,6 +1,9 @@
 package com.pieter.atomfx.data
 
 import android.content.Context
+import com.pieter.atomfx.push.CROWD_MIN_LEVEL_CHOICES
+import com.pieter.atomfx.push.CROWD_MIN_LEVEL_D1_DEFAULT
+import com.pieter.atomfx.push.CROWD_MIN_LEVEL_H4_DEFAULT
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +39,12 @@ data class NotificationPrefs(
     // Signals Roadmap §1 (2026-09-16) — the edge-triggered "recommendation" alert (a pair
     // newly enters the hourly-refreshed ranked.top, or flips direction while staying in it).
     val recommendationAlerts: Boolean = true,
+    // Signals Roadmap §5c Phase 2 (2026-09-19) — the Crowd score alert. OFF by default, unlike every toggle above:
+    // the studies behind the score found only a small D1 tendency (docs/RESEARCH_LOG.md), so it is opt-in context, not
+    // a default interruption. The two minimum levels (0 = any) are applied to the push by CrowdAlertFilter.kt.
+    val crowdScoreAlerts: Boolean = false,
+    val crowdMinLevelD1: Int = CROWD_MIN_LEVEL_D1_DEFAULT,
+    val crowdMinLevelH4: Int = CROWD_MIN_LEVEL_H4_DEFAULT,
 )
 
 data class UserPrefsState(
@@ -71,6 +80,11 @@ class UserPreferences(context: Context) {
             positioningAlerts = prefs.getBoolean(KEY_NOTIF_POSITIONING, true),
             bbTouchAlerts = prefs.getBoolean(KEY_NOTIF_BB_TOUCH, true),
             recommendationAlerts = prefs.getBoolean(KEY_NOTIF_RECOMMENDATION, true),
+            crowdScoreAlerts = prefs.getBoolean(KEY_NOTIF_CROWD, false),
+            crowdMinLevelD1 = prefs.getInt(KEY_CROWD_MIN_D1, CROWD_MIN_LEVEL_D1_DEFAULT).takeIf { it in CROWD_MIN_LEVEL_CHOICES }
+                ?: CROWD_MIN_LEVEL_D1_DEFAULT,
+            crowdMinLevelH4 = prefs.getInt(KEY_CROWD_MIN_H4, CROWD_MIN_LEVEL_H4_DEFAULT).takeIf { it in CROWD_MIN_LEVEL_CHOICES }
+                ?: CROWD_MIN_LEVEL_H4_DEFAULT,
         ),
         signalsUrl = prefs.getString(KEY_URL, null) ?: DEFAULT_SIGNALS_URL,
         refreshMinutes = prefs.getInt(KEY_REFRESH_MIN, DEFAULT_REFRESH_MINUTES),
@@ -131,6 +145,26 @@ class UserPreferences(context: Context) {
         _state.value = _state.value.copy(notifications = _state.value.notifications.copy(recommendationAlerts = enabled))
     }
 
+    fun setCrowdScoreAlertsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_NOTIF_CROWD, enabled).apply()
+        _state.value = _state.value.copy(notifications = _state.value.notifications.copy(crowdScoreAlerts = enabled))
+    }
+
+    /** [level] must be one of [CROWD_MIN_LEVEL_CHOICES] (0 = any); anything else is ignored. */
+    fun setCrowdMinLevel(timeframe: String, level: Int) {
+        if (level !in CROWD_MIN_LEVEL_CHOICES) return
+        when (timeframe) {
+            "d1" -> {
+                prefs.edit().putInt(KEY_CROWD_MIN_D1, level).apply()
+                _state.value = _state.value.copy(notifications = _state.value.notifications.copy(crowdMinLevelD1 = level))
+            }
+            "h4" -> {
+                prefs.edit().putInt(KEY_CROWD_MIN_H4, level).apply()
+                _state.value = _state.value.copy(notifications = _state.value.notifications.copy(crowdMinLevelH4 = level))
+            }
+        }
+    }
+
     fun setSignalsUrl(url: String) {
         val resolved = url.ifBlank { DEFAULT_SIGNALS_URL }
         prefs.edit().putString(KEY_URL, resolved).apply()
@@ -155,6 +189,9 @@ class UserPreferences(context: Context) {
         const val KEY_NOTIF_POSITIONING = "notif_positioning_alerts"
         const val KEY_NOTIF_BB_TOUCH = "notif_bb_touch_alerts"
         const val KEY_NOTIF_RECOMMENDATION = "notif_recommendation_alerts"
+        const val KEY_NOTIF_CROWD = "notif_crowd_score_alerts"
+        const val KEY_CROWD_MIN_D1 = "crowd_min_level_d1"
+        const val KEY_CROWD_MIN_H4 = "crowd_min_level_h4"
         const val KEY_URL = "signals_url"
         const val KEY_REFRESH_MIN = "refresh_minutes"
     }
