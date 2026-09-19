@@ -42,7 +42,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
 | 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | RUN 2026-09-19 (once, no changes after pre-registration) | Gradient slope per +20 score points: filter ON (Pine default) +0.026, CI -0.002..+0.059; filter OFF +0.041, CI +0.018..+0.070. Within-stratum rho 0.023 / 0.041. ADX filter effect (on minus off) -0.015, CI -0.026..-0.004. Flagged events (secondary): 25 / 32, inconclusive | Pine default (ADX suppress): **FAIL**, marginally (CI gate, best-single-factor gate). Filter OFF: **PASS** all 7 gates, but a small effect and not clearly better than the best single factor. Evidence AGAINST the ADX filter. | see "Experiment 2" below and "Result"; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
 | 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
-| 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 5" below; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
+| 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -380,6 +380,42 @@ gradient buckets, fixed effects and bootstrap exactly as Experiment 2. `--eval-e
 ### Not tested here
 Anything on H4; the support/resistance outcome (Experiment 4); costs/entries; other pairs. Era B adds a different
 macro regime (2009-2020: post-crisis, low-rate, low-volatility, then 2020) but is still 12 correlated pairs.
+
+### Result (run once on 2026-09-19; pre-registration commit `ebf0bee`; outputs `data/backtest/crowded_reversal_exp5_eraB_2026-09/` and `..._eraA_2026-09/`)
+Nothing changed between the pre-registration commit and these runs.
+
+| filter OFF, native daily UTC bars | Era B: 2009-01 .. 2020-12 (out-of-sample) | Era A': 2021-01 .. 2026-09 (informational) |
+|---|---|---|
+| months / pairs | 144 / 12 | 68 / 12 |
+| composite gradient slope per +20 pts (95% CI) | **-0.001 (-0.020 .. +0.020)** | +0.036 (+0.011 .. +0.063) |
+| reversal rate by score bucket [0,10) .. [60,100] | 49.8, 48.5, 48.8, 53.1, 47.8, 53.6, 46.0 | 48.8, 53.5, 52.5, 52.6, 46.1, 55.5, 65.1 (last: 43 obs) |
+| **H5a replication verdict** | **CONTRADICTED** (CI upper bound sits at the 0.02 line) | REPLICATES |
+| flagged events (score >= 60): n, lift (95% CI) | 92, -4.2% (-14.5 .. +7.8) | 27, +18.8% (-6.3 .. +42.8) — inconclusive |
+| ADX filter, suppress minus off | -0.000 (CI -0.012 .. +0.012): no demonstrated value | -0.013 (CI -0.026 .. -0.001): worsens |
+
+**H5a: CONTRADICTED.** In 2009-2020 the composite score shows no gradient (slope ~0, buckets flat with no monotone
+pattern; flagged events lift -4.2%, CI including 0). The verdict is technically "contradicted" because the CI upper
+bound lands on the 0.02 threshold; the plain reading is "no effect detected, and at most about the size seen in
+2021-2026."
+
+**H5b: NOT INTERPRETABLE**, by the pre-registered guardrail (H5a did not replicate). The table shows ATR-stretch
+labelled "AS GOOD" in era B, but that is the trivial case — neither predictor does anything there. In era A', where
+the composite does have an effect, stretch vs composite is INCONCLUSIVE (rho 0.039 vs 0.035; paired CI of the
+difference stretch-minus-composite -0.015 .. +0.023), as in Experiment 2 (0.032 vs 0.041; stretch-minus-composite CI
+-0.029 .. +0.010). So the direct answer
+to "does ATR-stretch alone do as well?" is: **its point estimate is comparable (in era A' it is even slightly higher),
+but the data cannot establish non-inferiority within the pre-registered margin — nor that the composite is better.**
+(The composite is significantly better than %B alone, divergence alone and climax alone in era A', not better than
+stretch, z, RSI or COT alone.)
+
+**What this changes:**
+- **The D1 tendency is era-dependent.** It appears in 2021-2026 under BOTH bar conventions (NY-close +0.041, UTC
+  daily +0.036) and is absent in 2009-2020. That rules out the bar convention as the cause of the era gap and leaves
+  either a real regime dependence or the 2021-2026 result being partly chance — these data cannot separate them.
+- **Combined with Experiment 3 (H4: nothing), the evidence for the indicator's predictive value is now: a small
+  tendency in one 5.7-year window on D1, absent in the 12 years before it and absent on H4.** That is weak.
+- The ADX filter: worsens the gradient in 2021-2026 on both conventions; neutral in 2009-2020 and on H4.
+- Not tested: whether some regime variable explains WHY 2021-2026 differs (a pre-registered follow-up could ask).
 
 ### Reproduce
 ```
