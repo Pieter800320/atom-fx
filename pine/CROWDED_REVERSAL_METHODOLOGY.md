@@ -473,3 +473,8 @@ TradingView candles; `BUILD_STATUS.md` item 18). Every store used here was built
 bars are Twelvedata's own day boundary. The candles themselves are real; only their boundaries were misplaced. The reversal-odds conclusions are about
 generic 4-hour and daily candles and are unlikely to hinge on where exactly the boundary sits, but that has NOT been re-tested. Re-running the primary
 tests on correctly aligned bars is the honest check before anything is built on them.
+
+### Update 2026-09-19 (evening) — re-run on corrected bars
+Experiments 2, 3, 4, 6 and 7 were re-run on bars rebuilt with correct (UTC, then New York clock) boundaries, gates unchanged: **no verdict changed.** The D1 tendency survives at a similar size (slope +0.033 per +20 score points,
+CI +0.008 .. +0.062, 2021-2026), but the composite is still not better than ATR-stretch alone; H4, the support/resistance test and both background strategies remain coin flips (lifts +1.9%, +0.6%, +0.5%, +0.4%). Experiment 5 (2009-2020)
+cannot be re-run: there is no hourly data before 2020. Details: `docs/RESEARCH_LOG.md` on the research branch.
