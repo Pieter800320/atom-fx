@@ -8,7 +8,7 @@
 // probability of a reversal. Written for G10 FX majors on D1 and H4 with starting-point defaults
 // (not tuned); in testing only D1 in 2021-2026 showed any tendency — see the honesty caveat below.
 //
-// HONESTY CAVEAT: tested in four pre-registered studies (Experiments 2-5, docs/RESEARCH_LOG.md on the
+// HONESTY CAVEAT: tested in five pre-registered studies (Experiments 2-6, docs/RESEARCH_LOG.md on the
 // `research` branch, 2026-09-19: 12 pairs). On D1 in 2021-2026, with the regime filter OFF, the score
 // showed a SMALL but statistically detectable tendency for reversals to become more likely as it
 // rises; with the filter ON the same test narrowly failed. That tendency did NOT appear in 2009-2020,
