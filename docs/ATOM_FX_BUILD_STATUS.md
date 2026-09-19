@@ -250,6 +250,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     latest bars dated 2026-09-18 with COT resolved, `last_alert` unchanged (no push burst), commit touched only `data/signals.json`; `data/h1_history` needed no rewrite (the live fetch, converted to UTC, equals the
     rebuilt store row for row — an independent confirmation of the conversion). Live regimes: D1 Risk-Off, H4 Risk-Off, H1 Ranging. Remaining open: Experiments 2-7 re-run on converted bars; research-port ADX vs TradingView.
 
+    **REGRESSION FOUND AND FIXED 2026-09-19 (Pieter: "On H4 the graphs do not show dates").** The uniform-clock change moved the frozen H4 frame to the New York clock, but `tf_dates.h4_dates()` (the label recovery behind the
+    %B / BandWidth / RSI / MACD 4-hour charts) still floored on UTC blocks; the row counts stopped matching and `_series_for` dropped the dates, so the live `bollinger_series.h4.dates` and `momentum_series.h4.dates` were EMPTY after the
+    first `fx_week_v3` scan. Fix: `h4_dates(raw, trading_clock=True)` applies the same New York-clock shift, chosen by `df.attrs["clock"] == "ny"` set in `scan_h1.py`; regression test added (60 dates = 60 frozen H4 rows over two weeks,
+    weekdays only). Offline scan: 90 H4 dates per pair again. The chart values were unaffected (only their labels). **Lesson:** my offline check compared scores and pills but not every EXTEND series' dates; the uniform-clock
+    change should have been searched for every consumer of the H4 frame's labels.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24

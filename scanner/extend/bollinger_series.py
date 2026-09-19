@@ -143,7 +143,7 @@ def bollinger_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
             elif tf == "h4":
                 df = tfs.get(tf) if tfs else None
                 close = df["close"] if df is not None else None
-                dates_full = tf_dates.h4_dates(raw_h1_df)
+                dates_full = tf_dates.h4_dates(raw_h1_df, trading_clock=(df is not None and df.attrs.get("clock") == "ny"))
             else:
                 df = tfs.get(tf) if tfs else None
                 close = df["close"] if df is not None else None
