@@ -1,0 +1,79 @@
+{
+  "experiment": 7,
+  "tag": "exp7_d1utc_2026-09",
+  "mode": "full",
+  "timeframe": "d1utc",
+  "threshold_strictly_above": 30.0,
+  "arms_N": {
+    "confirm10": 10,
+    "confirm5": 5,
+    "bare_onset": null
+  },
+  "gates": {
+    "min_events": 100,
+    "min_lift": 0.05,
+    "flagged_rate_gt": 0.5
+  },
+  "boot": 5000,
+  "seed": 20260919,
+  "eval_start": null,
+  "eval_end": null,
+  "git_head": "e4f646430bc407471ffb7dd7729ea1148459f73d",
+  "cot_sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf",
+  "python": "3.14.3",
+  "run_at": "2026-09-19T14:31:52",
+  "eval_ranges": {
+    "EURUSD": [
+      "2009-01-05",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2009-01-05",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2009-01-12",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2009-02-10",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2009-01-20",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2009-03-04",
+      "2026-09-18"
+    ]
+  },
+  "onsets_in_window": {
+    "green": 307,
+    "red": 338
+  }
+}

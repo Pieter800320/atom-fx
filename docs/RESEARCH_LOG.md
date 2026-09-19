@@ -45,7 +45,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 4 | Crowded Market flags (score >= 60) vs the previous support/resistance — Pieter's chart observation | Flagged bars reach the most recent confirmed swing level before an equal adverse move more often than distance-matched baseline bars (primary: H4, app's UTC blocks, filter off) | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 117 events, flagged reached the level 18.8% vs distance-matched baseline 22.2%, lift -3.4% (CI -9.7..+4.1). NY-aligned H4: 126 events, lift -3.1% (CI -9.3..+3.4). D1: 56 / 22 events, inconclusive | **FAIL** (primary, H4 UTC; NY also fails). D1 INCONCLUSIVE (too few events, as pre-registered). No support for "flags trade back to the previous S/R more often"; 91% of flagged events had their previous level 3-5 ATR away | see "Experiment 4" below and its "Result"; `scanner/extend/level_race.py`; `tools/backtest_crowded_reversal_levels.py` |
 | 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
 | 6 | Crowded Market score > 30 against the OPPOSITE background colour — Pieter's strategy idea | Top score > 30 while the strong-trend shading is green (or bottom score > 30 while it is red) reverses more often than other bars in the SAME regime, on both D1 (native daily 2009-2026) and H4 (app's UTC blocks) | RUN 2026-09-19 (once, no changes after pre-registration) | P1 D1 native 2009-2026: 380 events, flagged reversed 51.1% vs same-regime baseline 51.6%, lift -0.5% (CI -5.7..+5.2). P2 H4 UTC: 908 events, 47.9% vs 50.7%, lift -2.8% (CI -6.1..+1.1). Score>30 on ANY background: 48.2% (D1) / 47.9% (H4) | **NOT SUPPORTED** (both primaries FAIL F2-F5; H4 also fails F6, F7). The colour adds nothing measurable to the score, and the score alone is at or below a coin flip | see "Experiment 6" below; `tools/backtest_crowded_reversal_regime.py` |
-| 7 | Shading turns ON right after a stretched score (score > 30 within the previous 10 bars) — Pieter's screenshot observation | The bar where the opposite strong-trend shading switches on, after a score > 30 in the previous 10 bars, reverses more often than OTHER onset bars of the same colour, on both D1 (native daily 2009-2026) and H4 (UTC) | ACTIVE 2026-09-19 (pre-registered, not yet run) | - | - | see "Experiment 7" below; `tools/backtest_crowded_reversal_onset.py` |
+| 7 | Shading turns ON right after a stretched score (score > 30 within the previous 10 bars) — Pieter's screenshot observation | The bar where the opposite strong-trend shading switches on, after a score > 30 in the previous 10 bars, reverses more often than OTHER onset bars of the same colour, on both D1 (native daily 2009-2026) and H4 (UTC) | RUN 2026-09-19 (once, no changes after pre-registration) | P1 D1 native 2009-2026: 320 events, reversed 48.8% vs other-onset baseline 50.3%, lift -1.6% (CI -5.2..+2.3). P2 H4 UTC: 800 events, 49.6% vs 48.9%, lift +0.7% (CI -2.0..+3.4). Every onset bar: 50.4% (D1) / 48.8% (H4) | **NOT SUPPORTED** (both primaries FAIL F2-F3 and F6). The shading turning on after a stretched score is a coin flip, and no better than any other onset | see "Experiment 7" below; `tools/backtest_crowded_reversal_onset.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -746,3 +746,29 @@ stops, costs. Each would be its own experiment; the two windows are fixed now an
 Experiments 2-6 in full (Experiment 6: the score > 30 against the opposite shading, evaluated ANYWHERE inside the shading, was a coin flip at 51.1% / 47.9%
 against a same-regime baseline of 51.6% / 50.7%); the six screenshots; the descriptive co-occurrence numbers above; the count-only estimates.
 No outcome of an onset-timed event on any bar.
+
+### Result (run once on 2026-09-19; pre-registration commit `e4f6464`; outputs `data/backtest/crowded_reversal_exp7_*_2026-09/`)
+Nothing changed between the pre-registration commit and these runs; the one-pair smoke (n=11, no conclusion drawn) altered no parameter or gate.
+
+| `confirm10` (shading turns on, score > 30 in the previous 10 bars) | **P1 D1 native 2009-2026** | **P2 H4 UTC** | D1 NY-close 2021-26 (info) | H4 NY (info) | D1 native 2009-20 (info) | D1 native 2021-26 (info) |
+|---|---|---|---|---|---|---|
+| de-clustered events | **320** | **800** | 99 | 773 | 217 | 103 |
+| reversal rate | 48.8% | 49.6% | 47.5% | 50.1% | 50.2% | 45.6% |
+| other-onset baseline | 50.3% | 48.9% | 52.2% | 49.8% | 50.4% | 49.8% |
+| **lift (95% CI)** | **-1.6% (-5.2 .. +2.3)** | **+0.7% (-2.0 .. +3.4)** | -4.7% (-11.0 .. +1.9) | +0.3% (-2.4 .. +3.0) | -0.1% (-4.4 .. +4.3) | -4.2% (-9.8 .. +2.3) |
+| verdict | **FAIL** (F2, F3, F5, F6) | **FAIL** (F2, F3, F6) | INCONCLUSIVE (99 < 100) | FAIL | FAIL | FAIL |
+
+Arms, P1 (D1): `confirm5` 248 events, 50.4% vs 51.2%, lift -0.8%; `bare_onset` 633 events, 50.4% vs same-regime bars 52.0%, lift -1.6%.
+Arms, P2 (H4): `confirm5` 642, 50.0% vs 49.0%, +1.0%; `bare_onset` 1,526, 48.8% vs 50.6%, -1.8%.
+Halves: P1 -2.6% / -0.3%; P2 -0.0% / +1.4%. Ex-JPY: P1 +2.4%, P2 0.0%. Ex-best-pair: P1 -2.4%, P2 +0.1%.
+
+**Verdict (pre-registered): NOT SUPPORTED.** Both primaries fail F2 (lift >= 5 points), F3 (both halves) and F6 (rate > 50%). In plain terms:
+- The bar where the opposite shading switches on, after a stretched score, reversed about half the time on both timeframes (48.8% / 49.6%),
+  no more than any other onset bar (50.3% / 48.9%). The stretched score before it adds nothing measurable.
+- The onset moment on its own carries no reversal information either (50.4% D1 / 48.8% H4; lifts -1.6% / -1.8% against same-regime bars).
+- The co-occurrence Pieter saw is real (Experiment 7's descriptive section) but does not translate into a reversal: it is what a strong,
+  stretched move looks like on the way, not where it ends.
+**Caveats (stated, not excuses):** the outcome is a 1 x ATR reversal race, not a trade; ADX-strength / ADX-peak conditions and other
+windows/thresholds were not tested (each would be its own pre-registered experiment); no costs, entries or exits were modelled. This was the
+second look at the same data family, so no further variant of "score against the shading" should be run on this data without a
+strong new reason; a forward (live) test is the only clean confirmation left.
