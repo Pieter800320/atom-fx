@@ -228,8 +228,12 @@ f_cftcCode(_ccy) =>
 // Non-Commercial (large speculator) Long/Short, Legacy report, futures-only — the standard
 // "large speculators" category COT contrarian analysis is built on. TradingView's COT feed
 // exposes these as COT:<code>_F_NCP_L / _F_NCP_S. Net = Long - Short. Requested on the WEEKLY
-// context with an explicit [1] offset and lookahead_off, so only the last FULLY RELEASED report
-// is ever read — never a still-forming current week (no repaint, no look-ahead).
+// context as close[1] with lookahead_on — the documented no-repaint pattern: on every chart bar
+// (historical AND live) it returns the previous COMPLETED weekly bar, never the still-forming
+// current one. lookahead_on is only leak-prone WITHOUT the [1]; with it there is no look-ahead.
+// 2026-09-19 fix: this was close[1] + lookahead_off, which STACKED two one-week lags on historical
+// bars (confirmed via the diagnostic label: it read the 09/01 report when 09/08 was the newest
+// one already public, on a chart where TradingView's own feed showed 09/15).
 // ignore_invalid_symbol=true is the graceful-fallback mechanism: an unmapped or incorrect
 // ticker returns na instead of breaking the script, and na is handled explicitly below — never
 // silently treated as a real value.
@@ -243,8 +247,8 @@ f_cftcCode(_ccy) =>
 f_cotNet(_code, _longOverride, _shortOverride) =>
     _longSym  = _longOverride  != "" ? _longOverride  : "COT:" + _code + "_F_NCP_L"
     _shortSym = _shortOverride != "" ? _shortOverride : "COT:" + _code + "_F_NCP_S"
-    _long  = request.security(_longSym,  "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true)
-    _short = request.security(_shortSym, "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true)
+    _long  = request.security(_longSym,  "W", close[1], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
+    _short = request.security(_shortSym, "W", close[1], lookahead = barmerge.lookahead_on, ignore_invalid_symbol = true)
     (na(_long) or na(_short)) ? na : (_long - _short)
 
 baseCcy  = syminfo.basecurrency
@@ -308,16 +312,16 @@ quoteShortSym = quoteShortOverride != "" ? quoteShortOverride : "COT:" + quoteCo
 f_cotDiagLeg(_ccy, _mapped, _longSym, _shortSym, _net, _pctl) =>
     _mapped ? _ccy + ": " + _longSym + " / " + _shortSym + "\n    net=" + str.tostring(_net, "#") + "   pctl=" + str.tostring(_pctl, "#.#") : _ccy + ": no CFTC code mapped"
 
-// Offset test: the SAME weekly request the script uses for the base LONG leg, with and without the
-// [1]. Shows how many reports back the script's [1] + lookahead_off combination really lands.
-diagRawL0 = baseMapped ? request.security(baseLongSym, "W", close,    lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true) : na
-diagRawL1 = baseMapped ? request.security(baseLongSym, "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true) : na
+// Offset test for the base LONG leg: the pattern the script uses NOW (close[1] + lookahead_on)
+// next to the PREVIOUS one (close[1] + lookahead_off), to show the fix moved the reading forward.
+diagNowL  = baseMapped ? request.security(baseLongSym, "W", close[1], lookahead = barmerge.lookahead_on,  ignore_invalid_symbol = true) : na
+diagPrevL = baseMapped ? request.security(baseLongSym, "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true) : na
 
 cotDiagText = "COT diagnostic (NaN = did not resolve)\n" +
      f_cotDiagLeg(baseCcy,  baseMapped,  baseLongSym,  baseShortSym,  baseNet,  baseNormPctl)  + "\n" +
      f_cotDiagLeg(quoteCcy, quoteMapped, quoteLongSym, quoteShortSym, quoteNet, quoteNormPctl) + "\n" +
      "combined pctl=" + str.tostring(cotCombinedPctl, "#.#") + "\n" +
-     "offset test, base LONG: W close=" + str.tostring(diagRawL0, "#") + "   W close[1]=" + str.tostring(diagRawL1, "#")
+     "offset test, base LONG: now=" + str.tostring(diagNowL, "#") + "   previous=" + str.tostring(diagPrevL, "#")
 cotDiagLbl = showCotDiag and barstate.islast ? label.new(bar_index, low, cotDiagText, style = label.style_label_upper_left, color = color.new(color.blue, 20), textcolor = color.white, size = size.small) : na
 label.delete(cotDiagLbl[1])
 
