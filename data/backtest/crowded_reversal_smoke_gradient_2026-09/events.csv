@@ -1,0 +1,9 @@
+study,pair,date,side,outcome,tie,k
+score suppress,AUDUSD,2026-01-26,top,continuation,False,2
+score suppress,CADJPY,2025-12-19,top,reversal,False,13
+score suppress,AUDJPY,2026-01-22,top,continuation,False,1
+score suppress,AUDJPY,2026-03-11,top,reversal,False,2
+score off,AUDUSD,2026-01-26,top,continuation,False,2
+score off,CADJPY,2025-12-19,top,reversal,False,13
+score off,AUDJPY,2026-01-22,top,continuation,False,1
+score off,AUDJPY,2026-03-11,top,reversal,False,2
