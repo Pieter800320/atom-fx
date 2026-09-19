@@ -2,7 +2,7 @@
 
 **File:** `crowded_reversal.pine` (Pine Script v6, indicator, overlay)
 **Scope:** G10 FX majors, starting-point defaults for D1 and H4 (not tuned). In testing only D1
-showed any tendency; H4 showed none (§6).
+in 2021-2026 showed any tendency; H4 and D1 in 2009-2020 showed none (§6).
 **Status:** Backtested once, as a pre-registered study (Experiment 2, 2026-09-19 — see §6 and
 `docs/RESEARCH_LOG.md` on the `research` branch): a **small** statistical tendency for reversals to
 become more likely as the score rises, with the regime filter **off**; with it on, the same test
@@ -389,4 +389,40 @@ the flagged lift, with both intervals including zero, so no H4 flag-level number
 finding. "Especially in ranging markets" was checked as an exploratory split and is not supported. The ADX
 filter neither helped nor hurt on H4. Why D1 showed a small tendency and H4 none is **not** established
 (chance, the longer horizon, or bar-convention effects are all possible). The "trades back to the previous
-support or resistance" outcome has **not** been tested. Full record: `docs/RESEARCH_LOG.md`, Experiment 3.
+support or resistance" outcome is tested separately below. Full record: `docs/RESEARCH_LOG.md`, Experiment 3.
+
+### Experiment 5 — an earlier era, and is a single factor as good? (2026-09-19)
+
+Pre-registered, run once. Native Twelvedata daily bars (UTC-based, so a different bar convention from the
+NY-close bars above) reach back to 2008, giving an era the D1 result had never seen.
+
+| composite score, filter off | 2009-2020 (out-of-sample) | 2021-2026 (same bars) |
+|---|---|---|
+| Score gradient per +20 pts (95% CI) | **−0.001 (−0.020 .. +0.020)** | +0.036 (+0.011 .. +0.063) |
+| Pre-registered replication verdict | **CONTRADICTED** | replicates |
+
+**Read it plainly:** the D1 tendency **did not appear in 2009-2020** — the reversal rate is flat across score buckets there.
+Because the same daily bars reproduce it in 2021-2026, the bar convention is not the reason. It is either a real dependence on
+the market regime or partly chance; these data cannot say which. With H4 showing nothing, the whole positive evidence is one
+5.7-year window on D1. **ATR-stretch alone vs the whole composite:** in the era where the composite works its rho is 0.035 vs
+0.039 for stretch alone (paired interval −0.015 .. +0.023) — comparable, but not provably as good within the pre-registered
+margin, and the comparison is not interpretable where the composite does nothing. The composite beats %B, divergence and climax
+alone but not stretch, z-score, RSI or COT alone.
+
+### Experiment 4 — do flags trade back to the previous support/resistance? (2026-09-19)
+
+Pre-registered, run once. "Previous support/resistance" = the most recent *confirmed* swing high or low (no look-ahead), 0.5-5 ATR
+from the flag bar; success = reaching it before an equal adverse move within 20 bars (not profit); the baseline is matched on the
+level's distance, because a stretched bar's last level is naturally far away.
+
+| filter OFF | H4 UTC (primary) | H4 NY-aligned | D1 (2009-2026 / 2021-2026) |
+|---|---|---|---|
+| De-clustered events | 117 | 126 | 56 / 22 |
+| Flagged vs matched baseline | 18.8% vs 22.2% | 19.0% vs 22.1% | 17.9% vs 18.6% / 27.3% vs 21.2% |
+| Lift (95% CI) | −3.4% (−9.7 .. +4.1) | −3.1% (−9.3 .. +3.4) | −0.8% / +6.1%, intervals ≈ ±10-20 |
+| Verdict | **FAIL** | FAIL | INCONCLUSIVE (too few flags) |
+
+**Read it plainly:** on H4 the flags did not reach the previous support/resistance more often than comparable bars. On D1 there
+are too few flags to say anything. What the test exposed: at a flag, the previous level is usually far away (91% of flags had it
+3-5 ATR from the close) and 55% of flags timed out inside 20 bars. Not tested: longer horizons, other definitions of
+support/resistance, tighter stops, and any discretionary reading of a chart.
