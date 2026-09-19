@@ -41,7 +41,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 |---|----------|-----------|--------|--------|---------|----------|
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
 | 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | RUN 2026-09-19 (once, no changes after pre-registration) | Gradient slope per +20 score points: filter ON (Pine default) +0.026, CI -0.002..+0.059; filter OFF +0.041, CI +0.018..+0.070. Within-stratum rho 0.023 / 0.041. ADX filter effect (on minus off) -0.015, CI -0.026..-0.004. Flagged events (secondary): 25 / 32, inconclusive | Pine default (ADX suppress): **FAIL**, marginally (CI gate, best-single-factor gate). Filter OFF: **PASS** all 7 gates, but a small effect and not clearly better than the best single factor. Evidence AGAINST the ADX filter. | see "Experiment 2" below and "Result"; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
-| 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 3" below; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
+| 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -272,6 +272,47 @@ resolves races early, so counts should be at least these). Single factors: 1,400
 Costs, sizing, stops, entries; the support/resistance-return outcome; thresholds other than 60; other pairs; earlier
 regimes; live forward data. One macro era (2020-2026). 12 pairs share USD/JPY legs and COT legs, so pairs are not
 independent; bars overlap. D1 OHLC/H4 OHLC cannot sequence intrabar (tie -> continuation, applied identically).
+
+### Result (run once on 2026-09-19; code + data at commit `f8b1624`; outputs in `data/backtest/crowded_reversal_exp3_h4utc_2026-09/` and `..._exp3_h4ny_2026-09/`)
+Window: ~77 months (2020-05 .. 2026-09), 12 pairs, ~230,000 H4 observations per arm. Nothing was changed between the
+pre-registration commit and these runs; the one-pair smoke did not alter any parameter or gate.
+
+| filter OFF | H4 UTC blocks (PRIMARY) | H4 NY-aligned (robustness) |
+|---|---|---|
+| de-clustered flagged events | 176 (F1 passes) | 206 |
+| flagged reversal rate vs like-for-like baseline | 42.6% vs 49.1% | 51.9% vs 49.2% |
+| **lift (95% CI)** | **-6.5% (-13.2 .. +0.6)** | +2.8% (-4.8 .. +10.9) |
+| halves / excl. JPY / excl. best pair | -8.9, -3.4 / -8.5 / -8.1 | +3.1, +2.9 / +8.1 / +1.1 |
+| flagged-event gates | **FAIL** (F2, F3, F4, F5, F6) | FAIL (F2, F6) |
+| gradient slope per +20 pts (95% CI) | +0.002 (-0.007 .. +0.013) | +0.004 (-0.005 .. +0.015) |
+| gradient gates | FAIL | FAIL |
+
+**Verdict (pre-registered): FAIL on the primary.** H3 — that flagged bars reverse more often than baseline on H4 — is
+not supported. The NY-aligned check cannot rescue it and does not contradict it: it also fails.
+
+**How to read this:**
+- **The score does not predict 20-bar / 1-ATR reversals on H4 in this test.** Reversal rate is 47-51% in every score
+  bucket (UTC, filter off: 49.1, 50.5, 49.6, 47.9, 49.2, 47.3, 48.0) — no gradient. Each single factor is flat as well
+  (flagged lift within about +/-3 points; COT alone has only 77 events).
+- **The two bar alignments disagree in sign on the flagged lift** (-6.5% vs +2.8%) while both intervals comfortably
+  include ~0. That disagreement is itself informative: flag-level H4 results are noisy and convention-sensitive, so
+  neither number should be read as a finding in either direction. What is NOT ambiguous is that neither passes.
+- **"Especially in ranging markets" is not supported** (exploratory, no gates): UTC ranging flags lift -11.4% (CI
+  -21.7 .. -0.4, n=87) vs trending -1.1% (CI -9.1 .. +7.7); NY ranging +3.5% (CI -6.4 .. +13.3) vs trending +1.9%.
+  (The Suppress-arm flag set is essentially the ranging set, which is why those figures coincide.)
+- **ADX filter on H4:** no demonstrated value (slope difference -0.001, CI -0.008 .. +0.005, UTC; 0.000 NY) — it
+  neither helps nor hurts here, unlike D1 where it worsened the gradient.
+- **Contrast with Experiment 2:** the filter-off D1 gradient was +0.041 (CI +0.018 .. +0.070); on H4 it is ~0. These
+  data cannot say why. Candidates, not separated by any test: (a) the D1 result was partly chance (one of two arms, one
+  macro era, overlapping bars, and the D1 flagged-event test was itself inconclusive); (b) a real effect that lives at
+  the longer horizon (a 20-bar D1 race spans ~4 weeks; 20 H4 bars ~3.3 days at a much smaller ATR); (c) convention
+  effects (bar alignment already changed the sign of the H4 flagged lift). Telling them apart needs new
+  pre-registered work, not more looking at these numbers.
+- **What this does not test:** the "trades back to the previous support/resistance" outcome (candidate Experiment 4),
+  any discretionary context a chart reader applies, entries, exits, costs.
+
+**Consequence recorded:** the observation "flags work well on D1 and H4" is NOT supported on H4, and only weakly and
+inconclusively on D1. This is not a validated basis for an app flag.
 
 ### Reproduce
 ```
