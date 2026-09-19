@@ -13,3 +13,7 @@ FROZEN - verbatim fork of fx-signal-board. Never edit these files. New code goes
   same window, live vs fixed):** H1 pill differs on 7/12 pairs, H4 pill 5/12, H4 score 11/12, H4 ADX mean 3.7 (max 12.7), BB touch
   state 4/12; regimes can shift. See `docs/ATOM_FX_BUILD_STATUS.md` outstanding item 18.
 
+- **2026-09-19 (later the same day) — the real-FX-week input change above is DISABLED** (`_FX_WEEK_ENABLED = False` in `scan_h1.py` / `scan_m15.py`):
+  Twelvedata's hourly forex timestamps turned out to be Sydney local time, not UTC, so the week rule would have dropped real Friday trading. No
+  frozen file was touched at any point and the scans run as they did before the change. It will be re-enabled only after a timestamps-to-UTC conversion,
+  with a fresh sign-off from Pieter.
