@@ -1,0 +1,231 @@
+{
+  "experiment": "Experiment 4: flagged bars vs the previous support/resistance, timeframe=h4cutc",
+  "mode": "full",
+  "tag": "exp4_fix_h4utc_2026-09",
+  "timeframe": "h4cutc",
+  "run_utc": "2026-09-19T14:28:19+00:00",
+  "code_commit": "32f464cf5ec705b6b80bbc119fa5d9e3206a69f7",
+  "python": "3.14.3",
+  "numpy": "2.4.2",
+  "pandas": "3.0.1",
+  "pine_source": "pine/crowded_reversal.pine (main) as ported by scanner/extend/crowded_reversal.py",
+  "pine_params": {
+    "bb_len": 20,
+    "bb_mult": 2.0,
+    "bb_top": 1.0,
+    "bb_bot": 0.0,
+    "z_len": 100,
+    "z_thresh": 2.0,
+    "stretch_ema_len": 50,
+    "stretch_atr_len": 14,
+    "stretch_mult": 3.0,
+    "w_bb": 10.0,
+    "w_z": 8.0,
+    "w_stretch": 7.0,
+    "rsi_len": 14,
+    "rsi_ob": 70.0,
+    "rsi_obx": 80.0,
+    "rsi_os": 30.0,
+    "rsi_osx": 20.0,
+    "div_left": 5,
+    "div_right": 5,
+    "div_min_gap": 5,
+    "div_max_gap": 60,
+    "div_hold": 5,
+    "w_rsi": 12.0,
+    "w_rsi_x": 3.0,
+    "w_div": 25.0,
+    "tr_atr_len": 14,
+    "tr_mult": 1.8,
+    "climax_require_wide": false,
+    "width_pct_len": 252,
+    "width_pct_thresh": 80.0,
+    "w_climax": 10.0,
+    "cot_enabled": true,
+    "cot_lookback_weeks": 156,
+    "cot_pct_hi": 90.0,
+    "cot_pct_lo": 10.0,
+    "w_cot": 25.0,
+    "adx_len": 14,
+    "adx_thresh": 30.0,
+    "ema_trend_len": 200,
+    "ema_slope_lb": 20,
+    "regime_persist": 3,
+    "regime_penalty": 0.5,
+    "top_threshold": 60.0,
+    "bottom_threshold": 60.0
+  },
+  "regime_arms": [
+    "suppress",
+    "off"
+  ],
+  "levels": {
+    "swing_n": 5,
+    "lookback": 120,
+    "min_d": 0.5,
+    "max_d": 5.0,
+    "horizon": 20,
+    "rr": "1:1 (stop = same distance as the target)",
+    "tie_rule": "same-bar target+stop -> failure",
+    "timeout": "failure",
+    "distance_buckets_atr": [
+      0.5,
+      1.0,
+      2.0,
+      3.0,
+      5.0
+    ],
+    "swings": "scanner.extend.swings.find_swings (strict-left/tolerant-right); a swing is usable only from bar i+swing_n"
+  },
+  "gates": {
+    "flagged": {
+      "min_events": 100,
+      "min_lift": 0.05,
+      "ci_lo_gt_zero": true,
+      "both_halves_lift_gt_zero": true,
+      "ex_jpy_lift_gt_zero": true,
+      "ex_best_pair_lift_gt_zero": true,
+      "beats_best_single_factor_lift": true
+    }
+  },
+  "eval": {
+    "warmup_bars": 400,
+    "eval_start": null,
+    "eval_end": null,
+    "requires_cot_available": true
+  },
+  "bootstrap": {
+    "kind": "month-clustered; every bucket baseline recomputed per resample",
+    "n": 5000,
+    "seed": 20260919,
+    "ci": "2.5-97.5"
+  },
+  "sources": {
+    "price": {
+      "store": "data\\fix_h4_utc",
+      "timeframe": "h4cutc",
+      "per_pair [first, last, bars]": {
+        "EURUSD": [
+          "2020-01-30 08:00:00",
+          "2026-09-18 16:00:00",
+          10121
+        ],
+        "GBPUSD": [
+          "2020-01-30 12:00:00",
+          "2026-09-18 16:00:00",
+          10136
+        ],
+        "USDJPY": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10126
+        ],
+        "USDCAD": [
+          "2020-01-29 01:00:00",
+          "2026-09-18 16:00:00",
+          10137
+        ],
+        "NZDUSD": [
+          "2020-01-29 20:00:00",
+          "2026-09-18 16:00:00",
+          10136
+        ],
+        "AUDUSD": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10131
+        ],
+        "USDCHF": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10130
+        ],
+        "EURJPY": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10133
+        ],
+        "GBPJPY": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10138
+        ],
+        "CADJPY": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10125
+        ],
+        "AUDJPY": [
+          "2020-01-30 08:00:00",
+          "2026-09-18 16:00:00",
+          10135
+        ],
+        "NZDJPY": [
+          "2020-01-29 04:00:00",
+          "2026-09-18 16:00:00",
+          10122
+        ]
+      },
+      "meta": null
+    },
+    "cot": {
+      "file": "data\\cot_legacy\\legacy_nc.csv",
+      "sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf"
+    }
+  },
+  "eval_window_per_pair": {
+    "EURUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2020-05-04",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ]
+  },
+  "level_availability": {
+    "bars": 114915,
+    "valid_up": 94757,
+    "valid_down": 96746
+  }
+}

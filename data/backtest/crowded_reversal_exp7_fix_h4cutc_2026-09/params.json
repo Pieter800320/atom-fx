@@ -1,0 +1,79 @@
+{
+  "experiment": 7,
+  "tag": "exp7_fix_h4cutc_2026-09",
+  "mode": "full",
+  "timeframe": "h4cutc",
+  "threshold_strictly_above": 30.0,
+  "arms_N": {
+    "confirm10": 10,
+    "confirm5": 5,
+    "bare_onset": null
+  },
+  "gates": {
+    "min_events": 100,
+    "min_lift": 0.05,
+    "flagged_rate_gt": 0.5
+  },
+  "boot": 5000,
+  "seed": 20260919,
+  "eval_start": null,
+  "eval_end": null,
+  "git_head": "32f464cf5ec705b6b80bbc119fa5d9e3206a69f7",
+  "cot_sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf",
+  "python": "3.14.3",
+  "run_at": "2026-09-19T16:27:38",
+  "eval_ranges": {
+    "EURUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2020-05-04",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2020-05-05",
+      "2026-09-18"
+    ]
+  },
+  "onsets_in_window": {
+    "green": 852,
+    "red": 661
+  }
+}

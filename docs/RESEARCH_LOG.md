@@ -787,3 +787,26 @@ The production pipeline now converts Twelvedata's Sydney-time labels to UTC (mai
 **The stores in `data/` here are still built on the OLD labels; Experiments 2-7 have NOT been re-run.** To do: rebuild the stores from `data/h1_cache/*_deep_h1.csv` via
 `scanner/extend/fx_week.normalize_frame` (main), rebuild D1 NY-close and H4 NY/UTC bars, and re-run the primary tests with the pre-registered gates unchanged. Also check the port's `adx()`
 against TradingView: on AUDUSD D1 26 Jan 2026 ours is 41.9 vs TradingView 35.8 (GBPUSD/CADJPY within 0.7); Experiments 6-7 used it for the strong-trend shading.
+
+## Re-run of Experiments 2, 3, 4, 6 and 7 on CORRECTED bars (2026-09-19, evening)
+Data-correctness re-run, NOT a new hypothesis: the pre-registered gates, parameters, race, baselines and seeds are unchanged; only the bars changed. Stores rebuilt by
+`tools/build_fixed_stores.py` from the raw hourly cache: Sydney labels -> true UTC (main's `scanner/extend/fx_week.py`), closed-market rows dropped, then D1 on the 17:00-New-York close
+(`data/fix_d1_ny`), H4 on the New-York-session blocks (`data/fix_h4_ny`, = the app's and TradingView's grid) and H4 on true UTC blocks (`data/fix_h4_utc`). Runner timeframes `d1c`, `h4cny`, `h4cutc`.
+Not re-runnable: Experiment 5 and the D1 primaries of Experiments 6-7 (native daily bars back to 2009 have no hourly source; they use Twelvedata's own daily boundary, unchanged).
+
+| Experiment (arm) | Original result | Corrected-bar result | Verdict |
+|---|---|---|---|
+| **2** D1 gradient, filter OFF (2021-26) | slope +0.041 per +20 pts (CI +0.018 .. +0.070); PASS all 7 gates | **slope +0.033 (CI +0.008 .. +0.062)**; halves +0.026 / +0.046; ex-JPY +0.043; every leave-one-pair-out > 0; **FAILS only gate 7** (composite not better than ATR-stretch alone) | small D1 tendency SURVIVES at a similar size; composite no better than one factor |
+| 2, ADX filter effect (suppress minus off) | -0.015 (CI -0.026 .. -0.004) | -0.013 (CI -0.027 .. -0.000) | still evidence AGAINST the filter |
+| **3** H4 UTC blocks, flagged, filter off | 176 events, lift -6.5% (CI -13.2 .. +0.6) | 193 events, lift **+1.9%** (CI -6.0 .. +10.5); gradient slope +0.005 | FAIL, unchanged in substance |
+| 3 H4 NY-aligned | 206 events, lift +2.8% | 188 events, lift **-1.8%** (CI -10.0 .. +7.6); slope +0.006 | FAIL |
+| **4** flags vs previous S/R, H4 UTC | 117 events, lift -3.4% (CI -9.7 .. +4.1) | 128 events, 22.7% vs 22.1%, lift **+0.6%** (CI -7.0 .. +8.1) | FAIL |
+| **6** score > 30 vs opposite background, H4 UTC | 908 events, 47.9% vs 50.7%, lift -2.8% | 930 events, 50.9% vs 50.4%, lift **+0.5%** (CI -3.5 .. +4.9); fails F2-F5, F7 | NOT SUPPORTED |
+| 6, D1 NY-close (info) | (D1 native 380 events, -0.5%) | 109 events, 57.8% vs 55.2%, lift +2.6% (CI -7.0 .. +13.1) | NOT SUPPORTED |
+| **7** shading turns on after stretched score, H4 UTC | 800 events, 49.6% vs 48.9%, lift +0.7% | 813 events, 52.4% vs 52.0%, lift **+0.4%** (CI -2.2 .. +2.9) | NOT SUPPORTED |
+| 7, D1 NY-close (info) | (D1 native 320 events, -1.6%) | 107 events, 49.5% vs 54.4%, lift -4.8% (CI -10.4 .. +2.1) | NOT SUPPORTED |
+
+**Reading:** correcting the bar boundaries changed the numbers slightly and changed NO verdict. The one edge-like result, the small D1 tendency (+0.033 per +20 score points),
+is still there and still small; the H4 findings, the S/R finding and both of Pieter's strategies remain coin flips. **Port check (AUDUSD D1 26 Jan 2026):** the research port's ADX (41.9) differs from TradingView's (35.8) on that bar while
+GBPUSD/CADJPY agree within 0.7 — treated as price-feed noise (ADX is very sensitive to highs and lows), not a logic bug; it only affects the strong-trend shading used in Experiments 6-7.
+Outputs: `data/backtest/crowded_reversal_{exp2,exp3,exp4,exp6,exp7}_fix_*`.

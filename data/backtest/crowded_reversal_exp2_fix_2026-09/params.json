@@ -1,0 +1,249 @@
+{
+  "experiment": "crowded_reversal barrier-race studies, timeframe=d1c, primary=gradient",
+  "mode": "full",
+  "tag": "exp2_fix_2026-09",
+  "timeframe": "d1c",
+  "run_utc": "2026-09-19T14:25:21+00:00",
+  "code_commit": "32f464cf5ec705b6b80bbc119fa5d9e3206a69f7",
+  "python": "3.14.3",
+  "numpy": "2.4.2",
+  "pandas": "3.0.1",
+  "pine_source": "pine/crowded_reversal.pine (main) as ported by scanner/extend/crowded_reversal.py",
+  "pine_params": {
+    "bb_len": 20,
+    "bb_mult": 2.0,
+    "bb_top": 1.0,
+    "bb_bot": 0.0,
+    "z_len": 100,
+    "z_thresh": 2.0,
+    "stretch_ema_len": 50,
+    "stretch_atr_len": 14,
+    "stretch_mult": 3.0,
+    "w_bb": 10.0,
+    "w_z": 8.0,
+    "w_stretch": 7.0,
+    "rsi_len": 14,
+    "rsi_ob": 70.0,
+    "rsi_obx": 80.0,
+    "rsi_os": 30.0,
+    "rsi_osx": 20.0,
+    "div_left": 5,
+    "div_right": 5,
+    "div_min_gap": 5,
+    "div_max_gap": 60,
+    "div_hold": 5,
+    "w_rsi": 12.0,
+    "w_rsi_x": 3.0,
+    "w_div": 25.0,
+    "tr_atr_len": 14,
+    "tr_mult": 1.8,
+    "climax_require_wide": false,
+    "width_pct_len": 252,
+    "width_pct_thresh": 80.0,
+    "w_climax": 10.0,
+    "cot_enabled": true,
+    "cot_lookback_weeks": 156,
+    "cot_pct_hi": 90.0,
+    "cot_pct_lo": 10.0,
+    "w_cot": 25.0,
+    "adx_len": 14,
+    "adx_thresh": 30.0,
+    "ema_trend_len": 200,
+    "ema_slope_lb": 20,
+    "regime_persist": 3,
+    "regime_penalty": 0.5,
+    "top_threshold": 60.0,
+    "bottom_threshold": 60.0
+  },
+  "regime_arms": [
+    "suppress",
+    "off"
+  ],
+  "race": {
+    "horizon": 20,
+    "mult": 1.0,
+    "tie_rule": "same-bar both barriers -> continuation",
+    "timeout": "counts as not-a-reversal"
+  },
+  "gates": {
+    "gradient": {
+      "min_months": 48,
+      "min_slope_per_20pts": 0.02,
+      "ci_lo_gt_zero": true,
+      "both_halves_slope_gt_zero": true,
+      "ex_jpy_slope_gt_zero": true,
+      "every_leave_one_pair_out_slope_gt_zero": true,
+      "composite_rho_beats_best_single_factor": true
+    },
+    "flagged": {
+      "min_events": 100,
+      "min_lift": 0.05,
+      "ci_lo_gt_zero": true,
+      "both_halves_lift_gt_zero": true,
+      "ex_jpy_lift_gt_zero": true,
+      "ex_best_pair_lift_gt_zero": true,
+      "beats_best_single_factor_lift": true
+    },
+    "primary": "gradient"
+  },
+  "gradient": {
+    "slope_unit_points": 20.0,
+    "bucket_edges": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60,
+      100
+    ],
+    "fixed_effects": "pair x side",
+    "split_month": "2023-10"
+  },
+  "eval": {
+    "warmup_bars": 260,
+    "eval_start": null,
+    "eval_end": null,
+    "requires_cot_available": true
+  },
+  "experiment5_constants": {
+    "noninferiority_margin": 0.01,
+    "replication_min_slope": 0.02
+  },
+  "bootstrap": {
+    "kind": "month-clustered; all statistics recomputed per resample; resamples shared (paired)",
+    "n": 5000,
+    "seed": 20260919,
+    "ci": "2.5-97.5"
+  },
+  "sources": {
+    "price": {
+      "store": "data\\fix_d1_ny",
+      "timeframe": "d1c",
+      "per_pair [first, last, bars]": {
+        "EURUSD": [
+          "2020-01-30 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "GBPUSD": [
+          "2020-01-30 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "USDJPY": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "USDCAD": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "NZDUSD": [
+          "2020-01-30 00:00:00",
+          "2026-09-18 00:00:00",
+          1729
+        ],
+        "AUDUSD": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "USDCHF": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1729
+        ],
+        "EURJPY": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1730
+        ],
+        "GBPJPY": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1730
+        ],
+        "CADJPY": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ],
+        "AUDJPY": [
+          "2020-01-30 00:00:00",
+          "2026-09-18 00:00:00",
+          1730
+        ],
+        "NZDJPY": [
+          "2020-01-29 00:00:00",
+          "2026-09-18 00:00:00",
+          1728
+        ]
+      },
+      "meta": null
+    },
+    "cot": {
+      "file": "data\\cot_legacy\\legacy_nc.csv",
+      "sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf",
+      "report": "CFTC Legacy futures-only, Non-Commercial long/short",
+      "as_of_range": [
+        "2006-01-03",
+        "2026-09-15"
+      ],
+      "alignment": "bar in week k uses Tuesday-of-week-(k-1) report (by NY-close trading day); Pine close[1]+lookahead_on"
+    }
+  },
+  "eval_window_per_pair": {
+    "EURUSD": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2021-01-28",
+      "2026-09-18"
+    ]
+  }
+}

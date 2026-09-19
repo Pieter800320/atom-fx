@@ -60,6 +60,10 @@ TIMEFRAMES = {
     # Twelvedata NATIVE daily bars (UTC-based, weekend rows dropped at load). NOT the NY-close convention:
     # used only for the earlier-era replication (Experiment 5), never mixed with the NY-close stores.
     "d1utc": {"dir": "data/d1_utc_daily",    "warmup": 260, "kind": "d1utc"},
+    # 2026-09-19 CORRECTED bars (Sydney labels -> UTC -> NY trading clock; tools/build_fixed_stores.py). Same loaders, new stores.
+    "d1c":    {"dir": "data/fix_d1_ny",       "warmup": 260, "kind": "d1utc"},
+    "h4cny":  {"dir": "data/fix_h4_ny",       "warmup": 400, "kind": "h4"},
+    "h4cutc": {"dir": "data/fix_h4_utc",      "warmup": 400, "kind": "h4"},
 }
 
 # Experiment 5 pre-registered decision constants
