@@ -59,12 +59,9 @@ from scanner.config import PAIRS
 from scanner.fetch import fetch_ohlcv
 # 2026-09-19 (BUILD_STATUS item 18) — Twelvedata's market-closed weekend rows are dropped from the M15 frame too, so the
 # M15 glance-panel series match the real-FX-week bars scan_h1.py now builds. Guarded: a broken module never breaks a scan.
-# 2026-09-19 KILL SWITCH (BUILD_STATUS item 18 reopened): DISABLED. Found the same day it shipped: Twelvedata's hourly
-# forex timestamps are NOT UTC — they are Australia/Sydney local time (UTC+10 in AEST, UTC+11 in AEDT), confirmed against
-# five TradingView candles (errors 0.8-6.8 pips at that offset vs 25-129 pips at none). This module's real-FX-week rule is
-# written in New York/UTC time, so on the raw timestamps it would drop real Friday trading and keep weekend quotes. It stays
-# off until the timestamps are converted to true UTC first (needs Pieter's sign-off: it changes every D1/H4 number).
-_FX_WEEK_ENABLED = False
+# 2026-09-19 (BUILD_STATUS item 18; Pieter approved "Yes, you can fix it"): re-enabled after the kill switch. Twelvedata's hourly labels are
+# Australia/Sydney local time, so fx_week now converts them to true UTC FIRST, then drops closed-market rows. Set False to disable again.
+_FX_WEEK_ENABLED = True
 try:
     if not _FX_WEEK_ENABLED:
         raise RuntimeError("fx_week disabled by kill switch")
@@ -148,7 +145,7 @@ def main():
         if df is None or key not in signals["pairs"]:
             continue
         if _fx_week is not None:
-            df = _fx_week.drop_closed(df)
+            df = _fx_week.normalize_frame(df)
 
         close = df["close"].astype(float)
         dates = _m15_dates(df)
