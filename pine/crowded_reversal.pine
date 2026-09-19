@@ -1,0 +1,434 @@
+//@version=6
+
+// =============================================================================================
+// Crowded Market — Reversal Conditions (G10 FX)
+//
+// PURPOSE: flags confluence of overextension, momentum exhaustion, volatility climax and
+// crowded speculative positioning — i.e. conditions historically associated with an elevated
+// probability of a reversal. Tuned as a starting point for G10 FX majors on H4/D1.
+//
+// HONESTY CAVEAT: this indicator has NOT been backtested. It contains no win-rate, accuracy or
+// "high probability" claim anywhere in its code, name or comments. It flags a CONDITION
+// (crowded / exhausted / climaxed), not a signal proven to precede a profitable trade. Extremes
+// can and do persist in strong trends — see the mandatory regime filter below. Validate this in
+// your own backtester on your own data before trusting it with real risk. See
+// CROWDED_REVERSAL_METHODOLOGY.md (same folder) for the full research writeup, factor sourcing,
+// scoring scheme and — most importantly — the "What this is NOT" section.
+// =============================================================================================
+
+indicator(
+     title       = "Crowded Market — Reversal Conditions (G10 FX)"
+   , shorttitle  = "CrowdedMkt"
+   , overlay     = true
+   , max_labels_count = 500
+   , max_bars_back    = 5000
+   )
+
+// -------------------------------------------------------------------------------------------
+// SECTION 0 — General
+// -------------------------------------------------------------------------------------------
+grpGeneral = "0. General"
+confirmOnClose = input.bool(true, "Confirm signals on bar close", group = grpGeneral,
+     tooltip = "When on, the top/bottom flags (labels + alerts) only fire once the bar is confirmed (barstate.isconfirmed). This is the no-repaint-safe setting and should normally stay on. The confluence score lines themselves still update intrabar for visual reference, exactly like any oscillator.")
+
+// -------------------------------------------------------------------------------------------
+// SECTION 1 — Overextension (envelope / statistical stretch)
+// Grounded in: Bollinger %B (John Bollinger), price z-score vs a moving average (standard
+// statistical mean-reversion technique), and ATR-normalized distance from a moving average
+// (volatility-adjusted extension, a recognized generalization of "distance from the mean").
+// -------------------------------------------------------------------------------------------
+grpOver = "1. Overextension"
+bbLength   = input.int(20, "Bollinger length", minval = 2, group = grpOver)
+bbMult     = input.float(2.0, "Bollinger mult (std devs)", step = 0.1, group = grpOver)
+bbTopThresh    = input.float(1.0, "%B bearish extreme (>=)", group = grpOver,
+     tooltip = "Standard Bollinger %B: 1.0 means price closed exactly on the upper band; >1.0 means it closed above it.")
+bbBottomThresh = input.float(0.0, "%B bullish extreme (<=)", group = grpOver,
+     tooltip = "0.0 means price closed exactly on the lower band; <0.0 means it closed below it.")
+
+zLength  = input.int(100, "Z-score SMA length", minval = 10, group = grpOver)
+zThresh  = input.float(2.0, "Z-score extreme |z| >=", step = 0.1, group = grpOver,
+     tooltip = "Standard deviations of close from its own SMA. |z| >= 2.0 is the conventional statistical 'unusual' threshold (~95% of a normal distribution lies within +/-2 sigma).")
+
+stretchEmaLen  = input.int(50, "Stretch EMA length", minval = 5, group = grpOver)
+stretchAtrLen  = input.int(14, "Stretch ATR length", minval = 2, group = grpOver)
+stretchAtrMult = input.float(3.0, "Stretch threshold (ATR multiples)", step = 0.1, group = grpOver,
+     tooltip = "Distance of close from the stretch EMA, measured in ATR units — a volatility-normalized version of 'far from the mean', comparable across pairs/regimes with different absolute volatility.")
+
+wOverBB      = input.float(10, "Weight: %B extreme",      minval = 0, group = grpOver, inline = "wOver")
+wOverZ       = input.float(8,  "Weight: Z-score extreme", minval = 0, group = grpOver, inline = "wOver")
+wOverStretch = input.float(7,  "Weight: ATR stretch",     minval = 0, group = grpOver, inline = "wOver")
+
+bbBasis = ta.sma(close, bbLength)
+bbDev   = bbMult * ta.stdev(close, bbLength)
+bbUpper = bbBasis + bbDev
+bbLower = bbBasis - bbDev
+bbRange = bbUpper - bbLower
+pctB    = bbRange != 0.0 ? (close - bbLower) / bbRange : na
+
+zSma   = ta.sma(close, zLength)
+zStdev = ta.stdev(close, zLength)
+zScore = zStdev != 0.0 ? (close - zSma) / zStdev : na
+
+stretchEma = ta.ema(close, stretchEmaLen)
+stretchAtr = ta.atr(stretchAtrLen)
+stretch    = stretchAtr != 0.0 ? (close - stretchEma) / stretchAtr : na
+
+// -------------------------------------------------------------------------------------------
+// SECTION 2 — Momentum exhaustion & regular divergence
+// Grounded in: Wilder's RSI (overbought/oversold extremes) and REGULAR (classic) bullish/
+// bearish divergence between price and an oscillator — price makes a new extreme, the
+// oscillator does not. Divergence via confirmed pivots is the strongest single factor here
+// (weighted accordingly) — it is a recognized, decades-old TA concept (also related in spirit
+// to DeMark exhaustion counting, which this script does not reimplement).
+//
+// LAG, NOT REPAINT: a pivot at bar N can only be confirmed `divRight` bars later, once price
+// has actually moved away from it on both sides. This is unavoidable and is disclosed here and
+// in the methodology doc — a divergence is never flagged before it is mechanically confirmable.
+// -------------------------------------------------------------------------------------------
+grpMom = "2. Momentum & Divergence"
+rsiLen = input.int(14, "RSI length", minval = 2, group = grpMom)
+rsiOB  = input.float(70, "RSI overbought (>=)", group = grpMom, inline = "rsiOB")
+rsiOBx = input.float(80, "RSI extreme tier (>=)", group = grpMom, inline = "rsiOB")
+rsiOS  = input.float(30, "RSI oversold (<=)", group = grpMom, inline = "rsiOS")
+rsiOSx = input.float(20, "RSI extreme tier (<=)", group = grpMom, inline = "rsiOS")
+
+divLeft    = input.int(5, "Divergence pivot left bars", minval = 1, group = grpMom)
+divRight   = input.int(5, "Divergence pivot right bars (confirmation lag)", minval = 1, group = grpMom,
+     tooltip = "A pivot is only confirmable this many bars after it occurs. Larger = fewer false pivots but more lag. This lag is disclosed, not hidden — see the header comment.")
+divMinGap  = input.int(5,  "Min bars between compared pivots", minval = 1, group = grpMom)
+divMaxGap  = input.int(60, "Max bars between compared pivots", minval = 1, group = grpMom,
+     tooltip = "Two pivots compared for divergence must be between Min and Max bars apart, or the comparison is discarded as not meaningfully related — standard range-gating for divergence detection.")
+divHoldBars = input.int(5, "Bars to keep a confirmed divergence 'active' in the score", minval = 0, group = grpMom,
+     tooltip = "A divergence confirms on exactly one bar (see lag note above). Holding it active for a few bars lets it combine with other same-day confluence factors rather than only ever scoring alone on its single confirmation bar.")
+
+wRsi      = input.float(12, "Weight: RSI extreme",       minval = 0, group = grpMom, inline = "wMom")
+wRsiXtra  = input.float(3,  "Weight: RSI extreme tier",  minval = 0, group = grpMom, inline = "wMom")
+wDiv      = input.float(25, "Weight: regular divergence", minval = 0, group = grpMom, inline = "wMom")
+
+rsiVal = ta.rsi(close, rsiLen)
+
+pivHighRsi = ta.pivothigh(rsiVal, divLeft, divRight)
+pivLowRsi  = ta.pivotlow(rsiVal, divLeft, divRight)
+phFound = not na(pivHighRsi)
+plFound = not na(pivLowRsi)
+
+// Price value at the pivot bar itself (divRight bars back from the confirmation bar).
+priceHighAtPivot = high[divRight]
+priceLowAtPivot  = low[divRight]
+
+// Previous confirmed pivot's RSI value, price value, and bar index (for range gating).
+prevPivHighRsi   = ta.valuewhen(phFound, pivHighRsi, 1)
+prevPriceHighPvt = ta.valuewhen(phFound, priceHighAtPivot, 1)
+prevPivHighBar   = ta.valuewhen(phFound, bar_index[divRight], 1)
+curPivHighBar    = bar_index[divRight]
+
+prevPivLowRsi    = ta.valuewhen(plFound, pivLowRsi, 1)
+prevPriceLowPvt  = ta.valuewhen(plFound, priceLowAtPivot, 1)
+prevPivLowBar    = ta.valuewhen(plFound, bar_index[divRight], 1)
+curPivLowBar     = bar_index[divRight]
+
+phGapOk = phFound and not na(prevPivHighBar) and (curPivHighBar - prevPivHighBar) >= divMinGap and (curPivHighBar - prevPivHighBar) <= divMaxGap
+plGapOk = plFound and not na(prevPivLowBar)  and (curPivLowBar  - prevPivLowBar)  >= divMinGap and (curPivLowBar  - prevPivLowBar)  <= divMaxGap
+
+// Bearish regular divergence: price higher high, RSI lower high (momentum failing to confirm).
+bearishDivConfirmed = phGapOk and priceHighAtPivot > prevPriceHighPvt and pivHighRsi < prevPivHighRsi
+// Bullish regular divergence: price lower low, RSI higher low.
+bullishDivConfirmed = plGapOk and priceLowAtPivot < prevPriceLowPvt and pivLowRsi > prevPivLowRsi
+
+// ta.barssince() must be called unconditionally on every bar for its internal state to stay
+// consistent — extracted out of the ternary below rather than called from inside it (TradingView
+// editor warning CW10004).
+barsSinceBearishDiv = ta.barssince(bearishDivConfirmed)
+barsSinceBullishDiv = ta.barssince(bullishDivConfirmed)
+
+var bool bearishDivLatch = false
+var bool bullishDivLatch = false
+bearishDivLatch := bearishDivConfirmed ? true : (barsSinceBearishDiv < divHoldBars ? bearishDivLatch : false)
+bullishDivLatch := bullishDivConfirmed ? true : (barsSinceBullishDiv < divHoldBars ? bullishDivLatch : false)
+bearishDivActive = bearishDivConfirmed or bearishDivLatch
+bullishDivActive = bullishDivConfirmed or bullishDivLatch
+
+// -------------------------------------------------------------------------------------------
+// SECTION 3 — Volatility climax
+// Grounded in: true-range/ATR expansion spikes coinciding with a band pierce, the classic
+// Wyckoff "buying climax / selling climax" signature — a blow-off move on abnormal range,
+// often near exhaustion rather than the start of a sustained new trend leg.
+// -------------------------------------------------------------------------------------------
+grpClimax = "3. Volatility Climax"
+trSpikeAtrLen  = input.int(14, "TR-spike ATR length", minval = 2, group = grpClimax)
+trSpikeMult    = input.float(1.8, "TR spike multiple of ATR (>=)", step = 0.1, group = grpClimax)
+climaxRequireWidePct = input.bool(false, "Also require Bollinger bandwidth in upper percentile", group = grpClimax,
+     tooltip = "Optional extra condition: only count a climax if band width itself is also unusually wide for this pair right now (not just today's single-bar range).")
+widthPctLen    = input.int(252, "Bandwidth percentile lookback (bars)", minval = 20, group = grpClimax)
+widthPctThresh = input.float(80, "Bandwidth percentile threshold (>=)", group = grpClimax)
+wClimax = input.float(10, "Weight: volatility climax", minval = 0, group = grpClimax)
+
+trueRange = math.max(high - low, math.max(math.abs(high - close[1]), math.abs(low - close[1])))
+climaxAtr = ta.atr(trSpikeAtrLen)
+trSpike   = climaxAtr != 0.0 and trueRange >= trSpikeMult * climaxAtr
+
+bbWidthPct = bbBasis != 0.0 ? (bbUpper - bbLower) / bbBasis * 100.0 : na
+widthPercentile = ta.percentrank(bbWidthPct, widthPctLen)
+widthOk = not climaxRequireWidePct or (not na(widthPercentile) and widthPercentile >= widthPctThresh)
+
+climaxUp   = trSpike and close > bbUpper and widthOk
+climaxDown = trSpike and close < bbLower and widthOk
+
+// -------------------------------------------------------------------------------------------
+// SECTION 4 — COT positioning (Commitments of Traders — contrarian crowding)
+// Grounded in: classic COT contrarian analysis — when large speculators / non-commercial
+// traders are at a multi-year positioning extreme, the move is "crowded" and vulnerable to a
+// squeeze/unwind. This is the literal meaning of "crowded market" and is the heart of this tool.
+//
+// FX & PINE CAVEATS (see methodology doc for the full version):
+//   - COT is WEEKLY data, released with a ~3-day lag (Tuesday's positions, published Friday).
+//     It is never intrabar-fresh; treat it as a slow-moving background condition, not a trigger.
+//   - FX spot has no COT report. This uses CME/ICE CURRENCY FUTURES positioning as the
+//     recognized proxy for spot FX speculative positioning (standard practice industry-wide).
+//   - Symbol mapping is explicit (currency -> CFTC contract code) and DOCUMENTED below. If a
+//     currency cannot be mapped, or the resulting data series is unavailable, this factor
+//     disables itself gracefully for that leg and the chart shows a note — it never fabricates
+//     a value.
+// -------------------------------------------------------------------------------------------
+grpCot = "4. COT Positioning"
+cotEnabled = input.bool(true, "Enable COT positioning factor", group = grpCot)
+cotMode    = input.string("Percentile", "Normalization", options = ["Percentile", "Z-score"], group = grpCot)
+cotLookbackWeeks = input.int(156, "Normalization window (weeks, ~3y)", minval = 26, group = grpCot)
+cotPctHi = input.float(90, "Percentile extreme — crowded LONG (>=)", group = grpCot)
+cotPctLo = input.float(10, "Percentile extreme — crowded SHORT (<=)", group = grpCot)
+cotZThresh = input.float(1.5, "Z-score extreme |z| >=", step = 0.1, group = grpCot)
+wCot = input.float(25, "Weight: COT positioning extreme", minval = 0, group = grpCot)
+
+grpCotOverride = "4b. COT Ticker Overrides (advanced — blank = auto)"
+baseLongOverride   = input.string("", "Base currency: Non-Commercial LONG ticker override", group = grpCotOverride,
+     tooltip = "Leave blank to auto-build from the CFTC code below. If COT data doesn't load for your pair, use TradingView's Symbol Search to find the correct COT ticker for this currency and paste it here.")
+baseShortOverride  = input.string("", "Base currency: Non-Commercial SHORT ticker override", group = grpCotOverride)
+quoteLongOverride  = input.string("", "Quote currency: Non-Commercial LONG ticker override", group = grpCotOverride)
+quoteShortOverride = input.string("", "Quote currency: Non-Commercial SHORT ticker override", group = grpCotOverride)
+
+// Explicit currency -> CFTC contract code mapping (Legacy report). Codes verified directly
+// against CFTC.gov's own published Commitments of Traders contract listings (Euro FX, British
+// Pound, Japanese Yen, Swiss Franc, Canadian Dollar, Australian Dollar, New Zealand Dollar) and
+// the ICE Futures U.S. report for the U.S. Dollar Index (USD has no currency future of its own;
+// the Dollar Index is the recognized proxy for USD-specific speculative positioning).
+f_cftcCode(_ccy) =>
+    switch _ccy
+        "EUR" => "099741"
+        "GBP" => "096742"
+        "JPY" => "097741"
+        "CHF" => "092741"
+        "CAD" => "090741"
+        "AUD" => "232741"
+        "NZD" => "112741"
+        "USD" => "098662"
+        => ""
+
+// Non-Commercial (large speculator) Long/Short, Legacy report, futures-only — the standard
+// "large speculators" category COT contrarian analysis is built on. TradingView's COT feed
+// exposes these as COT:<code>_F_NCP_L / _F_NCP_S. Net = Long - Short. Requested on the WEEKLY
+// context with an explicit [1] offset and lookahead_off, so only the last FULLY RELEASED report
+// is ever read — never a still-forming current week (no repaint, no look-ahead).
+// ignore_invalid_symbol=true is the graceful-fallback mechanism: an unmapped or incorrect
+// ticker returns na instead of breaking the script, and na is handled explicitly below — never
+// silently treated as a real value.
+//
+// 2026-09-18 fix: the prefix was originally "CFTC:" (unverified guess) — confirmed wrong by
+// resolving a live TradingView symbol page, which redirects/resolves under "COT:" instead
+// (e.g. COT:099741_F_OI for Euro FX open interest). The exact suffix for Non-Commercial
+// Long/Short specifically ("_F_NCP_L"/"_F_NCP_S") is still not independently confirmed — if it
+// doesn't resolve either, use TradingView's Symbol Search for the currency's COT data and paste
+// the correct ticker into the override input below rather than guessing further blind.
+f_cotNet(_code, _longOverride, _shortOverride) =>
+    _longSym  = _longOverride  != "" ? _longOverride  : "COT:" + _code + "_F_NCP_L"
+    _shortSym = _shortOverride != "" ? _shortOverride : "COT:" + _code + "_F_NCP_S"
+    _long  = request.security(_longSym,  "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true)
+    _short = request.security(_shortSym, "W", close[1], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = true)
+    (na(_long) or na(_short)) ? na : (_long - _short)
+
+baseCcy  = syminfo.basecurrency
+quoteCcy = syminfo.currency
+baseCode  = f_cftcCode(baseCcy)
+quoteCode = f_cftcCode(quoteCcy)
+baseMapped  = baseCode  != ""
+quoteMapped = quoteCode != ""
+
+baseNet  = baseMapped  ? f_cotNet(baseCode,  baseLongOverride,  baseShortOverride)  : na
+quoteNet = quoteMapped ? f_cotNet(quoteCode, quoteLongOverride, quoteShortOverride) : na
+
+// Convert the 156-week window into an approximate bar count for whichever chart timeframe this
+// is running on (script is tuned for H4/D1; ~5 trading bars/day is the standard convention).
+barsPerDay  = 86400.0 / timeframe.in_seconds(timeframe.period)
+barsPerWeek = barsPerDay * 5.0
+cotLookbackBars = int(math.round(cotLookbackWeeks * barsPerWeek))
+
+// percentrank/sma/stdev over a series that only changes once per week (forward-filled at chart
+// frequency) is mathematically equivalent, for the LATEST value's rank/z, to computing it over
+// the distinct weekly observations themselves — the forward-fill duplicates every observation
+// by the same factor, which does not change the relative rank of the most recent one.
+baseNormPctl  = ta.percentrank(baseNet,  cotLookbackBars)
+quoteNormPctl = ta.percentrank(quoteNet, cotLookbackBars)
+baseNormZ  = ta.stdev(baseNet,  cotLookbackBars) != 0.0 ? (baseNet  - ta.sma(baseNet,  cotLookbackBars)) / ta.stdev(baseNet,  cotLookbackBars) : na
+quoteNormZ = ta.stdev(quoteNet, cotLookbackBars) != 0.0 ? (quoteNet - ta.sma(quoteNet, cotLookbackBars)) / ta.stdev(quoteNet, cotLookbackBars) : na
+
+baseAvail  = not na(baseNet)  and (cotMode == "Percentile" ? not na(baseNormPctl)  : not na(baseNormZ))
+quoteAvail = not na(quoteNet) and (cotMode == "Percentile" ? not na(quoteNormPctl) : not na(quoteNormZ))
+
+// Unified, signed "bearish pressure" scale (high = crowded-long-base / crowded-short-quote =
+// bearish for the PAIR; low = the mirror, bullish for the pair). Base and quote currencies get
+// OPPOSITE sign treatment because a pair is base/quote: e.g. crowded-long EUR is bearish
+// EURUSD, but crowded-long JPY (the quote leg of USDJPY) is BULLISH USDJPY (JPY strength =
+// USDJPY down, so an unwind of crowded-long-JPY = USDJPY up). When both legs resolve, they are
+// averaged, not summed, so a pair with two mapped legs isn't structurally weighted double
+// versus a pair with only one (e.g. a USD leg where the Dollar Index proxy fails).
+cotCombinedPctl =
+     baseAvail and quoteAvail ? (baseNormPctl + (100.0 - quoteNormPctl)) / 2.0 :
+     baseAvail  ? baseNormPctl :
+     quoteAvail ? (100.0 - quoteNormPctl) : na
+
+cotCombinedZ =
+     baseAvail and quoteAvail ? (baseNormZ - quoteNormZ) / 2.0 :
+     baseAvail  ? baseNormZ :
+     quoteAvail ? -quoteNormZ : na
+
+cotTopExtreme = cotEnabled and (cotMode == "Percentile" ? (not na(cotCombinedPctl) and cotCombinedPctl >= cotPctHi) : (not na(cotCombinedZ) and cotCombinedZ >= cotZThresh))
+cotBotExtreme = cotEnabled and (cotMode == "Percentile" ? (not na(cotCombinedPctl) and cotCombinedPctl <= cotPctLo) : (not na(cotCombinedZ) and cotCombinedZ <= -cotZThresh))
+
+cotUnavailable = cotEnabled and not baseAvail and not quoteAvail
+
+// -------------------------------------------------------------------------------------------
+// SECTION 5 — Regime filter (MANDATORY — not optional)
+// Grounded in: ADX (Wilder) as a trend-strength filter, and EMA slope for trend direction.
+// Overbought/oversold and other mean-reversion extremes are well known to persist through a
+// strong, healthy trend — fading them there is how mean-reversion tools lose money. This filter
+// suppresses (default) or penalizes COUNTER-trend flags while a strong trend is in force;
+// with-trend flags (e.g. a "bottom" flag during an uptrend, i.e. a dip) are left untouched.
+// -------------------------------------------------------------------------------------------
+grpRegime = "5. Regime Filter"
+adxLen = input.int(14, "ADX length", minval = 2, group = grpRegime)
+adxTrendThresh = input.float(30, "ADX strong-trend threshold (>=)", group = grpRegime)
+emaTrendLen = input.int(200, "Trend EMA length", minval = 10, group = grpRegime)
+emaSlopeLookback = input.int(20, "EMA slope lookback (bars)", minval = 1, group = grpRegime)
+regimeMode = input.string("Suppress", "Counter-trend flag behaviour", options = ["Suppress", "Penalize", "Off"], group = grpRegime,
+     tooltip = "Suppress: zero out a counter-trend score while a strong trend is in force (default). Penalize: multiply it by the penalty factor instead of zeroing it. Off: no regime adjustment at all — not recommended, kept only for comparison/testing.")
+regimePenaltyFactor = input.float(0.5, "Penalty factor (Penalize mode)", minval = 0.0, maxval = 1.0, step = 0.05, group = grpRegime)
+showRegimeShading = input.bool(true, "Shade strong-trend background", group = grpRegime)
+regimePersistBars = input.int(3, "Consecutive bars required to ENTER a strong-trend regime", minval = 1, group = grpRegime,
+     tooltip = "A raw ADX>=threshold reading can whipsaw back and forth over the line even in a genuinely non-trending market. This requires the raw condition to hold for this many consecutive bars before the regime filter actually engages — it still exits immediately the moment the raw condition breaks, so it debounces false starts without overstaying once a trend genuinely ends.")
+showAdxPlot = input.bool(false, "Show ADX diagnostic plot (verify regime behaviour)", group = grpRegime,
+     tooltip = "Plots raw ADX and its threshold line so you can see directly how often ADX is actually crossing the strong-trend threshold on this symbol/timeframe, instead of only inferring it from the background shading.")
+
+emaTrend = ta.ema(close, emaTrendLen)
+[diPlusUnused, diMinusUnused, adxVal] = ta.dmi(adxLen, adxLen)
+emaSlopeUp   = emaTrend > emaTrend[emaSlopeLookback]
+emaSlopeDown = emaTrend < emaTrend[emaSlopeLookback]
+strongTrend  = adxVal >= adxTrendThresh
+rawStrongUptrend   = strongTrend and emaSlopeUp   and close > emaTrend
+rawStrongDowntrend = strongTrend and emaSlopeDown and close < emaTrend
+
+// Debounce: require regimePersistBars consecutive bars of the raw condition before LATCHING the
+// regime on (slow, deliberate entry); drop the latch immediately the instant the raw condition
+// breaks (fast exit — never keep suppressing/penalizing on stale state). This is what actually
+// fixed the "shading covers almost the whole chart, including clearly flat stretches" issue: the
+// raw ADX>=30 condition itself was flipping on and off every few bars, and nothing downstream
+// was smoothing that out before turning it into a binary suppress/penalize decision.
+var int upStreak = 0
+var int downStreak = 0
+upStreak   := rawStrongUptrend   ? upStreak + 1   : 0
+downStreak := rawStrongDowntrend ? downStreak + 1 : 0
+
+var bool strongUptrendLatch = false
+var bool strongDowntrendLatch = false
+strongUptrendLatch   := upStreak   >= regimePersistBars ? true : (rawStrongUptrend   ? strongUptrendLatch   : false)
+strongDowntrendLatch := downStreak >= regimePersistBars ? true : (rawStrongDowntrend ? strongDowntrendLatch : false)
+
+strongUptrend   = strongUptrendLatch
+strongDowntrend = strongDowntrendLatch
+
+plot(showAdxPlot ? adxVal : na, "ADX (diagnostic)", color = color.orange, linewidth = 1)
+// plot(), not hline(), for the toggleable threshold reference — hline()'s value must be a fixed
+// constant and can't be hidden conditionally with na the way plot() can.
+plot(showAdxPlot ? adxTrendThresh : na, "ADX threshold (diagnostic)", color = color.new(color.orange, 40), style = plot.style_line, linewidth = 1)
+
+// -------------------------------------------------------------------------------------------
+// SECTION 6 — Confluence scoring
+// Every factor contributes a fixed, input-adjustable weight when its own threshold is met.
+// The raw point total is normalized by the sum of ACTIVE factor weights, so the score is
+// always a meaningful 0-100 scale regardless of which factors are toggled on. Divergence and
+// COT carry the largest default weights (25 each) — per the design brief, these are the two
+// strongest, most specific pieces of evidence; the others are corroborating context.
+// -------------------------------------------------------------------------------------------
+topPts = 0.0
+topPts += pctB   >= bbTopThresh  ? wOverBB : 0.0
+topPts += not na(zScore)   and zScore   >= zThresh        ? wOverZ : 0.0
+topPts += not na(stretch)  and stretch  >= stretchAtrMult  ? wOverStretch : 0.0
+topPts += rsiVal >= rsiOB  ? wRsi : 0.0
+topPts += rsiVal >= rsiOBx ? wRsiXtra : 0.0
+topPts += bearishDivActive ? wDiv : 0.0
+topPts += climaxUp ? wClimax : 0.0
+topPts += cotTopExtreme ? wCot : 0.0
+
+botPts = 0.0
+botPts += pctB   <= bbBottomThresh ? wOverBB : 0.0
+botPts += not na(zScore)   and zScore   <= -zThresh        ? wOverZ : 0.0
+botPts += not na(stretch)  and stretch  <= -stretchAtrMult  ? wOverStretch : 0.0
+botPts += rsiVal <= rsiOS  ? wRsi : 0.0
+botPts += rsiVal <= rsiOSx ? wRsiXtra : 0.0
+botPts += bullishDivActive ? wDiv : 0.0
+botPts += climaxDown ? wClimax : 0.0
+botPts += cotBotExtreme ? wCot : 0.0
+
+totalW = wOverBB + wOverZ + wOverStretch + wRsi + wRsiXtra + wDiv + wClimax + (cotEnabled ? wCot : 0.0)
+topScore = totalW > 0.0 ? 100.0 * topPts / totalW : 0.0
+botScore = totalW > 0.0 ? 100.0 * botPts / totalW : 0.0
+
+topScoreAdj = strongUptrend   and regimeMode == "Suppress" ? 0.0 :
+              strongUptrend   and regimeMode == "Penalize" ? topScore * regimePenaltyFactor :
+              topScore
+botScoreAdj = strongDowntrend and regimeMode == "Suppress" ? 0.0 :
+              strongDowntrend and regimeMode == "Penalize" ? botScore * regimePenaltyFactor :
+              botScore
+
+// -------------------------------------------------------------------------------------------
+// SECTION 7 — Signals, plotting, alerts
+// -------------------------------------------------------------------------------------------
+grpSig = "6. Confluence & Signals"
+topThreshold = input.float(60, "Top score threshold", minval = 0, maxval = 100, group = grpSig)
+bottomThreshold = input.float(60, "Bottom score threshold", minval = 0, maxval = 100, group = grpSig)
+
+grpDisp = "7. Display"
+showLabels = input.bool(true, "Show top/bottom labels on chart", group = grpDisp)
+showScorePlot = input.bool(true, "Plot confluence score (move to its own pane manually)", group = grpDisp,
+     tooltip = "Pine cannot programmatically create a second pane from a single overlay indicator. After adding this to the chart, right-click the 'Top score' or 'Bottom score' plot in the Data Window/legend and choose 'Move to' -> 'New pane' for a proper oscillator-style view.")
+
+canSignal = confirmOnClose ? barstate.isconfirmed : true
+topFlag = canSignal and topScoreAdj >= topThreshold
+botFlag = canSignal and botScoreAdj >= bottomThreshold
+topFlagNew = topFlag and not topFlag[1]
+botFlagNew = botFlag and not botFlag[1]
+
+// bgcolor() must be called unconditionally at the script's top level (TradingView editor error
+// CE10188, "Cannot use 'bgcolor' in local scope") — the condition is expressed via the colour
+// argument itself (na = no shading drawn) instead of wrapping the call in an `if`.
+bgcolor(showRegimeShading and strongUptrend   ? color.new(color.green, 92) : na, title = "Strong uptrend shading")
+bgcolor(showRegimeShading and strongDowntrend ? color.new(color.red, 92)   : na, title = "Strong downtrend shading")
+
+if showLabels and topFlagNew
+    label.new(bar_index, high, "▼ TOP " + str.tostring(int(math.round(topScoreAdj))),
+         style = label.style_label_down, color = color.new(color.red, 20), textcolor = color.white, size = size.small)
+if showLabels and botFlagNew
+    label.new(bar_index, low, "▲ BOTTOM " + str.tostring(int(math.round(botScoreAdj))),
+         style = label.style_label_up, color = color.new(color.green, 20), textcolor = color.white, size = size.small)
+
+plot(showScorePlot ? topScoreAdj : na, "Top score", color = color.red, linewidth = 1)
+plot(showScorePlot ? botScoreAdj : na, "Bottom score", color = color.green, linewidth = 1)
+hline(topThreshold, "Top threshold", color = color.new(color.red, 60), linestyle = hline.style_dotted)
+hline(bottomThreshold, "Bottom threshold", color = color.new(color.green, 60), linestyle = hline.style_dotted)
+
+if cotUnavailable and barstate.islast
+    label.new(bar_index, high, "COT: unavailable for " + syminfo.ticker + "\n(mapping or data not resolved — see ticker overrides)",
+         style = label.style_label_left, color = color.new(color.gray, 30), textcolor = color.white, size = size.small)
+
+alertcondition(topFlagNew, title = "Potential top", message = "Crowded Market: potential TOP confluence on {{ticker}} {{interval}}")
+alertcondition(botFlagNew, title = "Potential bottom", message = "Crowded Market: potential BOTTOM confluence on {{ticker}} {{interval}}")
+alertcondition(ta.crossover(topScoreAdj, topThreshold), title = "Top score crossed threshold", message = "Top confluence score crossed above threshold on {{ticker}} {{interval}}")
+alertcondition(ta.crossover(botScoreAdj, bottomThreshold), title = "Bottom score crossed threshold", message = "Bottom confluence score crossed above threshold on {{ticker}} {{interval}}")
