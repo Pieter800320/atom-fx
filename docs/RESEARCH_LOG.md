@@ -772,3 +772,12 @@ Halves: P1 -2.6% / -0.3%; P2 -0.0% / +1.4%. Ex-JPY: P1 +2.4%, P2 0.0%. Ex-best-p
 windows/thresholds were not tested (each would be its own pre-registered experiment); no costs, entries or exits were modelled. This was the
 second look at the same data family, so no further variant of "score against the shading" should be run on this data without a
 strong new reason; a forward (live) test is the only clean confirmation left.
+
+## Caveat (added 2026-09-19, after Experiment 7) — the bar timestamps behind Experiments 2-7
+Twelvedata's hourly forex timestamps are **Australia/Sydney local time** (UTC+10 AEST / UTC+11 AEDT), not UTC. Five TradingView candles (2020-2026, three
+pairs) match our raw hourly rows at exactly that offset (0.8-6.8 pips of error vs 25-129 pips unshifted). Every store here (`d1_nyclose_long`, `h4_utc_long`,
+`h4_ny_long`, `d1_utc_daily`) was built assuming UTC labels. So the "17:00 New York close" D1 bars were cut about 10 hours from 17:00 NY, the "H4 UTC" and
+"H4 NY-aligned" blocks were 2-3 hours off their names, and the D1-native bars use Twelvedata's own day boundary. The candles are real; the boundaries were
+misplaced. Consequences for the results: the statistical conclusions concern generic daily and 4-hour candles and are unlikely to hinge on the exact boundary,
+BUT THAT IS NOT VERIFIED. **Before anything is built on Experiments 2-7, re-run the primary tests on correctly converted bars** (convert the hourly labels to
+UTC with `Australia/Sydney` -> UTC, then aggregate). The pre-registered gates would be reused unchanged; this is a data-correctness re-run, not a new hypothesis.
