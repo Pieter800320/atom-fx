@@ -44,6 +44,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
 | 4 | Crowded Market flags (score >= 60) vs the previous support/resistance — Pieter's chart observation | Flagged bars reach the most recent confirmed swing level before an equal adverse move more often than distance-matched baseline bars (primary: H4, app's UTC blocks, filter off) | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 117 events, flagged reached the level 18.8% vs distance-matched baseline 22.2%, lift -3.4% (CI -9.7..+4.1). NY-aligned H4: 126 events, lift -3.1% (CI -9.3..+3.4). D1: 56 / 22 events, inconclusive | **FAIL** (primary, H4 UTC; NY also fails). D1 INCONCLUSIVE (too few events, as pre-registered). No support for "flags trade back to the previous S/R more often"; 91% of flagged events had their previous level 3-5 ATR away | see "Experiment 4" below and its "Result"; `scanner/extend/level_race.py`; `tools/backtest_crowded_reversal_levels.py` |
 | 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
+| 6 | Crowded Market score > 30 against the OPPOSITE background colour — Pieter's strategy idea | Top score > 30 while the strong-trend shading is green (or bottom score > 30 while it is red) reverses more often than other bars in the SAME regime, on both D1 (native daily 2009-2026) and H4 (app's UTC blocks) | ACTIVE 2026-09-19 (pre-registered, not yet run) | - | - | see "Experiment 6" below; `tools/backtest_crowded_reversal_regime.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -594,3 +595,73 @@ first below regardless of when it was added. Everything else here is unordered.
   it's testable, and any RR sweep must be pre-registered as a fixed set of values decided before
   running, not searched for after seeing results (this file's own "no tuning to a sample" rule).
   Not pre-registered.
+
+## Experiment 6 — Crowd score > 30 against the OPPOSITE background colour (pre-registration, 2026-09-19)
+
+**Written and committed BEFORE any outcome of this strategy has been computed on any bar.**
+
+### Origin
+Pieter, 2026-09-19: "test one strategy: the criteria are that top/bottom scores must be above 30, and they must coincide with a
+background colour of the OPPOSITE colour." In the Pine the background is the strong-trend shading: **green** while a strong
+uptrend is latched, **red** while a strong downtrend is. The Crowd TOP score is drawn red and the BOTTOM score green, so
+"opposite colour" is read as: **top score > 30 while the background is GREEN; bottom score > 30 while it is RED.** (This reading is
+recorded here so it can be corrected; the alternative — same colour — is the "with_trend" arm below and is reported too.)
+This is a counter-trend fade inside a strong trend: precisely the flags the Pine's "Suppress" mode removes, and Experiment 2 found
+Suppress made the score a worse predictor. It is therefore not implausible, and not the same claim as Experiment 3's observation
+("especially in ranging markets").
+
+### Definitions (all fixed now)
+- **Score:** the Pine port's composite 0-100 top/bottom score with the regime adjustment OFF (raw). **"Above 30" = strictly greater than 30.**
+- **Background:** the Pine's own debounced strong-trend latch at the SAME bar (ADX >= 30, EMA200 slope over 20 bars, price on the
+  matching side of EMA200, 3 consecutive bars to enter, immediate exit) — `strong_up` = green, `strong_dn` = red.
+- **Flag (primary arm `opposite`):** rising edge of (top score > 30 AND green) for a top; of (bottom score > 30 AND red) for a bottom.
+  De-clustered per pair exactly as Experiments 2-4 (`barrier_race.declustered_events`).
+- **Outcome:** Experiments 2-4's barrier race, unchanged: 1 x ATR(14) barriers from the flag bar's close, 20 bars, top expects DOWN
+  first, bottom expects UP first, same-bar-both -> continuation, timeout -> not a reversal. **A reversal is not profit:** no
+  costs, entry rule, sizing or exit are modelled.
+- **Baseline (the one new element, and essential):** in a strong uptrend a downward 1 x ATR move is rarer than in an average bar, so
+  comparing with all bars would flatter a counter-trend fade. The baseline is **regime-matched**: for top flags every valid bar of
+  the same pair with the green shading (any score), for bottom flags every bar with the red shading, per pair, side and month.
+  The lift = flagged reversal rate minus that rate, i.e. **does score > 30 add anything beyond the background colour itself?**
+  Month-clustered bootstrap (5000, seed 20260919) recomputes the baselines inside each resample, as before.
+- **Other arms (same bars, informational, none can rescue a failed primary):** `with_trend` (top & red / bottom & green, matched to
+  same-regime bars); `no_shading` (score > 30 with no shading, matched to unshaded bars); `any` (score > 30 on any background,
+  matched to all bars — the comparison for F7).
+
+### Primary tests — TWO, independent, both required
+- **P1: D1, Twelvedata native daily bars, 2009-2026** (`data/d1_utc_daily`, the longest history; NOT the app's 17:00-NY bars,
+  which start in 2020 and hold too few events). Halves for F3 are the month-median split.
+- **P2: H4, the app's UTC blocks** (`data/h4_utc_long`).
+Each is judged on its own with the gates below. **Overall verdict:** SUPPORTED only if BOTH pass; exactly one passing = SUGGESTIVE
+ONLY (single-timeframe, not supported — two looks were taken); neither = NOT SUPPORTED. INCONCLUSIVE on either (F1) = INCONCLUSIVE overall.
+
+### Gates (per primary, ALL must hold; fixed now)
+F1 >= 100 de-clustered events (else INCONCLUSIVE). F2 lift >= 5 points AND 95% CI lower bound > 0. F3 lift > 0 in both halves.
+F4 lift > 0 excluding JPY crosses. F5 lift > 0 excluding the best pair. **F6** the flagged reversal rate itself > 50% (a 1:1 race
+needs more than a coin flip before any cost). **F7** lift beats the `any` arm's lift (the colour must add something to the score alone).
+F1-F5 are the same code as Experiment 3's `evaluate_flags` logic; F6 and F7 are new here.
+
+### Secondary (informational, no gates)
+D1 on the app's 17:00-NY store 2021-2026 (**pre-registered expectation: INCONCLUSIVE, ~67 events**); H4 NY-aligned blocks; D1 native
+split by era (2009-2020 / 2021-2026); the four arms side by side; per-pair table. **No other threshold (20/40/60), no other
+timeframe, no parameter sweep.** 30 is Pieter's number.
+
+### Parameters and data
+Pine defaults; warm-up 260 (D1) / 400 (H4) bars; 12 pairs (EURUSD GBPUSD USDJPY USDCAD NZDUSD AUDUSD USDCHF EURJPY GBPJPY CADJPY AUDJPY
+NZDJPY); Legacy COT as before (a bar with no resolvable COT is excluded so the score ceiling is not silently 75); horizon 20; mult 1.0.
+
+### Expected event counts (count-only, fixed 20-bar de-clustering, no outcome read, before this entry)
+`opposite`: D1 native 2009-2020 ~188, 2021-2026 ~76 (so P1 ~264 — clears F1); H4 UTC ~642 (clears F1); D1 NY-close 2021-2026 ~67;
+H4 NY ~617. `with_trend`: only 2-5 (D1) and ~29 (H4) — that arm will be too small to judge. Green/red bars are ~10-16% of bars.
+
+### What has already been seen (full disclosure)
+- Experiments 2-5 in full. Directly relevant: Experiment 2's exploratory strata (ranging vs trending) found "ranging not better"
+  for flags at score >= 60; Experiment 2 found the Suppress (regime) filter made the gradient worse (on minus off -0.015); Experiment 3
+  found no H4 gradient; Experiment 5 found the D1 gradient absent in 2009-2020. None of those measured THIS conjunction.
+- The count-only estimates above (event counts by arm). No outcome of the strategy on any bar.
+- The Pine port was already validated against the indicator (Experiment 2); the regime latch code is the one used by the Suppress arm.
+- A plumbing smoke on ONE pair and a short window follows this commit, labelled PLUMBING ONLY; it changes nothing above.
+
+### Not tested here
+Other thresholds; the score's individual factors inside the regime; entries, exits, stops, costs and sizing (a PASS would only justify
+building and testing an executable rule, not trading it); regimes defined differently (other ADX/EMA settings); other pairs.
