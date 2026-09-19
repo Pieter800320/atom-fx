@@ -391,6 +391,26 @@ filter neither helped nor hurt on H4. Why D1 showed a small tendency and H4 none
 (chance, the longer horizon, or bar-convention effects are all possible). The "trades back to the previous
 support or resistance" outcome is tested separately below. Full record: `docs/RESEARCH_LOG.md`, Experiment 3.
 
+### Experiment 6 — score > 30 against the opposite background colour (2026-09-19)
+
+Pieter's strategy idea, pre-registered and run once: a Crowd **top** score above 30 while the strong-trend background is **green**
+(or a **bottom** score above 30 while it is **red**) — a counter-trend fade inside a strong trend. Same 1 x ATR / 20-bar
+reversal race as above, but measured against bars in the **same regime** (a downward move is naturally rarer in a strong uptrend, so
+a plain baseline would flatter it). Two independent primary tests, both required.
+
+| score > 30 against the opposite colour | D1 (native daily, 2009-2026) | H4 (UTC blocks) |
+|---|---|---|
+| De-clustered events | 380 | 908 |
+| Flagged reversed vs same-regime baseline | 51.1% vs 51.6% | 47.9% vs 50.7% |
+| Lift (95% CI) | −0.5% (−5.7 .. +5.2) | −2.8% (−6.1 .. +1.1) |
+| Score > 30 on ANY background | 48.2% | 47.9% |
+| Verdict | **FAIL** | **FAIL** |
+
+**Read it plainly:** inside a strong trend, a counter-trend score above 30 reversed about as often as a coin flip, and no more
+often than any other bar in that same strong trend. The colour added nothing to the score, and the score alone was at or below
+50%. Not tested: other thresholds, entries, exits, stops and costs. This says the *signal* does not raise reversal odds; it does
+not rule out every way of trading it.
+
 ### Experiment 5 — an earlier era, and is a single factor as good? (2026-09-19)
 
 Pre-registered, run once. Native Twelvedata daily bars (UTC-based, so a different bar convention from the
