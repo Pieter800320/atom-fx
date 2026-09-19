@@ -397,9 +397,8 @@ slower-cadence `macro_assets`.
 
 ## 5c. Crowd score — a context chart (Phase 1), then optional alerts (Phase 2)
 
-> **DRAFT for Pieter's review, 2026-09-19 — no code written.** Everything in ⚠ needs a decision
-> before implementation starts. Nothing here is built; the design is deliberately written down
-> first, per this doc's convention and `CLAUDE.md` §1.
+> **DRAFT — Pieter's decisions on all seven points are recorded in §3 (2026-09-19); no code written.**
+> Ready for implementation on his go. Written down first, per this doc's convention and `CLAUDE.md` §1.
 
 ### What it is, and what the evidence says (stated up front, and repeated in the in-app Library)
 
@@ -420,7 +419,7 @@ and — in Phase 2 — every notification.
 
 ### Naming (Glossary rule: one name per concept, no synonyms)
 
-⚠ Proposed: **Crowd score** — shown as two readings, **Crowd top** and **Crowd bottom**. It must not
+**Crowd score** (agreed, Pieter 2026-09-19) — shown as two readings, **Crowd top** and **Crowd bottom**. It must not
 reuse *Potential*, *Setup Rank* or *Continuation score* (all existing 0–100 numbers, all
 different). "Crowded Market — Reversal Conditions" stays as the indicator's TradingView title and
 is quoted once in the Library for cross-reference. **`GLOSSARY.md` gets the new entry in the same
@@ -444,12 +443,24 @@ made the score a worse predictor, so ADX and EMA200 are not computed at all (sho
 code). The trend-shading background of the TradingView version is therefore out of scope too.
 
 **1.2 Bars** (from the H1 already fetched this scan — `raw_ohlcv`, 5000 H1 bars, no new API cost):
-- **D1:** 17:00 America/New_York close, closed-market bars dropped — the convention the studies used.
-- **H4:** the app's own UTC 4-hour blocks, closed-market bars dropped, the Sunday-reopen and
-  Friday-close stub blocks **kept** (as the app's aggregator and the tested H4 did).
-- **Completed bars only.** The still-forming bar is never scored (no repaint; the tested definition).
-  ⚠ Consequence: this series' right edge can lag the sibling cards by up to one bar. Alternative
-  considered and rejected: scoring the forming bar — untested and it repaints.
+- **D1:** 17:00 America/New_York close, closed-market bars dropped (the studies' convention).
+- **H4: TradingView's own alignment — New York-session blocks starting 17:00, 21:00, 01:00, 05:00, 09:00,
+  13:00 New York time (= 21/01/05/09/13/17 UTC in summer, 22/02/06/10/14/18 UTC in winter), closed-market
+  bars dropped, no stub blocks.** *Verified, not assumed:* a TradingView H4 screenshot (AUDUSD, OANDA,
+  chart clock 19:58:32 UTC) shows a 01:01:27 countdown on the live candle, i.e. it closes at 21:00 UTC =
+  17:00 New York; a UTC-aligned candle could never close at 21:00. The blocks come from the tested
+  `aggregate_h4_ts(alignment="ny")` (research branch). **Consequence, accepted (Pieter, 2026-09-19):** this
+  card's H4 candles start 1 h (summer) or 2 h (winter) away from the sibling H4 cards, which use the app's
+  own UTC blocks; the Library entry says so. Both alignments were run in the studies and gave the same
+  answer (flat), so the choice rests on the stated goal — comparing with TradingView — not on the evidence.
+- **Completed bars only, and "on time" defined.** The still-forming bar is never scored (no repaint; the
+  tested definition). A bar counts as complete when the scan runs at or after its close **and** the H1
+  bar that ends at that close is present in the fetched data. Scans are dispatched **hourly** (Apps Script
+  trigger; `scan_h1.yml`), so the score for a just-closed D1 or H4 bar appears at the **first scan after
+  the close — typically within minutes of the hour when GitHub Actions starts promptly, at worst one
+  hour later if a scan is delayed or skipped** (the same latency every existing hourly alert has). It is
+  not real-time, and nothing here can make it so without changing the scan cadence. This series' right
+  edge can lag the sibling cards by up to one bar.
 - **History is sufficient but tight on D1:** 5000 H1 ≈ 208 D1 bars (`scanner/config.py`), and the
   slowest input is the 100-bar z-score, leaving ~108 scoreable D1 bars against the 90-point tail.
   H4 (~830 blocks) has ample room. Points without every input are omitted, never faked.
@@ -465,7 +476,7 @@ unit-tested rule: **a bar in calendar week *k* reads the report dated the Tuesda
 never one dated in week *k* or later. Percentile: 156 weeks on a Mon–Fri calendar; the two legs of a
 pair combine with the quote leg inverted and are averaged. **A pair whose COT cannot be resolved
 still gets a score, with COT's weight left in the denominator (ceiling 75) and `cot_ok: false`** —
-exactly the Pine's own graceful fallback. ⚠ How the card shows that state: see decision 6.
+exactly the Pine's own graceful fallback. How the card shows that state: §2.2 footer ("No COT"; decided, §3 item 5).
 
 **1.4 Contract** — a new block **inside the existing `pairs.<PAIR>`**, same shape family as
 `bollinger_series`/`momentum_series`, **`schema_version` 11 → 12**:
@@ -504,13 +515,12 @@ absent key (older cached JSON, or a pair whose module failed) — absent means n
 graphs". It uses the shared two-tone `IndicatorCard` shell (grey `surfaceRaised` header strip, black
 `ground` plot area, grey footer strip) and the shared `ChartCommon.kt` helpers, so it reads as the
 fifth card of one panel. The D1/H4/H1/M15 row already drives every card: **the card shows on D1 and
-H4 and is hidden on H1 and M15** (no data, no evidence there). ⚠ Hiding shifts the sheet's height
-when the row changes; the alternative (an empty card reading "not computed on this timeframe") was
-judged noisier.
+H4 and is hidden on H1 and M15** (no data, no evidence there) — **decided (Pieter): hide.** Hiding shifts the sheet's height when
+the row changes; an empty card reading "not computed on this timeframe" was judged noisier.
 
 - **Header:** `Crowd score` (white, Body) · `Top 42 · Bottom 0` (grey, Caption) — both latest values.
 - **Plot:** y-axis fixed 0–100. **Two lines: top in `colors.bear` (red), bottom in `colors.bull`
-  (green)** — TradingView's red/green, as requested. ⚠ This is a deliberate exception to the
+  (green)** — TradingView's red/green, as requested — **agreed (Pieter)**. This is a deliberate exception to the
   "every line is white" rule (`DESIGN.md` §19.4b, 3rd restyle), justified the same way MACD's signal
   line is: two overlaid lines must be tellable apart. A **dashed reference line at 60** (the
   indicator's own flag line, the app's existing dashed-reference style). No other reference lines.
@@ -519,7 +529,9 @@ judged noisier.
 - **Footer state word** (right-aligned, nothing else — the 6th/7th restyle rule), answering "is the
   market crowded to one side right now?" using **only the 60 line the chart already draws — no new
   threshold**: **Crowded top** (`bear`) if top ≥ 60 · **Crowded bottom** (`bull`) if bottom ≥ 60 ·
-  **Mixed** (`watch`) if both ≥ 60 · **Not crowded** (`neutral`) otherwise.
+  **Mixed** (`watch`) if both ≥ 60 · **Not crowded** (`neutral`) otherwise. When `cot_ok` is false the
+  footer reads **No COT** (`textMuted`) **instead of** the state word (decided, Pieter): a score capped
+  at 75 silently reads as "less crowded", so it says so.
 - **Dates** via the shared `drawDateRow`. **Theming:** tokens only, no literal hex; verified in light
   and dark. **Haptics (§16):** the card has no tappable element in Phase 1, so no new haptic wiring;
   the existing TF row keeps its own.
@@ -528,32 +540,33 @@ judged noisier.
 a "Crowd score" entry — what the eight conditions are, how to read top/bottom, the 60 line, the COT
 input's weekly lag, and the evidence paragraph above in plain words.
 
-### 3. Findings and decisions for Pieter ⚠
+### 3. Decisions (Pieter, 2026-09-19) and one finding
 
-1. **Weekend bars in the app's existing series (a real finding, separate from this feature).** The
-   live `signals.json` D1 series contain **Saturday and Sunday dates with real values** (90 points
-   spanning exactly 90 calendar days; e.g. EURUSD %B is 32 on Friday, 35 on Saturday and −10 on
-   Sunday), and the H4 series contain Saturday blocks. Twelvedata began emitting market-closed
-   weekend bars on 2026-01-11 (recorded as `DECISION-007` in the `research` branch's
-   `scanner/extend/agg_nyclose.py`, which documents the failure and its fix — dropping bars outside
-   the real FX week, [Sunday 17:00 ET, Friday 17:00 ET)). That fix exists **only on the `research`
-   branch, not on `main`**; `main`'s docs do not mention it. So the current %B, BandWidth, RSI and MACD cards, and the BB
-   touch alert's bands, are computed with those bars in the window. I have **not** measured how much
-   this moves the numbers. **This spec does not change any shipped number**: the Crowd score uses
-   filtered bars (the tested definition), so its dates will not line up with the sibling cards over a
-   weekend. Whether to bring the same filter to the shared series is a separate, Rule-#1-style
-   decision (it would move numbers an alert fires on) — recommended as its own item, not folded in here.
-2. **Naming** — "Crowd score / Crowd top / Crowd bottom", or another term?
-3. **Hide on H1/M15** (recommended), or show an empty card?
-4. **Red/green lines** on this one card (recommended, matches TradingView), or white with a legend?
-5. **Completed bars only** (recommended, tested) or include the forming bar (untested, repaints)?
-6. **COT unavailable:** the score still shows with a 75 ceiling (Pine's own behaviour). ⚠ Should the
-   card say so (e.g. the footer reads "No COT" in `textMuted` in place of the state word), or stay
-   silent? Recommended: say so — a capped score silently reads as "less crowded".
-7. **Parity with TradingView is close, not exact.** D1 should match a TradingView D1 chart within a
-   few points (same NY-close convention; percentile window differs by ~0.3 points; bar feeds differ).
-   **H4 will not match TradingView's H4**, which aligns blocks to the New York session while the app
-   uses UTC blocks — the app's own convention, chosen deliberately (Pieter, 2026-09-19).
+1. **Name:** Crowd score / Crowd top / Crowd bottom — agreed.
+2. **H1 / M15:** hide the card — agreed.
+3. **Line colours:** top in `bear` (red), bottom in `bull` (green), an accepted exception to the
+   all-white rule on this card — agreed.
+4. **Completed bars only** — agreed, on the condition that it fires on time. §1.2 defines that precisely:
+   the first hourly scan after each D1/H4 close, not real-time.
+5. **Missing COT:** the footer says "No COT" — agreed.
+6. **H4 alignment: TradingView's** (New York-session blocks), verified against a TradingView screenshot
+   — §1.2. Reversed from the earlier "UTC, the app's standard" proposal at Pieter's request, since
+   comparing with TradingView is the point of this card. D1 was already NY-close.
+7. **Weekend-bar follow-up:** confirmed, and **measured** (below) — recorded as
+   `BUILD_STATUS.md` outstanding item 18; not part of this feature.
+
+**Finding — market-closed weekend bars in the app's existing D1/H4 series (measured 2026-09-19).**
+Since Twelvedata began emitting market-closed weekend bars on 2026-01-11, `main`'s D1 series (labelled by
+the session's OPEN date, so real sessions read Sun–Thu and the closed-only ones Fri/Sat) and H4 series
+include them; the closed-market filter (`DECISION-007`, `agg_nyclose.py`) exists only on the `research`
+branch. On the same real H1 history with `main`'s own functions, live vs filtered, since 2026-01-12:
+**28% of D1 rows are closed-market-only bars** (median range about half a real session's); the **BB touch
+(12-period, the alert path) state differs on 17.3%** of comparable days and the daily-label sequence shows
+**409 vs 270** none→touch transitions across the 12 pairs (about +50%, at the daily-label level — not a
+count of pushes sent); the latest RSI(14) values differ by a mean 2.3 points (max 4.5) and %B(20) by a
+mean 6.4 (max 14.7), enough to flip some "Stretched" footers. **This spec changes no shipped number** —
+the Crowd score is built on filtered bars — and the fix is its own decision (it moves numbers an alert
+fires on). Full figures and the proposed fix: `BUILD_STATUS.md` item 18.
 
 ### 4. Phase 2 — alerts (outline only; its own spec after Phase 1 has been watched live)
 
