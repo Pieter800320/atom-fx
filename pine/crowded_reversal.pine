@@ -478,3 +478,33 @@ alertcondition(topFlagNew, title = "Potential top", message = "Crowded Market: p
 alertcondition(botFlagNew, title = "Potential bottom", message = "Crowded Market: potential BOTTOM confluence on {{ticker}} {{interval}}")
 alertcondition(ta.crossover(topScoreAdj, topThreshold), title = "Top score crossed threshold", message = "Top confluence score crossed above threshold on {{ticker}} {{interval}}")
 alertcondition(ta.crossover(botScoreAdj, bottomThreshold), title = "Bottom score crossed threshold", message = "Bottom confluence score crossed above threshold on {{ticker}} {{interval}}")
+
+// ---------------------------------------------------------------------------------------------------
+// 8. Debug export (added 2026-09-19, OFF by default). For comparing this indicator bar by bar with the
+// ATOM FX app's port: turn it ON, then use TradingView's "Export chart data...". Every value below is
+// one of this script's own intermediate values; nothing here changes any score, flag or alert. The
+// plots show in the Data Window only (not on the chart). Turn it OFF again afterwards.
+// ---------------------------------------------------------------------------------------------------
+grpDbg = "8. Debug export"
+showDbg = input.bool(false, "Export intermediate values (Data Window)", group = grpDbg)
+dbgNum(x) => showDbg ? x : na
+dbgFlag(b) => showDbg ? (b ? 1.0 : 0.0) : na
+
+plot(dbgNum(pctB), "dbg pctB", display = display.data_window)
+plot(dbgNum(zScore), "dbg zScore", display = display.data_window)
+plot(dbgNum(stretch), "dbg stretch", display = display.data_window)
+plot(dbgNum(stretchAtr), "dbg stretchAtr", display = display.data_window)
+plot(dbgNum(rsiVal), "dbg rsi", display = display.data_window)
+plot(dbgNum(adxVal), "dbg adx", display = display.data_window)
+plot(dbgNum(emaTrend), "dbg ema trend", display = display.data_window)
+plot(dbgNum(cotCombinedPctl), "dbg cot combined pctl", display = display.data_window)
+plot(dbgFlag(bearishDivActive), "dbg bearish div", display = display.data_window)
+plot(dbgFlag(bullishDivActive), "dbg bullish div", display = display.data_window)
+plot(dbgFlag(climaxUp), "dbg climax up", display = display.data_window)
+plot(dbgFlag(climaxDown), "dbg climax down", display = display.data_window)
+plot(dbgFlag(strongUptrend), "dbg strong up", display = display.data_window)
+plot(dbgFlag(strongDowntrend), "dbg strong down", display = display.data_window)
+plot(dbgNum(topPts), "dbg top points", display = display.data_window)
+plot(dbgNum(botPts), "dbg bottom points", display = display.data_window)
+plot(dbgNum(topScore), "dbg top score raw", display = display.data_window)
+plot(dbgNum(botScore), "dbg bottom score raw", display = display.data_window)
