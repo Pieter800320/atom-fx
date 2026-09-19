@@ -46,6 +46,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
 | 6 | Crowded Market score > 30 against the OPPOSITE background colour — Pieter's strategy idea | Top score > 30 while the strong-trend shading is green (or bottom score > 30 while it is red) reverses more often than other bars in the SAME regime, on both D1 (native daily 2009-2026) and H4 (app's UTC blocks) | RUN 2026-09-19 (once, no changes after pre-registration) | P1 D1 native 2009-2026: 380 events, flagged reversed 51.1% vs same-regime baseline 51.6%, lift -0.5% (CI -5.7..+5.2). P2 H4 UTC: 908 events, 47.9% vs 50.7%, lift -2.8% (CI -6.1..+1.1). Score>30 on ANY background: 48.2% (D1) / 47.9% (H4) | **NOT SUPPORTED** (both primaries FAIL F2-F5; H4 also fails F6, F7). The colour adds nothing measurable to the score, and the score alone is at or below a coin flip | see "Experiment 6" below; `tools/backtest_crowded_reversal_regime.py` |
 | 7 | Shading turns ON right after a stretched score (score > 30 within the previous 10 bars) — Pieter's screenshot observation | The bar where the opposite strong-trend shading switches on, after a score > 30 in the previous 10 bars, reverses more often than OTHER onset bars of the same colour, on both D1 (native daily 2009-2026) and H4 (UTC) | RUN 2026-09-19 (once, no changes after pre-registration) | P1 D1 native 2009-2026: 320 events, reversed 48.8% vs other-onset baseline 50.3%, lift -1.6% (CI -5.2..+2.3). P2 H4 UTC: 800 events, 49.6% vs 48.9%, lift +0.7% (CI -2.0..+3.4). Every onset bar: 50.4% (D1) / 48.8% (H4) | **NOT SUPPORTED** (both primaries FAIL F2-F3 and F6). The shading turning on after a stretched score is a coin flip, and no better than any other onset | see "Experiment 7" below; `tools/backtest_crowded_reversal_onset.py` |
+| 8 | D1 and H4 Crowd scores coincide (both > 30, same side) — Pieter's idea | When the H4 score AND the last completed D1 score are both above 30 on the same side, the H4 bar reverses more often than like-for-like baseline bars (and more than H4-alone flags) | ACTIVE 2026-09-19 (pre-registered, not yet run) | - | - | see "Experiment 8" below; `tools/backtest_crowded_reversal_confluence.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -810,3 +811,32 @@ Not re-runnable: Experiment 5 and the D1 primaries of Experiments 6-7 (native da
 is still there and still small; the H4 findings, the S/R finding and both of Pieter's strategies remain coin flips. **Port check (AUDUSD D1 26 Jan 2026):** the research port's ADX (41.9) differs from TradingView's (35.8) on that bar while
 GBPUSD/CADJPY agree within 0.7 — treated as price-feed noise (ADX is very sensitive to highs and lows), not a logic bug; it only affects the strong-trend shading used in Experiments 6-7.
 Outputs: `data/backtest/crowded_reversal_{exp2,exp3,exp4,exp6,exp7}_fix_*`.
+
+## Experiment 8 — D1 and H4 Crowd scores coincide (pre-registration, 2026-09-19)
+**Written and committed BEFORE any outcome of this test has been computed.**
+
+### Origin
+Pieter, 2026-09-19: "What happens when the D1 and H4 crowded scores coincide? Any statistical edge there?" On the app's own grid: the CORRECTED bars (`d1c` = 17:00-NY close D1, `h4cny` = NY-session H4 blocks; 2021-2026, Legacy COT as before).
+Experiments 2-7 (re-run on corrected bars) found only a small D1 tendency and nothing on H4 alone; this asks whether requiring BOTH timeframes at once concentrates anything. It is a NEW hypothesis, not a re-run.
+
+### Definitions (all fixed now)
+- **Score:** the Pine port's raw composite 0-100 top / bottom score (regime adjustment OFF). **T = 30, strictly greater** (Pieter's number, the primary). T = 60 (the flag line) is informational.
+- **D1 state at an H4 bar:** the score of the most recent D1 bar COMPLETED BEFORE the H4 bar's trading day began (no look-ahead; conservative: even the day's last block uses the previous D1 bar).
+- **Event (top):** rising edge of [H4 top score > T AND D1-state top score > T]; **bottom:** the same for the bottom score. De-clustered per pair as before.
+- **Outcome:** the barrier race of Experiments 2-7 on H4 bars (1 x H4 ATR, 20 bars, same-bar-both -> continuation, timeout -> not a reversal), from the event bar's close. Success is a reversal, not profit.
+- **Baseline (primary):** every H4 bar of the same pair, side and month (unconditional, month-clustered bootstrap 5000, seed 20260919). **Informational baseline** (`coincide_dmatched`): only H4 bars whose D1 state is > T on that side — does the H4 score add anything to the D1 state?
+- **Comparison arm `h4_alone`:** H4 score > T while the D1 state is NOT > T (baseline unconditional).
+
+### Primary test and gates (T = 30, H4 NY-aligned, `coincide` arm; ALL must hold)
+F1 >= 100 de-clustered events (else INCONCLUSIVE). F2 lift >= 5 points AND 95% CI lower bound > 0. F3 lift > 0 in both halves (month-median split). F4 lift > 0 excluding JPY crosses. F5 lift > 0 excluding the best pair.
+F6 the reversal rate > 50%. **F7 the `coincide` lift beats the `h4_alone` lift** (the D1 coincidence must add something to the H4 score alone).
+
+### Secondary (informational, no gates)
+T = 60 (**expected INCONCLUSIVE: ~7 events**); `coincide_dmatched`; `h4_alone`. **Not tested:** other thresholds (45 was only COUNTED, ~49 events, and is not planned), other timeframe pairs, D1-outcome variants, entries, exits, costs.
+
+### Expected event counts (count-only, fixed 20-bar de-clustering, no outcome read)
+T = 30: `coincide` ~233, `h4_alone` ~1,673. T = 60: `coincide` ~7, `h4_alone` ~125. (T = 45: `coincide` ~49, counted for reference only.)
+
+### What has already been seen (full disclosure)
+Experiments 2-7 in full, including the corrected-bar re-runs (H4 flags at T=60 and T=30-with-background were coin flips; the D1 gradient is small, +0.033 per +20 points); the count-only estimates above. No outcome of a D1-H4 coincidence event on any bar.
+Multiplicity note: this is the ninth question asked of the same 12-pair, 2020-2026 data family; a PASS is a hypothesis for a FORWARD test, not a validated edge.
