@@ -1,11 +1,13 @@
 # Crowded Market — Reversal Conditions (G10 FX)
 
 **File:** `crowded_reversal.pine` (Pine Script v6, indicator, overlay)
-**Scope:** G10 FX majors, tuned as a starting point for H4 and D1.
+**Scope:** G10 FX majors, starting-point defaults for D1 and H4 (not tuned). In testing only D1
+showed any tendency; H4 showed none (§6).
 **Status:** Backtested once, as a pre-registered study (Experiment 2, 2026-09-19 — see §6 and
 `docs/RESEARCH_LOG.md` on the `research` branch): a **small** statistical tendency for reversals to
 become more likely as the score rises, with the regime filter **off**; with it on, the same test
-narrowly failed. This is not evidence of a profitable trading rule. Committed on `main`.
+narrowly failed. On **H4** a second pre-registered study (Experiment 3) found **no** such tendency.
+This is not evidence of a profitable trading rule. Committed on `main`.
 
 ---
 
@@ -321,8 +323,8 @@ retuning out-of-sample.
   a script like this "works" without having tested it is telling you something they don't know.
 - **It has been backtested once, and only in a limited way** (§6). TradingView's visual chart
   hindsight — scrolling back and seeing that a label lined up with a turn — is still not
-  validation. Not yet tested: costs, sizing, stops or entries; H4; thresholds other than the
-  defaults; other pairs; earlier market regimes; live forward data. The result also did **not**
+  validation. H4 has now been tested and showed no effect (§6). Not yet tested: costs, sizing,
+  stops or entries; thresholds other than the defaults; other pairs; earlier market regimes; live forward data. The result also did **not**
   show that the composite beats its best single factor — the extra complexity has not yet
   demonstrated it earns its keep.
 - **The COT factor's ticker and series are verified** (§3.2, 2026-09-19: values match CFTC's
@@ -364,3 +366,27 @@ than baseline; the top of the score range has too few observations to say more);
 about profit; the composite was not clearly better than its best single factor (ATR-stretch); the
 non-default arm was the one that passed; it is one macro era; and the flagged-event test
 (score ≥ 60) had only 25-32 events, so it is inconclusive.
+
+### Experiment 3 — the same test on H4 (2026-09-19)
+
+Prompted by the observation, from looking at charts, that the flags "work on both D1 and H4." Also
+pre-registered before any H4 result existed, and run once. Same reversal definition (1×ATR barrier
+race, 20 bars — on H4 that is about 3.3 trading days), same 12 pairs, ~77 months (2020-05 to 2026-09),
+H4 bars built from the same H1 history in two alignments: the app's UTC 4-hour blocks (primary) and
+NY-aligned blocks (what TradingView's FX H4 uses). Primary test: the flags themselves (score ≥ 60,
+filter off), 176 / 206 de-clustered events — enough, unlike D1.
+
+| filter OFF | H4, UTC blocks (primary) | H4, NY-aligned |
+|---|---|---|
+| Flagged reversal rate vs like-for-like baseline | 42.6% vs 49.1% | 51.9% vs 49.2% |
+| Lift (95% CI) | −6.5% (−13.2 .. +0.6) | +2.8% (−4.8 .. +10.9) |
+| Score gradient per +20 pts (95% CI) | +0.002 (−0.007 .. +0.013) | +0.004 (−0.005 .. +0.015) |
+| Verdict on the pre-registered gates | **FAIL** | FAIL |
+
+**Read it plainly:** on H4 the score does not predict reversals — the reversal rate sits at 47-51% in
+every score bucket, and each single factor is flat too. The two bar alignments even disagree on the sign of
+the flagged lift, with both intervals including zero, so no H4 flag-level number should be read as a
+finding. "Especially in ranging markets" was checked as an exploratory split and is not supported. The ADX
+filter neither helped nor hurt on H4. Why D1 showed a small tendency and H4 none is **not** established
+(chance, the longer horizon, or bar-convention effects are all possible). The "trades back to the previous
+support or resistance" outcome has **not** been tested. Full record: `docs/RESEARCH_LOG.md`, Experiment 3.
