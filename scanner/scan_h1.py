@@ -581,6 +581,17 @@ def main():
         # prev.get("pairs") — same "carry forward scan_m15.py's own m15 key" reasoning as the
         # momentum_series call above.
         _bollinger_series.attach_bollinger_series(out["pairs"], ohlcv, raw_ohlcv, prev.get("pairs"))
+        # pairs.<PAIR>.crowd_series (2026-09-19, schema v12) — the Crowd score (Roadmap §5c): a D1 + H4 series
+        # of the Crowded Market indicator's top/bottom score for the ChartSheet card. NY-close D1 and
+        # NY-aligned H4 on FX-week-filtered bars, completed bars only, Legacy-COT input. Its OWN try block
+        # (import included) so nothing here can ever take the neighbouring EXTEND modules down with it; a
+        # pair that fails simply has no key. Written by this scan only (scan_m15.py never touches it), and
+        # out["pairs"] is rebuilt fresh every run, so no prev-carry-forward is needed. Context, not a signal.
+        try:
+            from scanner.extend import crowd_score as _crowd_score
+            _crowd_score.attach_crowd_series(out["pairs"], raw_ohlcv)
+        except Exception as _crowd_err:
+            print(f"  ⚠ crowd_series skipped: {type(_crowd_err).__name__}: {_crowd_err}")
         out["percent_b_board"] = _bb_touch.compute_board_percent_b(out["pairs"])
         out["percent_b_currency"] = _bb_touch.compute_currency_percent_b(raw_ohlcv)
         out["spark"]         = _spark.compute_spark(ohlcv)

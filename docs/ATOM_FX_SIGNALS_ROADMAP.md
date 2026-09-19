@@ -461,9 +461,14 @@ code). The trend-shading background of the TradingView version is therefore out 
   hour later if a scan is delayed or skipped** (the same latency every existing hourly alert has). It is
   not real-time, and nothing here can make it so without changing the scan cadence. This series' right
   edge can lag the sibling cards by up to one bar.
-- **History is sufficient but tight on D1:** 5000 H1 ≈ 208 D1 bars (`scanner/config.py`), and the
-  slowest input is the 100-bar z-score, leaving ~108 scoreable D1 bars against the 90-point tail.
-  H4 (~830 blocks) has ample room. Points without every input are omitted, never faked.
+- **D1 history is short — measured, and it corrects the first draft.** The draft assumed 5000 H1 bars ≈ 208 D1 bars
+  (~108 scoreable). Twelvedata now returns market-closed weekend bars every week, so 5000 H1 rows span only ~30 weeks
+  (~149 D1 bars once those are dropped), and the 100-bar z-score warm-up leaves **~50 D1 points** (~10 weeks), not 90.
+  H4 (~830 blocks) yields the full 90. Measured on all 12 pairs' real history: scores from the production-sized
+  window are **identical** to full-history scores on every overlapping bar (max difference 0.0), so the short window
+  does not change the answer — it only shortens the D1 chart. Another cost of the weekend bars
+  (`BUILD_STATUS.md` item 18): they use up ~29% of the fetched H1 depth. Points without every input are omitted,
+  never faked.
 
 **1.3 COT — a new data path, the largest new dependency.** The indicator uses CFTC's **Legacy
 futures-only, Non-Commercial long/short** report (8 contracts: EUR GBP JPY CHF CAD AUD NZD, and the
