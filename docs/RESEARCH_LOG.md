@@ -42,7 +42,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
 | 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | RUN 2026-09-19 (once, no changes after pre-registration) | Gradient slope per +20 score points: filter ON (Pine default) +0.026, CI -0.002..+0.059; filter OFF +0.041, CI +0.018..+0.070. Within-stratum rho 0.023 / 0.041. ADX filter effect (on minus off) -0.015, CI -0.026..-0.004. Flagged events (secondary): 25 / 32, inconclusive | Pine default (ADX suppress): **FAIL**, marginally (CI gate, best-single-factor gate). Filter OFF: **PASS** all 7 gates, but a small effect and not clearly better than the best single factor. Evidence AGAINST the ADX filter. | see "Experiment 2" below and "Result"; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
 | 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
-| 4 | Crowded Market flags (score >= 60) vs the previous support/resistance — Pieter's chart observation | Flagged bars reach the most recent confirmed swing level before an equal adverse move more often than distance-matched baseline bars (primary: H4, app's UTC blocks, filter off) | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 4" below; `scanner/extend/level_race.py`; `tools/backtest_crowded_reversal_levels.py` |
+| 4 | Crowded Market flags (score >= 60) vs the previous support/resistance — Pieter's chart observation | Flagged bars reach the most recent confirmed swing level before an equal adverse move more often than distance-matched baseline bars (primary: H4, app's UTC blocks, filter off) | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 117 events, flagged reached the level 18.8% vs distance-matched baseline 22.2%, lift -3.4% (CI -9.7..+4.1). NY-aligned H4: 126 events, lift -3.1% (CI -9.3..+3.4). D1: 56 / 22 events, inconclusive | **FAIL** (primary, H4 UTC; NY also fails). D1 INCONCLUSIVE (too few events, as pre-registered). No support for "flags trade back to the previous S/R more often"; 91% of flagged events had their previous level 3-5 ATR away | see "Experiment 4" below and its "Result"; `scanner/extend/level_race.py`; `tools/backtest_crowded_reversal_levels.py` |
 | 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
@@ -386,6 +386,39 @@ windows early, so counts should be at least these, but a shortfall would make th
 ### Not tested here
 Other definitions of support/resistance (round numbers, multi-touch zones, discretionary lines); entries, exits, costs;
 thresholds other than 60; other pairs; regimes. A different S/R definition is a different experiment, not a re-run.
+
+### Result (run once on 2026-09-19; pre-registration commit `94f2466`; outputs `data/backtest/crowded_reversal_exp4_*_2026-09/`)
+Nothing changed between the pre-registration commit and these runs; the one-pair smoke did not alter any parameter or gate.
+
+| filter OFF | H4 UTC blocks (PRIMARY) | H4 NY-aligned | D1 native daily 2009-2026 | D1 NY-close 2021-2026 |
+|---|---|---|---|---|
+| de-clustered events (valid level) | **117** (F1 passes) | 126 | 56 | 22 |
+| flagged success vs distance-matched baseline | 18.8% vs 22.2% | 19.0% vs 22.1% | 17.9% vs 18.6% | 27.3% vs 21.2% |
+| **lift (95% CI)** | **-3.4% (-9.7 .. +4.1)** | -3.1% (-9.3 .. +3.4) | -0.8% (-9.4 .. +8.6) | +6.1% (-10.9 .. +27.7) |
+| verdict | **FAIL** (F2-F6) | FAIL | INCONCLUSIVE (F1) | INCONCLUSIVE (F1) |
+
+**Verdict (pre-registered): FAIL on the primary.** Flagged bars did NOT reach the previous support/resistance more often
+than distance-matched baseline bars on H4 — the point estimate is slightly below baseline in both alignments, with intervals
+that include zero. The D1 half of the question is **INCONCLUSIVE, as pre-registered**: 56 and 22 events cannot detect an
+effect of any plausible size (the intervals span roughly -10 to +9 and -11 to +28 points). Halves on the primary: +1.3% / -7.4%.
+
+**A structural finding the matching exposed (worth knowing regardless of the verdict):**
+- **At a flag, the "previous support/resistance" is usually FAR away.** 106 of the 117 primary events (91%) had their level
+  3-5 ATR from the close (only 1 within 1 ATR); a flag is by construction a stretched bar, and stretched bars sit far from
+  their last swing level. In that bucket the baseline success rate over 20 H4 bars is only ~20%, and **55% of flagged
+  events (64 of 117) simply timed out** — the level was not reached within ~3.3 trading days, and neither was the equal stop.
+- So "trades back to the previous S/R" from a flag means a large move relative to ATR, which is slow. A pooled baseline would
+  have compared those far-level flags against average bars with near levels and produced a large fake deficit; the matching
+  removes that, and what remains is a small negative difference within noise.
+- **Not tested and not excluded:** a longer horizon than 20 bars (a return to a level 3-5 ATR away plausibly needs more
+  time on H4); other S/R definitions (round numbers, multi-touch zones, discretionary lines); a stop tighter than the target.
+  Each is a different pre-registered experiment.
+- Single factors are flat or slightly negative on this outcome as well (z: -3.1%, CI -5.4 .. -0.6 on UTC).
+- ADX filter (Suppress arm): 64 UTC / 82 NY events, inconclusive.
+
+**Consequence recorded:** the observation "flags often succeed when price trades back to the previous S/R" is NOT supported on
+H4 by this test, and cannot be assessed on D1 (too few flags). Together with Experiments 3 and 5 this is not a validated basis
+for an app flag.
 
 ### Reproduce
 ```
