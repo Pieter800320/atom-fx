@@ -391,6 +391,25 @@ filter neither helped nor hurt on H4. Why D1 showed a small tendency and H4 none
 (chance, the longer horizon, or bar-convention effects are all possible). The "trades back to the previous
 support or resistance" outcome is tested separately below. Full record: `docs/RESEARCH_LOG.md`, Experiment 3.
 
+### Experiment 7 — the shading turning on right after a stretched score (2026-09-19)
+
+Pieter's screenshot observation: the strong-trend background is painted late (ADX, the EMA200 slope and a 3-bar debounce all lag) and
+tops/bottoms seem to occur right as the opposite background appears. The co-occurrence is real: for flags with no shading yet, the
+opposite shading switched on within 10 bars for 45% (D1) / 63% (H4) of them, against 7-8% for any unshaded bar; and the flag bar is ADX's
+20-bar high for about half of flags. But the shading arrives AFTER the flag, so the tradeable moment is the bar where it turns on. Pre-registered,
+run once: that bar, after a score above 30 in the previous 10 bars, against other onset bars of the same colour.
+
+| shading turns on after a score > 30 | D1 (native daily, 2009-2026) | H4 (UTC blocks) |
+|---|---|---|
+| Events | 320 | 800 |
+| Reversed vs other onset bars | 48.8% vs 50.3% | 49.6% vs 48.9% |
+| Lift (95% CI) | −1.6% (−5.2 .. +2.3) | +0.7% (−2.0 .. +3.4) |
+| Verdict | **FAIL** | **FAIL** |
+
+**Read it plainly:** the co-occurrence is what a strong, stretched move looks like on the way; it is not where the move ends. The bar the
+shading appears on reverses about half the time, like any other bar. Not tested: ADX-strength or ADX-peak conditions, other windows, entries,
+exits and costs. This was the second look at the same data family; a forward (live) test is the only clean confirmation left.
+
 ### Experiment 6 — score > 30 against the opposite background colour (2026-09-19)
 
 Pieter's strategy idea, pre-registered and run once: a Crowd **top** score above 30 while the strong-trend background is **green**
