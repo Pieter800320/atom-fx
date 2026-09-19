@@ -221,3 +221,13 @@ needs its own verification, not just a citation.
   context, never a signal. **One finding recorded for a separate decision:** the live D1/H4 series on
   `main` contain Saturday/Sunday bars (Twelvedata's market-closed bars since 2026-01-11); the fix
   (DECISION-007, `agg_nyclose.py`) exists only on the `research` branch. §6 and §9 of the roadmap updated.
+
+- 2026-09-19 (2nd) — Crowd score spec (`ATOM_FX_SIGNALS_ROADMAP.md` §5c) updated with Pieter's decisions on all
+  seven points: names agreed; card hidden on H1/M15; red/green lines; completed bars only with "on time" defined
+  (first hourly scan after each close, not real-time); "No COT" footer; **H4 aligned to TradingView's New York-session
+  blocks** (verified from a TradingView screenshot — the live candle's countdown showed a 21:00 UTC close), D1 stays
+  NY-close. The weekend-bar follow-up was **measured** and recorded as `ATOM_FX_BUILD_STATUS.md` outstanding item 18
+  (28% of D1 rows since 2026-01-12 are market-closed-only bars; BB touch state differs on 17.3% of comparable days;
+  ~+50% more daily-label touch transitions) and **corrects an error in the first §5c draft**, which read the Sunday
+  label as a phantom bar — labels are the session's OPEN date, so Sunday is a real session and Fri/Sat are the
+  closed-only ones. Not fixed; a separate decision.

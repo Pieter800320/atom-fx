@@ -149,6 +149,28 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     documented in Section B's M15 row above (found and fixed same day, before it could cause
     lasting data loss).
 
+18. **Market-closed weekend bars contaminate the D1/H4 series on `main` (found and measured
+    2026-09-19; Pieter confirmed it should be followed up; NOT yet fixed).** Twelvedata began
+    emitting market-closed weekend bars on 2026-01-11 (a flat-ish Sunday pre-open block and a
+    recurring Saturday block — recorded as `DECISION-007` in the `research` branch's
+    `scanner/extend/agg_nyclose.py`, whose `_within_fx_week` drops bars outside
+    [Sunday 17:00 ET, Friday 17:00 ET)). That filter is **not on `main`**: `bb_touch.py::_d1_ny_close`
+    (which also feeds `bollinger_series` and the D1 `momentum_series`) groups every H1 bar by
+    `(NY time − 17h).date` with no closed-market filter, and the frozen aggregator's H4 has none either.
+    Labels are the session's OPEN date, so real sessions read Sun–Thu and the closed-only sessions read
+    Fri/Sat. **Measured** on the same real H1 history, main's own functions, live vs filtered, since
+    2026-01-12: **28%** of D1 label-days are closed-market-only bars (70 of 250 per pair), with a median
+    range about **half** a real session's (EURUSD 25.9 vs 50.9 pips, USDJPY 25.5 vs 82.0); the BB touch
+    (12-period — the **alert** path) state differs on **17.3%** of comparable days (373 of 2,160) and the
+    daily-label sequence shows **409 vs 270** none→touch transitions across 12 pairs (about **+50%**
+    more, at the daily-label level — not a count of pushes actually sent); the latest values the app shows
+    differ by a mean **2.3 RSI points** (max 4.5) and **6.4 %B(20) points** (max 14.7), enough to flip some
+    "Stretched" footers (e.g. USDCAD %B 89.9 → 104.6, USDCHF 88.3 → 99.5). Only windows after 2026-01-11
+    are affected. **Fix is a separate, Rule-#1-style decision** (it moves numbers an alert fires on):
+    port the closed-market filter to `main` as an EXTEND change to the shared D1/H4 bar builders, then
+    re-verify `bb_touch`, `bollinger_series`, `momentum_series`, and anything else reading them. The
+    Crowd score (Roadmap §5c) is built on filtered bars and does not depend on this fix.
+
 
 ---
 
