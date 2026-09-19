@@ -198,6 +198,8 @@ cotPctHi = input.float(90, "Percentile extreme — crowded LONG (>=)", group = g
 cotPctLo = input.float(10, "Percentile extreme — crowded SHORT (<=)", group = grpCot)
 cotZThresh = input.float(1.5, "Z-score extreme |z| >=", step = 0.1, group = grpCot)
 wCot = input.float(25, "Weight: COT positioning extreme", minval = 0, group = grpCot)
+showCotDiag = input.bool(false, "Show COT diagnostic label (verify each leg resolves)", group = grpCot,
+     tooltip = "Draws one label on the last bar listing, for the base and quote currency: the exact ticker strings requested, the latest net position (long - short) and its percentile. NaN means that leg did NOT resolve. Use this to confirm the ticker suffix is right instead of inferring it from the absence of the 'COT: unavailable' label, which only appears when BOTH legs fail.")
 
 grpCotOverride = "4b. COT Ticker Overrides (advanced — blank = auto)"
 baseLongOverride   = input.string("", "Base currency: Non-Commercial LONG ticker override", group = grpCotOverride,
@@ -294,6 +296,24 @@ cotTopExtreme = cotEnabled and (cotMode == "Percentile" ? (not na(cotCombinedPct
 cotBotExtreme = cotEnabled and (cotMode == "Percentile" ? (not na(cotCombinedPctl) and cotCombinedPctl <= cotPctLo) : (not na(cotCombinedZ) and cotCombinedZ <= -cotZThresh))
 
 cotUnavailable = cotEnabled and not baseAvail and not quoteAvail
+
+// COT diagnostic (off by default). Per-leg: tickers requested, latest net position, percentile.
+// NaN = that leg did not resolve. The absence of the "COT: unavailable" label only proves ONE
+// leg resolved (it needs both to fail), so this is the unambiguous check.
+baseLongSym   = baseLongOverride   != "" ? baseLongOverride   : "COT:" + baseCode  + "_F_NCP_L"
+baseShortSym  = baseShortOverride  != "" ? baseShortOverride  : "COT:" + baseCode  + "_F_NCP_S"
+quoteLongSym  = quoteLongOverride  != "" ? quoteLongOverride  : "COT:" + quoteCode + "_F_NCP_L"
+quoteShortSym = quoteShortOverride != "" ? quoteShortOverride : "COT:" + quoteCode + "_F_NCP_S"
+
+f_cotDiagLeg(_ccy, _mapped, _longSym, _shortSym, _net, _pctl) =>
+    _mapped ? _ccy + ": " + _longSym + " / " + _shortSym + "\n    net=" + str.tostring(_net, "#") + "   pctl=" + str.tostring(_pctl, "#.#") : _ccy + ": no CFTC code mapped"
+
+cotDiagText = "COT diagnostic (NaN = did not resolve)\n" +
+     f_cotDiagLeg(baseCcy,  baseMapped,  baseLongSym,  baseShortSym,  baseNet,  baseNormPctl)  + "\n" +
+     f_cotDiagLeg(quoteCcy, quoteMapped, quoteLongSym, quoteShortSym, quoteNet, quoteNormPctl) + "\n" +
+     "combined pctl=" + str.tostring(cotCombinedPctl, "#.#")
+cotDiagLbl = showCotDiag and barstate.islast ? label.new(bar_index, low, cotDiagText, style = label.style_label_upper_left, color = color.new(color.blue, 20), textcolor = color.white, size = size.small) : na
+label.delete(cotDiagLbl[1])
 
 // -------------------------------------------------------------------------------------------
 // SECTION 5 — Regime filter (MANDATORY — not optional)
