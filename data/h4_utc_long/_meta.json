@@ -1,0 +1,90 @@
+{
+  "pairs": {
+    "EURUSD": {
+      "h1_bars_in": 43085,
+      "h4_bars": 9934,
+      "first": "2020-01-30 16:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 678
+    },
+    "GBPUSD": {
+      "h1_bars_in": 43144,
+      "h4_bars": 9943,
+      "first": "2020-01-30 20:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 670
+    },
+    "USDJPY": {
+      "h1_bars_in": 43061,
+      "h4_bars": 9950,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 683
+    },
+    "USDCAD": {
+      "h1_bars_in": 43147,
+      "h4_bars": 9957,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 659
+    },
+    "NZDUSD": {
+      "h1_bars_in": 43190,
+      "h4_bars": 9989,
+      "first": "2020-01-30 04:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 713
+    },
+    "AUDUSD": {
+      "h1_bars_in": 43164,
+      "h4_bars": 9977,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 696
+    },
+    "USDCHF": {
+      "h1_bars_in": 43050,
+      "h4_bars": 9942,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 685
+    },
+    "EURJPY": {
+      "h1_bars_in": 43104,
+      "h4_bars": 9949,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 676
+    },
+    "GBPJPY": {
+      "h1_bars_in": 43134,
+      "h4_bars": 9950,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 669
+    },
+    "CADJPY": {
+      "h1_bars_in": 43106,
+      "h4_bars": 9953,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 671
+    },
+    "AUDJPY": {
+      "h1_bars_in": 43131,
+      "h4_bars": 9957,
+      "first": "2020-01-30 16:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 683
+    },
+    "NZDJPY": {
+      "h1_bars_in": 43086,
+      "h4_bars": 9956,
+      "first": "2020-01-29 12:00:00",
+      "last": "2026-09-18 20:00:00",
+      "stub_blocks_lt4_h1": 691
+    }
+  },
+  "source": "data/h1_cache/<PAIR>_deep_h1.csv (Twelvedata H1, tools/fetch_d1_deep.py)",
+  "aggregation": "scanner.extend.agg_h4.aggregate_h4_ts(alignment='utc'), FX-week filtered (DECISION-007)"
+}
