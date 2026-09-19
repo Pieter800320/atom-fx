@@ -222,10 +222,13 @@ retuning out-of-sample.
   Dollar Index contract.
   **Staleness observed:** when read on Sat 2026-09-19, the value was the 09/01 report, TWO
   reports behind the newest (09/15, released Fri 09/18; 09/08 was the one before). The `[1]`
-  offset accounts for one week; the other is either TradingView's feed not yet having ingested
-  Friday's release, or TradingView stamping each report at a later date than the Tuesday
-  as-of date. **Not yet determined which** — check the report dates TradingView stamps on its
-  own COT series before treating the exact lag as known. For a slow 156-week percentile this is
+  offset accounts for one week. **Narrowed same day:** TradingView's own `COT:099741_F_NCP_L`
+  daily chart already showed the 09/15 report (209,000) stamped on 09/15 — the Tuesday as-of
+  date — so its feed is fresh and stamps the as-of date, not the release date. The extra week is
+  therefore on the script's side; leading hypothesis is that `close[1]` stacks on top of
+  `lookahead_off`'s own one-bar HTF lag on historical bars (a display-only inaccuracy live, since
+  realtime bars see the developing weekly bar). Being tested with the diagnostic label's
+  "offset test" line (W close vs W close[1]). For a slow 156-week percentile this is
   low-impact live, but it matters for backtest alignment (what was actually known at each bar).
   TradingView's own support documentation describes the full ticker ID format as "somewhat
   complex," which is exactly why TradingView publishes an official `LibraryCOT` Pine library to
