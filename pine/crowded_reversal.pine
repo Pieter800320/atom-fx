@@ -7,13 +7,18 @@
 // crowded speculative positioning — i.e. conditions historically associated with an elevated
 // probability of a reversal. Tuned as a starting point for G10 FX majors on H4/D1.
 //
-// HONESTY CAVEAT: this indicator has NOT been backtested. It contains no win-rate, accuracy or
-// "high probability" claim anywhere in its code, name or comments. It flags a CONDITION
-// (crowded / exhausted / climaxed), not a signal proven to precede a profitable trade. Extremes
-// can and do persist in strong trends — see the mandatory regime filter below. Validate this in
-// your own backtester on your own data before trusting it with real risk. See
-// CROWDED_REVERSAL_METHODOLOGY.md (same folder) for the full research writeup, factor sourcing,
-// scoring scheme and — most importantly — the "What this is NOT" section.
+// HONESTY CAVEAT: backtested ONCE, as a pre-registered study (Experiment 2, docs/RESEARCH_LOG.md on
+// the `research` branch, 2026-09-19: 12 pairs, D1, 2021-2026). With the regime filter OFF the score
+// showed a SMALL but statistically detectable tendency for reversals to become more likely as it
+// rises; with the filter ON the same test narrowly failed. That is a statistical tendency, NOT a
+// trade signal shown to be profitable: no costs, sizing, stops or entry rules were tested, and it is
+// one macro era. This script contains no win-rate, accuracy or "high probability" claim anywhere in
+// its code, name or comments. It flags a CONDITION (crowded / exhausted / climaxed). Extremes can and
+// do persist in strong trends. The regime filter below is OPTIONAL and OFF by default because that
+// study found it made the score a WORSE predictor. Validate this in your own backtester on your own
+// data before trusting it with real risk. See CROWDED_REVERSAL_METHODOLOGY.md (same folder) for the
+// full research writeup, factor sourcing, scoring scheme and — most importantly — the "What this is
+// NOT" section.
 // =============================================================================================
 
 indicator(
@@ -327,20 +332,24 @@ cotDiagLbl = showCotDiag and barstate.islast ? label.new(bar_index, low, cotDiag
 label.delete(cotDiagLbl[1])
 
 // -------------------------------------------------------------------------------------------
-// SECTION 5 — Regime filter (MANDATORY — not optional)
+// SECTION 5 — Regime filter (OPTIONAL — default OFF since 2026-09-19)
 // Grounded in: ADX (Wilder) as a trend-strength filter, and EMA slope for trend direction.
-// Overbought/oversold and other mean-reversion extremes are well known to persist through a
-// strong, healthy trend — fading them there is how mean-reversion tools lose money. This filter
-// suppresses (default) or penalizes COUNTER-trend flags while a strong trend is in force;
-// with-trend flags (e.g. a "bottom" flag during an uptrend, i.e. a dip) are left untouched.
+// The RATIONALE: overbought/oversold and other mean-reversion extremes are well known to persist
+// through a strong, healthy trend, so this filter can suppress (Suppress) or penalize (Penalize)
+// COUNTER-trend flags while a strong trend is in force; with-trend flags (e.g. a "bottom" flag
+// during an uptrend, i.e. a dip) are left untouched.
+// The EVIDENCE (Experiment 2, docs/RESEARCH_LOG.md, research branch): Suppress made the score a
+// WORSE predictor of reversal than no filter (paired 95% CI entirely on the wrong side of zero),
+// which is why it was previously described as mandatory and is now off by default. Penalize was
+// never tested. Suppress/Penalize stay selectable so the comparison can be reproduced or revisited.
 // -------------------------------------------------------------------------------------------
 grpRegime = "5. Regime Filter"
 adxLen = input.int(14, "ADX length", minval = 2, group = grpRegime)
 adxTrendThresh = input.float(30, "ADX strong-trend threshold (>=)", group = grpRegime)
 emaTrendLen = input.int(200, "Trend EMA length", minval = 10, group = grpRegime)
 emaSlopeLookback = input.int(20, "EMA slope lookback (bars)", minval = 1, group = grpRegime)
-regimeMode = input.string("Suppress", "Counter-trend flag behaviour", options = ["Suppress", "Penalize", "Off"], group = grpRegime,
-     tooltip = "Suppress: zero out a counter-trend score while a strong trend is in force (default). Penalize: multiply it by the penalty factor instead of zeroing it. Off: no regime adjustment at all — not recommended, kept only for comparison/testing.")
+regimeMode = input.string("Off", "Counter-trend flag behaviour", options = ["Suppress", "Penalize", "Off"], group = grpRegime,
+     tooltip = "Off (default since 2026-09-19): no regime adjustment. Suppress: zero out a counter-trend score while a strong trend is in force (the previous default). Penalize: multiply it by the penalty factor instead of zeroing it (never tested). A pre-registered study (docs/RESEARCH_LOG.md, research branch, Experiment 2) found Suppress made the score a worse reversal predictor than Off.")
 regimePenaltyFactor = input.float(0.5, "Penalty factor (Penalize mode)", minval = 0.0, maxval = 1.0, step = 0.05, group = grpRegime)
 showRegimeShading = input.bool(true, "Shade strong-trend background", group = grpRegime)
 regimePersistBars = input.int(3, "Consecutive bars required to ENTER a strong-trend regime", minval = 1, group = grpRegime,
