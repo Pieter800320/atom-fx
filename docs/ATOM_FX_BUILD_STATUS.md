@@ -173,6 +173,18 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     re-verify `bb_touch`, `bollinger_series`, `momentum_series`, and anything else reading them. The
     Crowd score (Roadmap §5c) is built on filtered bars and does not depend on this fix.
 
+19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` (raised by Pieter,
+    2026-09-19; not started).** The style guide is binding (no dates, no change history, no developer
+    narration, answer first, lists for list-shaped things, soft length ceilings). A quick scan found **5 of
+    the 35 `LibraryContent.kt` entries** carry dates or narration in the strings users actually see (12 dated
+    strings — e.g. the %B, BandWidth and RSI/MACD entries still quote restyle-pass numbers like "2026-09-18,
+    4th"), and the three Playbook files (`AlertPlaybookContent.kt`, `RegimePlaybookContent.kt`,
+    `TechnicalRegimePlaybookContent.kt`) contain more date strings (some may be comments, not displayed text).
+    The scan did NOT check the length ceilings (summary ≤ 20 words, howItWorks ≤ 60, whyItMatters ≤ 40) or list
+    formatting — a full pass should. History that is worth keeping belongs in the `.kt` file's own comments and
+    git, not in the string. The new "Crowd score" entry was written to the guide and can serve as the template.
+    Every entry rewritten needs the same review the guide's §4 checklist describes.
+
 
 ---
 
