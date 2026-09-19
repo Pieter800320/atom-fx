@@ -57,7 +57,14 @@ TIMEFRAMES = {
     "d1":    {"dir": "data/d1_nyclose_long", "warmup": 260, "kind": "d1"},
     "h4utc": {"dir": "data/h4_utc_long",     "warmup": 400, "kind": "h4"},
     "h4ny":  {"dir": "data/h4_ny_long",      "warmup": 400, "kind": "h4"},
+    # Twelvedata NATIVE daily bars (UTC-based, weekend rows dropped at load). NOT the NY-close convention:
+    # used only for the earlier-era replication (Experiment 5), never mixed with the NY-close stores.
+    "d1utc": {"dir": "data/d1_utc_daily",    "warmup": 260, "kind": "d1utc"},
 }
+
+# Experiment 5 pre-registered decision constants
+NONINF_MARGIN = 0.01          # a single factor is "as good" if its rho is not worse than the composite's by more than this
+REPLICATION_MIN_SLOPE = 0.02  # same effect-size floor as Experiment 2's gate
 
 # Pre-registered (mirrored verbatim in docs/RESEARCH_LOG.md, Experiments 2 and 3)
 DEFAULT_RACE = {"horizon": 20, "mult": 1.0, "tie_rule": "same-bar both barriers -> continuation",
@@ -105,9 +112,14 @@ def cot_combined_for_pair(pair, rep, calendar, lookback_weeks, week_lag=1):
 def load_bars(pair, tf, data_dir):
     """One pair's bars as a DataFrame: date (bar timestamp), open/high/low/close, cot_day (the
     NY-close trading day used to pick the COT week — Sunday reopen bars roll into Monday)."""
-    if TIMEFRAMES[tf]["kind"] == "d1":
+    kind = TIMEFRAMES[tf]["kind"]
+    if kind == "d1":
         df = load_store(pair, str(data_dir)).reset_index(drop=True)
         df["cot_day"] = pd.to_datetime(df["date"])
+    elif kind == "d1utc":
+        df = pd.read_csv(Path(data_dir) / f"{pair}.csv", parse_dates=["date"])
+        df = df[df["date"].dt.dayofweek < 5].reset_index(drop=True)       # drop Saturday/Sunday fragments
+        df["cot_day"] = df["date"]
     else:
         df = pd.read_csv(Path(data_dir) / f"{pair}.csv", parse_dates=["datetime", "trading_day"])
         df = df.rename(columns={"datetime": "date"})
@@ -167,6 +179,8 @@ def run(args):
         eval_mask = np.arange(len(df)) >= args.warmup
         if args.eval_start:
             eval_mask &= dates >= np.datetime64(args.eval_start)
+        if args.eval_end:
+            eval_mask &= dates <= np.datetime64(args.eval_end)
         eval_mask &= ~np.isnan(cot)       # COT resolvable, or the score's ceiling silently drops to 75
         if not eval_mask.any():
             print(f"  ! {pair}: empty evaluation window — skipped")
@@ -266,6 +280,23 @@ def evaluate_gradient(grad, arms, n_boot):
         }
         out["arms"][arm] = res
         out["arms"][arm]["_slope_b"] = sb
+
+    if "off" in out["arms"]:
+        # Experiment 5: replication verdict for the composite (filter off) and paired single-vs-composite rho
+        off = out["arms"]["off"]
+        lo, hi = off["slope_ci"]
+        out["replication"] = ("REPLICATES" if (lo > 0 and off["slope"] >= REPLICATION_MIN_SLOPE)
+                              else "CONTRADICTED" if hi < REPLICATION_MIN_SLOPE else "INCONCLUSIVE")
+        rho_comp_pt, rho_comp_b = off["rho"], grad.rho("composite off", counts)
+        out["single_vs_composite"] = {}
+        for f, n in singles.items():
+            d_b = grad.rho(n, counts) - rho_comp_b
+            d_lo, d_hi = grad.ci(d_b)
+            label = ("composite BETTER" if d_hi < 0
+                     else "single factor AS GOOD (non-inferior)" if d_lo > -NONINF_MARGIN
+                     else "INCONCLUSIVE")
+            out["single_vs_composite"][f] = {"rho_single": rho_single_pt[f], "diff": rho_single_pt[f] - rho_comp_pt,
+                                             "ci": (d_lo, d_hi), "label": label}
 
     if "suppress" in out["arms"] and "off" in out["arms"]:
         d = out["arms"]["suppress"]["_slope_b"] - out["arms"]["off"]["_slope_b"]
@@ -378,7 +409,9 @@ def write_outputs(args, gres, fres, sres, flag_studies, price_ranges, eval_range
         "gates": {"gradient": GRADIENT_GATES, "flagged": FLAG_GATES, "primary": args.primary},
         "gradient": {"slope_unit_points": sg.SLOPE_UNIT, "bucket_edges": sg.BUCKET_EDGES[:-1] + [100],
                      "fixed_effects": "pair x side", "split_month": gres["split_month"]},
-        "eval": {"warmup_bars": args.warmup, "eval_start": args.eval_start, "requires_cot_available": True},
+        "eval": {"warmup_bars": args.warmup, "eval_start": args.eval_start, "eval_end": args.eval_end,
+                 "requires_cot_available": True},
+        "experiment5_constants": {"noninferiority_margin": NONINF_MARGIN, "replication_min_slope": REPLICATION_MIN_SLOPE},
         "bootstrap": {"kind": "month-clustered; all statistics recomputed per resample; resamples shared (paired)",
                       "n": args.boot, "seed": BOOT_SEED, "ci": "2.5-97.5"},
         "sources": {
@@ -445,6 +478,16 @@ def write_outputs(args, gres, fres, sres, flag_studies, price_ranges, eval_range
     L.append("")
 
     # ---- gradient
+    if "single_vs_composite" in gres:
+        L += ["## Single factor vs the whole composite (filter off) — paired month-clustered bootstrap on within-stratum rho", "",
+              f"Replication of the composite's gradient (slope >= {REPLICATION_MIN_SLOPE} with CI lower > 0): **{gres['replication']}**.",
+              f"Rule (pre-registered, Experiment 5): single factor AS GOOD if the CI of rho(single) - rho(composite) has lower bound > "
+              f"-{NONINF_MARGIN}; composite BETTER if the CI upper bound < 0; otherwise INCONCLUSIVE.", "",
+              "| single factor | rho | rho(single) - rho(composite) | 95% CI | reading |", "|---|---|---|---|---|"]
+        for f, s in gres["single_vs_composite"].items():
+            L.append(f"| {f} | {_f(s['rho_single'], nd=4)} | {_f(s['diff'], nd=4)} | {_f(s['ci'][0], nd=4)} .. {_f(s['ci'][1], nd=4)} | {s['label']} |")
+        L.append("")
+
     L += ["## Score gradient (every bar)", ""]
     for arm, r in gres["arms"].items():
         L += [f"### regime = {arm}", "",
@@ -495,6 +538,7 @@ def main():
     ap.add_argument("--mult", type=float, default=DEFAULT_RACE["mult"])
     ap.add_argument("--warmup", type=int, default=None, help="bars skipped for EMA200/ADX/z warm-up (default per timeframe)")
     ap.add_argument("--eval-start", default=None)
+    ap.add_argument("--eval-end", default=None)
     ap.add_argument("--boot", type=int, default=5000)
     ap.add_argument("--regime-arms", nargs="*", default=["suppress", "off"])
     args = ap.parse_args()

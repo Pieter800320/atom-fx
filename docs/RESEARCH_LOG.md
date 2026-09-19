@@ -42,6 +42,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
 | 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | RUN 2026-09-19 (once, no changes after pre-registration) | Gradient slope per +20 score points: filter ON (Pine default) +0.026, CI -0.002..+0.059; filter OFF +0.041, CI +0.018..+0.070. Within-stratum rho 0.023 / 0.041. ADX filter effect (on minus off) -0.015, CI -0.026..-0.004. Flagged events (secondary): 25 / 32, inconclusive | Pine default (ADX suppress): **FAIL**, marginally (CI gate, best-single-factor gate). Filter OFF: **PASS** all 7 gates, but a small effect and not clearly better than the best single factor. Evidence AGAINST the ADX filter. | see "Experiment 2" below and "Result"; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
 | 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
+| 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 5" below; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -320,6 +321,71 @@ py -m tools.build_h4_store
 py -m tools.backtest_crowded_reversal --timeframe h4utc --primary flagged --tag exp3_h4utc_2026-09 --mode full
 py -m tools.backtest_crowded_reversal --timeframe h4ny  --primary flagged --tag exp3_h4ny_2026-09  --mode full
 py -m tools.backtest_crowded_reversal --timeframe d1 --primary gradient --tag exp2_2026-09 --mode full   # Experiment 2
+```
+
+## Experiment 5 — is a single factor as good as the composite? + earlier-era replication (pre-registration, 2026-09-19)
+
+**Written and committed BEFORE any earlier-era (2009-2020) outcome has been computed.**
+(Numbered 5 because the support/resistance-return study is Experiment 4; they were requested together and are independent.)
+
+### Origin and why new data is required
+Pieter, 2026-09-19: check whether a simpler indicator — e.g. ATR-stretch alone — does as well on D1 as the whole
+composite. Experiment 2 already compared them on the NY-close D1 store (2021-2026): composite rho 0.041 vs
+stretch 0.0318, paired CI of the difference -0.010 .. +0.029 — unresolved. Re-analysing the same bars cannot add
+evidence, so this experiment uses an EARLIER ERA the D1 result has never seen.
+
+### Data — and its caveat
+Twelvedata NATIVE daily bars (`tools/fetch_d1_utc_daily.py` -> `data/d1_utc_daily/`, 2007-10 .. 2026-09, ~5,000 rows
+per pair, Saturday/Sunday fragments dropped at load). These are UTC-based, NOT the 17:00-NY-close bars of Experiments 2-3
+(measured: median 13-20 pips/bar close disagreement; the indicator's factors agree on which days are "on" only 27-72%
+on the 2-year overlap). So this replicates the CONCEPT under a different bar convention AND a different era. A success is
+therefore robust to both; a failure is ambiguous between "era" and "convention" and must be read that way.
+COT: as before (Legacy futures-only, week k reads Tuesday-of-week-(k-1)); its percentile needs ~3 years, so evaluation
+starts 2009-01-05. Warm-up 260 bars.
+
+### Hypotheses
+- **H5a (replication).** In the earlier era (2009-01-05 .. 2020-12-31, ~37,300 bars per side, 12 pairs), the composite score
+  (filter OFF, the Pine default) shows the same gradient: within-(pair x side) slope of reversal probability on score.
+  Reversal = the Experiment 2 barrier race, unchanged (1 x ATR(14), 20 bars, same-bar-both -> continuation, timeout -> no).
+  Verdict: **REPLICATES** if slope per +20 points >= 0.02 AND the month-clustered 95% CI lower bound > 0;
+  **CONTRADICTED** if the CI upper bound < 0.02; otherwise **INCONCLUSIVE**.
+- **H5b (simplicity).** ATR-stretch alone — the factor exactly as the indicator defines it (close - EMA50 >= 3 ATR,
+  weight 7/100, on the same 0-100 scale) — predicts reversals as well as the composite. Metric: within-stratum
+  correlation rho of reversal with the predictor, paired month-clustered bootstrap (5000, seed 20260919) of
+  rho(stretch) - rho(composite). Rule, fixed now: **stretch AS GOOD** if the CI lower bound > -0.01 (non-inferiority
+  margin: a quarter of the composite's Experiment-2 rho of 0.041); **composite BETTER** if the CI upper bound < 0;
+  otherwise **INCONCLUSIVE**.
+- **Guardrail on H5b:** non-inferiority is trivially true when the composite itself does nothing. H5b is interpreted
+  ONLY if H5a = REPLICATES; otherwise its result is recorded as "not interpretable — no composite effect to match".
+- Only stretch carries a pre-registered claim. The other six single factors appear in the same table for information;
+  no conclusion is drawn from them (multiple comparisons).
+
+### Secondary (informational, no gate)
+- **Era A' (2021-01-01 .. 2026-09) on the same UTC daily bars:** if the UTC convention reproduces Experiment 2's
+  NY-close slope (+0.041) the bar convention is not what drives the result; if it does not, convention matters.
+- Flagged events (score >= 60) counts and lift in era B — informational (~30-60 events expected; below the floor).
+- ADX filter (suppress minus off) in era B, same rule as Experiment 2.
+
+### Parameters — all fixed now
+Pine defaults; 12 pairs (EURUSD GBPUSD USDJPY USDCAD NZDUSD AUDUSD USDCHF EURJPY GBPJPY CADJPY AUDJPY NZDJPY);
+gradient buckets, fixed effects and bootstrap exactly as Experiment 2. `--eval-end 2020-12-31` for era B.
+
+### What has already been seen (full disclosure)
+- Experiment 2 in full, including every single-factor slope and rho on the NY-close D1 store (stretch rho 0.0318,
+  rsi 0.0314, z 0.0277 vs composite 0.041) and the unresolved paired CI above.
+- Count-only estimates on THIS UTC daily data (earlier today): ~41 (filter on) / ~91 (filter off) de-clustered
+  composite events over 211 pair-years, and the factor-agreement measurement on the 2-year overlap. No outcomes.
+- NO era-B reversal rate, slope, rho or bucket has been computed before this entry.
+
+### Not tested here
+Anything on H4; the support/resistance outcome (Experiment 4); costs/entries; other pairs. Era B adds a different
+macro regime (2009-2020: post-crisis, low-rate, low-volatility, then 2020) but is still 12 correlated pairs.
+
+### Reproduce
+```
+set TWELVEDATA_KEY=...   (never in chat or git)      py -m tools.fetch_d1_utc_daily
+py -m tools.backtest_crowded_reversal --timeframe d1utc --primary gradient --eval-end 2020-12-31 --tag exp5_eraB_2026-09 --mode full
+py -m tools.backtest_crowded_reversal --timeframe d1utc --primary gradient --eval-start 2021-01-01 --tag exp5_eraA_2026-09 --mode full
 ```
 
 ## Parked ideas

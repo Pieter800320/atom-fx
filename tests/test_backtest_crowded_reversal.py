@@ -24,6 +24,19 @@ def test_h4_loader_uses_trading_day_for_cot_and_datetime_for_the_bar(tmp_path):
     assert df["cot_day"].iloc[0] == pd.Timestamp("2026-01-12")           # Sunday stub picks Monday's week
 
 
+def test_native_daily_loader_drops_weekend_fragments_and_uses_the_date_for_cot(tmp_path):
+    (tmp_path / "EURUSD.csv").write_text(
+        "date,open,high,low,close\n"
+        "2026-09-17,1.10,1.11,1.09,1.105\n"      # Thu
+        "2026-09-18,1.105,1.12,1.10,1.11\n"      # Fri
+        "2026-09-19,1.11,1.11,1.11,1.11\n"       # Sat fragment
+        "2026-09-20,1.11,1.11,1.11,1.11\n"       # Sun fragment
+        "2026-09-21,1.11,1.13,1.10,1.12\n")      # Mon
+    df = bt.load_bars("EURUSD", "d1utc", tmp_path)
+    assert list(df["date"].dt.dayofweek) == [3, 4, 0]
+    assert (df["cot_day"] == df["date"]).all()
+
+
 def _flag_study(n_pairs, wins, n_events_per_pair, base_up=0.5):
     """Study with planted results. Each pair: 240 monthly-ish bars; flagged events all 'bottom'.
     Baseline: up-first on `base_up` of bars; flagged events succeed on `wins` fraction."""
