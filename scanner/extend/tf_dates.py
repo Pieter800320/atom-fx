@@ -30,10 +30,17 @@ def h1_dates(raw_h1_df) -> pd.Series:
     return df["dt"].dt.strftime("%Y-%m-%d")
 
 
-def h4_dates(raw_h1_df) -> pd.Series:
+def h4_dates(raw_h1_df, trading_clock: bool = False) -> pd.Series:
     """Oldest-first date strings, one per row of the frozen `ohlcv[key]["h4"]` — same
-    UTC 4-hour floor (`closed="left", label="left"`) as `aggregator.aggregate_h4()`."""
+    4-hour floor (`closed="left", label="left"`) as `aggregator.aggregate_h4()`.
+
+    `trading_clock=True` (2026-09-19, fx_week_v3) mirrors the frozen H4 frame that `scan_h1.py` now builds from the H1 rows re-labelled
+    as New York wall time + 7 h (`fx_week.to_trading_clock`): the same shift is applied here so the row counts and boundaries line up
+    again, and each date is that block's TRADING day. Callers pass True when the frame carries `attrs["clock"] == "ny"`."""
     df = raw_h1_df.copy()
+    if trading_clock:
+        from scanner.extend import fx_week
+        df = fx_week.to_trading_clock(df)
     df["dt"] = pd.to_datetime(df["datetime"], utc=True)
     df = df.sort_values("dt").set_index("dt")
     for col in ("open", "close"):
