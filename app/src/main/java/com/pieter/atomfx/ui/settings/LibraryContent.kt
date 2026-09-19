@@ -200,7 +200,11 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "Speculators at a three-year extreme in the weekly COT report: 25\n" +
             "The dashed line is 60. At or above it the footer reads Crowded top or Crowded bottom. If both sides reach it, Mixed.\n" +
             "COT arrives weekly and lags by about a week. \"No COT\" means it is unavailable, so the score is capped at 75.\n" +
-            "Shown long-press a wheel node, below MACD, on D1 and H4 only. D1 bars close at 17:00 New York time. H4 bars follow TradingView's New York-session alignment, so they start one or two hours away from the H4 bars on the cards above. Only completed bars are scored, so a bar appears at the first scan after it closes.",
+            "Shown long-press a wheel node, below MACD, on D1 and H4 only. D1 bars close at 17:00 New York time. H4 bars follow TradingView's New York-session alignment, so they start one or two hours away from the H4 bars on the cards above. Only completed bars are scored, so a bar appears at the first scan after it closes.\n" +
+            "Alerts are off by default (Settings, Notifications). One fires when a score rises into a higher band on a completed bar:\n" +
+            "Bands: 1–19, 20–39, 40–59, 60+\n" +
+            "You choose a minimum level for D1 and for H4: Any, 20, 40 or 60.\n" +
+            "Each alert names the pair, timeframe, side, level and the conditions that are on. Across all 12 pairs and both sides, roughly: D1 at 40, one alert every two weeks. H4 at 40, one a day. H4 at Any, several a day.",
         whyItMatters = "Testing found a small tendency for reversals to become more likely as the D1 score rises in 2021–2026. It did not appear in 2009–2020 or on H4, and flagged bars did not reach the previous support or resistance more often. Read it as context on how stretched a pair is, never as a prediction or an entry.",
     ),
     LibraryEntry(
