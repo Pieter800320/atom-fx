@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import com.pieter.atomfx.ui.chart.CROWD_FLAG_LINE
 import com.pieter.atomfx.ui.theme.AtomColors
 import com.pieter.atomfx.ui.theme.AtomType
 import com.pieter.atomfx.ui.theme.pressWash
@@ -331,4 +332,23 @@ internal fun percentBState(value: Double?, colors: AtomColors): Pair<String, Col
     value >= 90.0 -> "Stretched high" to colors.bear
     value <= 10.0 -> "Stretched low" to colors.bull
     else -> "Normal range" to colors.textMuted
+}
+
+/**
+ * The Crowd score card's footer word (2026-09-19, Pieter's own design): "is the market crowded to one side
+ * right now?" — answered from the ONE line the chart already draws ([CROWD_FLAG_LINE], the indicator's own 60),
+ * so the word and the chart can never disagree and no new threshold is invented. Same convention as
+ * [percentBState]: stretched up / crowded long reads as due a pullback (bear), the mirror as due a bounce (bull).
+ *
+ * `cotOk == false` wins over everything (agreed, Pieter): without COT the score is capped at 75, and a
+ * capped score silently reads as "less crowded", so the footer says "No COT" instead of a state word.
+ * Both sides at/over the line at once is "Mixed" (`watch`) — conflicting evidence, no single direction.
+ */
+internal fun crowdState(top: Double?, bottom: Double?, cotOk: Boolean, colors: AtomColors): Pair<String, Color>? = when {
+    top == null || bottom == null -> null
+    !cotOk -> "No COT" to colors.textMuted
+    top >= CROWD_FLAG_LINE && bottom >= CROWD_FLAG_LINE -> "Mixed" to colors.watch
+    top >= CROWD_FLAG_LINE -> "Crowded top" to colors.bear
+    bottom >= CROWD_FLAG_LINE -> "Crowded bottom" to colors.bull
+    else -> "Not crowded" to colors.neutral
 }

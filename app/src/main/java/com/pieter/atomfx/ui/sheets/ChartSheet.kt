@@ -17,9 +17,11 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.pieter.atomfx.data.model.BollingerSeries
+import com.pieter.atomfx.data.model.CrowdSeries
 import com.pieter.atomfx.data.model.MomentumSeries
 import com.pieter.atomfx.data.model.Signals
 import com.pieter.atomfx.ui.chart.BandWidthChart
+import com.pieter.atomfx.ui.chart.CrowdScoreChart
 import com.pieter.atomfx.ui.chart.MacdOscillator
 import com.pieter.atomfx.ui.chart.PercentBOscillator
 import com.pieter.atomfx.ui.chart.RsiOscillator
@@ -99,6 +101,8 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors, onClose: () -
     val tfKey = TF_KEYS[tf]
     val momentum = signals.pairs[pair]?.momentumSeries.orEmpty()[tfKey]
     val bollinger = signals.pairs[pair]?.bollingerSeries.orEmpty()[tfKey]
+    // 2026-09-19 — the Crowd score exists for D1 and H4 only (no H1/M15 data by design, and none was tested).
+    val crowd = signals.pairs[pair]?.crowdSeries.orEmpty()[tfKey]
 
     val haptics = LocalHapticFeedback.current
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -131,8 +135,38 @@ fun ChartSheet(pair: String, signals: Signals, colors: AtomColors, onClose: () -
         BandWidthCard(bollinger, colors, modifier = Modifier.padding(top = 10.dp))
         RsiCard(momentum, colors, modifier = Modifier.padding(top = 10.dp))
         MacdCard(momentum, colors, modifier = Modifier.padding(top = 10.dp))
+        // Hidden on H1/M15 and whenever the series is absent or too short — never an empty card (agreed, Pieter).
+        if ((tfKey == "d1" || tfKey == "h4") && crowd != null && crowd.top.size >= 2) {
+            CrowdScoreCard(crowd, colors, modifier = Modifier.padding(top = 10.dp))
+        }
 
         Spacer(modifier = Modifier.height(EXTRA_RISE))
+    }
+}
+
+/**
+ * The Crowd score card (2026-09-19, Signals Roadmap §5c) — the Crowded Market indicator as the fifth card of the
+ * panel, D1 and H4 only. Same shell as the other four (`IndicatorCard`): grey header strip, black plot area, grey
+ * footer with ONE state word. Header: `Crowd score` + both latest readings ("Top 42 · Bottom 0", from `latest`, which
+ * is the newest COMPLETED bar — the series never includes a still-forming bar, so its right edge can lag the
+ * sibling cards by up to one bar; H4 bars are New York-session aligned, TradingView's alignment, not the UTC blocks
+ * the cards above use).
+ *
+ * **Context, not a signal.** The score counts how many stretch-and-crowding conditions coincide right now; it is
+ * not a probability and not an entry — see the Library entry for the evidence (a small D1 tendency in 2021-2026
+ * only, nothing on H4, nothing in 2009-2020). Pure consumer: no on-device maths.
+ */
+@Composable
+private fun CrowdScoreCard(series: CrowdSeries, colors: AtomColors, modifier: Modifier = Modifier) {
+    val latest = series.latest
+    IndicatorCard(
+        name = "Crowd score",
+        colors = colors,
+        reading = latest?.let { "Top ${it.top.roundToInt()} · Bottom ${it.bottom.roundToInt()}" },
+        modifier = modifier,
+        footerState = crowdState(latest?.top, latest?.bottom, latest?.cotOk ?: false, colors),
+    ) {
+        CrowdScoreChart(series.top, series.bottom, colors, dates = series.dates)
     }
 }
 

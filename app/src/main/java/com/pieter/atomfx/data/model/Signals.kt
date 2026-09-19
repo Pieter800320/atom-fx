@@ -165,6 +165,40 @@ data class PairBlock(
     // above, which stays 12-period and D1-only because the BB touch alert is built on it —
     // `scanner/extend/bollinger_series.py`'s own doc comment has the full reasoning.
     @SerialName("bollinger_series") val bollingerSeries: Map<String, BollingerSeries> = emptyMap(),
+    // 2026-09-19 (schema v12, Pieter's ask) — the Crowd score: the Crowded Market indicator's top/
+    // bottom score per completed bar, "d1"/"h4" only (H1/M15 have no data by design). A missing key
+    // (older cached JSON, or a pair whose backend module failed) means no card — never an error.
+    // `scanner/extend/crowd_score.py`'s own doc comment has the full contract and the evidence
+    // caveat: this is context, not a signal.
+    @SerialName("crowd_series") val crowdSeries: Map<String, CrowdSeries> = emptyMap(),
+)
+
+/** `pairs.<PAIR>.crowd_series.<d1|h4>` (schema v12) — see `scanner/extend/crowd_score.py`.
+ *  `top`/`bottom` are 0-100 scores per COMPLETED bar, oldest-first, the same length as `dates` (D1 ~50
+ *  points, H4 up to 90). D1 is labelled by the NY-close trading day, H4 by the same (six blocks a day,
+ *  New York-session aligned — TradingView's alignment, not the UTC blocks the sibling H4 series use).
+ *  An empty block (`dates` empty, `latest` null) means too little history; the card is then hidden. */
+@Serializable
+data class CrowdSeries(
+    val dates: List<String> = emptyList(),
+    val top: List<Double> = emptyList(),
+    val bottom: List<Double> = emptyList(),
+    val latest: CrowdLatest? = null,
+)
+
+/** The newest completed bar's state. `topOn`/`bottomOn` name the conditions that are on (Phase 2's
+ *  notification body uses them); `cotOk` false means the COT input could not be resolved for this
+ *  pair, so the score is capped at 75 and the card says "No COT" rather than a state word. */
+@Serializable
+data class CrowdLatest(
+    @SerialName("bar_date") val barDate: String? = null,
+    val top: Double = 0.0,
+    val bottom: Double = 0.0,
+    @SerialName("top_on") val topOn: List<String> = emptyList(),
+    @SerialName("bottom_on") val bottomOn: List<String> = emptyList(),
+    @SerialName("cot_pctl") val cotPctl: Double? = null,
+    @SerialName("cot_ok") val cotOk: Boolean = false,
+    @SerialName("cot_asof") val cotAsof: String? = null,
 )
 
 /** `pairs.<PAIR>.bollinger_series.<d1|h4|h1>` (schema v10) — see `scanner/extend/

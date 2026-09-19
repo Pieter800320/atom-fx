@@ -231,3 +231,9 @@ needs its own verification, not just a citation.
   ~+50% more daily-label touch transitions) and **corrects an error in the first §5c draft**, which read the Sunday
   label as a phantom bar — labels are the session's OPEN date, so Sunday is a real session and Fri/Sat are the
   closed-only ones. Not fixed; a separate decision.
+
+- 2026-09-19 (3rd) — **Crowd score Phase 1 built** on branch `feat/crowd-score` (not merged): backend
+  `pairs.<PAIR>.crowd_series` (schema v12; `crowd_data.py` + `crowd_score.py`, Legacy-COT refresh in `scan_cot.py`) and the
+  ChartSheet `CrowdScoreCard`. Verified on a physical device with all five footer states, D1/H4 shown and H1/M15 hidden,
+  dark and light. Docs synced: `ARCHITECTURE.md` §4.2, `DESIGN.md` §19.4b, `GLOSSARY.md`, `BUILD_STATUS.md`, `LibraryContent.kt`,
+  roadmap §5c. Measured along the way: D1 yields ~50 points, not 90 (weekend bars use ~29% of the fetched depth).

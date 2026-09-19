@@ -181,6 +181,28 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "Shown long-press a wheel node: the third and fourth of four indicator cards, below %B and BandWidth, with one full-width D1/H4/H1/M15 row driving all four together. Each chart also shows its own date labels along the bottom.",
         whyItMatters = "RSI ≥70 or ≤30 reads as a bull/bear tilt the same way a %B band touch does — stretched, due to revert, not automatically \"trend over.\" MACD's histogram crossing zero is the earliest read of a momentum shift, before price itself confirms it. Reading them as a shape over time, not a single number, shows whether a stretched reading is fresh or already fading.",
     ),
+    // Crowd score (Signals Roadmap §5c) — the evidence paragraph in whyItMatters is deliberate and must stay:
+    // the score is context, and the studies behind it (docs/RESEARCH_LOG.md, research branch, Experiments 2-5)
+    // found only a small D1 tendency in one era. Prose follows ATOM_FX_LIBRARY_STYLE.md (no developer narration).
+    LibraryEntry(
+        id = "crowd-score",
+        term = "Crowd score",
+        category = "Momentum & Price Action",
+        summary = "How many stretch and crowding conditions line up on one side of a pair right now, 0–100. Context, not a signal.",
+        howItWorks = "Two scores, each 0–100. Crowd top: price stretched up and crowded long. Crowd bottom: the mirror.\n" +
+            "Eight conditions add points:\n" +
+            "Price beyond its 20-period Bollinger band: 10\n" +
+            "Z-score of 2 or more: 8\n" +
+            "3 or more ATRs from the 50-period average: 7\n" +
+            "RSI beyond 70 or 30: 12, plus 3 beyond 80 or 20\n" +
+            "Divergence between price and RSI: 25\n" +
+            "A volatility spike through the band: 10\n" +
+            "Speculators at a three-year extreme in the weekly COT report: 25\n" +
+            "The dashed line is 60. At or above it the footer reads Crowded top or Crowded bottom. If both sides reach it, Mixed.\n" +
+            "COT arrives weekly and lags by about a week. \"No COT\" means it is unavailable, so the score is capped at 75.\n" +
+            "Shown long-press a wheel node, below MACD, on D1 and H4 only. D1 bars close at 17:00 New York time. H4 bars follow TradingView's New York-session alignment, so they start one or two hours away from the H4 bars on the cards above. Only completed bars are scored, so a bar appears at the first scan after it closes.",
+        whyItMatters = "Testing found a small tendency for reversals to become more likely as the D1 score rises in 2021–2026. It did not appear in 2009–2020 or on H4, and flagged bars did not reach the previous support or resistance more often. Read it as context on how stretched a pair is, never as a prediction or an entry.",
+    ),
     LibraryEntry(
         id = "csm",
         term = "CSM (Currency Strength Model)",

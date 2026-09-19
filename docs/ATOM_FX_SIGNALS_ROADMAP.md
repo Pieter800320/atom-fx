@@ -397,8 +397,10 @@ slower-cadence `macro_assets`.
 
 ## 5c. Crowd score — a context chart (Phase 1), then optional alerts (Phase 2)
 
-> **DRAFT — Pieter's decisions on all seven points are recorded in §3 (2026-09-19); no code written.**
-> Ready for implementation on his go. Written down first, per this doc's convention and `CLAUDE.md` §1.
+> **Phase 1 BUILT and verified on a device (2026-09-19), on branch `feat/crowd-score` — not yet merged to `main`.**
+> Pieter's decisions on all seven points are recorded in §3. Backend: `crowd_data.py`, `crowd_score.py`, schema v12
+> (`ARCHITECTURE.md` §4.2). App: `CrowdScoreCard` under MACD (`DESIGN.md` §19.4b). **Phase 2 (alerts, §4) is not started.**
+> One measured departure from this draft: D1 carries ~50 points, not 90 (§1.2, `BUILD_STATUS.md` item 18).
 
 ### What it is, and what the evidence says (stated up front, and repeated in the in-app Library)
 
