@@ -57,6 +57,12 @@ sys.path.insert(0, str(ROOT))
 
 from scanner.config import PAIRS
 from scanner.fetch import fetch_ohlcv
+# 2026-09-19 (BUILD_STATUS item 18) — Twelvedata's market-closed weekend rows are dropped from the M15 frame too, so the
+# M15 glance-panel series match the real-FX-week bars scan_h1.py now builds. Guarded: a broken module never breaks a scan.
+try:
+    from scanner.extend import fx_week as _fx_week
+except Exception:                                         # noqa: BLE001
+    _fx_week = None
 from scanner.extend import momentum_series as _momentum_series
 from scanner.extend import bollinger_series as _bollinger_series
 
@@ -133,6 +139,8 @@ def main():
             continue
         if df is None or key not in signals["pairs"]:
             continue
+        if _fx_week is not None:
+            df = _fx_week.drop_closed(df)
 
         close = df["close"].astype(float)
         dates = _m15_dates(df)

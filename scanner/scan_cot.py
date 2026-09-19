@@ -83,6 +83,12 @@ def main():
         prev_conviction=prev_conviction,
     )
     conviction["updated"] = now.isoformat()
+    # 2026-09-19 (BUILD_STATUS item 18) — Conviction reads the pills/CSM/breadth that just step-changed when scan_h1 moved to
+    # real-FX-week bars. Comparing this run against a previous, old-convention conviction could fire a spurious
+    # conviction_extreme once; mark the convention here and skip that one comparison (state is still saved).
+    from scanner.extend import fx_week as _fxw
+    conviction["bars_convention"] = _fxw.BARS_CONVENTION
+    _skip_alerts_migration = bool(prev_conviction) and prev_conviction.get("bars_convention") != _fxw.BARS_CONVENTION
     for ccy, entry in conviction["currencies"].items():
         print(f"  {ccy}: conviction={entry['conviction']:+d} (cot_available={entry['cot_available']})")
 
@@ -91,7 +97,9 @@ def main():
     print("\n✓ signals.json saved")
 
     print("\n[3/3] Checking conviction_extreme transitions…")
-    alerts = _conviction.compute_conviction_alerts(conviction, prev_conviction)
+    alerts = [] if _skip_alerts_migration else _conviction.compute_conviction_alerts(conviction, prev_conviction)
+    if _skip_alerts_migration:
+        print("  First run on real-FX-week bars — conviction_extreme comparison skipped this once.")
     for alert in alerts:
         print(f"  🔔 {alert['type']} — {alert['deeplink']}")
         send_push_alert(alert["msg"], alert["type"], alert["deeplink"], direction=alert.get("direction"))

@@ -51,6 +51,15 @@ from push.send_push             import send_push
 # shared module. Same functions, same bodies, no behaviour change.
 from push.alert_helpers         import send_push_alert, send_push_level_alert, send_telegram
 
+# 2026-09-19 (Pieter's explicit sign-off on this frozen-number change — see scanner/FROZEN.md and ARCHITECTURE.md
+# §2's Rule #1 note; BUILD_STATUS.md outstanding item 18) — real-FX-week bars. Guarded so a broken module can never
+# take the scan down: without it the scan simply runs on the fetched rows exactly as it did before.
+try:
+    from scanner.extend import fx_week as _fx_week
+except Exception as _fx_import_err:                       # noqa: BLE001
+    print(f"⚠ fx_week unavailable ({type(_fx_import_err).__name__}: {_fx_import_err}) — using fetched rows as-is")
+    _fx_week = None
+
 # Extra pairs needed for CSM 16-pair set (not in main PAIRS list)
 CSM_EXTRA = ["EUR/GBP", "EUR/CHF", "GBP/CHF", "AUD/NZD", "AUD/CAD", "GBP/AUD"]
 
@@ -229,7 +238,11 @@ def main():
         try:
             df = fetch_ohlcv(pair, TF_INTERVAL["h1"], TF_BARS["h1"])
             if df is not None:
-                raw_ohlcv[key] = df
+                # 2026-09-19 — closed-market rows (Twelvedata's flat weekend bars since 2026-01-11) are dropped BEFORE
+                # anything is built from this frame, and the 12 wheel pairs are merged with their persistent H1 history so
+                # the frozen D1 scorer (>= 210 bars) keeps its depth without a second API call. See fx_week.py.
+                raw_ohlcv[key] = (_fx_week.prepare_h1(key, df, use_store=(pair in PAIRS))
+                                  if _fx_week is not None else df)
         except RuntimeError as e:
             # Daily credit limit — abort fetch loop immediately
             print(f"  ✗ {e}")
@@ -439,6 +452,7 @@ def main():
     preserved = {k: prev.get(k) for k in PRESERVED_KEYS if prev.get(k)}
 
     out = {
+        "bars_convention": (_fx_week.BARS_CONVENTION if _fx_week is not None else "raw"),
         "updated":      now.isoformat(),
         "regime_d1":    regime_d1,
         "regime_h4":    regime_h4,
@@ -473,6 +487,14 @@ def main():
         ],
     }
     recommendation_alerts_list = _recommendation_alerts(out, prev)
+    # 2026-09-19 — the ONE scan that first runs on real-FX-week bars step-changes the inputs to every edge-triggered
+    # alert, so comparing against the previous (old-convention) scan would fire a burst of spurious "transitions".
+    # Suppress the state-transition pushes on that scan only; the state is still saved, so the next scan compares
+    # like with like. Price-level alerts are untouched (they read the latest close, which phantom bars never moved).
+    _migration_scan = bool(_fx_week is not None and _fx_week.is_migration_scan(prev))
+    if _migration_scan:
+        print("\n[Migration] first scan on real-FX-week bars — suppressing state-transition pushes this scan only")
+        recommendation_alerts_list = []
 
     save_signals(out)
     print(f"\n✓ signals.json saved")
@@ -666,7 +688,7 @@ def main():
 
     # Recommendation-ranking edge-trigger (computed earlier, independent of the EXTEND try
     # block above) rides the same generic alert-dict push loop below.
-    state_alerts_list = state_alerts_list + recommendation_alerts_list
+    state_alerts_list = [] if _migration_scan else state_alerts_list + recommendation_alerts_list
 
     # ── State-transition alerts push (Signals Roadmap §2) ─────────────────────
     if state_alerts_list:
@@ -700,6 +722,8 @@ def main():
         and h4_conf in ("Medium", "High")
     )
     gold_should_push = _gold_signal_should_push(gs_direction, gold_qualifies_now, prev.get("gold_signal") or {})
+    if _migration_scan:
+        gold_should_push = False      # gate on the PUSH only (same precedent as the 2026-09-17 edge-trigger); state is still saved
 
     if gold_should_push:
         # Build pair list from ranked top setups
