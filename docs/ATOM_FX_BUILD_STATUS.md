@@ -246,6 +246,10 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     %B/BandWidth/RSI/MACD) is on the same 17:00-New-York / TradingView bar grid.** Still not TradingView-identical: the price vendor (Twelvedata vs OANDA), the macro/news feeds, and any frozen
     indicator that has no TradingView equivalent.
 
+    **FIRST LIVE SCAN VERIFIED 2026-09-19 14:14 UTC** (manual "Hourly Scan" run on `7b8c9f2`, green): `bars_convention: fx_week_v3`, schema 12, `crowd_series` d1 = 90 and h4 = 90 points for all 12 pairs,
+    latest bars dated 2026-09-18 with COT resolved, `last_alert` unchanged (no push burst), commit touched only `data/signals.json`; `data/h1_history` needed no rewrite (the live fetch, converted to UTC, equals the
+    rebuilt store row for row — an independent confirmation of the conversion). Live regimes: D1 Risk-Off, H4 Risk-Off, H1 Ranging. Remaining open: Experiments 2-7 re-run on converted bars; research-port ADX vs TradingView.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24
