@@ -1,0 +1,115 @@
+{
+  "pairs": {
+    "EURUSD": {
+      "h1_bars": 43085,
+      "h1_first": "2020-01-30 18:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1730,
+      "d1_first": "2020-01-30",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "GBPUSD": {
+      "h1_bars": 43144,
+      "h1_first": "2020-01-30 23:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1729,
+      "d1_first": "2020-01-31",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "USDJPY": {
+      "h1_bars": 43061,
+      "h1_first": "2020-01-29 14:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "USDCAD": {
+      "h1_bars": 43147,
+      "h1_first": "2020-01-29 12:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "NZDUSD": {
+      "h1_bars": 43190,
+      "h1_first": "2020-01-30 06:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1730,
+      "d1_first": "2020-01-30",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "AUDUSD": {
+      "h1_bars": 43164,
+      "h1_first": "2020-01-29 14:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "USDCHF": {
+      "h1_bars": 43050,
+      "h1_first": "2020-01-29 13:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "EURJPY": {
+      "h1_bars": 43104,
+      "h1_first": "2020-01-29 15:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "GBPJPY": {
+      "h1_bars": 43134,
+      "h1_first": "2020-01-29 14:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "CADJPY": {
+      "h1_bars": 43106,
+      "h1_first": "2020-01-29 14:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "AUDJPY": {
+      "h1_bars": 43131,
+      "h1_first": "2020-01-30 19:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1730,
+      "d1_first": "2020-01-30",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    },
+    "NZDJPY": {
+      "h1_bars": 43086,
+      "h1_first": "2020-01-29 14:00:00",
+      "h1_last": "2026-09-19 17:00:00",
+      "d1_bars": 1731,
+      "d1_first": "2020-01-29",
+      "d1_last": "2026-09-18",
+      "phantom_weekend_bars": 0
+    }
+  },
+  "source": "Twelvedata time_series interval=1h type=price, paged backwards via end_date",
+  "aggregation": "scanner.extend.agg_nyclose.aggregate_d1_nyclose_dated (17:00 America/New_York close, FX-week filtered)",
+  "fetched_utc": "2026-09-19T07:19:07+00:00"
+}
