@@ -54,12 +54,9 @@ from push.alert_helpers         import send_push_alert, send_push_level_alert, s
 # 2026-09-19 (Pieter's explicit sign-off on this frozen-number change — see scanner/FROZEN.md and ARCHITECTURE.md
 # §2's Rule #1 note; BUILD_STATUS.md outstanding item 18) — real-FX-week bars. Guarded so a broken module can never
 # take the scan down: without it the scan simply runs on the fetched rows exactly as it did before.
-# 2026-09-19 KILL SWITCH (BUILD_STATUS item 18 reopened): DISABLED. Found the same day it shipped: Twelvedata's hourly
-# forex timestamps are NOT UTC — they are Australia/Sydney local time (UTC+10 in AEST, UTC+11 in AEDT), confirmed against
-# five TradingView candles (errors 0.8-6.8 pips at that offset vs 25-129 pips at none). This module's real-FX-week rule is
-# written in New York/UTC time, so on the raw timestamps it would drop real Friday trading and keep weekend quotes. It stays
-# off until the timestamps are converted to true UTC first (needs Pieter's sign-off: it changes every D1/H4 number).
-_FX_WEEK_ENABLED = False
+# 2026-09-19 (BUILD_STATUS item 18; Pieter approved "Yes, you can fix it"): re-enabled after the kill switch. Twelvedata's hourly labels are
+# Australia/Sydney local time, so fx_week now converts them to true UTC FIRST, then drops closed-market rows. Set False to disable again.
+_FX_WEEK_ENABLED = True
 try:
     if not _FX_WEEK_ENABLED:
         raise RuntimeError("fx_week disabled by kill switch")
