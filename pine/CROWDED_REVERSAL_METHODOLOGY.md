@@ -478,3 +478,13 @@ tests on correctly aligned bars is the honest check before anything is built on 
 Experiments 2, 3, 4, 6 and 7 were re-run on bars rebuilt with correct (UTC, then New York clock) boundaries, gates unchanged: **no verdict changed.** The D1 tendency survives at a similar size (slope +0.033 per +20 score points,
 CI +0.008 .. +0.062, 2021-2026), but the composite is still not better than ATR-stretch alone; H4, the support/resistance test and both background strategies remain coin flips (lifts +1.9%, +0.6%, +0.5%, +0.4%). Experiment 5 (2009-2020)
 cannot be re-run: there is no hourly data before 2020. Details: `docs/RESEARCH_LOG.md` on the research branch.
+
+### Experiment 8 — D1 and H4 scores coincide (2026-09-19)
+Pre-registered, run once, on the app's own corrected grid (D1 = 17:00-NY close, H4 = NY-session blocks). Event: the H4 score and the last completed D1 score both above 30 on the same side; the H4 bar's 1 x ATR / 20-bar reversal race.
+
+| both > 30, same side | Events | Reversed vs all H4 bars | Lift (95% CI) | vs D1-state-matched baseline |
+|---|---|---|---|---|
+| H4 NY-aligned | 318 | 53.1% vs 48.7% | +4.4% (-1.8 .. +10.5) | +2.3% (-3.8 .. +8.2) |
+
+**Read it plainly:** the closest any test has come: coincident events reversed a little more often (53.1%), positive in both halves and better than H4 alone (48.1%), but the interval includes zero and most of the difference comes from the D1 state itself.
+Worth about +3 R a year before costs. **FAIL** on the pre-registered gates (lift below 5 points, CI includes 0); at the flag line (60) there were only 9 events. Ninth question on one data family: only forward data can confirm it.
