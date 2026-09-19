@@ -212,3 +212,12 @@ needs its own verification, not just a citation.
   lockscreen mid-session, unlocked before verification): EURUSD H4, same RSI=41 reading as the
   previous pass's screenshot — dashed lines now visibly closer to the centreline and the line's
   own Sep 15 dip clearly pierces the lower one, a real crossing at a real extreme.
+
+- 2026-09-19 — `ATOM_FX_SIGNALS_ROADMAP.md` gained §5c, the **Crowd score** spec (DRAFT, no code):
+  Phase 1 = a backend `pairs.<PAIR>.crowd_series` (D1 + H4, schema v11 → v12, tested Legacy-COT-based
+  port of the Crowded Market indicator, regime filter not ported) and one chart card on the long-press
+  ChartSheet; Phase 2 = optional alerts, outlined only. Written from the four pre-registered studies
+  recorded in `docs/RESEARCH_LOG.md` on the `research` branch (Experiments 2-5): the score is presented as
+  context, never a signal. **One finding recorded for a separate decision:** the live D1/H4 series on
+  `main` contain Saturday/Sunday bars (Twelvedata's market-closed bars since 2026-01-11); the fix
+  (DECISION-007, `agg_nyclose.py`) exists only on the `research` branch. §6 and §9 of the roadmap updated.
