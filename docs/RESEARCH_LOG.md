@@ -44,7 +44,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | 3 | Crowded Market flags (score >= 60) on H4 — Pieter's chart observation | On H4 (app's UTC blocks, filter off), flagged bars reverse more often than like-for-like baseline bars | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 176 events, flagged 42.6% vs baseline 49.1%, lift -6.5% (CI -13.2..+0.6); gradient slope +0.002 (CI -0.007..+0.013). NY-aligned H4: 206 events, lift +2.8% (CI -4.8..+10.9); slope +0.004. Single factors flat. Ranging-vs-trending: no support | **FAIL** (primary, UTC): H3 not supported on H4. NY-aligned also fails. The score is flat across buckets on H4; the D1 gradient of Experiment 2 does not carry over | see "Experiment 3" below and its "Result"; `scanner/extend/agg_h4.py`; `tools/build_h4_store.py` |
 | 4 | Crowded Market flags (score >= 60) vs the previous support/resistance — Pieter's chart observation | Flagged bars reach the most recent confirmed swing level before an equal adverse move more often than distance-matched baseline bars (primary: H4, app's UTC blocks, filter off) | RUN 2026-09-19 (once, no changes after pre-registration) | H4 UTC blocks, filter off: 117 events, flagged reached the level 18.8% vs distance-matched baseline 22.2%, lift -3.4% (CI -9.7..+4.1). NY-aligned H4: 126 events, lift -3.1% (CI -9.3..+3.4). D1: 56 / 22 events, inconclusive | **FAIL** (primary, H4 UTC; NY also fails). D1 INCONCLUSIVE (too few events, as pre-registered). No support for "flags trade back to the previous S/R more often"; 91% of flagged events had their previous level 3-5 ATR away | see "Experiment 4" below and its "Result"; `scanner/extend/level_race.py`; `tools/backtest_crowded_reversal_levels.py` |
 | 5 | Single factor (ATR-stretch) vs the composite; earlier-era (2009-2020) replication of the D1 gradient | H5a: the composite's D1 gradient replicates in 2009-2020 on native daily bars. H5b (only if H5a replicates): ATR-stretch alone is non-inferior to the composite (margin 0.01 in rho) | RUN 2026-09-19 (once, no changes after pre-registration) | Era B (2009-2020, native daily, filter off): composite gradient slope -0.001 (CI -0.020 .. +0.020), buckets flat 46-54%. Era A' (2021-2026, same bars): +0.036 (CI +0.011 .. +0.063). Stretch vs composite: unresolved in both eras | **H5a CONTRADICTED** (no D1 gradient in 2009-2020; the 2021-2026 effect is not robust across eras). **H5b not interpretable** (no composite effect to match). Bar convention is not the cause of the era gap (UTC bars reproduce +0.036 in 2021-2026) | see "Experiment 5" below and its "Result"; `tools/fetch_d1_utc_daily.py`; runner `--timeframe d1utc` |
-| 6 | Crowded Market score > 30 against the OPPOSITE background colour — Pieter's strategy idea | Top score > 30 while the strong-trend shading is green (or bottom score > 30 while it is red) reverses more often than other bars in the SAME regime, on both D1 (native daily 2009-2026) and H4 (app's UTC blocks) | ACTIVE 2026-09-19 (pre-registered, not yet run) | - | - | see "Experiment 6" below; `tools/backtest_crowded_reversal_regime.py` |
+| 6 | Crowded Market score > 30 against the OPPOSITE background colour — Pieter's strategy idea | Top score > 30 while the strong-trend shading is green (or bottom score > 30 while it is red) reverses more often than other bars in the SAME regime, on both D1 (native daily 2009-2026) and H4 (app's UTC blocks) | RUN 2026-09-19 (once, no changes after pre-registration) | P1 D1 native 2009-2026: 380 events, flagged reversed 51.1% vs same-regime baseline 51.6%, lift -0.5% (CI -5.7..+5.2). P2 H4 UTC: 908 events, 47.9% vs 50.7%, lift -2.8% (CI -6.1..+1.1). Score>30 on ANY background: 48.2% (D1) / 47.9% (H4) | **NOT SUPPORTED** (both primaries FAIL F2-F5; H4 also fails F6, F7). The colour adds nothing measurable to the score, and the score alone is at or below a coin flip | see "Experiment 6" below; `tools/backtest_crowded_reversal_regime.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -665,3 +665,31 @@ H4 NY ~617. `with_trend`: only 2-5 (D1) and ~29 (H4) — that arm will be too sm
 ### Not tested here
 Other thresholds; the score's individual factors inside the regime; entries, exits, stops, costs and sizing (a PASS would only justify
 building and testing an executable rule, not trading it); regimes defined differently (other ADX/EMA settings); other pairs.
+
+### Result (run once on 2026-09-19; pre-registration commit `63e91d0`; outputs `data/backtest/crowded_reversal_exp6_*_2026-09/`)
+Nothing changed between the pre-registration commit and these runs; the one-pair smoke (n=7, no conclusion drawn) altered no parameter or gate.
+
+| `opposite` arm (score > 30 against the opposite colour) | **P1 D1 native 2009-2026** | **P2 H4 UTC** | D1 NY-close 2021-26 (info) | H4 NY (info) | D1 native 2009-20 (info) | D1 native 2021-26 (info) |
+|---|---|---|---|---|---|---|
+| de-clustered events | **380** | **908** | 95 | 862 | 277 | 103 |
+| flagged reversal rate | 51.1% | 47.9% | 52.6% | 49.8% | 49.8% | 54.4% |
+| same-regime baseline | 51.6% | 50.7% | 53.5% | 50.4% | 49.8% | 54.2% |
+| **lift (95% CI)** | **-0.5% (-5.7 .. +5.2)** | **-2.8% (-6.1 .. +1.1)** | -0.8% (-10.2 .. +8.5) | -0.6% (-4.2 .. +3.4) | +0.1% (-5.7 .. +6.6) | +0.2% (-10.0 .. +9.8) |
+| verdict | **FAIL** (F2-F5) | **FAIL** (F2-F7) | INCONCLUSIVE (F1) | FAIL | FAIL | FAIL |
+
+Arms, P1 (D1 native): `any` 1,082 events, 48.2% vs 49.5%, lift -1.4%; `no_shading` 765, 48.0% vs 49.6%, -1.6%; `with_trend` only 7 events (too few to judge).
+Arms, P2 (H4 UTC): `any` 2,670 events, 47.9% vs 49.1%, -1.1%; `no_shading` 1,874, 48.3% vs 49.0%, -0.7%; `with_trend` 31 events.
+Halves: P1 -0.4% / +0.2%; P2 -6.0% / +1.1%. Ex-JPY: P1 -6.1%, P2 -0.0%. Ex-best-pair: P1 -2.0%, P2 -3.3%.
+
+**Verdict (pre-registered): NOT SUPPORTED.** Neither primary clears F2 (lift >= 5 points), F3 (both halves), F4 or F5, so the
+"one passes = suggestive" and "both pass = supported" branches never come into play. What the data say, in plain terms:
+- Inside a strong trend, a score above 30 against the trend reverses 51% of the time on D1 and 48% on H4 — a coin flip, and
+  indistinguishable from what ANY bar in that same strong trend does (51.6% / 50.7%). The score adds nothing beyond the background.
+- The background colour adds nothing to the score either: score > 30 on any background reversed 48.2% (D1) and 47.9% (H4),
+  so the counter-trend condition neither helps nor hurts on D1 and is nominally worse on H4 (-2.8% vs -1.1%, both inside noise).
+- F6/F7 passing on D1 (51.1% > 50%; lift -0.5% beats -1.4%) is not evidence: the first is 1.1 points above a coin flip
+  with a baseline that is itself 51.6%, and the second compares two lifts that are both statistically zero.
+- Consistent with Experiments 2-5: no reversal edge shows up once the D1 2021-2026 window is left, and none on H4.
+**Caveats (stated, not excuses):** the outcome is a 1 x ATR reversal race, not a trade with an entry, stop and target, so a
+strategy with a different exit could still behave differently — this result says the SIGNAL does not raise reversal odds, it does not
+test every way of trading it. Costs, entries and management were not modelled. `with_trend` had too few events to say anything.

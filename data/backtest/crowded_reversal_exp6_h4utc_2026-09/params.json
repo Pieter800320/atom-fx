@@ -1,0 +1,143 @@
+{
+  "experiment": 6,
+  "tag": "exp6_h4utc_2026-09",
+  "mode": "full",
+  "timeframe": "h4utc",
+  "score_threshold_strictly_above": 30.0,
+  "regime": "Pine debounced strong-trend latch (ADX>=30, EMA200 slope over 20, persist 3)",
+  "race": {
+    "horizon": 20,
+    "mult": 1.0,
+    "tie_rule": "same-bar both barriers -> continuation",
+    "timeout": "counts as not-a-reversal"
+  },
+  "gates": {
+    "min_events": 100,
+    "min_lift": 0.05,
+    "flagged_rate_gt": 0.5
+  },
+  "boot": 5000,
+  "seed": 20260919,
+  "pine_defaults": {
+    "bb_len": 20,
+    "bb_mult": 2.0,
+    "bb_top": 1.0,
+    "bb_bot": 0.0,
+    "z_len": 100,
+    "z_thresh": 2.0,
+    "stretch_ema_len": 50,
+    "stretch_atr_len": 14,
+    "stretch_mult": 3.0,
+    "w_bb": 10.0,
+    "w_z": 8.0,
+    "w_stretch": 7.0,
+    "rsi_len": 14,
+    "rsi_ob": 70.0,
+    "rsi_obx": 80.0,
+    "rsi_os": 30.0,
+    "rsi_osx": 20.0,
+    "div_left": 5,
+    "div_right": 5,
+    "div_min_gap": 5,
+    "div_max_gap": 60,
+    "div_hold": 5,
+    "w_rsi": 12.0,
+    "w_rsi_x": 3.0,
+    "w_div": 25.0,
+    "tr_atr_len": 14,
+    "tr_mult": 1.8,
+    "climax_require_wide": false,
+    "width_pct_len": 252,
+    "width_pct_thresh": 80.0,
+    "w_climax": 10.0,
+    "cot_enabled": true,
+    "cot_lookback_weeks": 156,
+    "cot_pct_hi": 90.0,
+    "cot_pct_lo": 10.0,
+    "w_cot": 25.0,
+    "adx_len": 14,
+    "adx_thresh": 30.0,
+    "ema_trend_len": 200,
+    "ema_slope_lb": 20,
+    "regime_persist": 3,
+    "regime_penalty": 0.5,
+    "top_threshold": 60.0,
+    "bottom_threshold": 60.0
+  },
+  "eval_start": null,
+  "eval_end": null,
+  "warmup": 400,
+  "pairs": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "USDCAD",
+    "NZDUSD",
+    "AUDUSD",
+    "USDCHF",
+    "EURJPY",
+    "GBPJPY",
+    "CADJPY",
+    "AUDJPY",
+    "NZDJPY"
+  ],
+  "git_head": "63e91d0dc973adf5b3be9f1e32186b3797fea551",
+  "cot_sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf",
+  "python": "3.14.3",
+  "run_at": "2026-09-19T14:03:29",
+  "eval_ranges": {
+    "EURUSD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2020-05-07",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2020-05-07",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2020-05-07",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2020-05-06",
+      "2026-09-18"
+    ]
+  },
+  "eval_bars_by_background": {
+    "green": 14182,
+    "red": 11721,
+    "none": 88754
+  }
+}
