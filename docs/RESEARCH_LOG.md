@@ -40,7 +40,7 @@ file first to get current — then we plan the next experiment and hand Claude C
 | # | Strategy | Hypothesis | Status | Result | Verdict | Pointers |
 |---|----------|-----------|--------|--------|---------|----------|
 | 1 | Trend-pullback (H1 exec, H4/D1 confirm) | H1 pullback-continuation entries in the D1-trend direction have positive expectancy across majors | CUT | 95 trades, +0.22R avg, PF 1.28; +0.05R excl. top trade, −0.21R excl. top 3; edge entirely JPY (+1.41R vs −0.35R non-JPY); 79% full-stop rate | Not a robust edge — single-trade artifact + JPY-regime concentration; un-executable by hand | tag `archive/trend-pullback-research`; `data/backtest/trend_pullback_2026-09/` |
-| 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | PRE-REGISTERED 2026-09-19, not yet run | — | — | see "Experiment 2" below; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
+| 2 | Crowded Market reversal indicator (Pine port, `pine/crowded_reversal.pine` on `main`) | The indicator's 0-100 confluence score predicts reversals: the barrier-race reversal rate rises with the score, across all bars | RUN 2026-09-19 (once, no changes after pre-registration) | Gradient slope per +20 score points: filter ON (Pine default) +0.026, CI -0.002..+0.059; filter OFF +0.041, CI +0.018..+0.070. Within-stratum rho 0.023 / 0.041. ADX filter effect (on minus off) -0.015, CI -0.026..-0.004. Flagged events (secondary): 25 / 32, inconclusive | Pine default (ADX suppress): **FAIL**, marginally (CI gate, best-single-factor gate). Filter OFF: **PASS** all 7 gates, but a small effect and not clearly better than the best single factor. Evidence AGAINST the ADX filter. | see "Experiment 2" below and "Result"; `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`; `tools/backtest_crowded_reversal.py` |
 
 ## Experiment 2 — Crowded Market reversal indicator (pre-registration, 2026-09-19)
 
@@ -137,6 +137,39 @@ One macro-regime era (~2020-2026, incl. the 2022 USD surge) — a pass says noth
 Bars overlap, so observations are serially dependent; the month-clustered bootstrap absorbs same-month
 dependence but not every cross-pair dependency (shared USD/JPY legs, shared COT legs). D1 OHLC cannot
 sequence intrabar (tie -> continuation, applied to every bar alike).
+
+### Result (run once on 2026-09-19; code + data at commit `bac23ac`; outputs in `data/backtest/crowded_reversal_exp2_2026-09/`)
+Window: 68 months (2021-01 .. 2026-09), 12 pairs, ~35,000 observations per arm. Nothing was changed between
+the pre-registration commit (`34a4d73`) and this run; the 2-year smoke run did not alter any parameter or gate.
+
+| | filter ON (Pine default) | filter OFF |
+|---|---|---|
+| slope per +20 pts (95% CI) | +0.026 (-0.002 .. +0.059) | +0.041 (+0.018 .. +0.070) |
+| rho | 0.023 | 0.041 |
+| halves / ex-JPY / worst leave-one-out | +0.003, +0.052 / +0.037 / +0.023 | +0.032, +0.058 / +0.046 / +0.038 |
+| rho vs best single factor (`stretch`), paired CI | -0.0086 (-0.032 .. +0.016) | +0.0092 (-0.010 .. +0.029) |
+| **verdict (pre-registered gates)** | **FAIL** — CI lower bound, best-single-factor | **PASS** — all 7 gates |
+
+**ADX filter, by the pre-registered rule:** slope(on) - slope(off) = -0.015, 95% CI -0.026 .. -0.004 -> the CI is
+entirely below 0: the filter WORSENS the gradient. Zeroing the counter-trend side's score inside strong trends
+made the score a worse predictor of reversal — consistent with those bars carrying real reversal information
+(not directly tested: this run did not isolate the suppressed bars' own reversal rate).
+
+**How to read this — what it does and does not show:**
+- The effect is SMALL. Reversal probability rises about 4 points per +20 score points (filter off); the scores of
+  10-30 sit ~4 points above baseline (rate ~53% vs ~49%), and the [0,10) bucket (almost all bars) is slightly
+  below it (-0.9%).
+  Symmetric barriers make ~50% the null, so this is ~50% -> ~54% for a typical scored bar. It is a statistical
+  tendency, NOT a demonstrated profitable edge: no costs, sizing, stops, or entry rules were tested.
+- The dose-response is not clean at the top: buckets 30-60 are noisy and non-monotonic, and the >=60 bucket
+  (57 observations, ~32 de-clustered events) shows +12.6 points with a CI of -2.2 .. +33.8 — consistent with the
+  gradient but not evidence on its own. The secondary flagged-event test (25 / 32 events) is inconclusive, as
+  pre-registered.
+- The composite is NOT clearly better than its best single factor: rho 0.041 vs 0.032 (`stretch`), paired CI
+  straddling 0. It passes gate 7 by point estimate only. The extra machinery has not demonstrated it earns its keep.
+- Two arms were pre-registered; the passing one is the non-default. One of two, on one macro era (2021-2026,
+  including the 2022 USD surge), with overlapping bars — treat the pass as suggestive, not settled.
+- Not tested: H4, any threshold other than the Pine defaults, other pairs, earlier regimes, live forward data.
 
 ### Reproduce
 ```
