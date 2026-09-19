@@ -431,6 +431,27 @@ a defensive fallback: `attach_bb_d1` reverts to the frozen UTC-midnight D1 with 
 
 ---
 
+**Crowd score (2026-09-19, schema v12).** Per-pair `crowd_series` is added **inside the existing `pairs.<PAIR>` block**:
+`{"d1"|"h4": {dates:[str,…], top:[float,…], bottom:[float,…], latest:{bar_date, top, bottom, top_on:[str,…],
+bottom_on:[str,…], cot_pctl, cot_ok, cot_asof} | null}}` (no `h1`/`m15`). `scanner/extend/crowd_score.py` is the Crowded
+Market indicator (Signals Roadmap §5c): eight weighted yes/no conditions add to a 0–100 **top** and **bottom** score per
+completed bar, oldest-first, up to 90 points. **Context, not a signal** — see the module doc and `docs/RESEARCH_LOG.md`
+(research branch). Bars and COT come from `scanner/extend/crowd_data.py`: **D1 on the 17:00-New-York close and H4 on
+New York-session blocks (17/21/01/05/09/13 New York time — TradingView's alignment, *not* the UTC blocks the sibling H4
+series use), both with market-closed bars dropped** (the filter `bb_touch._d1_ny_close` and the frozen aggregator lack —
+`BUILD_STATUS.md` outstanding item 18), labelled by NY-close **trading day** (Mon–Fri; the siblings label by the
+session's open date). **Completed bars only:** the last bar is withheld until a later bar exists, or the clock has passed its
+close *and* the H1 bar ending at that close is present — so a just-closed bar appears at the first hourly scan after the
+close, never earlier. COT is the CFTC **Legacy futures-only Non-Commercial** series (`data/cot_legacy/legacy_nc.csv`,
+refreshed weekly by `scan_cot.py`) — a different report from the TFF one `conviction.py` uses; the two coexist and must not
+be unified. A bar in week *k* reads the report dated the Tuesday of week *k−1* (never later). `cot_ok: false` (no COT for the
+pair) still scores, with the COT weight left in the denominator (ceiling 75). **D1 yields ~50 points, not 90**, because
+Twelvedata now returns market-closed weekend bars every week, so 5,000 H1 rows span ~30 weeks (~149 D1 bars) and the
+100-bar z-score warm-up consumes two thirds of them; H4 yields the full 90. Verified on all 12 pairs' real history: scores
+from that production-sized window equal full-history scores on every overlapping bar. Written by `scan_h1.py` only (its own
+`try` block; a failing pair simply has no key); `scan_m15.py` never touches it, and `bb_d1`, `bollinger_series` and
+`momentum_series` are byte-identical before and after (tested).
+
 ## 5. The EXTEND layer (Part B) — additive analytics
 
 All of §5 lives under `scanner/extend/`. Every function takes frozen outputs as input and returns new data. **None of them import-and-modify a frozen module.** All thresholds live in `potential_config.py` so the wheel can be tuned without code archaeology.

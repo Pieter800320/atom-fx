@@ -53,6 +53,16 @@ def main():
     print("=== ATOM FX — Weekly COT/Conviction Scan ===")
     now = datetime.now(timezone.utc)
 
+    # Legacy COT store for the Crowd score (Signals Roadmap §5c, 2026-09-19). A DIFFERENT CFTC report from the TFF
+    # one Conviction uses below (Legacy futures-only, Non-Commercial long/short + the ICE Dollar Index) — the two
+    # coexist and must not be unified. Runs FIRST and independently: it needs no signals.json, and it can never
+    # fail the scan (refresh_legacy_store never raises and never shrinks the committed file).
+    try:
+        from scanner.extend import crowd_data as _crowd_data
+        print(f"Legacy COT (Crowd score) refresh: {_crowd_data.refresh_legacy_store()}")
+    except Exception as e:
+        print(f"Legacy COT (Crowd score) refresh skipped: {type(e).__name__}: {e}")
+
     signals = load_signals()
     if not signals.get("pairs"):
         print("✗ No pairs data in signals.json yet (scan_h1 hasn't run) — aborting.")

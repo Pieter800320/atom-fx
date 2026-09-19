@@ -84,7 +84,7 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 11       # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 12       # bump whenever a key is added or a shape changes
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).
@@ -117,3 +117,8 @@ SCHEMA_VERSION = 11       # bump whenever a key is added or a shape changes
 # fetch (you cannot derive 15-minute resolution from the existing 60-minute H1 fetch) and a
 # separate cadence (Pieter wanted the M15 chart meaningfully fresher than the app's existing
 # 2h cadence, without speeding up scoring/alerts, which would be a much bigger decision).
+# 2026-09-19: +pairs.<PAIR>.crowd_series.<d1|h4> (dates/top/bottom/latest) — all additive. The Crowd score
+# (Signals Roadmap §5c): the Crowded Market indicator's top/bottom score per completed bar for the ChartSheet's
+# Crowd score card. NY-close D1 and NY-aligned H4 (TradingView's alignment) on FX-week-filtered bars, Legacy-COT
+# input (data/cot_legacy/legacy_nc.csv, refreshed weekly by scan_cot.py). Context, not a signal — see
+# scanner/extend/crowd_score.py. Written by scan_h1.py only; scan_m15.py never touches it.
