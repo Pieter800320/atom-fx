@@ -241,9 +241,10 @@ f_cftcCode(_ccy) =>
 // 2026-09-18 fix: the prefix was originally "CFTC:" (unverified guess) — confirmed wrong by
 // resolving a live TradingView symbol page, which redirects/resolves under "COT:" instead
 // (e.g. COT:099741_F_OI for Euro FX open interest). The exact suffix for Non-Commercial
-// Long/Short specifically ("_F_NCP_L"/"_F_NCP_S") is still not independently confirmed — if it
-// doesn't resolve either, use TradingView's Symbol Search for the currency's COT data and paste
-// the correct ticker into the override input below rather than guessing further blind.
+// Long/Short specifically ("_F_NCP_L"/"_F_NCP_S") was CONFIRMED on 2026-09-19: EUR and USD values
+// on EURUSD D1 matched CFTC's Legacy futures-only report exactly (see the methodology doc, 3.2).
+// If a currency ever fails to resolve, use TradingView's Symbol Search for its COT data and paste
+// the correct ticker into the override input below rather than guessing.
 f_cotNet(_code, _longOverride, _shortOverride) =>
     _longSym  = _longOverride  != "" ? _longOverride  : "COT:" + _code + "_F_NCP_L"
     _shortSym = _shortOverride != "" ? _shortOverride : "COT:" + _code + "_F_NCP_S"
