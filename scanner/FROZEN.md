@@ -17,3 +17,6 @@ FROZEN - verbatim fork of fx-signal-board. Never edit these files. New code goes
   Twelvedata's hourly forex timestamps turned out to be Sydney local time, not UTC, so the week rule would have dropped real Friday trading. No
   frozen file was touched at any point and the scans run as they did before the change. It will be re-enabled only after a timestamps-to-UTC conversion,
   with a fresh sign-off from Pieter.
+
+- **2026-09-19 (evening) — real-FX-week input change RE-ENABLED, now with the Sydney -> UTC timestamp conversion first** (`fx_week_v2`; Pieter: "Yes, you can fix it"). Applied only at
+  the `scan_h1` / `scan_m15` call-sites; no frozen file touched; every D1/H4 number changes once, guarded by a migration scan. Validated against six TradingView readings (5 exact scores).
