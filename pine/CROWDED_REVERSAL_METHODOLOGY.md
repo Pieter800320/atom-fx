@@ -2,8 +2,10 @@
 
 **File:** `crowded_reversal.pine` (Pine Script v6, indicator, overlay)
 **Scope:** G10 FX majors, tuned as a starting point for H4 and D1.
-**Status:** Not backtested. Not committed. For review, compilation, and validation in your own
-Python backtester before any live use.
+**Status:** Backtested once, as a pre-registered study (Experiment 2, 2026-09-19 — see §6 and
+`docs/RESEARCH_LOG.md` on the `research` branch): a **small** statistical tendency for reversals to
+become more likely as the score rises, with the regime filter **off**; with it on, the same test
+narrowly failed. This is not evidence of a profitable trading rule. Committed on `main`.
 
 ---
 
@@ -87,8 +89,10 @@ to one single publication), cited by name so you can verify independently.
   extremes actually works right now?* Overbought/oversold, band-touches, and even divergence can
   all persist through a strong, healthy trend — professional discretionary traders know this, and
   a mean-reversion-flavoured tool that doesn't account for it will systematically lose money
-  fading strong trends. This is why the regime filter is **mandatory**, not a toggle-off option
-  (the "Off" mode exists only for comparison/testing, and is not the default).
+  fading strong trends. **That was the reasoning for making the filter mandatory. It was tested
+  and did not hold up (§6):** on 2021-2026 data, suppressing counter-trend scores inside strong
+  ADX trends made the score a *worse* predictor of reversal than no filter. The filter is now
+  optional and **off by default** (changed 2026-09-19); the rationale above is kept for the record.
 
 ---
 
@@ -135,14 +139,14 @@ failing, and COT says *who is positioned* in the move — a large speculative ex
 in any price-derived factor at all, and vice versa. Weighting them highest reflects that they add
 new information rather than mostly re-confirming the same thing.
 
-**Regime adjustment (mandatory, applied after scoring):**
-- Default **Suppress**: if ADX ≥ 30 and the 200-EMA is sloping in the trend's direction (and
-  price is on the trend side of that EMA), the **counter-trend** score (top in an uptrend, bottom
-  in a downtrend) is set to **zero**. The with-trend score is untouched.
+**Regime adjustment (optional, applied after scoring — default Off since 2026-09-19, see §6):**
+- **Off** (default): no adjustment. Chosen because Experiment 2 found Suppress made the score a
+  worse reversal predictor (§6). The strong-trend background shading still draws, as information.
+- **Suppress** (the previous default): if ADX ≥ 30 and the 200-EMA is sloping in the trend's
+  direction (and price is on the trend side of that EMA), the **counter-trend** score (top in an
+  uptrend, bottom in a downtrend) is set to **zero**. The with-trend score is untouched.
 - **Penalize**: same trigger condition, but the counter-trend score is multiplied by a
-  configurable penalty factor (default 0.5) instead of zeroed.
-- **Off**: no adjustment. Provided for comparison/testing only — not recommended for live use,
-  since this removes the one thing standing between the tool and "fade every strong trend."
+  configurable penalty factor (default 0.5) instead of zeroed. **Never tested.**
 
 **Debounced entry (fixed 2026-09-18, on-device testing).** A first pass on live AUDUSD H4/D1
 data showed the strong-trend background shading covering nearly the entire chart, including
@@ -307,25 +311,23 @@ retuning out-of-sample.
   overextension, exhaustion, climax, and (where available) crowded positioning — not a signal
   that has been shown to precede a profitable trade. Turning a flag into a trade decision
   (entry, sizing, stop, target) is a separate design problem this indicator does not solve.
-- **Extremes persist.** The regime filter reduces, but cannot eliminate, the risk of fading a
-  strong trend. A market can stay "crowded" and keep moving for a long time, especially in FX
-  during a genuine macro trend (a central bank cycle, a risk-on/risk-off regime). Suppression
-  during a strong trend is a mitigation, not a guarantee.
+- **Extremes persist.** A market can stay "crowded" and keep moving for a long time, especially
+  in FX during a genuine macro trend (a central bank cycle, a risk-on/risk-off regime). The ADX
+  regime filter was meant to mitigate this, but it did not improve the score's predictive value
+  when tested (§6), so it is off by default — the risk of fading a strong trend is not removed.
 - **No performance claim is made anywhere in this deliverable** — not a win rate, not an accuracy
-  percentage, not "high probability" language. None of that has been measured. Anyone telling you
+  percentage, not "high probability" language. The one measurement made (§6) is a small
+  statistical tendency in a barrier-race test, not a win rate and not a profit. Anyone telling you
   a script like this "works" without having tested it is telling you something they don't know.
-- **It has not been backtested.** TradingView's visual chart hindsight — scrolling back and
-  seeing that a label lined up with a turn — is not validation; it is exactly the kind of
-  after-the-fact pattern-matching that produces statistical artifacts (the thing you said you'd
-  just spent weeks learning to kill). Before this informs any real decision, run it through your
-  own Python backtester, on out-of-sample data, with realistic costs, and look specifically for
-  whether the confluence score threshold actually has predictive value beyond what its individual
-  components would give you separately — a combined 60+ score should outperform any single factor
-  alone, or the extra complexity isn't earning its keep.
-- **The COT factor is the weakest-verified part of this script**, specifically the exact
-  TradingView ticker suffix convention (§3.2). Test it first, and don't trust a specific pair's
-  COT reading until you've confirmed via TradingView's own COT chart (or Symbol Search) that the
-  ticker this script builds actually matches the series you expect.
+- **It has been backtested once, and only in a limited way** (§6). TradingView's visual chart
+  hindsight — scrolling back and seeing that a label lined up with a turn — is still not
+  validation. Not yet tested: costs, sizing, stops or entries; H4; thresholds other than the
+  defaults; other pairs; earlier market regimes; live forward data. The result also did **not**
+  show that the composite beats its best single factor — the extra complexity has not yet
+  demonstrated it earns its keep.
+- **The COT factor's ticker and series are verified** (§3.2, 2026-09-19: values match CFTC's
+  Legacy futures-only report exactly, both legs resolve, including the ICE Dollar Index). It is
+  still weekly, futures-based proxy data; don't read it as same-day information.
 - **Defaults are starting points, not tuned parameters.** Every threshold and weight in this
   script came from general TA convention, not from fitting this specific tool's history. Retuning
   them without out-of-sample validation just moves the overfitting from "which indicator" to
@@ -333,3 +335,32 @@ retuning out-of-sample.
 
 This is meant to be a transparent, auditable **input** to your own research process — not a
 finished trading system, and not a claim about what will happen next.
+
+---
+
+## 6. Experiment 2 — what was actually measured (2026-09-19)
+
+Full record, pre-registration and reproduction steps: `docs/RESEARCH_LOG.md` on the `research`
+branch (code: `scanner/extend/{crowded_reversal,barrier_race,score_gradient}.py`, runner
+`tools/backtest_crowded_reversal.py`, outputs `data/backtest/crowded_reversal_exp2_2026-09/`).
+
+**Test.** Pre-registered before any result existed and run once. For every bar and each side, did
+price reach 1×ATR(14) in the reversal direction before 1×ATR against it, within 20 bars (a bar
+touching both counts as *no* reversal; no barrier in 20 bars also counts as no reversal)? The
+question: does that probability rise with the score, controlling for pair and side? 12 pairs, D1,
+NY-close bars aggregated from H1, 2021-01 to 2026-09 (the deepest NY-close history the data
+provider offers), ~35,000 observations per arm, month-clustered bootstrap, seven fixed gates.
+
+| | regime filter ON (previous default) | regime filter OFF (now the default) |
+|---|---|---|
+| Slope per +20 score points (95% CI) | +0.026 (−0.002 .. +0.059) | +0.041 (+0.018 .. +0.070) |
+| Verdict on the pre-registered gates | **FAIL** (narrowly) | **PASS** (all 7) |
+
+**ADX filter, by the pre-registered rule:** on-minus-off = −0.015 (95% CI −0.026 .. −0.004) — the
+filter made the score a *worse* predictor. That is why it is now off by default.
+
+**Read it modestly.** The effect is small (bars scoring 10-30 reversed roughly 4 points more often
+than baseline; the top of the score range has too few observations to say more); it says nothing
+about profit; the composite was not clearly better than its best single factor (ATR-stretch); the
+non-default arm was the one that passed; it is one macro era; and the flagged-event test
+(score ≥ 60) had only 25-32 events, so it is inconclusive.
