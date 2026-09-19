@@ -1,0 +1,309 @@
+{
+  "experiment": "Experiment 4: flagged bars vs the previous support/resistance, timeframe=d1utc",
+  "mode": "full",
+  "tag": "exp4_d1utc_2026-09",
+  "timeframe": "d1utc",
+  "run_utc": "2026-09-19T08:48:59+00:00",
+  "code_commit": "94f24665ed65061cb68dfdd92f17be3edc8e7761",
+  "python": "3.14.3",
+  "numpy": "2.4.2",
+  "pandas": "3.0.1",
+  "pine_source": "pine/crowded_reversal.pine (main) as ported by scanner/extend/crowded_reversal.py",
+  "pine_params": {
+    "bb_len": 20,
+    "bb_mult": 2.0,
+    "bb_top": 1.0,
+    "bb_bot": 0.0,
+    "z_len": 100,
+    "z_thresh": 2.0,
+    "stretch_ema_len": 50,
+    "stretch_atr_len": 14,
+    "stretch_mult": 3.0,
+    "w_bb": 10.0,
+    "w_z": 8.0,
+    "w_stretch": 7.0,
+    "rsi_len": 14,
+    "rsi_ob": 70.0,
+    "rsi_obx": 80.0,
+    "rsi_os": 30.0,
+    "rsi_osx": 20.0,
+    "div_left": 5,
+    "div_right": 5,
+    "div_min_gap": 5,
+    "div_max_gap": 60,
+    "div_hold": 5,
+    "w_rsi": 12.0,
+    "w_rsi_x": 3.0,
+    "w_div": 25.0,
+    "tr_atr_len": 14,
+    "tr_mult": 1.8,
+    "climax_require_wide": false,
+    "width_pct_len": 252,
+    "width_pct_thresh": 80.0,
+    "w_climax": 10.0,
+    "cot_enabled": true,
+    "cot_lookback_weeks": 156,
+    "cot_pct_hi": 90.0,
+    "cot_pct_lo": 10.0,
+    "w_cot": 25.0,
+    "adx_len": 14,
+    "adx_thresh": 30.0,
+    "ema_trend_len": 200,
+    "ema_slope_lb": 20,
+    "regime_persist": 3,
+    "regime_penalty": 0.5,
+    "top_threshold": 60.0,
+    "bottom_threshold": 60.0
+  },
+  "regime_arms": [
+    "suppress",
+    "off"
+  ],
+  "levels": {
+    "swing_n": 5,
+    "lookback": 120,
+    "min_d": 0.5,
+    "max_d": 5.0,
+    "horizon": 20,
+    "rr": "1:1 (stop = same distance as the target)",
+    "tie_rule": "same-bar target+stop -> failure",
+    "timeout": "failure",
+    "distance_buckets_atr": [
+      0.5,
+      1.0,
+      2.0,
+      3.0,
+      5.0
+    ],
+    "swings": "scanner.extend.swings.find_swings (strict-left/tolerant-right); a swing is usable only from bar i+swing_n"
+  },
+  "gates": {
+    "flagged": {
+      "min_events": 100,
+      "min_lift": 0.05,
+      "ci_lo_gt_zero": true,
+      "both_halves_lift_gt_zero": true,
+      "ex_jpy_lift_gt_zero": true,
+      "ex_best_pair_lift_gt_zero": true,
+      "beats_best_single_factor_lift": true
+    }
+  },
+  "eval": {
+    "warmup_bars": 260,
+    "eval_start": null,
+    "eval_end": null,
+    "requires_cot_available": true
+  },
+  "bootstrap": {
+    "kind": "month-clustered; every bucket baseline recomputed per resample",
+    "n": 5000,
+    "seed": 20260919,
+    "ci": "2.5-97.5"
+  },
+  "sources": {
+    "price": {
+      "store": "data\\d1_utc_daily",
+      "timeframe": "d1utc",
+      "per_pair [first, last, bars]": {
+        "EURUSD": [
+          "2007-10-29 00:00:00",
+          "2026-09-18 00:00:00",
+          4900
+        ],
+        "GBPUSD": [
+          "2007-11-30 00:00:00",
+          "2026-09-18 00:00:00",
+          4890
+        ],
+        "USDJPY": [
+          "2008-01-14 00:00:00",
+          "2026-09-18 00:00:00",
+          4874
+        ],
+        "USDCAD": [
+          "2008-02-12 00:00:00",
+          "2026-09-18 00:00:00",
+          4854
+        ],
+        "NZDUSD": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "AUDUSD": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "USDCHF": [
+          "2008-01-22 00:00:00",
+          "2026-09-18 00:00:00",
+          4868
+        ],
+        "EURJPY": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "GBPJPY": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "CADJPY": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "AUDJPY": [
+          "2008-02-13 00:00:00",
+          "2026-09-18 00:00:00",
+          4853
+        ],
+        "NZDJPY": [
+          "2008-03-05 00:00:00",
+          "2026-09-18 00:00:00",
+          4838
+        ]
+      },
+      "meta": {
+        "pairs": {
+          "EURUSD": {
+            "rows": 5000,
+            "first": "2007-10-29",
+            "last": "2026-09-19",
+            "weekend_rows": 100
+          },
+          "GBPUSD": {
+            "rows": 5000,
+            "first": "2007-11-30",
+            "last": "2026-09-19",
+            "weekend_rows": 110
+          },
+          "USDJPY": {
+            "rows": 5000,
+            "first": "2008-01-14",
+            "last": "2026-09-19",
+            "weekend_rows": 126
+          },
+          "USDCAD": {
+            "rows": 5000,
+            "first": "2008-02-12",
+            "last": "2026-09-19",
+            "weekend_rows": 146
+          },
+          "NZDUSD": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "AUDUSD": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "USDCHF": {
+            "rows": 5000,
+            "first": "2008-01-22",
+            "last": "2026-09-19",
+            "weekend_rows": 132
+          },
+          "EURJPY": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "GBPJPY": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "CADJPY": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "AUDJPY": {
+            "rows": 5000,
+            "first": "2008-02-13",
+            "last": "2026-09-19",
+            "weekend_rows": 147
+          },
+          "NZDJPY": {
+            "rows": 5000,
+            "first": "2008-03-05",
+            "last": "2026-09-19",
+            "weekend_rows": 162
+          }
+        },
+        "source": "Twelvedata time_series interval=1day outputsize=5000 order=ASC timezone=UTC",
+        "convention": "UTC-based native daily bars, weekend fragments included (NOT 17:00 NY close)",
+        "fetched_utc": "2026-09-19T08:33:53+00:00"
+      }
+    },
+    "cot": {
+      "file": "data\\cot_legacy\\legacy_nc.csv",
+      "sha256": "39c82feee7450bef3cc6a4967ed3fe21da97282784b1477181551daad810cbdf"
+    }
+  },
+  "eval_window_per_pair": {
+    "EURUSD": [
+      "2009-01-05",
+      "2026-09-18"
+    ],
+    "GBPUSD": [
+      "2009-01-05",
+      "2026-09-18"
+    ],
+    "USDJPY": [
+      "2009-01-12",
+      "2026-09-18"
+    ],
+    "USDCAD": [
+      "2009-02-10",
+      "2026-09-18"
+    ],
+    "NZDUSD": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "AUDUSD": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "USDCHF": [
+      "2009-01-20",
+      "2026-09-18"
+    ],
+    "EURJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "GBPJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "CADJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "AUDJPY": [
+      "2009-02-11",
+      "2026-09-18"
+    ],
+    "NZDJPY": [
+      "2009-03-04",
+      "2026-09-18"
+    ]
+  },
+  "level_availability": {
+    "bars": 55176,
+    "valid_up": 47089,
+    "valid_down": 47496
+  }
+}
