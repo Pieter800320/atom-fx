@@ -316,6 +316,70 @@ def test_attach_is_a_no_op_without_h1_data():
     assert pairs == {"EURUSD": {}}
 
 
+# ── Phase 2: the crowd_score push alert (state_alerts._crowd_score_alerts) ───────────────────────────────────
+def _alert_out(tf="d1", top=0.0, bottom=0.0, top_on=(), cot_ok=True, cot_pctl=88.0):
+    latest = {"bar_date": "2026-09-18", "top": top, "bottom": bottom, "top_on": list(top_on), "bottom_on": [],
+              "cot_pctl": cot_pctl if cot_ok else None, "cot_ok": cot_ok, "cot_asof": "2026-09-15" if cot_ok else None}
+    return {"pairs": {"EURUSD": {"crowd_series": {tf: {"dates": ["2026-09-18"], "top": [top], "bottom": [bottom], "latest": latest}}}}}
+
+
+def _fire(prev_out, out):
+    from scanner.extend import state_alerts
+    return [a for a in state_alerts.compute_state_alerts(out, prev_out) if a["type"] == "crowd_score"]
+
+
+def test_crowd_band_boundaries():
+    from scanner.extend import state_alerts as sa
+    assert [sa._crowd_band(v) for v in (None, 0, -1, 0.1, 19.9, 20, 39.9, 40, 59.9, 60, 100)] == [0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+
+
+def test_a_rise_into_a_higher_band_fires_once_with_level_and_context():
+    a = _fire(_alert_out(top=10), _alert_out(top=45, top_on=("bb_pctb", "rsi", "divergence")))
+    assert len(a) == 1
+    x = a[0]
+    assert (x["pair"], x["timeframe"], x["side"], x["direction"]) == ("EURUSD", "d1", "top", "bear")
+    assert (x["level"], x["prev_level"]) == (45.0, 10.0)
+    assert "Crowd top 45 (was 10)" in x["msg"] and "bb_pctb, rsi, divergence" in x["msg"] and "COT 88th percentile" in x["msg"]
+    assert "context, not a signal" in x["msg"] and x["deeplink"] == "atomfx://pair/EURUSD"
+
+
+def test_bottom_side_is_bull_and_a_missing_cot_says_so():
+    a = _fire(_alert_out(tf="h4", bottom=0), _alert_out(tf="h4", bottom=30, cot_ok=False))
+    assert len(a) == 1 and a[0]["direction"] == "bull" and a[0]["timeframe"] == "h4"
+    assert "No COT" in a[0]["msg"] and "capped at 75" in a[0]["msg"]
+
+
+def test_no_fire_when_the_band_is_unchanged_falls_or_is_zero():
+    assert _fire(_alert_out(top=45), _alert_out(top=55)) == []            # same band (40-59)
+    assert _fire(_alert_out(top=45), _alert_out(top=15)) == []            # falling
+    assert _fire(_alert_out(top=0), _alert_out(top=0)) == []
+    assert _fire(_alert_out(top=30), _alert_out(top=30)) == []            # the same bar seen twice
+
+
+def test_a_jump_across_several_bands_fires_once_and_each_higher_band_fires_again():
+    assert len(_fire(_alert_out(top=0), _alert_out(top=65))) == 1
+    assert len(_fire(_alert_out(top=25), _alert_out(top=45))) == 1        # escalation 20s -> 40s
+    assert len(_fire(_alert_out(top=45), _alert_out(top=61))) == 1        # into the flag line
+
+
+def test_both_sides_can_fire_together_and_each_timeframe_is_independent():
+    out = _alert_out(top=45, bottom=25)
+    prev = _alert_out(top=0, bottom=0)
+    assert sorted(x["side"] for x in _fire(prev, out)) == ["bottom", "top"]
+    both_tf = _alert_out(tf="d1", top=45)
+    both_tf["pairs"]["EURUSD"]["crowd_series"]["h4"] = _alert_out(tf="h4", top=45)["pairs"]["EURUSD"]["crowd_series"]["h4"]
+    prev_tf = _alert_out(tf="d1", top=45)                                 # D1 already there; H4 is new -> H4 has no prev -> silent
+    assert _fire(prev_tf, both_tf) == []
+
+
+def test_never_fires_without_a_previous_latest_or_a_series():
+    assert _fire({"pairs": {"EURUSD": {}}}, _alert_out(top=80)) == []      # old signals.json without crowd_series
+    assert _fire({"pairs": {"EURUSD": {"crowd_series": {"d1": {"latest": None}}}}}, _alert_out(top=80)) == []
+    assert _fire(_alert_out(top=10), {"pairs": {"EURUSD": {}}}) == []      # a pair whose series failed this scan
+    from scanner.extend import state_alerts
+    assert state_alerts.compute_state_alerts(_alert_out(top=80), {}) == []
+
+
 if __name__ == "__main__":
     import sys
     import pytest

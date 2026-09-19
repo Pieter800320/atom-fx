@@ -53,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pieter.atomfx.push.CROWD_MIN_LEVEL_CHOICES
+import com.pieter.atomfx.push.crowdMinLevelLabel
 import com.pieter.atomfx.R
 import com.pieter.atomfx.SIGNALS_TOPIC
 import androidx.compose.runtime.collectAsState
@@ -409,6 +411,40 @@ private fun ThemeControl(mode: ThemeMode, colors: AtomColors, onSelect: (ThemeMo
     }
 }
 
+/** One "minimum level" choice (ANY / 20 / 40 / 60) — same pill recipe as [ThemeControl], one row per timeframe. */
+@Composable
+private fun CrowdMinLevelRow(label: String, selected: Int, colors: AtomColors, onSelect: (Int) -> Unit) {
+    val haptics = LocalHapticFeedback.current
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 8.dp)) {
+        Text(text = label, style = AtomType.Caption.copy(color = colors.textMuted), modifier = Modifier.padding(bottom = 6.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CROWD_MIN_LEVEL_CHOICES.forEach { level ->
+                val active = level == selected
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(if (active) colors.controlSurfaceActive else colors.controlSurface, SETTINGS_BUTTON_SHAPE)
+                        .border(1.dp, colors.controlBorder, SETTINGS_BUTTON_SHAPE)
+                        .pressWash(SETTINGS_BUTTON_SHAPE) {
+                            if (!active) {
+                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onSelect(level)
+                            }
+                        }
+                        .padding(horizontal = 6.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = crowdMinLevelLabel(level),
+                        style = AtomType.Button.copy(color = if (active) colors.textPrimary else colors.textMuted),
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun NotificationsGroup(
     prefsState: UserPrefsState,
@@ -503,6 +539,17 @@ private fun NotificationsGroup(
     SettingsRow("BB touch alerts", colors, enabled = notif.enabled, trailing = {
         SettingsSwitch(notif.bbTouchAlerts, colors, enabled = notif.enabled) { preferences.setBbTouchAlertsEnabled(it) }
     })
+    // Multi-condition context score (eight stretch/crowding conditions summed to 0-100), fired when a pair's
+    // Crowd top or bottom score rises into a higher band on a completed D1 or H4 bar. Signals Roadmap §5c
+    // Phase 2 (2026-09-19). OFF by default and framed as context, because the studies behind it found only a
+    // small D1 tendency (docs/RESEARCH_LOG.md). The two minimum levels only show once it is on.
+    SettingsRow("Crowd score alerts", colors, enabled = notif.enabled, trailing = {
+        SettingsSwitch(notif.crowdScoreAlerts, colors, enabled = notif.enabled) { preferences.setCrowdScoreAlertsEnabled(it) }
+    })
+    if (notif.crowdScoreAlerts && notif.enabled) {
+        CrowdMinLevelRow("D1 minimum level", notif.crowdMinLevelD1, colors) { preferences.setCrowdMinLevel("d1", it) }
+        CrowdMinLevelRow("H4 minimum level", notif.crowdMinLevelH4, colors) { preferences.setCrowdMinLevel("h4", it) }
+    }
     // Single-factor: a user-set price level. Last in this group since it's the one still
     // dormant. 2026-09-06 (Pieter's ask) — greyed out, not removed: `level_alert` still exists
     // server-side (level_ema_alerts.py -> send_push_alert) and the preference/toggle wiring is

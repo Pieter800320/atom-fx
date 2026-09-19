@@ -60,6 +60,15 @@ class AtomFxMessagingService : FirebaseMessagingService() {
         if (type == "bb_touch" && !notif.bbTouchAlerts) return
         // Signals Roadmap §1 (2026-09-16) — edge-triggered "recommendation" alert.
         if (type == "recommendation" && !notif.recommendationAlerts) return
+        // Signals Roadmap §5c Phase 2 (2026-09-19) — the backend sends every rise into a higher Crowd band; this is
+        // where each person's own toggle and per-timeframe minimum level are applied (CrowdAlertFilter.kt).
+        if (type == "crowd_score") {
+            if (!notif.crowdScoreAlerts) return
+            val passes = crowdAlertPasses(
+                message.data["timeframe"], message.data["level"]?.toDoubleOrNull(), notif.crowdMinLevelD1, notif.crowdMinLevelH4,
+            )
+            if (!passes) return
+        }
 
         val title = message.data["title"] ?: type ?: "ATOM FX"
         val body = message.data["body"] ?: return

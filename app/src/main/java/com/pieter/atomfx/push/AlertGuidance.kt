@@ -42,6 +42,10 @@ val ALERT_GUIDANCE: Map<String, AlertGuidance> = mapOf(
         "All three timeframes agree — often high-conviction, but still confirm entry timing and risk on the Pair sheet.",
         "five-state-score",
     ),
+    "crowd_score" to AlertGuidance(
+        "Price looks stretched and crowded on one side — context on how far a move has run, not a signal to trade against it. Check the Crowd score card on the Pair sheet, and whether the level is still rising.",
+        "crowd-score",
+    ),
     "conviction_extreme" to AlertGuidance(
         "Conviction just crossed an extreme — that's usually broad alignment across most of its six inputs, not simple crowding (two are already contrarian-weighted). Check the Playbook before assuming reversal risk.",
         "conviction",

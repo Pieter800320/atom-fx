@@ -397,9 +397,9 @@ slower-cadence `macro_assets`.
 
 ## 5c. Crowd score — a context chart (Phase 1), then optional alerts (Phase 2)
 
-> **Phase 1 BUILT and verified on a device (2026-09-19), on branch `feat/crowd-score` — not yet merged to `main`.**
+> **Phase 1 BUILT, verified on a device and merged to `main` (2026-09-19). Phase 2 (alerts, §4) BUILT the same day.**
 > Pieter's decisions on all seven points are recorded in §3. Backend: `crowd_data.py`, `crowd_score.py`, schema v12
-> (`ARCHITECTURE.md` §4.2). App: `CrowdScoreCard` under MACD (`DESIGN.md` §19.4b). **Phase 2 (alerts, §4) is not started.**
+> (`ARCHITECTURE.md` §4.2). App: `CrowdScoreCard` under MACD (`DESIGN.md` §19.4b). **Phase 2 (alerts) is specified in §4 below.**
 > One measured departure from this draft: D1 carries ~50 points, not 90 (§1.2, `BUILD_STATUS.md` item 18).
 
 ### What it is, and what the evidence says (stated up front, and repeated in the in-app Library)
@@ -576,15 +576,53 @@ mean 6.4 (max 14.7), enough to flip some "Stretched" footers. **This spec change
 the Crowd score is built on filtered bars — and the fix is its own decision (it moves numbers an alert
 fires on). Full figures and the proposed fix: `BUILD_STATUS.md` item 18.
 
-### 4. Phase 2 — alerts (outline only; its own spec after Phase 1 has been watched live)
+### 4. Phase 2 — alerts (BUILT 2026-09-19)
 
-An edge-triggered `crowd_score` push type in `state_alerts.py` using the `latest` block, a Settings
-toggle and a **minimum-level setting** (any / 20 / 40 / 60) per timeframe, and a message that always
-states the level and which conditions are on. Measured volume on 2021–2026 data, filter off, rising
-edge into each level, across all 12 pairs: **D1** ≈ 267 / 162 / 36 / 6 a year for >0 / ≥20 / ≥40 / ≥60;
-**H4** ≈ 1,400 / 990 / 264 / 31 a year (H4 "any level" ≈ 5 pushes per trading day). Score > 0 is present
-on ~40% of bars and mostly means a single condition is on. Default state, cooldown and level-escalation
-rules are decided then.
+Pieter asked for this after Phase 1 shipped ("do all of these ... in the best order"). Every point marked
+**⚠ judgment call** below was decided in that session against measured volumes, not by a spec vote. Each is one constant to change.
+
+**What fires.** `state_alerts.py::_crowd_score_alerts` (`type: "crowd_score"`). For each pair, timeframe (D1, H4) and side
+(top, bottom): the newest completed bar's score lands in a **higher band** than the previous scan's `latest` did. Bands:
+1–19, 20–39, 40–59, 60+ (0 = nothing on). Rising edge only; falling, holding, or moving inside a band never fires. A
+bar's score never changes after the fact (completed bars, COT lagged a week), so there is nothing to debounce. A missing
+previous `latest` — first sighting, or the one migration scan (`BUILD_STATUS.md` item 18) — never fires.
+
+**What it says.** Title `EURUSD — Crowd Alert`. Body: `D1 Crowd top 45 (was 10) · context, not a signal`, the conditions that are
+on (`latest.top_on` / `bottom_on`), and either `COT 88th percentile (report of <date>)` or `No COT for this pair — the score is
+capped at 75`. Push `data` adds `timeframe`, `side`, `level`, `prev_level`. `direction` is `bear` for a crowded top and
+`bull` for a crowded bottom (the BB-touch convention). Deeplink `atomfx://pair/<PAIR>`. The Alert Playbook is not extended:
+`bb_touch` and `recommendation` have none either. The one-line guidance links to the Library entry.
+
+**Settings (Notifications → PAIR).** A "Crowd score alerts" toggle and, only while it is on, a "D1 minimum level" and an "H4
+minimum level" pill row: ANY / 20 / 40 / 60. The minimum is applied **on the device** (`push/CrowdAlertFilter.kt`). The
+backend sends every band rise because the push topic is shared, and each person's minimum decides what shows. A push shows when its
+`level` is at or above the minimum for its timeframe (ANY = any level above 0). A push with an unreadable level or timeframe is shown.
+
+**Measured volume** (2026-09-19, 12 pairs, both sides, on the stored H1 history; the rule = band rise with the new score at or
+above the minimum):
+
+| Minimum | D1 per year | H4 per year | H4 per trading day |
+|---|---|---|---|
+| Any | ~280 | ~2,000 | ~8 |
+| 20 | ~157 | ~1,150 | ~4.6 |
+| 40 | ~25 | ~227 | ~0.9 |
+| 60 | ~2 | ~24 | ~0.1 |
+
+**⚠ Judgment calls.**
+
+1. **Default OFF.** Every other alert defaults on. The studies (`RESEARCH_LOG.md`, research branch, Experiments 2–5) found only a
+   small D1 tendency in one era and nothing on H4, so this is opt-in context.
+2. **Defaults once on: D1 40, H4 60.** That is about one alert every two weeks at D1 40 and about one every two weeks at H4 60.
+   H4 40 is about one a day. "Any" on H4 is about eight a day across 12 pairs.
+3. **Fires on every band rise, filtered by the person's minimum.** At minimum 20, a rise from 25 to 45 still notifies. The
+   alternative, "only when crossing the chosen minimum from below", is quieter by about 10% at 20 and 0–7% at 40 and 60. That is not worth
+   a less predictable rule.
+4. **No cooldown or hysteresis.** A score wobbling between 39 and 41 across H4 bars fires on each rise. The volumes above already
+   include that. Add a same-band cooldown only if it is seen to be a problem.
+5. **Timeliness.** Alerts fire at the first `scan_h1` after a bar completes. `scan_h1` runs about every two hours, so an H4 alert
+   can arrive up to about two hours after its bar closed.
+
+**Not built:** a Crowd score Alert Playbook; a per-pair mute; a push for the flag line alone.
 
 ### 5. Verification — Phase 1 is done when
 
