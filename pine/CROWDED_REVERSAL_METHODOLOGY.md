@@ -213,9 +213,20 @@ retuning out-of-sample.
   on EURUSD D1 showed real numbers for both legs (EUR `COT:099741_F_NCP_L`/`_S`: net -24925,
   pctl ~15; USD `COT:098662_F_NCP_L`/`_S` — the ICE Dollar Index contract: net 17025, pctl 84.1;
   combined pctl 15.4, which matches the (EUR + (100 - USD)) / 2 formula). So both tickers
-  **resolve**. What this does NOT yet confirm: that they are the *series intended* (Legacy,
-  futures-only, non-commercial long/short) rather than a similarly-named one, or that the values
-  match CFTC's own published report for the same date — still to be checked against CFTC.gov.
+  **resolve**.
+  **Series identity confirmed 2026-09-19** against CFTC's own Legacy Futures-Only history file
+  (`https://www.cftc.gov/files/dea/history/deacot2026.zip`, `annual.txt`, columns
+  "Noncommercial Positions-Long/Short (All)"): EUR net -24,925 and USD net 17,025 are **exactly**
+  the CFTC 2026-09-01 report values (EUR 203,477 long / 228,402 short; USD 28,240 / 11,215). So
+  `_F_NCP_L`/`_F_NCP_S` is the Legacy, futures-only, non-commercial series, and 098662 is the ICE
+  Dollar Index contract.
+  **Staleness observed:** when read on Sat 2026-09-19, the value was the 09/01 report, TWO
+  reports behind the newest (09/15, released Fri 09/18; 09/08 was the one before). The `[1]`
+  offset accounts for one week; the other is either TradingView's feed not yet having ingested
+  Friday's release, or TradingView stamping each report at a later date than the Tuesday
+  as-of date. **Not yet determined which** — check the report dates TradingView stamps on its
+  own COT series before treating the exact lag as known. For a slow 156-week percentile this is
+  low-impact live, but it matters for backtest alignment (what was actually known at each bar).
   TradingView's own support documentation describes the full ticker ID format as "somewhat
   complex," which is exactly why TradingView publishes an official `LibraryCOT` Pine library to
   generate these strings programmatically rather than hand-building them — and why this specific
