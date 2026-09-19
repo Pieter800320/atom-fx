@@ -1,21 +1,27 @@
 """
-ATOM FX research — Crowded Market reversal indicator: barrier-race event study runner.
+ATOM FX research — Crowded Market reversal indicator: Experiment 2 runner.
 
-Ports pine/crowded_reversal.pine (scanner/extend/crowded_reversal.py), runs it over the persisted
-NY-close D1 store, and measures whether flagged bars reverse more often than like-for-like
-baseline bars (scanner/extend/barrier_race.py — read its docstring for the pre-registered test).
+Ports pine/crowded_reversal.pine (scanner/extend/crowded_reversal.py) and measures, on the
+persisted NY-close D1 store, whether the indicator's SCORE predicts reversals:
+
+  PRIMARY   score-gradient test (scanner/extend/score_gradient.py): across EVERY bar, does the
+            barrier-race reversal rate rise with the score? Pair x side fixed effects,
+            month-clustered bootstrap, pre-registered gates -> PASS / FAIL / INCONCLUSIVE.
+  SECONDARY flagged-event test (scanner/extend/barrier_race.py): de-clustered events at score >= 60
+            vs a like-for-like baseline. Reported for information only — count-only estimates
+            (2026-09-19) showed it cannot reach the 100-event floor with the available history.
 
     py -m tools.backtest_crowded_reversal --tag smoke_2026-09 --mode smoke
-    py -m tools.backtest_crowded_reversal --tag exp2_2026-09  --mode full --data-dir <long-history>
+    py -m tools.backtest_crowded_reversal --tag exp2_2026-09  --mode full --data-dir data/d1_nyclose_long
 
---mode smoke  PLUMBING CHECK ONLY. Prints and writes a banner; the verdict is forced to
-              "PLUMBING ONLY". Draw no edge conclusion from it — the cache is ~2 years.
---mode full   The pre-registered run. Verdict = the gates below, applied mechanically.
+--mode smoke  PLUMBING CHECK ONLY. Verdict forced to "PLUMBING ONLY"; draw no edge conclusion.
+--mode full   The pre-registered run (docs/RESEARCH_LOG.md, Experiment 2). Gates applied mechanically.
 
-Nothing is tuned here. Every parameter is a Pine default or a pre-registered value recorded in
-docs/RESEARCH_LOG.md; changing one is a new experiment, not a re-run.
+Nothing is tuned here: every parameter is a Pine default or a pre-registered value. Changing one
+is a new experiment, not a re-run.
 
-Outputs to data/backtest/crowded_reversal_<tag>/:  params.json, events.csv, summary.md
+Outputs to data/backtest/crowded_reversal_<tag>/:
+    params.json, summary.md, bucket_table.csv, events.csv (secondary flagged events)
 """
 import argparse
 import datetime
@@ -34,6 +40,7 @@ sys.path.insert(0, str(ROOT))
 
 from scanner.extend import barrier_race as br
 from scanner.extend import crowded_reversal as cr
+from scanner.extend import score_gradient as sg
 from scanner.extend.d1_store import load_store
 
 PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "NZDUSD", "AUDUSD", "USDCHF",
@@ -41,12 +48,13 @@ PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "NZDUSD", "AUDUSD", "USDCHF",
 SINGLE_FACTORS = ["pct_b", "z", "stretch", "rsi", "div", "climax", "cot"]
 COT_CSV = ROOT / "data" / "cot_legacy" / "legacy_nc.csv"
 
-# Pre-registered defaults (mirrored in docs/RESEARCH_LOG.md, Experiment 2)
+# Pre-registered (mirrored verbatim in docs/RESEARCH_LOG.md, Experiment 2)
 DEFAULT_RACE = {"horizon": 20, "mult": 1.0, "tie_rule": "same-bar both barriers -> continuation",
-                "timeout": "counts as not-a-reversal, kept in denominator"}
-DEFAULT_GATES = {"min_events": 100, "min_lift": 0.05, "ci_lo_gt_zero": True,
-                 "both_halves_lift_gt_zero": True, "ex_jpy_lift_gt_zero": True,
-                 "ex_best_pair_lift_gt_zero": True, "beats_best_single_factor": True}
+                "timeout": "counts as not-a-reversal"}
+GATES = {"min_months": 48, "min_slope_per_20pts": 0.02, "ci_lo_gt_zero": True,
+         "both_halves_slope_gt_zero": True, "ex_jpy_slope_gt_zero": True,
+         "every_leave_one_pair_out_slope_gt_zero": True, "composite_rho_beats_best_single_factor": True}
+SECONDARY_MIN_EVENTS = 100
 BOOT_SEED = 20260919
 
 
@@ -81,6 +89,20 @@ def cot_combined_for_pair(pair, rep, calendar, lookback_weeks, week_lag=1):
     return pd.Series(cr.combine_cot_pctl(leg(base), leg(quote)), index=calendar)
 
 
+def factor_contribution(flags, side, factor, p):
+    """The factor's own share of the 0-100 composite score (its weight / total active weight),
+    exactly as the Pine adds it — so single-factor and composite predictors share one scale."""
+    total_w = sum([p["w_bb"], p["w_z"], p["w_stretch"], p["w_rsi"], p["w_rsi_x"], p["w_div"],
+                   p["w_climax"], p["w_cot"] if p["cot_enabled"] else 0.0])
+    if factor == "rsi":
+        on = flags[f"{side}_rsi"].to_numpy(float) * p["w_rsi"] + flags[f"{side}_rsi_x"].to_numpy(float) * p["w_rsi_x"]
+    else:
+        w = {"pct_b": p["w_bb"], "z": p["w_z"], "stretch": p["w_stretch"], "div": p["w_div"],
+             "climax": p["w_climax"], "cot": p["w_cot"] if p["cot_enabled"] else 0.0}[factor]
+        on = flags[f"{side}_{factor}"].to_numpy(float) * w
+    return 100.0 * on / total_w
+
+
 def run(args):
     data_dir = Path(args.data_dir)
     rep = load_cot()
@@ -94,22 +116,18 @@ def run(args):
     if not stores:
         sys.exit("no usable pairs")
 
-    last_price = max(df["date"].max() for df in stores.values())
-    calendar = pd.bdate_range(rep["date"].min(), last_price + pd.Timedelta(days=10))
-    pine_params = dict(cr.PINE_DEFAULTS)
-
+    calendar = pd.bdate_range(rep["date"].min(), max(df["date"].max() for df in stores.values()) + pd.Timedelta(days=10))
+    p = dict(cr.PINE_DEFAULTS)
     arms = args.regime_arms
-    studies = {f"score {arm}": br.Study(f"score>={pine_params['top_threshold']:.0f} regime={arm}", args.horizon)
-               for arm in arms}
-    for f in SINGLE_FACTORS:
-        studies[f"single {f}"] = br.Study(f"single factor: {f}", args.horizon)
 
-    eval_ranges, price_ranges = {}, {}
+    flag_studies = {f"score {arm}": br.Study(f"score>=60 regime={arm}", args.horizon) for arm in arms}
+    grad = sg.GradientStudy()
+    price_ranges, eval_ranges = {}, {}
+
     for pair, df in stores.items():
         dates = pd.to_datetime(df["date"]).to_numpy()
-        cot = cot_combined_for_pair(pair, rep, calendar, pine_params["cot_lookback_weeks"]).reindex(
-            pd.DatetimeIndex(dates)).to_numpy()
-        flags = cr.compute_flags(df, cot_combined_pctl=cot, params=pine_params)
+        cot = cot_combined_for_pair(pair, rep, calendar, p["cot_lookback_weeks"]).reindex(pd.DatetimeIndex(dates)).to_numpy()
+        flags = cr.compute_flags(df, cot_combined_pctl=cot, params=p)
         result, k = br.race_all(df["high"].to_numpy(float), df["low"].to_numpy(float),
                                 df["close"].to_numpy(float), flags["atr"].to_numpy(),
                                 horizon=args.horizon, mult=args.mult)
@@ -117,75 +135,101 @@ def run(args):
         eval_mask = np.arange(len(df)) >= args.warmup
         if args.eval_start:
             eval_mask &= dates >= np.datetime64(args.eval_start)
-        # the COT factor must be resolvable inside the window, or the score's ceiling silently drops to 75
-        eval_mask &= ~np.isnan(cot)
+        eval_mask &= ~np.isnan(cot)       # COT resolvable, or the score's ceiling silently drops to 75
         if not eval_mask.any():
             print(f"  ! {pair}: empty evaluation window — skipped")
             continue
         price_ranges[pair] = [str(pd.Timestamp(dates[0]).date()), str(pd.Timestamp(dates[-1]).date()), len(df)]
-        w = np.flatnonzero(eval_mask)
-        eval_ranges[pair] = [str(pd.Timestamp(dates[w[0]]).date()), str(pd.Timestamp(dates[w[-1]]).date())]
+        wi = np.flatnonzero(eval_mask)
+        eval_ranges[pair] = [str(pd.Timestamp(dates[wi[0]]).date()), str(pd.Timestamp(dates[wi[-1]]).date())]
 
+        preds = {}
         months = np.asarray(pd.to_datetime(dates).strftime("%Y-%m"))
-        base_counts = br.baseline_counts(result, eval_mask, months)     # once per pair, shared
-
+        base_counts = br.baseline_counts(result, eval_mask, months)
         for arm in arms:
-            top_adj, bot_adj = cr.apply_regime(flags, arm, pine_params["regime_penalty"])
-            top_new = cr.rising_edge(top_adj >= pine_params["top_threshold"])
-            bot_new = cr.rising_edge(bot_adj >= pine_params["bottom_threshold"])
-            studies[f"score {arm}"].add_pair(pair, dates, result, k, top_new, bot_new, eval_mask, base_counts)
+            top_adj, bot_adj = cr.apply_regime(flags, arm, p["regime_penalty"])
+            preds[f"composite {arm}"] = (bot_adj, top_adj)
+            flag_studies[f"score {arm}"].add_pair(
+                pair, dates, result, k, cr.rising_edge(top_adj >= p["top_threshold"]),
+                cr.rising_edge(bot_adj >= p["bottom_threshold"]), eval_mask, base_counts)
         for f in SINGLE_FACTORS:
-            top_new = cr.rising_edge(flags[f"top_{f}"].to_numpy())
-            bot_new = cr.rising_edge(flags[f"bot_{f}"].to_numpy())
-            studies[f"single {f}"].add_pair(pair, dates, result, k, top_new, bot_new, eval_mask, base_counts)
+            preds[f"single {f}"] = (factor_contribution(flags, "bot", f, p), factor_contribution(flags, "top", f, p))
+        grad.add_pair(pair, dates, result, eval_mask, preds)
         print(f"  {pair}: {len(df)} bars, eval {eval_ranges[pair][0]} .. {eval_ranges[pair][1]}")
 
-    return studies, price_ranges, eval_ranges, rep
+    return grad, flag_studies, price_ranges, eval_ranges, rep
 
 
-def evaluate(studies, arms, gates, eval_ranges, n_boot):
-    """Everything the summary and the verdict need, computed once."""
-    lo = min(pd.Timestamp(v[0]) for v in eval_ranges.values())
-    hi = max(pd.Timestamp(v[1]) for v in eval_ranges.values())
-    mid_month = (lo + (hi - lo) / 2).strftime("%Y-%m")
-    is_jpy = lambda p: "JPY" in p
-    all_pairs = sorted(eval_ranges)
+def evaluate_gradient(grad, arms, n_boot):
+    counts = grad.draw_counts(n_boot, BOOT_SEED)
+    one = grad.ones()
+    months = grad.months
+    split = months[(len(months) - 1) // 2]
+    first, second = grad.month_masks(split)
+    pairs = grad.pairs
+    ex_jpy = [("JPY" not in q) for q in pairs]
+    singles = {f: f"single {f}" for f in SINGLE_FACTORS}
+    rho_single_pt = {f: grad.rho(n, one)[0] for f, n in singles.items()}
+    best_single = max(rho_single_pt, key=lambda f: -np.inf if np.isnan(rho_single_pt[f]) else rho_single_pt[f])
+    rho_single_b = grad.rho(singles[best_single], counts)
 
-    single = {name: s.lift(n_boot=n_boot, seed=BOOT_SEED) for name, s in studies.items() if name.startswith("single ")}
-    best_single_name = max(single, key=lambda n: (-np.inf if np.isnan(single[n]["lift"]) else single[n]["lift"]))
-    best_single = single[best_single_name]["lift"]
-
-    out = {"mid_month": mid_month, "single": single, "best_single": (best_single_name, best_single), "arms": {}}
+    out = {"split_month": split, "n_months": len(months), "arms": {}, "singles": {}, "best_single": best_single}
+    for f, n in singles.items():
+        out["singles"][f] = {"rho": rho_single_pt[f], "slope": grad.slope(n, one)[0],
+                             "slope_ci": grad.ci(grad.slope(n, counts))}
     for arm in arms:
-        s = studies[f"score {arm}"]
-        overall = s.lift(n_boot=n_boot, seed=BOOT_SEED)
-        pp = s.per_pair()
-        best_pair = pp.sort_values("contribution", ascending=False).iloc[0]["pair"] if len(pp) else None
-        h1 = s.lift(month_filter=lambda m: m <= mid_month, n_boot=0)
-        h2 = s.lift(month_filter=lambda m: m > mid_month, n_boot=0)
-        exj = s.lift(pairs=[p for p in all_pairs if not is_jpy(p)], n_boot=0)
-        exb = s.lift(pairs=[p for p in all_pairs if p != best_pair], n_boot=0)
-        pos = lambda r: (not np.isnan(r["lift"])) and r["lift"] > 0
-        checks = {
-            f"n_events >= {gates['min_events']}": overall["n_events"] >= gates["min_events"],
-            f"lift >= {gates['min_lift']:.2f}": (not np.isnan(overall["lift"])) and overall["lift"] >= gates["min_lift"],
-            "CI lower bound > 0": (not np.isnan(overall["ci_lo"])) and overall["ci_lo"] > 0,
-            "both halves lift > 0": pos(h1) and pos(h2),
-            "excluding JPY crosses lift > 0": pos(exj),
-            f"excluding best pair ({best_pair}) lift > 0": pos(exb),
-            f"beats best single factor ({best_single_name.split()[-1]})": (not np.isnan(overall["lift"])) and overall["lift"] > best_single,
+        name = f"composite {arm}"
+        sb = grad.slope(name, counts)
+        pt = grad.slope(name, one)[0]
+        loo = {q: grad.slope(name, one, pair_mask=[o != q for o in pairs])[0] for q in pairs}
+        worst_pair = min(loo, key=lambda q: loo[q])
+        rho_pt, rho_b = grad.rho(name, one)[0], grad.rho(name, counts)
+        n_obs, rate, base, lift = grad.buckets(name, one)
+        _, _, _, lift_b = grad.buckets(name, counts)
+        bucket_rows = []
+        labels = [f"[{int(a)},{int(b) if b < 100 else 100}{']' if b > 100 else ')'}" for a, b in
+                  zip(sg.BUCKET_EDGES[:-1], sg.BUCKET_EDGES[1:])]
+        for j, lab in enumerate(labels):
+            lo, hi = grad.ci(lift_b[:, j])
+            bucket_rows.append({"bucket": lab, "n_obs": int(n_obs[0, j]), "reversal_rate": rate[0, j],
+                                "baseline": base[0, j], "lift": lift[0, j], "ci_lo": lo, "ci_hi": hi})
+        res = {
+            "slope": pt, "slope_ci": grad.ci(sb),
+            "h1": grad.slope(name, one, month_mask=first)[0], "h2": grad.slope(name, one, month_mask=second)[0],
+            "ex_jpy": grad.slope(name, one, pair_mask=ex_jpy)[0],
+            "loo": loo, "loo_min": loo[worst_pair], "loo_worst_pair": worst_pair,
+            "rho": rho_pt, "rho_diff": rho_pt - rho_single_pt[best_single],
+            "rho_diff_ci": grad.ci(rho_b - rho_single_b), "buckets": pd.DataFrame(bucket_rows),
         }
-        out["arms"][arm] = {"overall": overall, "counts": s.outcome_counts(), "per_pair": pp,
-                            "h1": h1, "h2": h2, "ex_jpy": exj, "ex_best": exb, "best_pair": best_pair,
-                            "checks": checks, "conflicts": s.conflicts, "censored_flags": s.censored_flags}
+        pos = lambda v: (not np.isnan(v)) and v > 0
+        res["checks"] = {
+            f"n_months >= {GATES['min_months']}": len(months) >= GATES["min_months"],
+            f"slope per +20 pts >= {GATES['min_slope_per_20pts']}": pos(pt) and pt >= GATES["min_slope_per_20pts"],
+            "95% CI lower bound > 0": pos(res["slope_ci"][0]),
+            "both halves slope > 0": pos(res["h1"]) and pos(res["h2"]),
+            "excluding JPY crosses slope > 0": pos(res["ex_jpy"]),
+            f"every leave-one-pair-out slope > 0 (worst: {worst_pair})": pos(res["loo_min"]),
+            f"composite rho beats best single factor ({best_single})": pos(res["rho_diff"]),
+        }
+        out["arms"][arm] = res
+        out["arms"][arm]["_slope_b"] = sb
+
+    if "suppress" in out["arms"] and "off" in out["arms"]:
+        d = out["arms"]["suppress"]["_slope_b"] - out["arms"]["off"]["_slope_b"]
+        lo, hi = grad.ci(d)
+        pt = out["arms"]["suppress"]["slope"] - out["arms"]["off"]["slope"]
+        out["regime_filter"] = {"diff": pt, "ci": (lo, hi),
+                                "reading": ("filter IMPROVES the gradient (CI excludes 0) — evidence for keeping it" if lo > 0
+                                            else "filter WORSENS the gradient (CI entirely below 0) — evidence against it" if hi < 0
+                                            else "NO demonstrated value: CI includes 0 — the data cannot justify the ADX filter")}
     return out
 
 
-def verdict(arm_res, gates, mode):
+def verdict(arm_res, mode, n_months):
     if mode == "smoke":
         return "PLUMBING ONLY — no verdict (smoke run on a short cache)"
-    if arm_res["overall"]["n_events"] < gates["min_events"]:
-        return f"INCONCLUSIVE — {arm_res['overall']['n_events']} de-clustered events < {gates['min_events']}"
+    if n_months < GATES["min_months"]:
+        return f"INCONCLUSIVE — only {n_months} months < {GATES['min_months']}"
     failed = [k for k, v in arm_res["checks"].items() if not v]
     return "PASS" if not failed else "FAIL — " + "; ".join(failed)
 
@@ -196,31 +240,35 @@ def _f(x, pct=False, nd=3):
     return f"{x * 100:.1f}%" if pct else f"{x:.{nd}f}"
 
 
-def write_outputs(args, studies, res, price_ranges, eval_ranges, rep, out_dir):
+def write_outputs(args, grad, gres, flag_studies, price_ranges, eval_ranges, rep, out_dir):
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    ev_rows = []
-    for name, s in studies.items():
-        for e in s.events:
-            ev_rows.append({"study": name, **{k: e[k] for k in ("pair", "date", "side", "outcome", "tie", "k")}})
+    ev_rows = [{"study": n, **{k: e[k] for k in ("pair", "date", "side", "outcome", "tie", "k")}}
+               for n, s in flag_studies.items() for e in s.events]
     pd.DataFrame(ev_rows).to_csv(out_dir / "events.csv", index=False)
+    pd.concat([r["buckets"].assign(arm=arm) for arm, r in gres["arms"].items()]).to_csv(
+        out_dir / "bucket_table.csv", index=False)
 
     params = {
-        "experiment": "crowded_reversal barrier-race event study", "mode": args.mode, "tag": args.tag,
+        "experiment": "crowded_reversal - score-gradient test (primary) + flagged events (secondary)",
+        "mode": args.mode, "tag": args.tag,
         "run_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "code_commit": _git_head(), "python": platform.python_version(),
         "numpy": np.__version__, "pandas": pd.__version__,
         "pine_source": "pine/crowded_reversal.pine (main) as ported by scanner/extend/crowded_reversal.py",
         "pine_params": cr.PINE_DEFAULTS, "regime_arms": args.regime_arms,
         "race": {**DEFAULT_RACE, "horizon": args.horizon, "mult": args.mult},
-        "eval": {"warmup_bars": args.warmup, "eval_start": args.eval_start,
-                 "requires_cot_available": True},
-        "bootstrap": {"kind": "month-clustered, baseline recomputed per replicate",
+        "gradient": {"slope_unit_points": sg.SLOPE_UNIT, "bucket_edges": sg.BUCKET_EDGES[:-1] + [100],
+                     "fixed_effects": "pair x side", "split_month": gres["split_month"], "gates": GATES},
+        "eval": {"warmup_bars": args.warmup, "eval_start": args.eval_start, "requires_cot_available": True},
+        "bootstrap": {"kind": "month-clustered; all statistics recomputed per resample; resamples shared (paired)",
                       "n": args.boot, "seed": BOOT_SEED, "ci": "2.5-97.5"},
-        "gates": DEFAULT_GATES,
         "sources": {
-            "price": {"store": str(Path(args.data_dir)), "convention": "NY-close D1 (17:00 ET), FX-week filtered",
-                      "per_pair [first, last, bars]": price_ranges},
+            "price": {"store": str(Path(args.data_dir)),
+                      "convention": "NY-close D1 (17:00 ET) via scanner.extend.agg_nyclose, FX-week filtered",
+                      "per_pair [first, last, bars]": price_ranges,
+                      "meta": (json.loads((Path(args.data_dir) / "_meta.json").read_text())
+                               if (Path(args.data_dir) / "_meta.json").exists() else None)},
             "cot": {"file": str(COT_CSV.relative_to(ROOT)), "sha256": _sha256(COT_CSV),
                     "report": "CFTC Legacy futures-only, Non-Commercial long/short",
                     "as_of_range": [str(rep["date"].min().date()), str(rep["date"].max().date())],
@@ -232,49 +280,59 @@ def write_outputs(args, studies, res, price_ranges, eval_ranges, rep, out_dir):
 
     L = []
     if args.mode == "smoke":
-        L += ["> **PLUMBING CHECK ONLY.** This ran the ported logic end-to-end on a short cache to prove",
-              "> it executes and fires. **No edge conclusion may be drawn from any number below.**", ""]
-    L += [f"# Crowded Market reversal — barrier-race event study ({args.tag})", "",
-          f"Mode `{args.mode}` · horizon {args.horizon} bars · barrier {args.mult} x ATR(14) · "
-          f"tie -> continuation · bootstrap {args.boot} (month-clustered, seed {BOOT_SEED})", "",
-          f"Price: {args.data_dir}, {len(price_ranges)} pairs. COT: Legacy futures-only "
-          f"{rep['date'].min().date()} .. {rep['date'].max().date()}. Commit `{_git_head()[:10]}`.", ""]
-    L += ["## Verdicts", ""]
-    for arm, r in res["arms"].items():
-        L.append(f"- **regime = {arm}:** {verdict(r, DEFAULT_GATES, args.mode)}")
+        L += ["> **PLUMBING CHECK ONLY.** Ran the ported logic end-to-end on a short cache to prove it",
+              "> executes. **No edge conclusion may be drawn from any number below.**", ""]
+    L += [f"# Crowded Market reversal — Experiment 2 ({args.tag})", "",
+          f"Mode `{args.mode}` · reversal = 1 x ATR(14) barrier race, {args.horizon} bars, same-bar-both -> continuation, "
+          f"timeout -> not a reversal · bootstrap {args.boot} (month-clustered, seed {BOOT_SEED})", "",
+          f"Price: `{args.data_dir}` ({len(price_ranges)} pairs), {gres['n_months']} months in the evaluation window. "
+          f"COT: Legacy futures-only {rep['date'].min().date()} .. {rep['date'].max().date()}. Commit `{_git_head()[:10]}`.", "",
+          "## Verdicts (primary: score-gradient gates)", ""]
+    for arm, r in gres["arms"].items():
+        L.append(f"- **regime = {arm}:** {verdict(r, args.mode, gres['n_months'])}")
+    if "regime_filter" in gres:
+        rf = gres["regime_filter"]
+        L += ["", f"**ADX regime filter (suppress minus off, slope per +20 pts):** {_f(rf['diff'])} "
+              f"(95% CI {_f(rf['ci'][0])} .. {_f(rf['ci'][1])}) -> {rf['reading']}."]
     L.append("")
 
-    for arm, r in res["arms"].items():
-        o, c = r["overall"], r["counts"]
-        L += [f"## Score >= 60, regime = {arm}", "",
-              f"- De-clustered events: **{o['n_events']}** (reversal {c['reversal']}, continuation "
-              f"{c['continuation']}, timeout {c['timeout']}; of which same-bar ties {c['ties']}). "
-              f"Same-bar top+bottom conflicts skipped: {r['conflicts']}. Flags on censored bars: {r['censored_flags']}.",
-              f"- Flagged reversal rate {_f(o['flagged_rate'], True)} vs like-for-like baseline "
-              f"{_f(o['baseline_rate'], True)} -> **lift {_f(o['lift'], True)}** "
-              f"(95% CI {_f(o['ci_lo'], True)} .. {_f(o['ci_hi'], True)}).",
-              f"- Halves (split {res['mid_month']}): first {_f(r['h1']['lift'], True)} (n={r['h1']['n_events']}), "
-              f"second {_f(r['h2']['lift'], True)} (n={r['h2']['n_events']}).",
-              f"- Excluding JPY crosses: {_f(r['ex_jpy']['lift'], True)} (n={r['ex_jpy']['n_events']}). "
-              f"Excluding best pair ({r['best_pair']}): {_f(r['ex_best']['lift'], True)} (n={r['ex_best']['n_events']}).",
+    for arm, r in gres["arms"].items():
+        L += [f"## Composite score, regime = {arm}", "",
+              f"- Gradient slope: **{_f(r['slope'])}** reversal-probability per +20 score points "
+              f"(95% CI {_f(r['slope_ci'][0])} .. {_f(r['slope_ci'][1])}); within-stratum correlation rho = {_f(r['rho'], nd=4)}.",
+              f"- Halves (split after {gres['split_month']}): first {_f(r['h1'])}, second {_f(r['h2'])}. "
+              f"Excluding JPY crosses: {_f(r['ex_jpy'])}. Weakest leave-one-pair-out: {_f(r['loo_min'])} (dropping {r['loo_worst_pair']}).",
+              f"- rho vs best single factor ({gres['best_single']}): {_f(r['rho_diff'], nd=4)} "
+              f"(paired 95% CI {_f(r['rho_diff_ci'][0], nd=4)} .. {_f(r['rho_diff_ci'][1], nd=4)}).",
               "", "| gate | result |", "|---|---|"]
         L += [f"| {k} | {'pass' if v else 'FAIL'} |" for k, v in r["checks"].items()]
-        L += ["", "| pair | events | lift |", "|---|---|---|"]
-        L += [f"| {row.pair} | {row.n_events} | {_f(row.lift, True)} |" for row in r["per_pair"].itertuples()]
+        L += ["", "| score bucket | obs | reversal rate | baseline | lift | 95% CI |", "|---|---|---|---|---|---|"]
+        L += [f"| {b.bucket} | {b.n_obs} | {_f(b.reversal_rate, True)} | {_f(b.baseline, True)} | "
+              f"{_f(b.lift, True)} | {_f(b.ci_lo, True)} .. {_f(b.ci_hi, True)} |" for b in r["buckets"].itertuples()]
         L.append("")
 
-    L += ["## Single-factor comparators (same events rules, same baseline)", "",
-          "| factor | events | flagged | baseline | lift | 95% CI |", "|---|---|---|---|---|---|"]
-    for name, o in res["single"].items():
-        L.append(f"| {name.split()[-1]} | {o['n_events']} | {_f(o['flagged_rate'], True)} | "
-                 f"{_f(o['baseline_rate'], True)} | {_f(o['lift'], True)} | "
-                 f"{_f(o['ci_lo'], True)} .. {_f(o['ci_hi'], True)} |")
-    L += ["", "## Known limits of this harness", "",
-          "- D1 OHLC cannot sequence intrabar: a bar touching both barriers is scored continuation, for flagged AND baseline.",
-          "- COT percentile is computed on a business-day calendar; on 2026-09-19 it reproduced TradingView's label to within "
-          "~0.3 percentile points (net positions matched exactly). Attributed, not verified, to TradingView counting chart bars.",
-          "- 12 pairs are not independent (USD legs, JPY legs): the month-clustered bootstrap absorbs same-month clustering "
-          "but not every cross-pair dependency."]
+    L += ["## Single factors, same statistic (each factor's own contribution to the 0-100 scale)", "",
+          "| factor | slope per +20 pts | 95% CI | rho |", "|---|---|---|---|"]
+    for f, s in gres["singles"].items():
+        L.append(f"| {f} | {_f(s['slope'])} | {_f(s['slope_ci'][0])} .. {_f(s['slope_ci'][1])} | {_f(s['rho'], nd=4)} |")
+
+    L += ["", "## Secondary (informational): flagged events, score >= 60", ""]
+    for name, s in flag_studies.items():
+        o, c = s.lift(n_boot=args.boot, seed=BOOT_SEED), s.outcome_counts()
+        floor = "" if o["n_events"] >= SECONDARY_MIN_EVENTS else f" — below the {SECONDARY_MIN_EVENTS}-event floor, read as INCONCLUSIVE"
+        L.append(f"- **{name}:** {o['n_events']} de-clustered events (reversal {c['reversal']}, continuation "
+                 f"{c['continuation']}, timeout {c['timeout']}, same-bar ties {c['ties']}); flagged {_f(o['flagged_rate'], True)} "
+                 f"vs baseline {_f(o['baseline_rate'], True)} -> lift {_f(o['lift'], True)} "
+                 f"(95% CI {_f(o['ci_lo'], True)} .. {_f(o['ci_hi'], True)}){floor}.")
+
+    L += ["", "## Known limits", "",
+          "- D1 OHLC cannot sequence intrabar: a bar touching both barriers is scored continuation, for every bar alike.",
+          "- Observations are ALL bars, so consecutive observations overlap and are serially dependent; the month-clustered "
+          "bootstrap absorbs same-month dependence, not every cross-pair dependency (12 pairs share USD/JPY legs and COT legs).",
+          "- COT percentile is computed on a business-day calendar and reproduced TradingView's label to within ~0.3 percentile "
+          "points on 2026-09-19 (net positions matched exactly); attributed, not verified, to TradingView counting chart bars.",
+          "- Evaluation history is what Twelvedata's H1 depth allows (~2020-01 onward) — one macro regime era, including the "
+          "2022 USD surge; a positive result here says nothing about earlier regimes."]
     (out_dir / "summary.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
@@ -292,15 +350,14 @@ def main():
     ap.add_argument("--regime-arms", nargs="*", default=["suppress", "off"])
     args = ap.parse_args()
 
-    print(f"crowded_reversal study [{args.mode}] tag={args.tag}")
-    studies, price_ranges, eval_ranges, rep = run(args)
-    res = evaluate(studies, args.regime_arms, DEFAULT_GATES, eval_ranges, args.boot)
+    print(f"crowded_reversal experiment 2 [{args.mode}] tag={args.tag}")
+    grad, flag_studies, price_ranges, eval_ranges, rep = run(args)
+    gres = evaluate_gradient(grad, args.regime_arms, args.boot)
     out_dir = ROOT / "data" / "backtest" / f"crowded_reversal_{args.tag}"
-    write_outputs(args, studies, res, price_ranges, eval_ranges, rep, out_dir)
-    for arm, r in res["arms"].items():
-        o = r["overall"]
-        print(f"[{arm}] events={o['n_events']} flagged={_f(o['flagged_rate'], True)} "
-              f"baseline={_f(o['baseline_rate'], True)} lift={_f(o['lift'], True)} -> {verdict(r, DEFAULT_GATES, args.mode)}")
+    write_outputs(args, grad, gres, flag_studies, price_ranges, eval_ranges, rep, out_dir)
+    for arm, r in gres["arms"].items():
+        print(f"[{arm}] slope/+20pts={_f(r['slope'])} CI {_f(r['slope_ci'][0])}..{_f(r['slope_ci'][1])} "
+              f"-> {verdict(r, args.mode, gres['n_months'])}")
     print(f"wrote {out_dir.relative_to(ROOT)}/")
 
 
