@@ -457,10 +457,11 @@ code). The trend-shading background of the TradingView version is therefore out 
   answer (flat), so the choice rests on the stated goal — comparing with TradingView — not on the evidence.
 - **Completed bars only, and "on time" defined.** The still-forming bar is never scored (no repaint; the
   tested definition). A bar counts as complete when the scan runs at or after its close **and** the H1
-  bar that ends at that close is present in the fetched data. Scans are dispatched **hourly** (Apps Script
-  trigger; `scan_h1.yml`), so the score for a just-closed D1 or H4 bar appears at the **first scan after
-  the close — typically within minutes of the hour when GitHub Actions starts promptly, at worst one
-  hour later if a scan is delayed or skipped** (the same latency every existing hourly alert has). It is
+  bar that ends at that close is present in the fetched data. `scan_h1` runs **every ~2 hours** (measured from the bot's commit times: 05:41, 07:41, 09:41 … — a workflow
+  comment calls the Apps Script trigger "hourly", but the scan itself is 2-hourly), so the score for a just-closed D1
+  or H4 bar appears at the **first scan after the close: up to ~2 hours later** (an H4 close is followed by a scan within
+  0–2 h, so on average about an hour). Correction 2026-09-19 — the first draft said "hourly", which understated the
+  delay by half. It is
   not real-time, and nothing here can make it so without changing the scan cadence. This series' right
   edge can lag the sibling cards by up to one bar.
 - **D1 history is short — measured, and it corrects the first draft.** The draft assumed 5000 H1 bars ≈ 208 D1 bars
@@ -554,7 +555,7 @@ input's weekly lag, and the evidence paragraph above in plain words.
 3. **Line colours:** top in `bear` (red), bottom in `bull` (green), an accepted exception to the
    all-white rule on this card — agreed.
 4. **Completed bars only** — agreed, on the condition that it fires on time. §1.2 defines that precisely:
-   the first hourly scan after each D1/H4 close, not real-time.
+   the first scan after each D1/H4 close (scans run every ~2 hours, so up to ~2 h later), not real-time.
 5. **Missing COT:** the footer says "No COT" — agreed.
 6. **H4 alignment: TradingView's** (New York-session blocks), verified against a TradingView screenshot
    — §1.2. Reversed from the earlier "UTC, the app's standard" proposal at Pieter's request, since

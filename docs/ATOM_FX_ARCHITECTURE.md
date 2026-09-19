@@ -441,7 +441,7 @@ New York-session blocks (17/21/01/05/09/13 New York time — TradingView's align
 series use), both with market-closed bars dropped** (the filter `bb_touch._d1_ny_close` and the frozen aggregator lack —
 `BUILD_STATUS.md` outstanding item 18), labelled by NY-close **trading day** (Mon–Fri; the siblings label by the
 session's open date). **Completed bars only:** the last bar is withheld until a later bar exists, or the clock has passed its
-close *and* the H1 bar ending at that close is present — so a just-closed bar appears at the first hourly scan after the
+close *and* the H1 bar ending at that close is present — so a just-closed bar appears at the first scan after the
 close, never earlier. COT is the CFTC **Legacy futures-only Non-Commercial** series (`data/cot_legacy/legacy_nc.csv`,
 refreshed weekly by `scan_cot.py`) — a different report from the TFF one `conviction.py` uses; the two coexist and must not
 be unified. A bar in week *k* reads the report dated the Tuesday of week *k−1* (never later). `cot_ok: false` (no COT for the
