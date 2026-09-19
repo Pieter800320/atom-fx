@@ -781,3 +781,9 @@ pairs) match our raw hourly rows at exactly that offset (0.8-6.8 pips of error v
 misplaced. Consequences for the results: the statistical conclusions concern generic daily and 4-hour candles and are unlikely to hinge on the exact boundary,
 BUT THAT IS NOT VERIFIED. **Before anything is built on Experiments 2-7, re-run the primary tests on correctly converted bars** (convert the hourly labels to
 UTC with `Australia/Sydney` -> UTC, then aggregate). The pre-registered gates would be reused unchanged; this is a data-correctness re-run, not a new hypothesis.
+
+### Status update (2026-09-19 evening)
+The production pipeline now converts Twelvedata's Sydney-time labels to UTC (main, `fx_week_v2`) and reproduces TradingView (5 of 6 Crowd scores exact on Pieter's Data Window readings).
+**The stores in `data/` here are still built on the OLD labels; Experiments 2-7 have NOT been re-run.** To do: rebuild the stores from `data/h1_cache/*_deep_h1.csv` via
+`scanner/extend/fx_week.normalize_frame` (main), rebuild D1 NY-close and H4 NY/UTC bars, and re-run the primary tests with the pre-registered gates unchanged. Also check the port's `adx()`
+against TradingView: on AUDUSD D1 26 Jan 2026 ours is 41.9 vs TradingView 35.8 (GBPUSD/CADJPY within 0.7); Experiments 6-7 used it for the strong-trend shading.
