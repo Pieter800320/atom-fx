@@ -225,10 +225,9 @@ retuning out-of-sample.
   offset accounts for one week. **Narrowed same day:** TradingView's own `COT:099741_F_NCP_L`
   daily chart already showed the 09/15 report (209,000) stamped on 09/15 — the Tuesday as-of
   date — so its feed is fresh and stamps the as-of date, not the release date. The extra week is
-  therefore on the script's side; leading hypothesis is that `close[1]` stacks on top of
-  `lookahead_off`'s own one-bar HTF lag on historical bars (a display-only inaccuracy live, since
-  realtime bars see the developing weekly bar). Being tested with the diagnostic label's
-  "offset test" line (W close vs W close[1]). For a slow 156-week percentile this is
+  therefore on the script's side: `close[1]` stacked on top of `lookahead_off`'s own one-bar HTF
+  lag on historical bars. **Confirmed** by the diagnostic's offset test (plain weekly request
+  198,509 vs the script's `close[1]` 203,477) and fixed the same day — see §4. For a slow 156-week percentile this is
   low-impact live, but it matters for backtest alignment (what was actually known at each bar).
   TradingView's own support documentation describes the full ticker ID format as "somewhat
   complex," which is exactly why TradingView publishes an official `LibraryCOT` Pine library to
@@ -273,11 +272,17 @@ retuning out-of-sample.
 ## 4. No-repaint / no-look-ahead measures
 
 - **`request.security()`** (COT only — there is no other higher-timeframe reference in this
-  script) always uses `lookahead = barmerge.lookahead_off`, and the requested expression itself
-  is offset with `[1]` (i.e. `close[1]` evaluated *inside* the weekly context) — meaning only the
-  **last fully completed and released** weekly COT report is ever read, never a still-forming
-  current week. This is the standard, documented no-repaint pattern for referencing
-  higher-timeframe data from a lower-timeframe chart.
+  script) uses `close[1]` with `lookahead = barmerge.lookahead_on` (changed 2026-09-19, see below)
+  — the standard, documented no-repaint pattern for higher-timeframe data. On every chart bar,
+  historical and live, it returns the **previous completed weekly bar**, never a still-forming
+  current week. `lookahead_on` is only look-ahead-prone *without* the `[1]`; with it, the value
+  returned was already final before the current chart bar's week began.
+  **Why it changed:** the original `close[1]` + `lookahead_off` stacked two one-week lags on
+  historical bars. Verified with the diagnostic label on EURUSD D1 (Sat 2026-09-19): the plain
+  weekly request (`W close`) returned 198,509 (the 09/08 report), while the script's `close[1]`
+  returned 203,477 (the 09/01 report) — one report older than necessary, and TradingView's own
+  feed already held 09/15 (209,000). The new pattern should read 198,509 there. Effect: the script
+  now reads one report fresher than before (still never a report that wasn't public on that bar).
 - **Signals are evaluated on bar close** by default (`Confirm signals on bar close`, on by
   default) — gated via `barstate.isconfirmed`. The confluence score *lines* still update intrabar
   (like any live oscillator plot would), but the top/bottom **flags** (labels + alerts) only fire
@@ -289,7 +294,9 @@ retuning out-of-sample.
   (default 5 bars) keeps a confirmed divergence "active" in the score for a short window
   afterward specifically so it can combine with other same-day factors, not to pretend it fired
   earlier than it did.
-- No `lookahead_on` appears anywhere in the script.
+- `lookahead_on` appears in exactly one place — the COT request above — and always together with
+  the `[1]` offset. (The diagnostic label also requests the previous `lookahead_off` pattern, for
+  comparison only; it never feeds the score.) Before 2026-09-19 no `lookahead_on` existed anywhere.
 
 ---
 
