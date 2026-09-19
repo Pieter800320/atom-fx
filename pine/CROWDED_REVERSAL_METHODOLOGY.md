@@ -281,7 +281,8 @@ retuning out-of-sample.
   historical bars. Verified with the diagnostic label on EURUSD D1 (Sat 2026-09-19): the plain
   weekly request (`W close`) returned 198,509 (the 09/08 report), while the script's `close[1]`
   returned 203,477 (the 09/01 report) — one report older than necessary, and TradingView's own
-  feed already held 09/15 (209,000). The new pattern should read 198,509 there. Effect: the script
+  feed already held 09/15 (209,000). **Verified after the fix (same chart, same day):** the label's offset test read `now=198509`
+(new pattern) vs `previous=203477` (old pattern), as predicted. Effect: the script
   now reads one report fresher than before (still never a report that wasn't public on that bar).
 - **Signals are evaluated on bar close** by default (`Confirm signals on bar close`, on by
   default) — gated via `barstate.isconfirmed`. The confluence score *lines* still update intrabar
