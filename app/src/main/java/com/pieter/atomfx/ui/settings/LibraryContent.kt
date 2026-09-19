@@ -80,14 +80,13 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "wheel-four-wings",
         term = "The Wheel's 4 Wings",
         category = "The Wheel",
-        summary = "The wheel's middle ring always shows the same 12 pairs — the 4 corner wings pick which value fills them: Setup, Trend, Momentum, or Volatility.",
-        howItWorks = "Wedge size is always a magnitude of signal — a bigger wedge always means a stronger reading, on every wing. Colour is the separate channel that carries direction, except on Volatility.\n" +
+        summary = "Four corner wings choose what the wheel's 12 pairs show: Setup, Trend, Momentum or Volatility.",
+        howItWorks = "Wedge size is the strength of the reading: bigger is stronger, on every wing. Colour carries direction, except on Volatility.\n" +
             "Setup: the Continuation Score, cross-timeframe.\n" +
-            "Trend: ADX, fixed at H4 — no D1 or H1 ADX exists.\n" +
-            "Momentum: fixed at H4, 0–100, 50 neutral.\n" +
-            "Volatility: fixed at D1, the ATR percentile.\n" +
-            "Momentum's fill folds around its own neutral point before filling — 0 and 100 are both extremes, not \"none\" and \"max.\" Trend's colour comes from the H4 pill specifically, not the pair's overall direction.",
-        whyItMatters = "Setup, Trend, and Momentum share one green/grey/red traffic light — green bull, red bear, grey neutral. Volatility is its own separate blue/amber system: blue inside its 20–70 sane band, amber outside it — a risk-sizing read, not a directional one. Structure isn't a wing at all: it's event-based, not a magnitude, so it gets its own Overview row and its own alert instead.",
+            "Trend: ADX at H4. No D1 or H1 ADX exists. Colour comes from the H4 pill, not the pair's overall direction.\n" +
+            "Momentum: H4, 0–100, 50 neutral. The fill folds around 50, so 0 and 100 both read as extremes.\n" +
+            "Volatility: the D1 ATR percentile.",
+        whyItMatters = "Setup, Trend and Momentum share one traffic light: green bull, red bear, grey neutral. Volatility uses blue inside 20–70 and amber outside, and says nothing about direction. Structure is an event, not a magnitude, so it has its own Overview row and alert.",
     ),
     LibraryEntry(
         id = "mom1212",
@@ -110,8 +109,12 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         term = "Structure — BOS / CHoCH",
         category = "Momentum & Price Action",
         summary = "Market-structure events built from genuine swing highs/lows, not an indicator.",
-        howItWorks = "Finds swing pivots (a bar strictly higher/lower than several bars on both sides), reads the trend from the last two swings (higher highs + higher lows = bull, the reverse = bear), then classifies the latest close. Breaking beyond the last swing in the trend's own direction is a BOS — continuation. Breaking the opposite way is a CHoCH — a potential reversal warning. A strength score, 0–1, from how far price broke past that swing relative to ATR, scales the pair's technical score up to +30% on a BOS or down to −60% on a CHoCH.",
-        whyItMatters = "The one purely price-action-based signal in the engine — no oscillator, just where price actually broke. A fresh BOS or CHoCH fires a Structure alert. Tap its Notification History card's book icon for the Structure Playbook, the deeper read on what a break implies and where it can mislead. The exact multiplier this produces for a given pair is on the Pair sheet's Breakdown → Structure tab, right below Strength (H4).",
+        howItWorks = "Swing pivot: a bar strictly higher or lower than several bars on both sides.\n" +
+            "Trend: higher highs and higher lows is bull. The reverse is bear.\n" +
+            "BOS: the latest close breaks the last swing in the trend's direction. Continuation.\n" +
+            "CHoCH: it breaks the opposite way. A potential reversal warning.\n" +
+            "Strength, 0–1: how far price broke past the swing, relative to ATR. It scales the technical score up to +30% on a BOS or down to −60% on a CHoCH.",
+        whyItMatters = "The one signal built purely on price action: where price actually broke, with no oscillator. A fresh BOS or CHoCH fires a Structure alert, and its Notification History card opens the Structure Playbook. The multiplier for a pair is on the Pair sheet, Breakdown, Structure.",
     ),
     LibraryEntry(
         id = "adx",
@@ -124,62 +127,71 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "20–25: three-quarters weight.\n" +
             "25+: full weight.\n" +
             "The Continuation Score caps at 45 below ADX 20.",
-        whyItMatters = "ADX measures trend strength, not direction — CSM and pills already cover that. Two pairs can share the same bias and read completely differently here.\n" +
-            "0–24: no real trend.\n" +
-            "25–39: trending.\n" +
-            "40–59: very strong.\n" +
-            "60+: extreme — often exhaustion-prone, not simply \"more is better.\"",
+        whyItMatters = "ADX measures trend strength, not direction. Two pairs can share the same bias and read completely differently here.\n" +
+            "0–24: no real trend\n" +
+            "25–39: trending\n" +
+            "40–59: very strong\n" +
+            "60+: extreme, often exhaustion-prone, not simply \"more is better\"",
     ),
     LibraryEntry(
         id = "five-state-score",
         term = "The 5-State Technical Score",
         category = "Momentum & Price Action",
         summary = "The underlying Strong Buy / Buy / Neutral / Sell / Strong Sell read behind every pill colour.",
-        howItWorks = "Blends an EMA200 trend read, a 3-vote momentum group (EMA50 vs price, DMI, and MACD histogram direction), and a graduated RSI score, then scales the total by ADX strength — below ADX 15 it zeroes out entirely, since there's no real trend to read. A structure multiplier (see BOS/CHoCH) and a same-direction-conflict penalty adjust it further before the five-state label is assigned by regime-specific thresholds.",
-        whyItMatters = "Every pill you see — D1/H4/H1, bull, bull_strong, neutral, bear, bear_strong — comes from this one engine, the single source of truth for \"what does this timeframe think.\" The pair sheet's 3-TF alignment strip is this same read, compacted. Three Strong Buys or three Strong Sells in a row also fires an Alignment alert — tap its book icon for the Alignment Playbook, on why three independently-computed timeframes agreeing is genuine confluence, not circular.",
+        howItWorks = "Three parts:\n" +
+            "An EMA200 trend read.\n" +
+            "A 3-vote momentum group: EMA50 vs price, DMI, and MACD histogram direction.\n" +
+            "A graduated RSI score.\n" +
+            "The total is scaled by ADX strength. Below ADX 15 it is zero.\n" +
+            "A structure multiplier (see BOS / CHoCH) and a same-direction-conflict penalty adjust it. Regime-specific thresholds then assign the five-state label.",
+        whyItMatters = "Every D1, H4 and H1 pill comes from this one engine. The Pair sheet's alignment strip is the same read, compacted. Three Strong Buys or three Strong Sells fire an Alignment alert, whose Playbook explains why three separate timeframes agreeing is real confluence.",
     ),
     LibraryEntry(
         id = "percent-b",
         term = "%B",
         category = "Momentum & Price Action",
-        summary = "Where price sits inside its own Bollinger Bands, on a 0–100 scale — 50 is the middle band, 0 and 100 are the outer bands. Available on D1, H4, H1 and M15.",
-        howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, on standard 20-period ±2σ bands — corrected 2026-09-18, this line used to say 12-period, left over from before the 20-period rework and never fixed. A 20-period average of %B itself is computed alongside it as a signal line, though the glance-panel chart itself no longer draws it (2026-09-18, Pieter's ask, a cleaner single-line read). Currency %B's own chart still draws its own signal line, on 12-period bands.\n" +
-            "A right-aligned word at the bottom of the card (2026-09-18, 4th) answers the real question %B exists to ask, in words rather than a number: \"Stretched high\"/\"Stretched low\" when the reading is at or past the same 10/90 lines the chart itself draws (bear-tinted stretched high, since that reads as due a pullback; bull-tinted stretched low, due a bounce — the same convention band-touch language already uses elsewhere), or \"Normal range\" in between.\n" +
-            "Can read below 0 or above 100: that means price closed outside its own bands, a real and meaningful reading, not an error.\n" +
-            "D1 here closes at 17:00 New York, matching most retail charting platforms — not UTC midnight like the app's other D1 signals — so this reads truer against a live broker chart during a fast move. H4 and H1 use the standard UTC boundaries. M15 runs on its own separate, faster-cadence fetch (~45 min) rather than the app's usual 2h scan, so it can lag the other three timeframes by up to that long, and vice versa.\n" +
-            "Two different %B readings exist in this app, on purpose. This one is the textbook 20-period read, so it matches what any charting platform shows. The Bollinger touch alert runs on 12-period bands instead — a deliberately tighter, more sensitive setting for catching band touches, not a different formula.\n" +
-            "Shown long-press a wheel node: the first of four indicator cards, with one D1/H4/H1/M15 row driving all four.",
+        summary = "Where price sits inside its Bollinger Bands, 0–100. 50 is the middle band; 0 and 100 are the outer bands.",
+        howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, on 20-period ±2σ bands. Below 0 or above 100 means price closed outside its bands: a real reading, not an error. A 20-period average of %B is computed as a signal line but not drawn here.\n" +
+            "Footer word: Stretched high at 90 or above (bear-tinted), Stretched low at 10 or below (bull-tinted), Normal range between.\n" +
+            "D1 closes at 17:00 New York, matching most charting platforms. H4 and H1 use UTC boundaries. M15 comes from a separate fetch about every 45 minutes, so it can lag the others.\n" +
+            "The Bollinger touch alert uses 12-period bands, a tighter setting, not a different formula.\n" +
+            "Shown on long-press of a wheel node: the first of four indicator cards, with one timeframe row driving all four.",
         whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
     ),
     LibraryEntry(
         id = "bandwidth",
         term = "BandWidth",
         category = "Momentum & Price Action",
-        summary = "How wide a pair's Bollinger Bands are, as a percentage of price — a direct read of how volatile it currently is. Available on D1, H4, H1 and M15.",
-        howItWorks = "(upper band − lower band) ÷ middle band × 100, on the same standard 20-period bands %B uses, drawn as a line over time. Rising means the bands are expanding — volatility building; falling means they are converging — the market going quiet.\n" +
-            "The chart has no fixed scale, because there is no universal \"wide\" or \"narrow\": a BandWidth of 1.0 is ordinary on D1 and wide on H1 or M15, and it differs by pair too. The shape is the read, not the absolute number.\n" +
-            "Squeeze marks — amber dots and a shaded column — flag bars where BandWidth is at its lowest in the past 125 bars. That is Bollinger's own published definition of a squeeze, not a level tuned here. A right-aligned state word at the bottom of the card (2026-09-18, 4th, simplified 6th — no legend alongside it any more) answers what BandWidth is actually for: \"Quiet (squeeze)\" when the current bar qualifies, \"Normal\" otherwise — deliberately not a third \"Expanding\" state, since that would need an untuned width-trend threshold this project doesn't have data to set yet.",
-        whyItMatters = "A squeeze says a move is being coiled, not which way it will break — that is what the direction indicators are for. It also changes how to read a band touch: a touch on expanding bands is a breakout already running, and fading it is dangerous; a touch on converging bands is the better reversal candidate.",
+        summary = "Band width as a percentage of price: a direct read of how volatile a pair is now.",
+        howItWorks = "(upper band − lower band) ÷ middle band × 100, on the same 20-period bands as %B. Rising: bands expanding, volatility building. Falling: bands converging, the market going quiet.\n" +
+            "No fixed scale. A BandWidth of 1.0 is ordinary on D1 and wide on H1, and it differs by pair. The shape is the read, not the number.\n" +
+            "Squeeze: amber dots and a shaded column mark bars where BandWidth is the lowest of the past 125 bars. That is Bollinger's own squeeze definition.\n" +
+            "Footer word: Quiet (squeeze) when the current bar qualifies, Normal otherwise. Available on D1, H4, H1 and M15.",
+        whyItMatters = "A squeeze says a move is coiling, not which way it breaks. On expanding bands a touch is a breakout already running, and fading it is dangerous. On converging bands a touch is the better reversal candidate.",
     ),
     LibraryEntry(
         id = "currency-percent-b",
         term = "Currency %B",
         category = "Momentum & Price Action",
-        summary = "Each currency's own %B — how stretched it is against its own recent range, corrected for which side of each pair it's on.",
-        howItWorks = "Averaging every pair's raw %B together doesn't work cleanly: EUR/USD falling means USD is strengthening, but USD/CAD falling means USD is weakening — opposite USD stories. Currency %B fixes this the same way CSM corrects currency strength from a mixed pair set: each pair's %B feeds its base currency directly, and its quote currency mirrored around 100 (since %B is a 0-100 position, not a signed return CSM can just negate). Built on 12-period D1 bands, unlike the pair %B chart's standard 20.\n" +
-            "Shown at the bottom of a currency's own sheet: tap any bar on the Currency Strength strip below the wheel. Same card look as the glance panel's own four (2026-09-18, 2nd) — a black plot area under a grey header reading \"%B (12) <value>\" (the currency code dropped; the sheet's own title already names it), and a grey footer holding the same \"Stretched high\"/\"Stretched low\"/\"Normal range\" state word %B(20) uses (2026-09-18, 4th, right-aligned per Pieter's ask), on its own — the %B/Signal legend that used to sit alongside it is gone (2026-09-18, 6th).",
-        whyItMatters = "A currency-level read — %B stretched high and rolling over, CSM not confirming new strength — only becomes an actual pair-level candidate once you check whether the other leg of a specific pair agrees. Read it next to that currency's own CSM and breadth on the same sheet, then check the pair you have in mind.",
+        summary = "Each currency's own %B: how stretched it is against its own recent range, corrected for its side of each pair.",
+        howItWorks = "Averaging raw pair %B fails: EUR/USD falling means USD is strengthening, but USD/CAD falling means USD is weakening.\n" +
+            "So each pair's %B feeds its base currency directly and its quote currency mirrored around 100, the same idea CSM uses.\n" +
+            "Built on 12-period D1 bands, unlike the pair %B chart's 20.\n" +
+            "Shown on a currency's sheet (tap a bar in the Currency Strength strip): header \"%B (12)\" with the value, footer Stretched high, Stretched low or Normal range.",
+        whyItMatters = "A stretched currency %B with CSM not confirming is only a pair-level candidate once the other leg agrees. Read it beside that currency's CSM and breadth, then check the pair.",
     ),
     LibraryEntry(
         id = "momentum-rsi-macd",
         term = "Momentum — RSI & MACD",
         category = "Momentum & Price Action",
-        summary = "RSI (14) and MACD (12, 26, 9), each its own chart across D1, H4, H1 or M15 — not just the single latest reading the 5-State Score already uses internally.",
-        howItWorks = "Both are the same frozen Wilder-RSI and EMA-MACD the technical score already computes for every pair at every timeframe — this card only keeps a short run of past values instead of throwing them away after scoring, so they can be drawn as a line/histogram rather than read as one number. RSI: 0–100, with a dashed reference-line pair at RSI's own real, industry-standard 30/70 and a 50 centreline — the line visibly crosses these at genuine overbought/oversold extremes, same as any standard RSI chart. (A same-day 2026-09-18 restyle briefly moved these dashed lines to match %B's own 10/90 pixel height for panel-wide visual consistency; reverted the same day, since real RSI rarely swings below 10 or above 90, so the line almost never reached the widened lines on live data — looked like it was ignoring its own thresholds.) The \"Overbought\"/\"Oversold\"/\"Neutral\" state, right-aligned at the bottom of the card, reads this same real 30/70 value. No signal line, since plain RSI doesn't have one. Its own line is plain white now too (was tinted at overbought/oversold; the footer state already carries that read) — this is RSI and %B's shared question, \"is this stretched or normal right now,\" just measured by momentum instead of position-in-band. MACD: the histogram (MACD line minus signal line) as bars, tinted by sign, with the MACD and signal lines themselves overlaid — the histogram gets its own vertical scale, independent of the MACD/signal lines, since a histogram (a difference of two similarly-sized series) is mathematically much smaller than either line on its own and would otherwise read flat.\n" +
-            "D1 specifically is built on the same 17:00-New-York session close the %B chart already uses (not the UTC-midnight day every other D1 signal in this app reads) — so it lines up with a retail platform's own D1 close, the same fix already applied to %B once. H4/H1 use the frozen aggregator's own UTC-boundary bars; a small remaining gap against any one specific broker's own H4/H1 candles is a different-data-vendor basis difference, not a bug. M15 is fetched entirely separately, on its own faster (~45 min) cadence, rather than the app's usual 2h scan — it can be fresher than D1/H4/H1, or briefly lag them, depending on when each last ran.\n" +
-            "MACD asks a genuinely different question from the other three cards (2026-09-18, 4th) — not \"is this stretched,\" but \"which way is momentum pointing, and is it building or fading.\" Its own footer answers that directly: \"Bullish\"/\"Bearish\" from the histogram's own sign (the same colour the bars are already tinted), plus \"building\" or \"fading\" from whether the histogram's distance from zero grew or shrank versus the previous bar — a plain comparison, not a tuned threshold. A fresh bullish/bearish cross (the histogram's sign itself flipping) always reads \"building,\" regardless of the two bars' relative size — comparing magnitudes across a zero-crossing isn't a meaningful \"grew or shrank\" (bug fixed 2026-09-18, audit). Right-aligned at the bottom of the card, on its own (2026-09-18, 6th) — the Signal/Histogram legend that used to sit alongside it is gone.\n" +
-            "Shown long-press a wheel node: the third and fourth of four indicator cards, below %B and BandWidth, with one full-width D1/H4/H1/M15 row driving all four together. Each chart also shows its own date labels along the bottom.",
-        whyItMatters = "RSI ≥70 or ≤30 reads as a bull/bear tilt the same way a %B band touch does — stretched, due to revert, not automatically \"trend over.\" MACD's histogram crossing zero is the earliest read of a momentum shift, before price itself confirms it. Reading them as a shape over time, not a single number, shows whether a stretched reading is fresh or already fading.",
+        summary = "RSI (14) and MACD (12, 26, 9) as charts over time, not just the latest reading.",
+        howItWorks = "RSI and MACD are the same values the technical score already computes. The card keeps a run of past values so they can be drawn.\n" +
+            "RSI: 0–100, dashed lines at 30 and 70, centre line at 50, no signal line. Footer word: Overbought, Oversold or Neutral, read at the same 30 and 70.\n" +
+            "MACD: the histogram (MACD line minus signal line) as bars tinted by sign, with the MACD and signal lines over it. The histogram has its own vertical scale, because it is far smaller than either line.\n" +
+            "MACD footer: Bullish or Bearish from the histogram's sign, plus building or fading from whether its distance from zero grew or shrank versus the previous bar. A sign flip always reads building.\n" +
+            "D1 closes at 17:00 New York, as in %B. H4 and H1 use UTC boundaries, so a small gap to one broker's candles is a data-vendor difference. M15 comes from a separate fetch about every 45 minutes.\n" +
+            "Shown on long-press of a wheel node: the third and fourth of four indicator cards.",
+        whyItMatters = "RSI at 70 or above, or 30 or below, is a stretch, like a %B band touch: due to revert, not automatically a trend ending. A MACD histogram crossing zero is the earliest sign of a momentum shift.",
     ),
     // Crowd score (Signals Roadmap §5c) — the evidence paragraph in whyItMatters is deliberate and must stay:
     // the score is context, and the studies behind it (docs/RESEARCH_LOG.md, research branch, Experiments 2-5)
@@ -188,24 +200,20 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "crowd-score",
         term = "Crowd score",
         category = "Momentum & Price Action",
-        summary = "How many stretch and crowding conditions line up on one side of a pair right now, 0–100. Context, not a signal.",
-        howItWorks = "Two scores, each 0–100. Crowd top: price stretched up and crowded long. Crowd bottom: the mirror.\n" +
-            "Eight conditions add points:\n" +
+        summary = "How many stretch and crowding conditions line up on one side of a pair, 0–100. Context, not a signal.",
+        howItWorks = "Two scores, 0–100. Crowd top: price stretched up and crowded long. Crowd bottom: the mirror. Conditions add points:\n" +
             "Price beyond its 20-period Bollinger band: 10\n" +
             "Z-score of 2 or more: 8\n" +
             "3 or more ATRs from the 50-period average: 7\n" +
             "RSI beyond 70 or 30: 12, plus 3 beyond 80 or 20\n" +
-            "Divergence between price and RSI: 25\n" +
+            "Price and RSI diverging: 25\n" +
             "A volatility spike through the band: 10\n" +
             "Speculators at a three-year extreme in the weekly COT report: 25\n" +
-            "The dashed line is 60. At or above it the footer reads Crowded top or Crowded bottom. If both sides reach it, Mixed.\n" +
-            "COT arrives weekly and lags by about a week. \"No COT\" means it is unavailable, so the score is capped at 75.\n" +
-            "Shown long-press a wheel node, below MACD, on D1 and H4 only. D1 bars close at 17:00 New York time. H4 bars follow TradingView's New York-session alignment, so they start one or two hours away from the H4 bars on the cards above. Only completed bars are scored, so a bar appears at the first scan after it closes.\n" +
-            "Alerts are off by default (Settings, Notifications). One fires when a score rises into a higher band on a completed bar:\n" +
-            "Bands: 1–19, 20–39, 40–59, 60+\n" +
-            "You choose a minimum level for D1 and for H4: Any, 20, 40 or 60.\n" +
-            "Each alert names the pair, timeframe, side, level and the conditions that are on. Across all 12 pairs and both sides, roughly: D1 at 40, one alert every two weeks. H4 at 40, one a day. H4 at Any, several a day.",
-        whyItMatters = "Testing found a small tendency for reversals to become more likely as the D1 score rises in 2021–2026. It did not appear in 2009–2020 or on H4, and flagged bars did not reach the previous support or resistance more often. Read it as context on how stretched a pair is, never as a prediction or an entry.",
+            "The dashed line is 60. At or above it the footer reads Crowded top or Crowded bottom. Both sides at 60: Mixed.\n" +
+            "COT lags about a week. \"No COT\" means it is unavailable, and the score caps at 75.\n" +
+            "Shown on long-press of a wheel node, below MACD, on D1 and H4 only. D1 closes at 17:00 New York. H4 follows TradingView's New York-session blocks. Only completed bars count.\n" +
+            "Alerts (Settings, off by default) fire when a score rises into a higher band: 1–19, 20–39, 40–59, 60+. Choose a minimum for D1 and for H4: Any, 20, 40 or 60.",
+        whyItMatters = "In 2021–2026 testing, reversals became slightly more likely as the D1 score rose. That did not hold in 2009–2020 or on H4, and flagged bars did not reach the previous support or resistance more often. Context, never a prediction or an entry.",
     ),
     LibraryEntry(
         id = "csm",
@@ -223,8 +231,8 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         term = "CSM Delta",
         category = "Currency Strength",
         summary = "How much a currency's CSM has moved over a defined lookback — \"getting stronger\" vs \"strong.\"",
-        howItWorks = "Recomputes CSM on a price history sliced back by a fixed offset — about a day for D1/H4, six hours for H1 — using the exact same CSM function, then subtracts: now minus then.",
-        whyItMatters = "CSM gives a level; Delta gives a direction of travel — together they separate a currency that's strong-and-fading from one that's strong-and-accelerating. The Currency Strength strip's Strength/Flow toggle switches which one it plots: Strength shows level bars; Flow replaces the chart with a diverging view off a zero-line, sized by Delta.",
+        howItWorks = "Recomputes CSM on price history sliced back by a fixed offset (about a day for D1 and H4, six hours for H1), using the same CSM function, then subtracts: now minus then.",
+        whyItMatters = "CSM gives the level. Delta gives the direction of travel, separating strong-and-fading from strong-and-accelerating. On the Currency Strength strip, Strength plots level bars and Flow plots a diverging view off zero, sized by Delta.",
     ),
     LibraryEntry(
         id = "currency-flow",
@@ -232,19 +240,19 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Currency Strength",
         summary = "The fastest-moving currencies right now, by CSM Delta — not the strongest/weakest in absolute terms.",
         howItWorks = "Leader is the currency with the highest H4 CSM Delta; laggard is the lowest. Absolute leader/laggard is a separate, simpler read: whichever currency has the highest or lowest raw CSM level right now, regardless of how fast it's moving.",
-        whyItMatters = "A currency can be an absolute laggard — weak — while still being the flow leader, getting less weak fastest. The two numbers answer different questions and stay separate on purpose. This lives in the Currency Strength strip's own Flow view, per currency.",
+        whyItMatters = "A currency can be an absolute laggard yet the flow leader: weak, but getting less weak fastest. The two reads answer different questions and stay separate. Both live in the Currency Strength strip's Flow view, per currency.",
     ),
     LibraryEntry(
         id = "breadth",
         term = "Breadth",
         category = "Currency Strength",
-        summary = "The share of a currency's 18-pair relationships that agree with its net direction — proof a move isn't just one pair.",
-        howItWorks = "Each currency appears in a different number of the 18 CSM pairs: USD 7, JPY 6, AUD 5, GBP 5, EUR 4, CHF/CAD/NZD 3 each. Breadth is how many of those relationships point the same way as the currency's own net direction, divided by how many it appears in at all — always a percentage, never a raw count, since the totals differ per currency.\n" +
+        summary = "The share of a currency's pair relationships that agree with its net direction. A move is not just one pair.",
+        howItWorks = "Each currency appears in a different number of the 18 CSM pairs: USD 7, JPY 6, AUD 5, GBP 5, EUR 4, CHF, CAD and NZD 3 each. Breadth is how many of those relationships point the same way as the currency's net direction, divided by how many it appears in. It is always a percentage, never a raw count.\n" +
             "70% or above: strong.\n" +
             "50–69%: moderate.\n" +
             "Below 50%: weak.\n" +
-            "This is a confidence read, not a direction read — it says how unanimous the agreement is, not which way. A currency can be strong-and-weakening just as easily as strong-and-strengthening; the app shows the actual direction as its own word (strengthening/weakening/flat) alongside the confidence band, not instead of it.",
-        whyItMatters = "The difference between \"EUR is strong\" — broad, real — and \"EUR is strong against JPY\" — one relationship, which could be a JPY story, not a EUR one. Also the difference between \"broadly agreed\" and \"broadly agreed to be rising\" — a currency's pairs can unanimously confirm it's weakening just as easily as strengthening.",
+            "Breadth is confidence, not direction. The app shows direction as its own word (strengthening, weakening, flat) beside the band.",
+        whyItMatters = "The difference between \"EUR is strong\" (broad) and \"EUR is strong against JPY\" (one relationship, possibly a JPY story). A currency's pairs can agree it is weakening just as easily as strengthening.",
     ),
     LibraryEntry(
         id = "setup-rank",
@@ -283,20 +291,24 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Setup Quality",
         summary = "0–100. Where today's volatility (ATR) ranks against the last 52 bars.",
         howItWorks = "A straight percentile rank — what share of the last 52 ATR readings sit below today's.",
-        whyItMatters = "Below roughly 20: the market's too quiet to trust a breakout. Above 70: you might be entering into a volatility spike. 20–70 is the app's own sane entry band. Crossing 90 fires a Volatility alert — tap its book icon for the Volatility Playbook, on why an expansion is a risk-sizing signal first, an opportunity signal second. Also the wheel's Volatility wing and the pair sheet's Overview Volatility row — same field, same band, surfaced in two more places. Reads as a risk-sizing gate, not a fourth vote on direction: \"grey/neutral\" here means conditions are sane for whatever the other wings already suggest, not a buy signal on its own.",
+        whyItMatters = "20–70 is the app's entry band. Below about 20 the market is too quiet to trust a breakout. Above 70 you may be entering a volatility spike.\n" +
+            "It gates risk, not direction: grey means conditions are sane, not a buy.\n" +
+            "Crossing 90 fires a Volatility alert.",
     ),
     LibraryEntry(
         id = "h4-regime",
         term = "D1 Structural Regime",
         category = "Regime & Macro",
         summary = "Risk-On / Risk-Off / Mixed / Ranging — the app's read of the whole market's current mood.",
-        howItWorks = "Four votes are cast:\n" +
-            "Safe-havens JPY/CHF vs risk currencies AUD/NZD/CAD, by CSM.\n" +
-            "USD vs the rest of the majors (EUR/GBP/AUD/NZD/CAD), by CSM.\n" +
+        howItWorks = "Three votes and an override:\n" +
+            "Safe-havens JPY and CHF vs risk currencies AUD, NZD and CAD, by CSM.\n" +
+            "USD vs the rest of the majors (EUR, GBP, AUD, NZD, CAD), by CSM.\n" +
             "Pill direction across the same commodity-bloc pairs as vote 1.\n" +
-            "A ranging override — forces Ranging outright if fewer than 40% of all 12 pairs have any directional pill at all.\n" +
-            "Two or more votes agreeing wins. All three agreeing: High confidence. Two: Medium. No majority: Mixed. Votes 1 and 2 are forced to Mixed rather than trusted when a timeframe's underlying CSM spread ranks unusually thin against its own recent history — a signal that a CSM gap that scan is more likely rescaling noise than a real read. The same classifier also runs at H4 and H1, shown side by side on the Regime sheet; D1 is the wheel's own headline read.",
-        whyItMatters = "This is the regime shown at the wheel's hub, and it gates Factor 1 — nothing passes Regime under a Mixed or Ranging backdrop. Tap the Regime sheet's book icon for the Regime Playbook — the deeper per-regime read, and how this technical read relates to the Macro Archetype and to Gold Signal's own confirmation gate.",
+            "Ranging override: forces Ranging if fewer than 40% of the 12 pairs have any directional pill.\n" +
+            "Two or more votes agreeing wins. All three: High confidence. Two: Medium. No majority: Mixed.\n" +
+            "Votes 1 and 2 become Mixed when a timeframe's CSM spread ranks unusually thin against its own recent history, since that gap is more likely rescaling noise than a real read.\n" +
+            "The same classifier also runs at H4 and H1, side by side on the Regime sheet. D1 is the wheel's headline read.",
+        whyItMatters = "This is the regime at the wheel's hub, and it gates Factor 1: nothing passes Regime under a Mixed or Ranging backdrop. The Regime sheet's Playbook covers each regime and how it relates to the Macro Archetype and Gold Signal's confirmation gate.",
     ),
     LibraryEntry(
         id = "macro-archetype",
@@ -308,20 +320,20 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "2: Medium.\n" +
             "1 or fewer: Low.\n" +
             "Liquidity Shock is always capped at Low. Axes read on a 5-session basis, so the pick doesn't flip on one ordinary day — a sudden VIX spike is the one exception, read off today's move alone, since a real shock is a today event a 5-day average would smooth away.",
-        whyItMatters = "The anti-double-counting discipline the Macro screen is built on: ten raw instruments collapse to five real, independent pieces of evidence. The archetype persists for days rather than flipping on ordinary daily noise, which is what makes the archetype-change push notification worth reading when it fires.",
+        whyItMatters = "Ten raw instruments collapse to five independent pieces of evidence, so correlated moves are not counted twice. The archetype persists for days, which makes an archetype-change alert worth reading.",
     ),
     LibraryEntry(
         id = "evidence-axis",
         term = "Evidence Axis",
         category = "Regime & Macro",
-        summary = "One of five buckets — Risk, Rates, USD, Commodity, Safe-haven — that groups correlated cross-asset signals so they're only counted once.",
+        summary = "One of five buckets (Risk, Rates, USD, Commodity, Safe-haven) that group correlated cross-asset signals so each is counted once.",
         howItWorks = "Risk: the net of SPX/VIX/Copper/BTC direction.\n" +
             "Rates: US10Y and US3M direction.\n" +
             "USD: DXY direction alone.\n" +
             "Commodity: WTI or Copper direction.\n" +
             "Safe-haven: Gold direction.\n" +
             "Each axis also carries a same-day read: today confirms this trend, today is fighting this trend, or no fresh move today.",
-        whyItMatters = "Without axis grouping, a single risk-off move could look like four or five \"independent\" confirmations just because VIX, SPX, Copper, and BTC all move together. The confirm/fight/quiet tag turns Evidence into an actual decision cue: is today's price action backing the story, or just the story alone.",
+        whyItMatters = "Without grouping, one risk-off move looks like four independent confirmations, because VIX, SPX, Copper and BTC move together. The confirm, fight or quiet tag shows whether today's price action backs the story.",
     ),
     LibraryEntry(
         id = "gold-overlay",
@@ -343,7 +355,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "cross-assets",
         term = "Cross-Asset Instruments",
         category = "Cross-Asset & Correlation",
-        summary = "10 non-FX instruments the app watches for macro context: VIX, US10Y, US3M, the 10Y–3M curve, DXY, Gold, S&P 500, Copper, WTI, Bitcoin.",
+        summary = "The 10 non-FX instruments behind macro context: VIX, US10Y, US3M, the 10Y–3M curve, DXY, Gold, S&P 500, Copper, WTI, Bitcoin.",
         howItWorks = "Each gets a direction (up/down/flat) and a percentage or basis-point change over its window — the raw material every evidence axis and every archetype signature is built from. In the Cross-Assets sheet, an instrument whose Evidence Axis currently supports the regime gets \"confirms regime\" appended to its caption — a plain-text read of the same axis data, not a separate calculation.",
         whyItMatters = "The backbone of the Macro screen and the Cross-Assets sheet. \"Confirms regime\" is the fastest way to see, instrument by instrument, which moves are actually backing the regime you're trading and which are just noise.",
     ),
@@ -361,22 +373,27 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Alerts & Recommendation",
         summary = "An alert that fires when gold's move and the market regime line up in a specific way.",
         howItWorks = "Fires bearish when gold is falling and the H4 regime is Risk-Off; bullish when gold is rising and the H4 regime is Risk-On. It also checks whether the H1 regime independently agrees, as a secondary confirmation flag.",
-        whyItMatters = "One of the app's push notification types, alongside state-transition alerts — a live, regime-aware gold read rather than a bare price alert. Tap a Gold Signal notification's book icon for the Gold Signal Playbook — what the Technical Regime gate is and isn't confirming, and the specific case where gold's own safe-haven behaviour can invert.",
+        whyItMatters = "One of the push alert types: a regime-aware gold read, not a bare price alert. Its Notification History card opens the Gold Signal Playbook: what the Technical Regime gate does and does not confirm, and when gold's safe-haven behaviour can invert.",
     ),
     LibraryEntry(
         id = "recommendation-engine",
         term = "Recommendation Engine",
         category = "Alerts & Recommendation",
-        summary = "The AI-narrated headline trade idea (Insights) and, on Home, one small glyph per ranked setup — deterministic picks, AI only writing Insights' own explanation.",
-        howItWorks = "A fully deterministic \"seed\" picks the bias, action, primary pair, direction, confidence, and next catalyst from data already in signals.json — no model is involved in that decision. An optional AI call then writes the human-readable headline, rationale, and invalidation text around that seed; if the model's wording ever contradicted the seed, the seed wins. If the AI call fails, no recommendation is published at all, rather than showing something half-written.",
-        whyItMatters = "The pair, direction, and confidence are a real signal; the prose around them is commentary on that signal, not a separate one. Insights shows the full AI-narrated version — headline, rationale, invalidation, next catalyst — on its own slower cadence. Home shows a different, related list instead: one small glyph per pair scoring 6.5 or higher on the app's own ranking scale (0-10) — no fixed count, so it can be one pair, several, or none, depending on how many setups genuinely clear that bar this scan. Tapping a glyph opens a panel with that pair's direction, its Setup Score, and its Regime/Trend/Momentum/Volatility/Structure consensus — never the AI text, and refreshed every hourly scan since no model call is involved. A Recommendation alert (its own Settings toggle) pushes the moment this hourly-refreshed list actually changes — a pair newly qualifying for it, or one already on it flipping direction — never for the same pairs holding steady scan to scan.",
+        summary = "Insights' AI-narrated headline trade idea, and Home's glyph per ranked setup. Picks are deterministic; AI only writes the words.",
+        howItWorks = "A deterministic seed picks bias, action, primary pair, direction, confidence and next catalyst from signals.json. No model decides.\n" +
+            "On Insights, an optional AI call writes the headline, rationale and invalidation around that seed. If its wording contradicts the seed, the seed wins. If the call fails, nothing is published.\n" +
+            "On Home, one glyph per pair scoring 6.5 or higher on the 0–10 ranking scale. There is no fixed count: one pair, several, or none. It refreshes every hourly scan, with no model call.\n" +
+            "Tapping a glyph shows the pair's direction, Setup Score, and Regime, Trend, Momentum, Volatility and Structure consensus. Never AI text.\n" +
+            "A Recommendation alert (its own Settings toggle) fires when a pair newly qualifies or a listed pair flips direction. Never for pairs holding steady.",
+        whyItMatters = "The pair, direction and confidence are the signal. The prose around them is commentary on it, not a separate signal.",
     ),
     LibraryEntry(
         id = "level-ema-alerts",
         term = "Level & EMA Alerts",
         category = "Alerts & Recommendation",
         summary = "A user-configured price-level alert type, separate from the Gold Signal — currently greyed out in Settings, not yet available.",
-        howItWorks = "Level alerts would fire when price crosses a user-set level, read from a file nothing on-device writes yet — the on-device \"set alert\" flow doesn't exist. The Settings toggle is greyed out rather than presented as live. EMA touch alerts — price touching its own H4 EMA200/EMA50 — are inactive the same way: the calculation still exists, but nothing calls it.",
+        howItWorks = "Level alerts would fire when price crosses a user-set level, read from a file nothing on-device writes yet, because the on-device set-alert flow does not exist. The Settings toggle is greyed out for that reason.\n" +
+            "EMA touch alerts (price touching its H4 EMA200 or EMA50) are inactive the same way: the calculation exists, but nothing calls it.",
         whyItMatters = "Kept, not removed, for when an on-device \"set alert\" row ships — at which point this becomes a real, live alert type.",
     ),
     LibraryEntry(
@@ -385,30 +402,30 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         category = "Regime & Macro",
         summary = "A −100..+100 per-currency crowding read from free CFTC positioning data, updated weekly, not hourly.",
         howItWorks = "Six inputs blend into one score:\n" +
-            "CFTC leveraged-fund positioning — a 52-week percentile, contrarian at extremes: deeply crowded long is bearish, deeply crowded short is bullish.\n" +
-            "Open-interest momentum — is new money entering with the trend.\n" +
-            "Asset-manager-vs-leveraged-fund alignment — structural vs tactical agreement.\n" +
+            "CFTC leveraged-fund positioning: a 52-week percentile, contrarian at extremes. Deeply crowded long is bearish, deeply crowded short is bullish.\n" +
+            "Open-interest momentum: is new money entering with the trend.\n" +
+            "Asset-manager vs leveraged-fund alignment: structural vs tactical agreement.\n" +
             "A CSM extreme read, contrarian.\n" +
-            "An extension read — how many of the currency's pairs are overextended in its own direction.\n" +
+            "An extension read: how many of the currency's pairs are overextended in its own direction.\n" +
             "A breadth read.\n" +
-            "EWMA-smoothed week to week so it doesn't flicker. CFTC data publishes Fridays covering the prior Tuesday, so this is always a few days old by nature — a positioning overlay, not a live signal.",
-        whyItMatters = "Positioning shows who's already in a trade, which price action alone can't — a currency can look technically strong while positioning is dangerously crowded, or wobbly while positioning is actually clean. A reading of 80 or beyond either way is a Conviction Extreme, shown on the Currency Detail sheet, and crossing that line fires a Positioning alert — tap its book icon for the Positioning Playbook, on why an extreme reading is usually the opposite of naive crowding logic. If CFTC data goes stale, the three COT-derived inputs drop out, the score becomes technical-only, and the Extreme alert's own threshold adapts to 40 — marked \"technical only — COT data unavailable\" so it's never mistaken for a fully positioning-confirmed extreme.",
+            "The score is EWMA-smoothed week to week so it does not flicker. CFTC data publishes Fridays for the prior Tuesday, so it is always a few days old: a positioning overlay, not a live signal.\n" +
+            "80 or beyond either way is a Conviction Extreme, shown on the Currency Detail sheet. Crossing it fires a Positioning alert; its Playbook explains why an extreme reading is usually the opposite of naive crowding logic.\n" +
+            "If CFTC data goes stale, the three COT-derived inputs drop out and the score becomes technical-only. The Extreme threshold then adapts to 40, and the alert is marked \"technical only, COT data unavailable\".",
+        whyItMatters = "Positioning shows who is already in a trade, which price action alone cannot. A currency can look technically strong while positioning is dangerously crowded, or wobbly while positioning is clean.",
     ),
     LibraryEntry(
         id = "state-transition-alerts",
         term = "State-Transition Alerts",
         category = "Alerts & Recommendation",
-        summary = "Five push alerts that fire the moment something changes, never for a condition that's merely still true.",
-        howItWorks = "Each compares this scan's value against last scan's, on the app's own hourly cadence:\n" +
-            "Structure — a pair's H4 structure newly reads a fresh BOS or CHoCH.\n" +
-            "Regime — the H4 regime flips, or the Macro Archetype changes.\n" +
-            "Volatility — a pair's ATR percentile newly crosses 90.\n" +
-            "Alignment — a pair's D1/H4/H1 pills newly all agree at Strong Buy or Strong Sell.\n" +
-            "The very first scan after a fresh install can't fire anything — there's nothing yet to compare against.\n" +
-            "(A sixth, Setup — a pair's Continuation Score newly crossing 45 — was retired 2026-09-17: it was " +
-            "strictly weaker, single-factor evidence for the same \"this pair just got interesting\" story the " +
-            "Recommendation Engine's own alert already tells with the full weighted score.)",
-        whyItMatters = "Edge-triggered, not level-triggered, on purpose: an alert that re-fires every hour for a condition that hasn't moved just trains you to ignore the channel. Each has its own Settings toggle. All four carry a book icon on their Notification History card, opening a Playbook — the deeper theory behind that specific firing, not just the one-line \"what to consider\" text every alert already has.",
+        summary = "Push alerts that fire the moment something changes, never for a condition that is merely still true.",
+        howItWorks = "Each compares this scan with the last one, on the hourly scan:\n" +
+            "Structure: a pair's H4 structure newly reads a BOS or CHoCH.\n" +
+            "Regime: the D1 regime flips, or the Macro Archetype changes.\n" +
+            "Volatility: a pair's ATR percentile newly crosses 90.\n" +
+            "Alignment: a pair's D1, H4 and H1 pills newly all read Strong Buy or Strong Sell.\n" +
+            "The first scan after a fresh install fires nothing: there is nothing to compare against.\n" +
+            "BB touch, Recommendation, Crowd score, Positioning and Gold Signal have their own entries.",
+        whyItMatters = "Edge-triggered on purpose: an alert that re-fires every hour for an unchanged condition trains you to ignore the channel. Each has its own Settings toggle. Their Notification History cards open a Playbook with the theory behind that firing.",
     ),
     LibraryEntry(
         id = "bb_reversal_criteria",
@@ -422,8 +439,10 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         id = "trading-sessions",
         term = "Trading Sessions",
         category = "Market Hours",
-        summary = "When the four major FX centres — Sydney, Tokyo, London, New York — are open, in your own device's local time.",
-        howItWorks = "Each session is a fixed local-hours convention (Sydney 07:00-16:00, Tokyo 09:00-18:00, London 08:00-17:00, New York 08:00-17:00, each in that city's own time) computed off the real timezone of that city, not a fixed UTC offset — so London/New York's daylight saving and Tokyo's total lack of it are both handled correctly, year-round, without drifting. This is a pure clock feature: no signals.json field backs it, nothing here is a trading calculation.",
-        whyItMatters = "London-New York and Tokyo-London overlaps are this app's own header-dot trigger — the two windows each day when two sessions are open at once, historically the highest-volume, highest-volatility stretches. A single session being open doesn't light the dot (some session is open most of the day regardless, so that alone wouldn't mean much) — only an overlap does. Tap the header clock for the full breakdown: a 24h rolling timeline, exact open/close times, and a live countdown per session.",
+        summary = "When the four major FX centres (Sydney, Tokyo, London, New York) are open, in your device's local time.",
+        howItWorks = "Sydney 07:00–16:00, Tokyo 09:00–18:00, London 08:00–17:00, New York 08:00–17:00, each in that city's own time.\n" +
+            "Computed from each city's real timezone, not a fixed UTC offset, so daylight saving is handled all year.\n" +
+            "A pure clock feature: no signals.json field backs it, and nothing here is a trading calculation.",
+        whyItMatters = "London–New York and Tokyo–London overlaps light the header dot: two sessions open at once, historically the highest-volume, highest-volatility stretches. One open session does not light it. Tap the header clock for a timeline and per-session countdown.",
     ),
 )
