@@ -141,12 +141,15 @@ def test_prepared_bars_contain_no_flat_closed_market_days():
 
 
 # ── the wiring ───────────────────────────────────────────────────────────────────
-def test_scan_h1_is_wired_to_fx_week_and_marks_its_output():
-    import scanner.scan_h1 as scan
-    assert scan._fx_week is fw                                                # the guarded import succeeded
-    src = open(scan.__file__, encoding="utf-8").read()
-    assert "_fx_week.prepare_h1(key, df, use_store=(pair in PAIRS))" in src   # the fetch loop hands the pipeline prepared bars
-    assert '"bars_convention"' in src and "_migration_scan" in src            # marker + one-scan alert guard present
+def test_scan_h1_and_m15_have_fx_week_switched_off_until_timestamps_are_true_utc():
+    """KILL SWITCH (2026-09-19): Twelvedata's hourly timestamps are Sydney local time, not UTC, so this module's
+    New-York/UTC week rule would drop real Friday trading. It must stay OFF in the scans until it converts to UTC first."""
+    import scanner.scan_h1 as h1
+    import scanner.scan_m15 as m15
+    assert h1._FX_WEEK_ENABLED is False and h1._fx_week is None
+    assert m15._FX_WEEK_ENABLED is False and m15._fx_week is None
+    src = open(h1.__file__, encoding="utf-8").read()
+    assert '"bars_convention": (_fx_week.BARS_CONVENTION if _fx_week is not None else "raw")' in src   # writes "raw" while off
 
 
 if __name__ == "__main__":
