@@ -277,6 +277,7 @@ def main():
             try:
                 shifted = build_tfs(_fx_week.to_trading_clock(h1_df))
                 tfs["d1"], tfs["h4"] = shifted["d1"], shifted["h4"]
+                tfs["d1"].attrs["clock"] = tfs["h4"].attrs["clock"] = "ny"      # tf_dates / series modules follow the same clock for their date labels
             except Exception as _tc_err:                    # noqa: BLE001 — never break a scan: fall back to the UTC-clock frames
                 print(f"  ⚠ {key}: trading-clock aggregation failed ({type(_tc_err).__name__}: {_tc_err}) — UTC-clock D1/H4 kept")
         ohlcv[key] = tfs

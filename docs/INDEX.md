@@ -258,3 +258,5 @@ needs its own verification, not just a citation.
 - 2026-09-19 (10th) — **Uniform clock: the frozen engine's D1/H4 now use the New York trading clock (17:00-NY close D1, NY-session H4 = TradingView's), `fx_week_v3`.** Same first migration scan as the UTC fix. No frozen file edited (`fx_week.to_trading_clock` re-labels the rows the frozen aggregator sees). Also removes weekly stub candles. `BUILD_STATUS.md` item 18.
 
 - 2026-09-19 (11th) — **First live scan under `fx_week_v3` verified** (marker, 90/90 crowd points on all 12 pairs, no alert burst, store unchanged). `BUILD_STATUS.md` item 18.
+
+- 2026-09-19 (12th) — **Fixed: 4-hour chart dates were empty after the uniform-clock change** (`tf_dates.h4_dates` now follows the New York clock; regression test). `BUILD_STATUS.md` item 18.

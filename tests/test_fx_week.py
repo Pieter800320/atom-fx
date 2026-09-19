@@ -212,6 +212,18 @@ def test_the_frozen_aggregator_on_the_trading_clock_has_no_stub_candles():
     assert len(ny["h4"]) == 60
 
 
+def test_h4_chart_dates_follow_the_trading_clock_frames():
+    """Regression (2026-09-19): after the H4 frame moved to the New York clock, tf_dates still floored on UTC blocks, the row counts
+    stopped matching, and the app's 4-hour charts lost their dates. With trading_clock=True the recovered dates line up row for row."""
+    from scanner.extend import tf_dates
+    week = fw.drop_closed(_h1("2026-06-07 00:00", "2026-06-21 00:00"))
+    frozen = build_tfs(fw.to_trading_clock(week))["h4"]
+    dates = tf_dates.h4_dates(week, trading_clock=True)
+    assert len(dates) == len(frozen) == 60
+    assert set(pd.to_datetime(dates).dt.dayofweek) <= {0, 1, 2, 3, 4}               # trading days only: no Saturday/Sunday labels
+    assert len(tf_dates.h4_dates(week)) != len(frozen)                            # the old UTC floor no longer lines up (the bug)
+
+
 if __name__ == "__main__":
     import sys
     import pytest
