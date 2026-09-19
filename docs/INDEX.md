@@ -237,3 +237,10 @@ needs its own verification, not just a citation.
   ChartSheet `CrowdScoreCard`. Verified on a physical device with all five footer states, D1/H4 shown and H1/M15 hidden,
   dark and light. Docs synced: `ARCHITECTURE.md` §4.2, `DESIGN.md` §19.4b, `GLOSSARY.md`, `BUILD_STATUS.md`, `LibraryContent.kt`,
   roadmap §5c. Measured along the way: D1 yields ~50 points, not 90 (weekend bars use ~29% of the fetched depth).
+
+- 2026-09-19 (4th) — **Real-FX-week bars: BUILD_STATUS item 18 fixed, with Pieter's explicit sign-off for the frozen-number
+  change** (`scanner/FROZEN.md` and `ARCHITECTURE.md` §2 carry the paper trail). New `scanner/extend/fx_week.py` drops
+  Twelvedata's market-closed weekend rows before anything is built and keeps a persistent H1 history (`data/h1_history/`) so the
+  frozen D1 scorer keeps its >= 210 bars with no extra API credits; `scan_h1.py`'s fetch loop, `scan_m15.py` and `scan_cot.py`
+  were touched at their call-sites only, plus a one-scan migration guard. Also corrected: `scan_h1` runs every ~2 hours, not
+  hourly (roadmap §5c, architecture §4.2).

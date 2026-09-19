@@ -57,12 +57,9 @@ BARS_PER_WEEK = 5                                         # Mon-Fri calendar, as
 # ----------------------------------------------------------------------------------------
 # BARS
 # ----------------------------------------------------------------------------------------
-def within_fx_week(ny_naive: pd.DatetimeIndex) -> np.ndarray:
-    """True for bars inside the real FX week [Sunday 17:00 ET, Friday 17:00 ET). ny_naive: tz-dropped
-    America/New_York wall-clock times."""
-    wd, hr = ny_naive.weekday, ny_naive.hour
-    closed = (wd == 5) | ((wd == 6) & (hr < NY_CLOSE_HOUR)) | ((wd == 4) & (hr >= NY_CLOSE_HOUR))
-    return ~np.asarray(closed)
+# The rule itself lives in fx_week.py (the fix for BUILD_STATUS item 18) — ONE copy, imported here, so the bars this
+# module builds and the bars scan_h1 now hands every other calculation can never drift apart.
+from scanner.extend.fx_week import within_fx_week  # noqa: E402,F401  (re-exported: crowd_data.within_fx_week)
 
 
 def _prepare(h1_df: pd.DataFrame):
