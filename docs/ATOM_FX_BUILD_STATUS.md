@@ -173,6 +173,21 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     re-verify `bb_touch`, `bollinger_series`, `momentum_series`, and anything else reading them. The
     Crowd score (Roadmap §5c) is built on filtered bars and does not depend on this fix.
 
+    **Frozen-number impact, measured 2026-09-19** (read-only; the frozen `aggregator.build_tfs` /
+    `pills.classify_full` / `score.score_pair` run on the SAME 5,000-row H1 window of real data, once as live and
+    once with the closed-market rows dropped first; 12 pairs): the **H1 pill differs on 7 of 12 pairs, the H4 pill on
+    5 of 12, the H4 score on 11 of 12 (mean 1.7 points, max 5.0), and H4 ADX by a mean 3.7 points (max 12.7)** — e.g.
+    USDCHF H4 pill neutral → bull, USDCAD H4 ADX 44 → 53. So the contamination reaches the frozen wheel, pills and
+    regime inputs, not just the EXTEND chart series and the BB touch alert. **A fix therefore has two scopes:**
+    (A) EXTEND-only — filter inside `bb_touch._d1_ny_close` and the shared D1/H4 series builders; fixes the charts and
+    the BB touch alert, leaves the frozen numbers as they are; (B) filter the raw H1 in `scan_h1.py` before anything is
+    built — fixes everything, but **changes frozen numbers (FROZEN-TOUCH: needs Pieter's explicit sign-off, per
+    Rule #1)**. **Option B has a hard side effect:** the frozen D1 scorer needs ≥ 210 bars and the live window gives only
+    ~209-211 UTC-day bars *because the phantom weekend days count toward it*; dropping them leaves ~179, so the frozen D1
+    pill, `regime_d1` and every D1-dependent number would go dark unless the H1 fetch is deepened (a second Twelvedata
+    call per pair per scan, roughly doubling `scan_h1`'s credit use, 144 → 288 a day against the 800/day budget that
+    `scan_m15` already shares). Not done; a decision, not a chore.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` (raised by Pieter,
     2026-09-19; not started).** The style guide is binding (no dates, no change history, no developer
     narration, answer first, lists for list-shaped things, soft length ceilings). A quick scan found **5 of
