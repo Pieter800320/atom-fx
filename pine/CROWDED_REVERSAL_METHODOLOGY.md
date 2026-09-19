@@ -208,7 +208,14 @@ retuning out-of-sample.
   the single least-certain part of this whole script.** A first compile/run against live
   TradingView data caught the ticker *prefix* wrong (`CFTC:` — since corrected to `COT:`, verified
   by resolving a live TradingView symbol page for Euro FX open interest, `COT:099741_F_OI`); the
-  `_F_NCP_L`/`_F_NCP_S` suffix specifically is still not independently confirmed the same way.
+  `_F_NCP_L`/`_F_NCP_S` suffix specifically was not independently confirmed the same way.
+  **Update 2026-09-19:** the new per-leg COT diagnostic label (input "Show COT diagnostic label")
+  on EURUSD D1 showed real numbers for both legs (EUR `COT:099741_F_NCP_L`/`_S`: net -24925,
+  pctl ~15; USD `COT:098662_F_NCP_L`/`_S` — the ICE Dollar Index contract: net 17025, pctl 84.1;
+  combined pctl 15.4, which matches the (EUR + (100 - USD)) / 2 formula). So both tickers
+  **resolve**. What this does NOT yet confirm: that they are the *series intended* (Legacy,
+  futures-only, non-commercial long/short) rather than a similarly-named one, or that the values
+  match CFTC's own published report for the same date — still to be checked against CFTC.gov.
   TradingView's own support documentation describes the full ticker ID format as "somewhat
   complex," which is exactly why TradingView publishes an official `LibraryCOT` Pine library to
   generate these strings programmatically rather than hand-building them — and why this specific
