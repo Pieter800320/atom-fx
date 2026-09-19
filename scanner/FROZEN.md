@@ -20,3 +20,7 @@ FROZEN - verbatim fork of fx-signal-board. Never edit these files. New code goes
 
 - **2026-09-19 (evening) — real-FX-week input change RE-ENABLED, now with the Sydney -> UTC timestamp conversion first** (`fx_week_v2`; Pieter: "Yes, you can fix it"). Applied only at
   the `scan_h1` / `scan_m15` call-sites; no frozen file touched; every D1/H4 number changes once, guarded by a migration scan. Validated against six TradingView readings (5 exact scores).
+
+- **2026-09-19 (late evening) — D1/H4 now aggregated on the New York trading clock** (`fx_week_v3`; Pieter: "align the frozen engine if you deem it correct"). Done WITHOUT editing any frozen
+  file: `scan_h1.py` hands `build_tfs` H1 rows re-labelled as New York wall time + 7 h for the D1/H4 frames only (`fx_week.to_trading_clock`); a failure falls back to the UTC-clock frames. Folded into the
+  same first migration scan as the UTC-timestamp fix. Every D1/H4 number changes once.

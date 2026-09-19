@@ -153,7 +153,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
         summary = "Where price sits inside its Bollinger Bands, 0–100. 50 is the middle band; 0 and 100 are the outer bands.",
         howItWorks = "(close − lower band) ÷ (upper band − lower band) × 100, on 20-period ±2σ bands. Below 0 or above 100 means price closed outside its bands: a real reading, not an error. A 20-period average of %B is computed as a signal line but not drawn here.\n" +
             "Footer word: Stretched high at 90 or above (bear-tinted), Stretched low at 10 or below (bull-tinted), Normal range between.\n" +
-            "D1 closes at 17:00 New York, matching most charting platforms. H4 and H1 use UTC boundaries. M15 comes from a separate fetch about every 45 minutes, so it can lag the others.\n" +
+            "D1 closes at 17:00 New York, matching most charting platforms. H4 blocks start at 17, 21, 01, 05, 09 and 13 New York time, as on TradingView. H1 is hourly. M15 comes from a separate fetch about every 45 minutes, so it can lag the others.\n" +
             "The Bollinger touch alert uses 12-period bands, a tighter setting, not a different formula.\n" +
             "Shown on long-press of a wheel node: the first of four indicator cards, with one timeframe row driving all four.",
         whyItMatters = "Two very different situations both count as \"price is high\": grinding along the upper band in a strong trend, or spiking into it and about to snap back. %B alone doesn't tell you which — reading it alongside Trend/Structure does.",
@@ -189,7 +189,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "RSI: 0–100, dashed lines at 30 and 70, centre line at 50, no signal line. Footer word: Overbought, Oversold or Neutral, read at the same 30 and 70.\n" +
             "MACD: the histogram (MACD line minus signal line) as bars tinted by sign, with the MACD and signal lines over it. The histogram has its own vertical scale, because it is far smaller than either line.\n" +
             "MACD footer: Bullish or Bearish from the histogram's sign, plus building or fading from whether its distance from zero grew or shrank versus the previous bar. A sign flip always reads building.\n" +
-            "D1 closes at 17:00 New York, as in %B. H4 and H1 use UTC boundaries, so a small gap to one broker's candles is a data-vendor difference. M15 comes from a separate fetch about every 45 minutes.\n" +
+            "D1 closes at 17:00 New York, as in %B. H4 follows the same New York blocks as TradingView. A small gap to one broker's candles is a data-vendor difference. M15 comes from a separate fetch about every 45 minutes.\n" +
             "Shown on long-press of a wheel node: the third and fourth of four indicator cards.",
         whyItMatters = "RSI at 70 or above, or 30 or below, is a stretch, like a %B band touch: due to revert, not automatically a trend ending. A MACD histogram crossing zero is the earliest sign of a momentum shift.",
     ),

@@ -270,6 +270,15 @@ def main():
     ohlcv = {}   # { "EURUSD": {"h1": df, "h4": df, "d1": df} }
     for key, h1_df in raw_ohlcv.items():
         tfs = build_tfs(h1_df)
+        if _fx_week is not None:
+            # 2026-09-19 (Pieter: "use a uniform dataset ... align the frozen engine") — D1 and H4 are aggregated on the New York trading clock
+            # (17:00 NY close days, NY-session 4-hour blocks = TradingView's), by re-labelling the H1 rows the frozen aggregator sees. The H1 frame
+            # keeps real UTC labels. No frozen file edited. See fx_week.to_trading_clock.
+            try:
+                shifted = build_tfs(_fx_week.to_trading_clock(h1_df))
+                tfs["d1"], tfs["h4"] = shifted["d1"], shifted["h4"]
+            except Exception as _tc_err:                    # noqa: BLE001 — never break a scan: fall back to the UTC-clock frames
+                print(f"  ⚠ {key}: trading-clock aggregation failed ({type(_tc_err).__name__}: {_tc_err}) — UTC-clock D1/H4 kept")
         ohlcv[key] = tfs
         print(f"  {key}: H1={len(tfs['h1'])} H4={len(tfs['h4'])} D1={len(tfs['d1'])}")
 

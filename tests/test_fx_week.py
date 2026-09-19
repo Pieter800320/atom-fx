@@ -187,7 +187,29 @@ def test_scan_h1_and_m15_are_wired_to_fx_week_and_mark_their_output():
     src = open(h1.__file__, encoding="utf-8").read()
     assert "_fx_week.prepare_h1(key, df, use_store=(pair in PAIRS))" in src            # fetch loop hands the pipeline UTC bars
     assert '"bars_convention"' in src and "_migration_scan" in src                     # marker + one-scan alert guard present
-    assert fw.BARS_CONVENTION == "fx_week_v2"
+    assert fw.BARS_CONVENTION == "fx_week_v3"
+
+
+# ── the New York trading clock (uniform D1/H4 with TradingView) ─────────────────────────────────
+def test_to_trading_clock_labels_the_ny_close_as_midnight_and_handles_dst():
+    utc = pd.DataFrame({"datetime": ["2026-06-14 21:00:00",     # Sun 17:00 EDT: the week's first hour -> Monday 00:00
+                                     "2026-06-12 20:00:00",     # Fri 16:00 EDT: the week's last hour  -> Friday 23:00
+                                     "2026-01-11 22:00:00",     # Sun 17:00 EST (winter)               -> Monday 00:00
+                                     "2026-01-09 21:00:00"],    # Fri 16:00 EST                        -> Friday 23:00
+                        "open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0})
+    assert list(fw.to_trading_clock(utc)["datetime"]) == ["2026-06-15 00:00:00", "2026-06-12 23:00:00", "2026-01-12 00:00:00", "2026-01-09 23:00:00"]
+
+
+def test_the_frozen_aggregator_on_the_trading_clock_has_no_stub_candles():
+    """Two full June weeks: on UTC labels the frozen aggregator makes Sunday stub D1 candles and short H4 blocks; on the trading clock it makes exactly
+    5 D1 candles a week (Mon-Fri) and 30 complete 4-hour blocks a week."""
+    week = fw.drop_closed(_h1("2026-06-07 00:00", "2026-06-21 00:00"))          # Sun 7 Jun .. Sun 21 Jun (UTC): two real FX weeks
+    utc_d1 = build_tfs(week)["d1"]
+    ny = build_tfs(fw.to_trading_clock(week))
+    dates = pd.DatetimeIndex(pd.to_datetime(ny["d1"]["datetime"] if "datetime" in ny["d1"].columns else ny["d1"].index))
+    assert len(ny["d1"]) == 10 and set(dates.dayofweek) <= {0, 1, 2, 3, 4}
+    assert len(utc_d1) > len(ny["d1"])                                          # the UTC clock leaves Sunday stubs
+    assert len(ny["h4"]) == 60
 
 
 if __name__ == "__main__":

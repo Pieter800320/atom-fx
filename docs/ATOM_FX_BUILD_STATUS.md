@@ -236,6 +236,16 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     Experiments 6-7 used it for the strong-trend shading, so their "background" was not exactly TradingView's; (b) Experiments 2-7 must be RE-RUN on converted bars (RESEARCH_LOG caveat);
     (c) the first production hourly scan under `fx_week_v2` still has to be checked (marker, no push burst, no errors, `crowd_series.d1` ~90 points, `data/h1_history` committed).
 
+    **UNIFORM CLOCK (2026-09-19, same evening; Pieter: "it is better to use a uniform dataset ... we can align the frozen engine if you deem it correct").** The frozen engine's D1/H4 are now
+    aggregated on the NEW YORK trading clock — D1 = the 17:00 New York close (Sunday session rolls into Monday), H4 blocks at 17/21/01/05/09/13 New York (TradingView's) — by handing the
+    frozen aggregator H1 rows re-labelled as New York wall time + 7 h (`fx_week.to_trading_clock`, one call-site in `scan_h1.py`; H1 keeps UTC labels; NO frozen file edited).
+    It also removes a real defect the UTC clock still had after the timestamp fix: a 2-3 hour Sunday stub D1 candle and 1-hour/3-hour stub H4 blocks every week feeding ATR/ADX/EMA
+    (test: two June weeks give exactly 10 D1 and 60 H4 candles on the trading clock). `BARS_CONVENTION` -> `fx_week_v3`; folded into the SAME first migration scan (no hourly scan had run yet), so
+    there is still only one migration. Offline E2E on real windows: no errors, no pushes on the first or second scan; old-vs-new pill differences D1 7/12, H4 3/12, H1 3/12; `regime_d1` Ranging -> Risk-Off,
+    `regime_h4` unchanged. 151 tests pass, Rule #1 green. The Library's "H4 and H1 use UTC boundaries" was corrected. **Now every D1/H4 number in the app (frozen pills, ADX, regime, CSM, the Crowd score,
+    %B/BandWidth/RSI/MACD) is on the same 17:00-New-York / TradingView bar grid.** Still not TradingView-identical: the price vendor (Twelvedata vs OANDA), the macro/news feeds, and any frozen
+    indicator that has no TradingView equivalent.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24
