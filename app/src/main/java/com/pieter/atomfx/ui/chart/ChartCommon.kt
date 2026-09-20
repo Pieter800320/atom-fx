@@ -16,8 +16,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Locale
-import kotlin.math.roundToInt
 
 /**
  * Shared drawing primitives for the ChartSheet glance panel's four oscillators.
@@ -88,18 +88,76 @@ private fun formatDateLabel(raw: String): String? =
                 .format(TIME_FORMAT)
         }.getOrNull()
 
-/** How many date/time labels sit under every long-press chart (Pieter's ask, 2026-09-20: six, up from three). */
-internal const val DATE_LABEL_COUNT = 6
+/** The most date/time labels under a chart (Pieter's asks, 2026-09-20: six, then "evenly spaced, 3 days apart ... the exact amount is not that important"). */
+internal const val DATE_LABEL_MAX = 7
 
-/** Evenly spaced bar indices for the date row: the first and last bar always included, at most [count] labels, never more than there are bars. */
-internal fun dateLabelIndices(n: Int, count: Int = DATE_LABEL_COUNT): List<Int> {
-    if (n <= 1) return listOf(0)
-    val k = minOf(count, n)
-    return (0 until k).map { (it * (n - 1).toDouble() / (k - 1)).roundToInt() }.distinct()
+private val DAY_STEPS = listOf(1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 42, 56, 84)
+private val HOUR_STEPS = listOf(1, 2, 3, 4, 6, 12, 24)
+
+/**
+ * Evenly spaced date labels in CALENDAR time (2026-09-20, Pieter's ask), as (bar index, label text) pairs, oldest first.
+ *
+ * The step is the smallest of 1, 2, 3, 4, 5, 7, 10, 14, 21 ... days that keeps the label count at or under [maxLabels] AND leaves no two labels crowded — typically 3-4 days on a 4-hour chart of ~15 days, three weeks
+ * on a daily chart of ~4 months, one day on an hourly one. Labels count BACK from the newest bar, so the newest date is always shown and every gap between labels is the same number of days.
+ * A label sits at the first bar on or after its date; where its date falls on a weekend (no bars) that is the Monday open, so weekend gaps show as slightly narrower label spacing on screen while the
+ * dates themselves stay exactly one step apart. Intraday (M15) datetimes use hour steps instead and show local clock times.
+ */
+internal fun dateTicks(dates: List<String>, maxLabels: Int = DATE_LABEL_MAX): List<Pair<Int, String>> {
+    if (dates.isEmpty()) return emptyList()
+    val days = dates.map { runCatching { LocalDate.parse(it) }.getOrNull() }
+    if (days.all { it != null }) return dayTicks(days.map { it!! }, maxLabels)
+    val times = dates.map { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+    if (times.all { it != null }) return hourTicks(times.map { it!! }, maxLabels)
+    return emptyList()
 }
 
-/** Six sparse date labels (oldest ... newest) below the plot — the same convention every chart shares, rather than one label per bar.
- * A run of bars on the same calendar day (an H1 chart spans only about four days) would repeat a label, so only the first label of such a run is drawn. */
+/** True when no two labels sit closer than a label's width — [n] bars shared by at most [maxLabels] labels, with a little slack. */
+private fun spacedEnough(ticks: List<Pair<Int, String>>, n: Int, maxLabels: Int): Boolean =
+    ticks.zipWithNext().all { (a, b) -> b.first - a.first >= maxOf(1, n / (maxLabels + 1)) }
+
+private fun dayTicks(d: List<LocalDate>, maxLabels: Int): List<Pair<Int, String>> {
+    val n = d.size
+    val last = d.last()
+    val span = ChronoUnit.DAYS.between(d.first(), last).toInt()
+    fun build(step: Int): List<Pair<Int, String>> {
+        val out = mutableListOf<Pair<Int, String>>()
+        var k = 0
+        var target = last
+        while (!target.isBefore(d.first())) {
+            out += (if (k == 0) n - 1 else d.indexOfFirst { !it.isBefore(target) }) to target.format(DATE_FORMAT)
+            k++
+            target = last.minusDays((k * step).toLong())
+        }
+        return out.reversed()
+    }
+    // The smallest step that keeps the count down AND does not crowd labels: a weekend date has no bars, so its label sits at the Monday open and can land right beside the next one.
+    val candidates = DAY_STEPS.filter { span / it + 1 <= maxLabels }
+    val step = candidates.firstOrNull { spacedEnough(build(it), n, maxLabels) } ?: candidates.lastOrNull() ?: DAY_STEPS.last()
+    return build(step).distinctBy { it.first }
+}
+
+private fun hourTicks(t: List<LocalDateTime>, maxLabels: Int): List<Pair<Int, String>> {
+    val n = t.size
+    val last = t.last()
+    val spanHours = ChronoUnit.HOURS.between(t.first(), last).toInt()
+    fun build(step: Int): List<Pair<Int, String>> {
+        val out = mutableListOf<Pair<Int, String>>()
+        var k = 0
+        var target = last
+        while (!target.isBefore(t.first())) {
+            val text = target.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.systemDefault()).format(TIME_FORMAT)
+            out += (if (k == 0) n - 1 else t.indexOfFirst { !it.isBefore(target) }) to text
+            k++
+            target = last.minusHours((k * step).toLong())
+        }
+        return out.reversed()
+    }
+    val candidates = HOUR_STEPS.filter { spanHours / it + 1 <= maxLabels }
+    val step = candidates.firstOrNull { spacedEnough(build(it), n, maxLabels) } ?: candidates.lastOrNull() ?: HOUR_STEPS.last()
+    return build(step).distinctBy { it.first }
+}
+
+/** Evenly spaced date labels below the plot (see [dateTicks]). The first label is left-aligned and the last right-aligned when they sit at the plot's edges; the rest are centred. */
 internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labelY: Float, colors: AtomColors) {
     val n = dates.size
     val labelPaint = Paint().apply {
@@ -109,15 +167,11 @@ internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labe
         color = colors.textMuted.toArgb()
     }
     val nativeCanvas = drawContext.canvas.nativeCanvas
-    val labels = mutableListOf<Pair<Int, String>>()
-    for (i in dateLabelIndices(n)) {
-        val text = formatDateLabel(dates[i]) ?: continue
-        if (labels.lastOrNull()?.second != text) labels += i to text
-    }
-    labels.forEachIndexed { pos, (i, text) ->
-        labelPaint.textAlign = when (pos) {
-            0 -> Paint.Align.LEFT
-            labels.lastIndex -> Paint.Align.RIGHT
+    val ticks = dateTicks(dates)
+    ticks.forEach { (i, text) ->
+        labelPaint.textAlign = when {
+            i <= 2 -> Paint.Align.LEFT
+            i >= n - 3 -> Paint.Align.RIGHT
             else -> Paint.Align.CENTER
         }
         nativeCanvas.drawText(text, px(i), labelY, labelPaint)
