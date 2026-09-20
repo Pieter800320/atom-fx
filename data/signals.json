@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-20T21:00:03.961233+00:00",
+  "updated": "2026-09-20T22:00:04.359605+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54528,8 +54528,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81075.0,
-      "delta_pct": -0.2,
+      "value": 80965.0,
+      "delta_pct": -0.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -54583,7 +54583,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 7.2,
+      "delta_pct": 7.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT at risk: UK retail sales beat contradicts GBP weakness narrative, reduces BoE easing case.",
-    "updated": "2026-09-20T21:00:03.961233+00:00"
+    "text": "GBPUSD SHORT accelerated: UK retail sales unexpectedly rise, may pressure BoE dovish bias supporting shorts.",
+    "updated": "2026-09-20T22:00:04.359605+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD strength bias today.\n\nGBPUSD SHORT: US 10Y strength supports risk-off short signal.\n\nEURUSD SHORT: Rising 10Y yield backs EUR weakness setup.",
+    "text": "NZDUSD SHORT: US 10Y surge confirms USD bid thesis strongly.\n\nGBPUSD SHORT: Rising US yields reinforce safe haven dollar demand.\n\nEURUSD SHORT: Higher US rates support short euro positioning clearly.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-20T21:00:03.961233+00:00"
+    "updated": "2026-09-20T22:00:04.359605+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,7 +54680,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-20T21:00:03.961233+00:00"
+    "updated": "2026-09-20T22:00:04.359605+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing risk aversion, yet falling equities momentum, softer BTC, and rising US10Y suggest the dollar retains underlying support. DXY is flat, reflecting this tug-of-war, while the H4 risk-off backdrop sits against a ranging H1 tape. The dominant theme is Fed-BoE policy divergence, with hike-odds repricing keeping the dollar bloc firm against European currencies. Ahead lies a heavy central-bank slate\u2014US CPI/PPI, ECB, BoE, BoC and RBNZ decisions within the next day\u2014setting up a volatile stretch across major and dollar-bloc currencies.",
@@ -54688,16 +54688,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
-      "Fed-BoE policy divergence widens, strengthening US Dollar against major pairs",
-      "UK retail sales unexpectedly rise in August, supporting GBP resilience"
+      "Fed hike odds lift DXY as EUR and GBP weaken significantly",
+      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
+      "DXY holds above 100 as EUR and GBP face policy tests"
     ],
     "themes": [
       "rates",
       "rates",
-      null
+      "usd"
     ],
-    "updated": "2026-09-20T21:00:03.961233+00:00"
+    "updated": "2026-09-20T22:00:04.359605+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
@@ -59403,7 +59403,7 @@
   },
   "schema_version": 12,
   "week_ahead": {
-    "text": "The Dollar Index produced a significant bullish breakout after spending several weeks inside a range, with price closing decisively above the July and August monthly highs, confirming a bullish break of structure. Next week investors will focus on major economic data releases from Germany, the eurozone, the US, the UK, and Australia, while also assessing outcomes of the Swiss National Bank and People's Bank of China meetings. Friday's US CPI will be critical as it arrives when dollar momentum is already strong; a hotter-than-expected reading could trigger aggressive dollar strength. EUR/USD warrants close monitoring given the ECB decision Wednesday cuts against dollar upside. The Trump-Xi summit on September 24 in Washington is shaping up as the most important US-China diplomatic event of 2026, with focus on whether the two sides can stabilize relations and reduce policy uncertainty.",
-    "generated_at": "2026-09-20T21:00:03.961233+00:00"
+    "text": "This week's dominant theme centers on major economic data releases from Germany, the eurozone, the US, and the UK, alongside central bank decisions , creating conflicting signals between soft US data and hawkish Fed messaging that will drive dollar direction. The Fed's interest rate decision was the past week's key event , and Friday's CPI release will be the most critical catalyst for USD this week, as a higher-than-expected reading could reinforce rate-hike expectations and strengthen the dollar. USD/CAD will depend heavily on whether trade tensions ease through negotiation or intensify further, while improving Canadian economic conditions may support the currency , making this pair particularly sensitive to geopolitical shifts. The biggest wildcard is the divergence between resilient core inflation data and weakening labor markets, which could trigger sharp reversals in dollar positioning if Friday's CPI surprises materially on either side.",
+    "generated_at": "2026-09-20T22:00:04.359605+00:00"
   }
 }
