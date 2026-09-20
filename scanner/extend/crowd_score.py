@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 
 from scanner.extend import crowd_data
+from scanner.extend import tf_dates
 
 # Pine defaults, verbatim (regime filter deliberately absent)
 P = {
@@ -309,7 +310,7 @@ def crowd_series_for_pair(pair: str, h1_df, per_ccy: dict, now_utc=None) -> dict
             continue
         days = pd.DatetimeIndex(pd.to_datetime(bars["trading_day"]))
         comb, asof = crowd_data.combined_pctl_for_pair(pair, per_ccy, days)
-        out[tf] = series_block(bars, comb, asof)
+        out[tf] = series_block(bars, comb, asof, tail=tf_dates.lookback(tf))
     return out
 
 

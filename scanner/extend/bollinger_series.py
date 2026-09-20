@@ -67,7 +67,7 @@ SERIES_LOOKBACK = 90
 _EMPTY = {"dates": [], "pctb": [], "pctb_sma": [], "bandwidth": [], "squeeze": []}
 
 
-def _series_for(close, dates_full=None) -> dict:
+def _series_for(close, dates_full=None, lookback=SERIES_LOOKBACK) -> dict:
     """One timeframe's %B + BandWidth series from that timeframe's closes.
 
     Returns the `_EMPTY` shape when there isn't enough history to form even one band
@@ -104,7 +104,7 @@ def _series_for(close, dates_full=None) -> dict:
     # shortest of them so one `dates` list labels all four with no off-by-one — same
     # alignment momentum_series._series_for does across RSI vs MACD.
     pctb_valid = pctb.dropna()
-    n = min(len(pctb_valid), SERIES_LOOKBACK)
+    n = min(len(pctb_valid), lookback)
     idx = pctb_valid.index[-n:]
 
     dates: list[str] = []
@@ -152,7 +152,7 @@ def bollinger_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
             df = tfs.get(tf) if tfs else None
             close = df["close"] if df is not None else None
             dates_full = None
-        out[tf] = _series_for(close, dates_full)
+        out[tf] = _series_for(close, dates_full, tf_dates.lookback(tf))
     return out
 
 

@@ -801,7 +801,7 @@ still driving both charts from one choice. `ui/chart/MomentumOscillators.kt`:
   similarly-sized series, so it's mathematically much smaller than either line on its own; one
   shared scale (the first cut's approach) flattened it to a barely-visible sliver.
 
-Both charts are also now taller, finer-stroked, show evenly spaced date labels along the bottom (2026-09-20, Pieter's ask: "evenly spaced, 3 days apart ... the exact amount is not that important"): the step is the smallest of 1, 2, 3, 4, 5, 7, 10, 14, 21 ... days that keeps at most 7 labels and leaves none crowded — 4 days on a 4-hour chart of ~15 days, 3 weeks on a daily chart, 1 day on H1, hour steps on M15; the newest date is always shown; a weekend date sits at the Monday open (`ChartCommon.dateTicks`)
+Both charts are also now taller, finer-stroked, show evenly spaced date labels along the bottom (2026-09-20, Pieter: "they have to be evenly spaced"; the row sits 6dp lower, `DATE_ROW_HEIGHT` 24dp). **Only a whole-week step is even both in calendar days and on screen** (weekends have no bars): a span of two weeks or more uses the smallest step of 7, 14, 21 ... days that keeps at most 7 labels, counted back from the newest bar and placed under the FIRST bar of each date; a shorter span (H1) labels each trading day once; M15 uses hour steps. To get several weekly labels the **4-hour lookback is 150 bars = exactly 5 trading weeks** (was 90); D1 and H1 keep 90 (`tf_dates.lookback`, `ChartCommon.dateTicks`)
 (same convention `PercentBOscillator` already uses), and add a soft glow behind the current-value
 endpoint dot — the same `BlurMaskFilter` technique the wheel's own hub glow already uses
 (`WheelCanvas.kt::glowFillCircle`), not a new visual language.

@@ -267,6 +267,11 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     so the 4-hour chart now shows 4-day steps (Sep 2, 6, 10, 14, 18). Because weekends have no bars, spacing on screen is slightly narrower across a weekend while the dates stay exactly one step apart. Device-checked; 37 Kotlin tests (2 known failures).
     A **demo data file** (`demo/regime_demo_signals.json`: live data + real regime for every pair + synthetic showcase patterns on EURUSD/GBPUSD) lets the shading be viewed before the next scan writes the real field: paste its raw URL into Settings > signals.json URL, clear it to return to live.
 
+    **Date row, second rework 2026-09-20 (Pieter: "I said the dates should be evenly spaced, and they are not ... would a longer/shorter lookback help? ... shift the dates row down slightly").** He was right: with no weekend bars a 3- or 4-day step is even in
+    dates but not on screen. The only step even in BOTH is a whole number of weeks, so `ChartCommon.dateTicks` now uses weekly steps (7/14/21 ... days, at most 7 labels, each under the first bar of its date; H1 labels each trading day once), and the **4-hour lookback
+    grew from 90 to 150 bars = exactly 5 trading weeks** (`tf_dates.lookback`; %B, BandWidth, RSI/MACD and Crowd, D1 and H1 stay 90) so a 4-hour chart gets 5 weekly labels. The date row is 6dp lower (`DATE_ROW_HEIGHT` 18 -> 24dp). Tests: 4-hour labels exactly 30 bars and
+    7 days apart (also mid-week), daily labels 15 bars / 21 days apart, H1 24 bars apart across a weekend; 158 Python, 38 Kotlin (2 known failures).
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24
