@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-20T11:00:02.076082+00:00",
+  "updated": "2026-09-20T13:00:06.661654+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54528,8 +54528,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80277.0,
-      "delta_pct": -1.2,
+      "value": 80463.0,
+      "delta_pct": -0.9,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -54583,7 +54583,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 6.2,
+      "delta_pct": 6.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "UK retail sales unexpectedly rise in August; potential headwind for GBPUSD SHORT setup.",
-    "updated": "2026-09-20T11:00:02.076082+00:00"
+    "text": "GBPUSD SHORT at risk: UK retail sales beat conflicts bearish setup; monitor BoE policy divergence acceleration.",
+    "updated": "2026-09-20T13:00:06.661654+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y strength confirms USD bid thesis directly.\n\nGBPUSD SHORT: US 10Y rise reinforces safe haven USD demand.\n\nEURUSD SHORT: Rising US yields support dollar strength confirmation here.",
+    "text": "NZDUSD SHORT: US 10Y strength confirms USD bid thesis directionally.\n\nGBPUSD SHORT: US 10Y rise supports safe-haven dollar demand signal.\n\nEURUSD SHORT: Rising yields confirm risk-off dollar strength macro driver.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-20T11:00:02.076082+00:00"
+    "updated": "2026-09-20T13:00:06.661654+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,24 +54680,24 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-20T11:00:02.076082+00:00"
+    "updated": "2026-09-20T13:00:06.661654+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing tension, while equities sit flat-to-up and yields tick higher, backing a steadier dollar rather than outright risk-off. Headlines reinforce dollar resilience, with Fed rate-path expectations widening policy divergence against the BoE and ECB, keeping the euro and sterling on the defensive, and the yen soft post-BOJ. Oil's pullback leaves the commodity bloc without a clear tailwind. Focus turns to US CPI and PPI within hours, alongside back-to-back ECB, BoE, BoC and RBNZ decisions, any of which could reset near-term dollar and rate-differential dynamics quickly.",
-    "generated_at": "2026-09-19T23:00:40.652900+00:00"
+    "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing risk aversion, yet falling equities momentum, softer BTC, and rising US10Y suggest the dollar retains underlying support. DXY is flat, reflecting this tug-of-war, while the H4 risk-off backdrop sits against a ranging H1 tape. The dominant theme is Fed-BoE policy divergence, with hike-odds repricing keeping the dollar bloc firm against European currencies. Ahead lies a heavy central-bank slate\u2014US CPI/PPI, ECB, BoE, BoC and RBNZ decisions within the next day\u2014setting up a volatile stretch across major and dollar-bloc currencies.",
+    "generated_at": "2026-09-20T13:00:38.160958+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hike odds lift DXY as EUR and GBP weaken significantly",
-      "Fed-BoE policy divergence widens, pressuring EUR/USD and GBP/USD pairs",
-      "DXY holds above 100 as EUR and GBP face policy tests"
+      "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
+      "Fed-BoE policy divergence widens, strengthening dollar against major currencies",
+      "UK retail sales unexpectedly rise in August, supporting GBP recovery"
     ],
     "themes": [
       "rates",
       "rates",
-      "usd"
+      null
     ],
-    "updated": "2026-09-20T11:00:02.076082+00:00"
+    "updated": "2026-09-20T13:00:06.661654+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
