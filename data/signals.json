@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-19T23:00:12.775493+00:00",
+  "updated": "2026-09-20T01:00:02.383002+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54528,7 +54528,7 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81234.0,
+      "value": 81260.0,
       "delta_pct": 0.4,
       "direction": "flat",
       "label": "Bitcoin"
@@ -54583,7 +54583,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.9,
+      "delta_pct": 4.0,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT: UK retail sales beat could challenge downside momentum despite GBP weakness from policy divergence.",
-    "updated": "2026-09-19T23:00:12.775493+00:00"
+    "text": "GBPUSD SHORT: UK retail sales beat may reduce BoE rate-cut odds, conflicting with downside bias.",
+    "updated": "2026-09-20T01:00:02.383002+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid thesis strongly today.\n\nGBPUSD SHORT: US 10Y strength validates risk-off driven short signal.\n\nEURUSD SHORT: Rising US yields confirm flight-to-safety USD demand thesis.",
+    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid thesis today strongly.\n\nGBPUSD SHORT: US 10Y strength aligns with risk-off short bias.\n\nEURUSD SHORT: Rising yields support dollar demand macro confirmation present.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-19T23:00:12.775493+00:00"
+    "updated": "2026-09-20T01:00:02.383002+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,7 +54680,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-19T23:00:12.775493+00:00"
+    "updated": "2026-09-20T01:00:02.383002+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing tension, while equities sit flat-to-up and yields tick higher, backing a steadier dollar rather than outright risk-off. Headlines reinforce dollar resilience, with Fed rate-path expectations widening policy divergence against the BoE and ECB, keeping the euro and sterling on the defensive, and the yen soft post-BOJ. Oil's pullback leaves the commodity bloc without a clear tailwind. Focus turns to US CPI and PPI within hours, alongside back-to-back ECB, BoE, BoC and RBNZ decisions, any of which could reset near-term dollar and rate-differential dynamics quickly.",
@@ -54689,7 +54689,7 @@
   "breaking": {
     "headlines": [
       "Fed hike odds lift DXY as EUR and GBP weaken significantly",
-      "Fed-BoE policy divergence widens, strengthening US dollar against majors",
+      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
       "UK retail sales unexpectedly rise in August, supporting GBP"
     ],
     "themes": [
@@ -54697,7 +54697,7 @@
       "rates",
       null
     ],
-    "updated": "2026-09-19T23:00:12.775493+00:00"
+    "updated": "2026-09-20T01:00:02.383002+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
