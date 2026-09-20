@@ -1,0 +1,10 @@
+{
+  "exp": "cot",
+  "tag": "exp10_h12_2026-09",
+  "mode": "full",
+  "timeframe": "d1utc",
+  "weeks": 12,
+  "boot": 5000,
+  "seed": 20260919,
+  "git_head": "8a5a634aa37ad7b4d412f157891f192348f03b28"
+}
