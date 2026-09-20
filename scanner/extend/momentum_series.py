@@ -45,7 +45,7 @@ SERIES_LOOKBACK = 90
 _EMPTY = {"dates": [], "rsi": [], "macd_line": [], "macd_signal": [], "macd_histogram": []}
 
 
-def _series_for(close, dates_full=None) -> dict:
+def _series_for(close, dates_full=None, lookback=SERIES_LOOKBACK) -> dict:
     if close is None or len(close.dropna()) < 30:
         return dict(_EMPTY)
     rsi_s = _rsi(close).dropna()
@@ -57,7 +57,7 @@ def _series_for(close, dates_full=None) -> dict:
     # RSI drops exactly one leading row more than MACD (close.diff()'s own first NaN;
     # _macd's ewm-based inputs never produce a NaN) -- align both to the shorter one so
     # a single "dates" list can label both without an off-by-one.
-    n = min(len(rsi_s), len(macd_line), SERIES_LOOKBACK)
+    n = min(len(rsi_s), len(macd_line), lookback)
 
     dates = []
     if dates_full is not None and len(dates_full) == len(close):
@@ -102,7 +102,7 @@ def momentum_series_for_pair(tfs: dict, raw_h1_df=None) -> dict:
             df = tfs.get(tf) if tfs else None
             close = df["close"] if df is not None else None
             dates_full = None
-        out[tf] = _series_for(close, dates_full)
+        out[tf] = _series_for(close, dates_full, tf_dates.lookback(tf))
     return out
 
 

@@ -437,7 +437,7 @@ a defensive fallback: `attach_bb_d1` reverts to the frozen UTC-midnight D1 with 
 `{"d1"|"h4": {dates:[str,…], top:[float,…], bottom:[float,…], regime:[int,…], latest:{bar_date, top, bottom, top_on:[str,…],
 bottom_on:[str,…], cot_pctl, cot_ok, cot_asof} | null}}` (no `h1`/`m15`). `scanner/extend/crowd_score.py` is the Crowded
 Market indicator (Signals Roadmap §5c): eight weighted yes/no conditions add to a 0–100 **top** and **bottom** score per
-completed bar, oldest-first, up to 90 points. **`regime` (schema v13, 2026-09-20):** one integer per point, aligned with `dates`: **+1 strong uptrend, −1 strong downtrend, 0 none** — the Pine's strong-trend background
+completed bar, oldest-first, up to 90 points (**H4: 150** since 2026-09-20 — the same per-timeframe lookback as the %B / BandWidth / RSI / MACD series, `tf_dates.lookback`). **`regime` (schema v13, 2026-09-20):** one integer per point, aligned with `dates`: **+1 strong uptrend, −1 strong downtrend, 0 none** — the Pine's strong-trend background
 (ADX(14,14) ≥ 30, price on the same side of the 200 EMA as its 20-bar slope, 3 consecutive bars to enter, immediate exit; `crowd_score.regime_states`). The app draws it as chart shading
 with the colours REVERSED on purpose (Design §19.4b); an older `signals.json` without the key simply draws no shading. It is computed on the same completed bars; on D1 the EMA200 has only ~200 bars of warm-up
 in the pipeline window, so a D1 shading edge can differ from TradingView's by a bar (ADX is sensitive to the price feed's highs and lows). **Context, not a signal** — see the module doc and `docs/RESEARCH_LOG.md`

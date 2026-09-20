@@ -23,33 +23,43 @@ class CrowdChartHelpersTest {
         return ds.zipWithNext { a, b -> java.time.temporal.ChronoUnit.DAYS.between(a, b) }
     }
 
+    private fun indexGaps(ticks: List<Pair<Int, String>>): List<Int> = ticks.zipWithNext { a, b -> b.first - a.first }
+
     @Test
-    fun `a 4-hour chart of about 15 days gets evenly spaced labels that never crowd each other, newest date included`() {
-        val dates = weekdays("2026-08-31", 90, perDay = 6)               // six H4 bars a weekday; the newest date is a Friday
+    fun `a 4-hour chart of five trading weeks gets weekly labels exactly 30 bars and 7 days apart`() {
+        val dates = weekdays("2026-08-17", 150, perDay = 6)              // 25 weekdays x 6 blocks = 5 weeks, newest date a Friday
         val ticks = dateTicks(dates)
         val last = java.time.LocalDate.parse(dates.last())
-        assertEquals(dates.size - 1, ticks.last().first)
-        assertTrue(ticks.size in 4..7)
-        assertEquals(1, gapsInDays(ticks, dates, last).toSet().size)                         // one constant gap in days
-        assertTrue(ticks.zipWithNext().all { (a, b) -> b.first - a.first >= dates.size / (DATE_LABEL_MAX + 1) })   // no overlap: a Saturday label at the Monday open must not sit beside Tuesday's
+        assertEquals(5, ticks.size)
+        assertEquals(setOf(30), indexGaps(ticks).toSet())                                   // even on screen ...
+        assertEquals(setOf(7L), gapsInDays(ticks, dates, last).toSet())                    // ... and in calendar days
+        assertEquals(dates.indexOfFirst { it == dates.last() }, ticks.last().first)         // the newest label sits under the first bar of the newest date
     }
 
     @Test
-    fun `a daily chart of about four months gets evenly spaced, coarser labels`() {
+    fun `the same holds when the newest bar is mid-week`() {
+        val dates = weekdays("2026-08-19", 150, perDay = 6)              // starts Wednesday: newest date is a Tuesday
+        val ticks = dateTicks(dates)
+        assertEquals(setOf(30), indexGaps(ticks).toSet())
+    }
+
+    @Test
+    fun `a daily chart of 90 bars gets three-weekly labels, equal on screen and in days`() {
         val dates = weekdays("2026-05-18", 90)
         val ticks = dateTicks(dates)
         val last = java.time.LocalDate.parse(dates.last())
-        assertTrue(ticks.size in 4..7)
-        assertEquals(1, gapsInDays(ticks, dates, last).toSet().size)     // one constant gap
-        assertTrue(gapsInDays(ticks, dates, last).first() >= 7)          // weekly or coarser: 3-day labels would not fit
+        assertTrue(ticks.size in 5..7)
+        assertEquals(setOf(15), indexGaps(ticks).toSet())                                   // 3 weeks = 15 trading days
+        assertEquals(setOf(21L), gapsInDays(ticks, dates, last).toSet())
     }
 
     @Test
-    fun `an hourly chart of about four days gets one label a day, and duplicates never appear`() {
-        val dates = weekdays("2026-09-15", 90, perDay = 24)
+    fun `an hourly chart labels each trading day once, equally spaced, skipping the weekend`() {
+        val dates = weekdays("2026-09-10", 90, perDay = 24)              // Thu, Fri, Mon, then part of Tue
         val ticks = dateTicks(dates)
+        assertEquals(4, ticks.size)
+        assertEquals(setOf(24), indexGaps(ticks).toSet())
         assertEquals(ticks.map { it.first }.distinct(), ticks.map { it.first })
-        assertTrue(ticks.size in 3..5)
     }
 
     @Test

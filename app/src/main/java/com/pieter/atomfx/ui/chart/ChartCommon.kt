@@ -31,7 +31,7 @@ import java.util.Locale
 // 2026-09-18 (Pieter's restyle ask, "very flat... increase the vertical level") — up from a flat
 // 120dp, same taller frame `PercentBOscillator` already earns with its own date row.
 internal val BASE_CHART_HEIGHT = 168.dp
-internal val DATE_ROW_HEIGHT = 18.dp
+internal val DATE_ROW_HEIGHT = 24.dp     // 2026-09-20 (Pieter: "shift the dates row down slightly"): was 18dp; the plot itself keeps its height, the labels sit 6dp lower
 internal val DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 // M15's own dates (scan_m15.py's _m15_dates) are full ISO datetimes, not plain dates — a
 // separate clock-time format for that case, below.
@@ -91,16 +91,19 @@ private fun formatDateLabel(raw: String): String? =
 /** The most date/time labels under a chart (Pieter's asks, 2026-09-20: six, then "evenly spaced, 3 days apart ... the exact amount is not that important"). */
 internal const val DATE_LABEL_MAX = 7
 
-private val DAY_STEPS = listOf(1, 2, 3, 4, 5, 7, 10, 14, 21, 28, 42, 56, 84)
+private val WEEK_STEPS = listOf(7, 14, 21, 28, 42, 56, 84)
 private val HOUR_STEPS = listOf(1, 2, 3, 4, 6, 12, 24)
 
 /**
- * Evenly spaced date labels in CALENDAR time (2026-09-20, Pieter's ask), as (bar index, label text) pairs, oldest first.
+ * Evenly spaced date labels (2026-09-20, Pieter: "they have to be evenly spaced" — and the first version was not, on screen), as (bar index, label text) pairs, oldest first.
  *
- * The step is the smallest of 1, 2, 3, 4, 5, 7, 10, 14, 21 ... days that keeps the label count at or under [maxLabels] AND leaves no two labels crowded — typically 3-4 days on a 4-hour chart of ~15 days, three weeks
- * on a daily chart of ~4 months, one day on an hourly one. Labels count BACK from the newest bar, so the newest date is always shown and every gap between labels is the same number of days.
- * A label sits at the first bar on or after its date; where its date falls on a weekend (no bars) that is the Monday open, so weekend gaps show as slightly narrower label spacing on screen while the
- * dates themselves stay exactly one step apart. Intraday (M15) datetimes use hour steps instead and show local clock times.
+ * FX has no weekend bars, so a chart's x-axis (one slot per bar) skips them. A 3- or 4-day step therefore lands unevenly on screen (Sat and Sun take no room, so labels either side of a weekend crowd together).
+ * The one step that is even BOTH in calendar dates and on screen is a whole number of WEEKS: every such gap holds exactly the same number of trading days (and bars). So:
+ *  - **a span of two weeks or more** uses the smallest weekly step (7, 14, 21, 28 ... days) that keeps at most [maxLabels] labels, counting back from the newest bar — 7 days on a 4-hour chart (150 bars = 5 weeks
+ *    = 5 labels), 21 days on a daily chart of 90 bars;
+ *  - **a shorter span** (an hourly chart, a few days) labels the trading days that have bars, one label per date — equal on screen, and the weekend is simply not a label;
+ *  - **intraday datetimes** (M15) use hour steps and local clock times.
+ * Every label sits under the FIRST bar of its date, so the newest label is not a few bars nearer the edge than the others.
  */
 internal fun dateTicks(dates: List<String>, maxLabels: Int = DATE_LABEL_MAX): List<Pair<Int, String>> {
     if (dates.isEmpty()) return emptyList()
@@ -111,30 +114,31 @@ internal fun dateTicks(dates: List<String>, maxLabels: Int = DATE_LABEL_MAX): Li
     return emptyList()
 }
 
+private fun dayTicks(d: List<LocalDate>, maxLabels: Int): List<Pair<Int, String>> {
+    val last = d.last()
+    val span = ChronoUnit.DAYS.between(d.first(), last).toInt()
+    fun firstBarOnOrAfter(t: LocalDate) = d.indexOfFirst { !it.isBefore(t) }
+    if (span < 14) {
+        val distinct = d.distinct()
+        val stride = (distinct.size + maxLabels - 1) / maxLabels
+        return distinct.reversed().filterIndexed { i, _ -> i % stride == 0 }.reversed()
+            .map { firstBarOnOrAfter(it) to it.format(DATE_FORMAT) }
+    }
+    val step = WEEK_STEPS.firstOrNull { span / it + 1 <= maxLabels } ?: WEEK_STEPS.last()
+    val out = mutableListOf<Pair<Int, String>>()
+    var k = 0
+    while (true) {
+        val target = last.minusDays((k * step).toLong())
+        if (target.isBefore(d.first())) break
+        out += firstBarOnOrAfter(target) to target.format(DATE_FORMAT)
+        k++
+    }
+    return out.reversed().distinctBy { it.first }
+}
+
 /** True when no two labels sit closer than a label's width — [n] bars shared by at most [maxLabels] labels, with a little slack. */
 private fun spacedEnough(ticks: List<Pair<Int, String>>, n: Int, maxLabels: Int): Boolean =
     ticks.zipWithNext().all { (a, b) -> b.first - a.first >= maxOf(1, n / (maxLabels + 1)) }
-
-private fun dayTicks(d: List<LocalDate>, maxLabels: Int): List<Pair<Int, String>> {
-    val n = d.size
-    val last = d.last()
-    val span = ChronoUnit.DAYS.between(d.first(), last).toInt()
-    fun build(step: Int): List<Pair<Int, String>> {
-        val out = mutableListOf<Pair<Int, String>>()
-        var k = 0
-        var target = last
-        while (!target.isBefore(d.first())) {
-            out += (if (k == 0) n - 1 else d.indexOfFirst { !it.isBefore(target) }) to target.format(DATE_FORMAT)
-            k++
-            target = last.minusDays((k * step).toLong())
-        }
-        return out.reversed()
-    }
-    // The smallest step that keeps the count down AND does not crowd labels: a weekend date has no bars, so its label sits at the Monday open and can land right beside the next one.
-    val candidates = DAY_STEPS.filter { span / it + 1 <= maxLabels }
-    val step = candidates.firstOrNull { spacedEnough(build(it), n, maxLabels) } ?: candidates.lastOrNull() ?: DAY_STEPS.last()
-    return build(step).distinctBy { it.first }
-}
 
 private fun hourTicks(t: List<LocalDateTime>, maxLabels: Int): List<Pair<Int, String>> {
     val n = t.size
@@ -157,24 +161,19 @@ private fun hourTicks(t: List<LocalDateTime>, maxLabels: Int): List<Pair<Int, St
     return build(step).distinctBy { it.first }
 }
 
-/** Evenly spaced date labels below the plot (see [dateTicks]). The first label is left-aligned and the last right-aligned when they sit at the plot's edges; the rest are centred. */
+/** Date labels below the plot (see [dateTicks]), each centred under its bar and nudged inward just enough that it never runs past the plot's edges. */
 internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labelY: Float, colors: AtomColors) {
-    val n = dates.size
     val labelPaint = Paint().apply {
         isAntiAlias = true
         textSize = 9.dp.toPx()
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         color = colors.textMuted.toArgb()
+        textAlign = Paint.Align.CENTER
     }
     val nativeCanvas = drawContext.canvas.nativeCanvas
-    val ticks = dateTicks(dates)
-    ticks.forEach { (i, text) ->
-        labelPaint.textAlign = when {
-            i <= 2 -> Paint.Align.LEFT
-            i >= n - 3 -> Paint.Align.RIGHT
-            else -> Paint.Align.CENTER
-        }
-        nativeCanvas.drawText(text, px(i), labelY, labelPaint)
+    dateTicks(dates).forEach { (i, text) ->
+        val half = labelPaint.measureText(text) / 2f
+        nativeCanvas.drawText(text, px(i).coerceIn(half, size.width - half), labelY, labelPaint)
     }
 }
 

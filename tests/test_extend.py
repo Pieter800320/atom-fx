@@ -17,6 +17,7 @@ from scanner.extend import potential as pot
 from scanner.extend import potential_config as cfg
 from scanner.extend import csm_delta, breadth, spark, macro_regime, recommendation
 from scanner.extend import state_alerts
+from scanner.extend.tf_dates import lookback as tf_dates_lookback
 from scanner.extend import conviction
 from scanner.extend import bb_touch
 from scanner.extend import rotation, market_pulse
@@ -522,7 +523,7 @@ def test_momentum_series_shape_and_values():
         tf_series = series[tf]
         for key in ("rsi", "macd_line", "macd_signal", "macd_histogram"):
             values = tf_series[key]
-            assert 0 < len(values) <= momentum_series.SERIES_LOOKBACK, (tf, key, len(values))
+            assert 0 < len(values) <= tf_dates_lookback(tf), (tf, key, len(values))
             assert all(isinstance(v, float) for v in values)
         # RSI is always 0-100 by construction (Wilder's own formula) -- a real invariant, not
         # just a shape check.
@@ -697,7 +698,7 @@ def test_bollinger_series_shape_and_alignment():
     for tf in ("d1", "h4", "h1"):
         s_tf = series[tf]
         n = len(s_tf["pctb"])
-        assert 0 < n <= bollinger_series.SERIES_LOOKBACK, (tf, n)
+        assert 0 < n <= tf_dates_lookback(tf), (tf, n)
         # pctb / bandwidth / squeeze share the band math, so they are the same length by
         # construction; pctb_sma is shorter by its own smoothing window and right-aligns.
         assert len(s_tf["bandwidth"]) == n, tf
@@ -893,11 +894,11 @@ def test_m15_series_for_functions_produce_real_output_on_fake_m15_bars():
     dates = scan_m15._m15_dates(df)
 
     mom = momentum_series._series_for(close, dates)
-    assert 0 < len(mom["rsi"]) <= momentum_series.SERIES_LOOKBACK
+    assert 0 < len(mom["rsi"]) <= tf_dates_lookback("h4")
     assert len(mom["dates"]) == len(mom["rsi"])
 
     boll = bollinger_series._series_for(close, dates)
-    assert 0 < len(boll["pctb"]) <= bollinger_series.SERIES_LOOKBACK
+    assert 0 < len(boll["pctb"]) <= tf_dates_lookback("h4")
     assert len(boll["dates"]) == len(boll["pctb"]) == len(boll["bandwidth"]) == len(boll["squeeze"])
 
 

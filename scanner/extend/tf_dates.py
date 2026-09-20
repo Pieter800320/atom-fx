@@ -20,6 +20,17 @@ or trading number. Not a second aggregator; a pure label-recovery pass alongside
 """
 import pandas as pd
 
+# Points per chart series, by timeframe (2026-09-20, Pieter: the date row must be evenly spaced). Weekends have no bars, so only a WEEKLY label step is even both in calendar dates and on screen;
+# a 4-hour chart of 90 bars (3 weeks) gives just 3 weekly labels, so H4 looks back 150 bars = exactly 5 trading weeks (30 blocks a week) = 5 weekly labels. D1 and H1 keep 90.
+DEFAULT_LOOKBACK = 90
+LOOKBACK_BY_TF = {"h4": 150}
+LOOKBACK_MAX = max([DEFAULT_LOOKBACK, *LOOKBACK_BY_TF.values()])
+
+
+def lookback(tf: str) -> int:
+    """How many points the %B / BandWidth / RSI / MACD / Crowd series carry for a timeframe."""
+    return LOOKBACK_BY_TF.get(tf, DEFAULT_LOOKBACK)
+
 
 def h1_dates(raw_h1_df) -> pd.Series:
     """Oldest-first date strings, one per row of the frozen `ohlcv[key]["h1"]` — same
