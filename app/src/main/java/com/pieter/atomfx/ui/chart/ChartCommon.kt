@@ -89,91 +89,34 @@ private fun formatDateLabel(raw: String): String? =
         }.getOrNull()
 
 /** The most date/time labels under a chart (Pieter's asks, 2026-09-20: six, then "evenly spaced, 3 days apart ... the exact amount is not that important"). */
-internal const val DATE_LABEL_MAX = 7
-
-private val WEEK_STEPS = listOf(7, 14, 21, 28, 42, 56, 84)
-private val HOUR_STEPS = listOf(1, 2, 3, 4, 6, 12, 24)
 
 /**
- * Evenly spaced date labels (2026-09-20, Pieter: "they have to be evenly spaced" — and the first version was not, on screen), as (bar index, label text) pairs, oldest first.
- *
- * FX has no weekend bars, so a chart's x-axis (one slot per bar) skips them. A 3- or 4-day step therefore lands unevenly on screen (Sat and Sun take no room, so labels either side of a weekend crowd together).
- * The one step that is even BOTH in calendar dates and on screen is a whole number of WEEKS: every such gap holds exactly the same number of trading days (and bars). So:
- *  - **a span of two weeks or more** uses the smallest weekly step (7, 14, 21, 28 ... days) that keeps at most [maxLabels] labels, counting back from the newest bar — 7 days on a 4-hour chart (150 bars = 5 weeks
- *    = 5 labels), 21 days on a daily chart of 90 bars;
- *  - **a shorter span** (an hourly chart, a few days) labels the trading days that have bars, one label per date — equal on screen, and the weekend is simply not a label;
- *  - **intraday datetimes** (M15) use hour steps and local clock times.
- * Every label sits under the FIRST bar of its date, so the newest label is not a few bars nearer the edge than the others.
+ * Three date labels — oldest, middle, newest bar — as (bar index, label text) pairs. Evenly spaced ON SCREEN by construction (the same bar distance either side of the middle).
+ * 2026-09-20 (Pieter's call, after two attempts at calendar-even labels that still read uneven on a weekend-less axis): reverted to three labels.
  */
-internal fun dateTicks(dates: List<String>, maxLabels: Int = DATE_LABEL_MAX): List<Pair<Int, String>> {
-    if (dates.isEmpty()) return emptyList()
-    val days = dates.map { runCatching { LocalDate.parse(it) }.getOrNull() }
-    if (days.all { it != null }) return dayTicks(days.map { it!! }, maxLabels)
-    val times = dates.map { runCatching { LocalDateTime.parse(it) }.getOrNull() }
-    if (times.all { it != null }) return hourTicks(times.map { it!! }, maxLabels)
-    return emptyList()
+internal fun dateTicks(dates: List<String>): List<Pair<Int, String>> {
+    val n = dates.size
+    if (n == 0) return emptyList()
+    return listOf(0, n / 2, n - 1).distinct().mapNotNull { i -> formatDateLabel(dates[i])?.let { i to it } }
 }
 
-private fun dayTicks(d: List<LocalDate>, maxLabels: Int): List<Pair<Int, String>> {
-    val last = d.last()
-    val span = ChronoUnit.DAYS.between(d.first(), last).toInt()
-    fun firstBarOnOrAfter(t: LocalDate) = d.indexOfFirst { !it.isBefore(t) }
-    if (span < 14) {
-        val distinct = d.distinct()
-        val stride = (distinct.size + maxLabels - 1) / maxLabels
-        return distinct.reversed().filterIndexed { i, _ -> i % stride == 0 }.reversed()
-            .map { firstBarOnOrAfter(it) to it.format(DATE_FORMAT) }
-    }
-    val step = WEEK_STEPS.firstOrNull { span / it + 1 <= maxLabels } ?: WEEK_STEPS.last()
-    val out = mutableListOf<Pair<Int, String>>()
-    var k = 0
-    while (true) {
-        val target = last.minusDays((k * step).toLong())
-        if (target.isBefore(d.first())) break
-        out += firstBarOnOrAfter(target) to target.format(DATE_FORMAT)
-        k++
-    }
-    return out.reversed().distinctBy { it.first }
-}
-
-/** True when no two labels sit closer than a label's width — [n] bars shared by at most [maxLabels] labels, with a little slack. */
-private fun spacedEnough(ticks: List<Pair<Int, String>>, n: Int, maxLabels: Int): Boolean =
-    ticks.zipWithNext().all { (a, b) -> b.first - a.first >= maxOf(1, n / (maxLabels + 1)) }
-
-private fun hourTicks(t: List<LocalDateTime>, maxLabels: Int): List<Pair<Int, String>> {
-    val n = t.size
-    val last = t.last()
-    val spanHours = ChronoUnit.HOURS.between(t.first(), last).toInt()
-    fun build(step: Int): List<Pair<Int, String>> {
-        val out = mutableListOf<Pair<Int, String>>()
-        var k = 0
-        var target = last
-        while (!target.isBefore(t.first())) {
-            val text = target.atZone(ZoneOffset.UTC).withZoneSameInstant(ZoneId.systemDefault()).format(TIME_FORMAT)
-            out += (if (k == 0) n - 1 else t.indexOfFirst { !it.isBefore(target) }) to text
-            k++
-            target = last.minusHours((k * step).toLong())
-        }
-        return out.reversed()
-    }
-    val candidates = HOUR_STEPS.filter { spanHours / it + 1 <= maxLabels }
-    val step = candidates.firstOrNull { spacedEnough(build(it), n, maxLabels) } ?: candidates.lastOrNull() ?: HOUR_STEPS.last()
-    return build(step).distinctBy { it.first }
-}
-
-/** Date labels below the plot (see [dateTicks]), each centred under its bar and nudged inward just enough that it never runs past the plot's edges. */
+/** The date row below the plot (see [dateTicks]): first label left-aligned, last right-aligned, the middle one centred. */
 internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labelY: Float, colors: AtomColors) {
     val labelPaint = Paint().apply {
         isAntiAlias = true
         textSize = 9.dp.toPx()
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         color = colors.textMuted.toArgb()
-        textAlign = Paint.Align.CENTER
     }
     val nativeCanvas = drawContext.canvas.nativeCanvas
-    dateTicks(dates).forEach { (i, text) ->
-        val half = labelPaint.measureText(text) / 2f
-        nativeCanvas.drawText(text, px(i).coerceIn(half, size.width - half), labelY, labelPaint)
+    val ticks = dateTicks(dates)
+    ticks.forEachIndexed { pos, (i, text) ->
+        labelPaint.textAlign = when (pos) {
+            0 -> Paint.Align.LEFT
+            ticks.lastIndex -> Paint.Align.RIGHT
+            else -> Paint.Align.CENTER
+        }
+        nativeCanvas.drawText(text, px(i), labelY, labelPaint)
     }
 }
 

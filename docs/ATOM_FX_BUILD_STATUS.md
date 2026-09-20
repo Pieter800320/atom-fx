@@ -272,6 +272,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     grew from 90 to 150 bars = exactly 5 trading weeks** (`tf_dates.lookback`; %B, BandWidth, RSI/MACD and Crowd, D1 and H1 stay 90) so a 4-hour chart gets 5 weekly labels. The date row is 6dp lower (`DATE_ROW_HEIGHT` 18 -> 24dp). Tests: 4-hour labels exactly 30 bars and
     7 days apart (also mid-week), daily labels 15 bars / 21 days apart, H1 24 bars apart across a weekend; 158 Python, 38 Kotlin (2 known failures).
 
+    **Date row REVERTED to three labels 2026-09-20 (Pieter's call: "if it is too difficult to fix properly we can revert back to 3 dates").** Two calendar-even attempts (3-4 day steps, then weekly steps with a 150-bar 4-hour lookback) still read uneven on an axis
+    with no weekend bars. `ChartCommon.dateTicks` is back to oldest / middle / newest (evenly spaced on screen by construction); the date row stays 6dp lower (`DATE_ROW_HEIGHT` 24dp). The H4 lookback stays 150 bars (5 trading weeks, `tf_dates.lookback`) — harmless, and easy to return to 90. Open idea if it matters again: a time-proportional x-axis.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24

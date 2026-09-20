@@ -270,3 +270,5 @@ needs its own verification, not just a citation.
 - 2026-09-20 — **Date labels now calendar-even** (`ChartCommon.dateTicks`) and a **demo signals file** (`demo/regime_demo_signals.json`) to preview the Crowd chart shading. `BUILD_STATUS.md` item 18 notes, `DESIGN.md` §19.4b.
 
 - 2026-09-20 — **Date row: weekly steps + 4-hour lookback 150 bars + row 6dp lower** (`ChartCommon.dateTicks`, `tf_dates.lookback`); demo file refreshed. `BUILD_STATUS.md` item 18 notes.
+
+- 2026-09-20 — **Chart date row reverted to three labels** (row stays 6dp lower; H4 lookback stays 150). `BUILD_STATUS.md` item 18 notes.
