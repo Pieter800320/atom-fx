@@ -17,3 +17,7 @@ app/build/
 captures/
 .externalNativeBuild/
 .idea/
+
+# Persistent hourly price store (scanner/extend/fx_week.py): raw Twelve Data candles must NOT be published in this public repo
+# (twelvedata.com/terms 2.2/2.3). It lives in the scan workflow's private Actions cache; rebuild locally with tools/seed_h1_history.py.
+data/h1_history/

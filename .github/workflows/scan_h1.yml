@@ -27,6 +27,16 @@ jobs:
           python-version: '3.14'
       - run: pip install -r requirements.txt
       - run: pip install -r push/requirements-push.txt
+      - name: Restore the H1 history from the private Actions cache
+        # Twelve Data's terms bar redistributing raw data, so the hourly store is NOT committed to this public repo. A per-run key with a prefix
+        # restore-key always restores the newest cache and saves a fresh one at the end of a successful run. Empty/evicted cache = cold start:
+        # scan_h1 backfills once (12 extra API calls) via scanner/extend/h1_backfill.py.
+        uses: actions/cache@v4
+        with:
+          path: data/h1_history
+          key: h1-history-${{ github.run_id }}
+          restore-keys: |
+            h1-history-
       - name: Run hourly scan
         env:
           TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}

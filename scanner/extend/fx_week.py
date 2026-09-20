@@ -43,6 +43,7 @@ NY = "America/New_York"
 NY_CLOSE_HOUR = 17
 PIPELINE_ROWS = 5000          # real H1 rows handed to the pipeline (the frozen code was written against 5,000)
 STORE_ROWS = 6000             # real H1 rows kept per pair in the history store
+MIN_STORE_ROWS = 5000         # below this the store is treated as cold (evicted cache) and scan_h1 backfills it once (h1_backfill.py)
 SOURCE_TZ = "Australia/Sydney"    # the timezone Twelvedata's raw hourly labels are in (DST-aware: +10 AEST / +11 AEDT)
 BARS_CONVENTION = "fx_week_v3"    # v2 = labels converted to true UTC + closed-market rows dropped; v3 = + D1/H4 aggregated on the New York trading clock
 _COLS = ["datetime", "open", "high", "low", "close"]
@@ -134,6 +135,14 @@ def _write_history(key: str, df: pd.DataFrame, store_dir=None) -> None:
     d = Path(store_dir or HISTORY_DIR)
     d.mkdir(parents=True, exist_ok=True)
     df.to_csv(d / f"{key}.csv", index=False, float_format="%.6f")
+
+
+def store_rows(key: str, store_dir=None) -> int:
+    """Rows currently in a pair's persistent history (0 if missing or unreadable) — the cold-start test."""
+    try:
+        return len(load_history(key, store_dir))
+    except Exception:                                     # noqa: BLE001
+        return 0
 
 
 def merge_history(history: pd.DataFrame, fresh: pd.DataFrame, store_rows: int = STORE_ROWS) -> pd.DataFrame:
