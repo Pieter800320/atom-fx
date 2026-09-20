@@ -17,3 +17,16 @@ gradle/gradle-daemon-jvm.properties
 # Research branch — raw H1 bar cache (large, regenerable via tools/bootstrap_d1_nyclose.py
 # and the backtester's own fetch-and-cache path; the derived data/d1_nyclose/ IS committed)
 data/h1_cache/
+
+# Vendor price data must NOT be published (Twelve Data terms 2.2/2.3, https://twelvedata.com/terms): raw and aggregated candles stay local.
+# Rebuild instructions: docs/DATA_NOT_IN_GIT.md. (Derived results in data/backtest/ ARE committed: they cannot recreate the candles.)
+data/h1_cache/
+data/d1_utc_daily/
+data/d1_nyclose/
+data/d1_nyclose_long/
+data/h4_ny_long/
+data/h4_utc_long/
+data/fix_d1_ny/
+data/fix_h4_ny/
+data/fix_h4_utc/
+data/_bis_cbpol.zip
