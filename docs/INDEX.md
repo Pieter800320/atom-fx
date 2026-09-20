@@ -262,3 +262,5 @@ needs its own verification, not just a citation.
 - 2026-09-19 (12th) — **Fixed: 4-hour chart dates were empty after the uniform-clock change** (`tf_dates.h4_dates` now follows the New York clock; regression test). `BUILD_STATUS.md` item 18.
 
 - 2026-09-20 — **Vendor-data terms:** raw hourly candles are no longer committed to the public repo (`data/h1_history/` untracked, private Actions cache + one-time cold-start backfill `h1_backfill.py`). `BUILD_STATUS.md` item 20 has the terms summary and the open history-purge decision.
+
+- 2026-09-20 — **History purge done** on `main`, `research` and the archive tag: vendor price data removed from every commit, hashes changed, map in `docs/HISTORY_REWRITE_2026-09-20.md`. `BUILD_STATUS.md` item 20.
