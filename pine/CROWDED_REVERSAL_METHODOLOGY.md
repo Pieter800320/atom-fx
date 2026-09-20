@@ -488,3 +488,7 @@ Pre-registered, run once, on the app's own corrected grid (D1 = 17:00-NY close, 
 
 **Read it plainly:** the closest any test has come: coincident events reversed a little more often (53.1%), positive in both halves and better than H4 alone (48.1%), but the interval includes zero and most of the difference comes from the D1 state itself.
 Worth about +3 R a year before costs. **FAIL** on the pre-registered gates (lift below 5 points, CI includes 0); at the flag line (60) there were only 9 events. Ninth question on one data family: only forward data can confirm it.
+
+### Experiments 9-11 — inside bars, COT holds, carry (2026-09-20)
+Pieter's three ideas, pre-registered and run once. **Inside-bar breakouts** continued 51.3% vs 49.7% for ordinary breakouts on D1 (+1.7 points, CI +0.2..+3.2, tiny) and 49.8% vs 49.3% on H4 (nothing): NOT SUPPORTED. **Crowded COT extremes held 4-12 weeks** did not
+reverse (8 weeks: -0.04 sigma, hit 44.1% vs 49.5%): NOT SUPPORTED. **Monthly policy-rate carry** returned +1.55% a year (CI -2.5%..+5.4%, Sharpe 0.17, max drawdown -28.6%; the +2.05% carry was partly eaten by -0.50% spot): FAIL. Details: `docs/RESEARCH_LOG.md` on the research branch.
