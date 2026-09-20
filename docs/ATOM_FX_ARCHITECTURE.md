@@ -434,10 +434,13 @@ a defensive fallback: `attach_bb_d1` reverts to the frozen UTC-midnight D1 with 
 ---
 
 **Crowd score (2026-09-19, schema v12).** Per-pair `crowd_series` is added **inside the existing `pairs.<PAIR>` block**:
-`{"d1"|"h4": {dates:[str,…], top:[float,…], bottom:[float,…], latest:{bar_date, top, bottom, top_on:[str,…],
+`{"d1"|"h4": {dates:[str,…], top:[float,…], bottom:[float,…], regime:[int,…], latest:{bar_date, top, bottom, top_on:[str,…],
 bottom_on:[str,…], cot_pctl, cot_ok, cot_asof} | null}}` (no `h1`/`m15`). `scanner/extend/crowd_score.py` is the Crowded
 Market indicator (Signals Roadmap §5c): eight weighted yes/no conditions add to a 0–100 **top** and **bottom** score per
-completed bar, oldest-first, up to 90 points. **Context, not a signal** — see the module doc and `docs/RESEARCH_LOG.md`
+completed bar, oldest-first, up to 90 points. **`regime` (schema v13, 2026-09-20):** one integer per point, aligned with `dates`: **+1 strong uptrend, −1 strong downtrend, 0 none** — the Pine's strong-trend background
+(ADX(14,14) ≥ 30, price on the same side of the 200 EMA as its 20-bar slope, 3 consecutive bars to enter, immediate exit; `crowd_score.regime_states`). The app draws it as chart shading
+with the colours REVERSED on purpose (Design §19.4b); an older `signals.json` without the key simply draws no shading. It is computed on the same completed bars; on D1 the EMA200 has only ~200 bars of warm-up
+in the pipeline window, so a D1 shading edge can differ from TradingView's by a bar (ADX is sensitive to the price feed's highs and lows). **Context, not a signal** — see the module doc and `docs/RESEARCH_LOG.md`
 (research branch). Bars and COT come from `scanner/extend/crowd_data.py`: **D1 on the 17:00-New-York close and H4 on
 New York-session blocks (17/21/01/05/09/13 New York time — TradingView's alignment, *not* the UTC blocks the sibling H4
 series use), both with market-closed bars dropped** (the filter `bb_touch._d1_ny_close` and the frozen aggregator lack —

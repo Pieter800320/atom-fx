@@ -47,7 +47,7 @@ name per concept; do not introduce synonyms. (Claude Code: match these exactly.)
   price beyond its 20-period Bollinger band (10), z-score ≥ 2 (8), ≥ 3 ATRs from the 50-period average (7),
   RSI beyond 70/30 (12, +3 beyond 80/20), price/RSI divergence (25), a volatility spike through the band
   (10), speculators at a three-year extreme in the weekly COT report (25). `pairs.<PAIR>.crowd_series.<d1|h4>`
-  (`crowd_score.py`, 2026-09-19, schema v12); the dashed **60** line is the indicator's own flag line, and the
+  (`crowd_score.py`, 2026-09-19, schema v12); dashed **20 / 40 / 60** lines (60 is the indicator's own flag line) and the reversed-colour strong-trend **shading** (`regime`, schema v13) are drawn on the chart, and the
   ChartSheet card's footer reads **Crowded top / Crowded bottom / Mixed / Not crowded / No COT** off it.
   The optional **Crowd score alert** (`type: "crowd_score"`) fires when a side's score rises into a higher band
   (>0 / 20 / 40 / 60); each person sets a minimum level per timeframe (Any / 20 / 40 / 60).

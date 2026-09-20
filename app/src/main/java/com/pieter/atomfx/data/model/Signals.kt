@@ -183,6 +183,8 @@ data class CrowdSeries(
     val dates: List<String> = emptyList(),
     val top: List<Double> = emptyList(),
     val bottom: List<Double> = emptyList(),
+    /** Per-bar strong-trend state aligned with [dates]: +1 strong uptrend, -1 strong downtrend, 0 none (schema v13, 2026-09-20). Empty on an older `signals.json`; the chart then draws no shading. */
+    val regime: List<Int> = emptyList(),
     val latest: CrowdLatest? = null,
 )
 

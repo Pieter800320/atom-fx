@@ -380,6 +380,38 @@ def test_never_fires_without_a_previous_latest_or_a_series():
     assert state_alerts.compute_state_alerts(_alert_out(top=80), {}) == []
 
 
+# ── the strong-trend regime (the app's background shading) ───────────────────────────────────────
+def _trend_bars(n=320, drift=0.0, seed=3):
+    rng = np.random.default_rng(seed)
+    close = 100.0 + np.cumsum(rng.normal(drift, 0.4, n))
+    hi = close + rng.uniform(0.05, 0.5, n)
+    lo = close - rng.uniform(0.05, 0.5, n)
+    return pd.DataFrame({"open": np.concatenate(([100.0], close[:-1])), "high": hi, "low": lo, "close": close,
+                         "trading_day": pd.date_range("2025-01-01", periods=n, freq="B").strftime("%Y-%m-%d")})
+
+
+def test_regime_is_plus_one_in_a_strong_uptrend_minus_one_in_a_downtrend_and_zero_when_ranging():
+    up = cs.regime_states(_trend_bars(drift=+0.6))
+    dn = cs.regime_states(_trend_bars(drift=-0.6, seed=4))
+    flat = cs.regime_states(_trend_bars(drift=0.0, seed=5))
+    assert up[-1] == 1 and set(up) <= {0, 1}
+    assert dn[-1] == -1 and set(dn) <= {0, -1}
+    assert (flat != 0).mean() < 0.35                                             # a trendless walk is mostly unshaded
+
+
+def test_regime_needs_three_consecutive_bars_to_enter_and_leaves_at_once():
+    latch = cs._debounced_latch(np.array([0, 1, 1, 0, 1, 1, 1, 1, 0, 1], bool), 3)
+    assert list(latch.astype(int)) == [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+
+
+def test_series_block_carries_a_regime_array_aligned_with_the_dates():
+    bars = _trend_bars(n=320, drift=+0.6)
+    blk = cs.series_block(bars, None, None)
+    assert len(blk["regime"]) == len(blk["dates"]) == len(blk["top"]) == cs.TAIL
+    assert set(blk["regime"]) <= {-1, 0, 1} and blk["regime"][-1] == 1
+    assert cs._EMPTY["regime"] == []                                             # the empty block keeps the key, so consumers can rely on it
+
+
 if __name__ == "__main__":
     import sys
     import pytest
