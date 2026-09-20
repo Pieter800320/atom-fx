@@ -275,6 +275,16 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     human read of the rewritten entries for tone (the checklist's "would a first-time reader understand this" test
     is not scriptable).
 
+20. **Twelve Data's terms vs raw price data in PUBLIC repos (raised by Pieter 2026-09-20; forward fix DONE, history clean-up needs his decision).** Read twelvedata.com/terms (last updated 2026-01-01): **2.2(c)** permits
+    derived data that "cannot be reverse-engineered to recreate the original Data" (signals, scores, indicator series, experiment results are fine); **2.2(e) / 2.3(b)** bar redistributing or externally displaying the data without a
+    Redistribution Rights add-on or written agreement; **2.3(g)** bars storing/caching beyond the Documentation's permitted timeframes; **2.3(l)** bars commercial use of Free-tier data; the pricing page calls the Basic plan "internal non-display usage".
+    (Summarised from the fetched page — read the source; this is not legal advice.) **What was public:** (a) `data/h1_history/` on `main` (12 files x 6,000 raw hourly candles, committed by the scans since 2026-09-19 ~13:50 UTC); (b) on the `research`
+    branch (pushed earlier) the price stores `data/{d1_utc_daily,d1_nyclose,d1_nyclose_long,h4_ny_long,h4_utc_long}` (~64 aggregated OHLC files). **Done (2026-09-20, `main`):** `data/h1_history/` is now git-ignored and untracked; the scan workflow keeps it in a PRIVATE
+    `actions/cache` (per-run key + prefix restore-key); on a cold start (evicted/empty cache) `scan_h1.py` backfills once via `scanner/extend/h1_backfill.py` (12 extra API calls, tested: store rebuilt to 6,000 rows/pair, D1 pills and 90 crowd points intact); rebuild
+    locally with `tools/seed_h1_history.py`. **Still open (Pieter's decision):** the OLD commits still contain those files on GitHub (main since 2026-09-19; research since earlier). Removing them means rewriting history and force-pushing (`git filter-repo`), which changes commit
+    hashes (the research log cites some), briefly disturbs the scan bot's pushes, and GitHub may still serve old SHAs until it garbage-collects (support can purge). **If a public website/app is ever built:** displaying data to others needs the right plan/add-on; ask Twelve Data.
+
+
 ---
 
 ## D. Open decisions (need your call before building)

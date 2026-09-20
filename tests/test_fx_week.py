@@ -224,6 +224,41 @@ def test_h4_chart_dates_follow_the_trading_clock_frames():
     assert len(tf_dates.h4_dates(week)) != len(frozen)                            # the old UTC floor no longer lines up (the bug)
 
 
+# ── the private store: cold-start detection and backfill ─────────────────────────────────────────
+def test_store_rows_counts_the_history_and_is_zero_when_missing(tmp_path):
+    assert fw.store_rows("EURUSD", tmp_path) == 0
+    fresh, _ = _window()
+    _prep("EURUSD", fresh, store_dir=tmp_path)
+    assert fw.store_rows("EURUSD", tmp_path) > 3000
+
+
+def test_fetch_older_asks_for_the_window_ending_one_hour_before_the_first_row_and_encodes_the_date(monkeypatch):
+    import scanner.fetch as F
+    from scanner.extend import h1_backfill
+    seen = {}
+
+    def fake_get(endpoint, params, retries=3):
+        seen.update(params)
+        return {"values": [{"datetime": "2026-06-11 01:00:00", "open": "1.0", "high": "1.1", "low": "0.9", "close": "1.05"},
+                           {"datetime": "2026-06-11 00:00:00", "open": "1.0", "high": "1.1", "low": "0.9", "close": "1.02"}]}
+    monkeypatch.setattr(F, "_get", fake_get)
+    out = h1_backfill.fetch_older("EUR/USD", "2026-06-11 03:00:00")
+    assert seen["end_date"] == "2026-06-11%2002:00:00" and seen["interval"] == "1h" and seen["order"] == "ASC"
+    assert list(out["datetime"]) == ["2026-06-11 00:00:00", "2026-06-11 01:00:00"]              # oldest first
+    monkeypatch.setattr(F, "_get", lambda *a, **k: {"status": "error", "message": "nope"})
+    assert h1_backfill.fetch_older("EUR/USD", "2026-06-11 03:00:00") is None
+
+
+def test_scan_h1_backfills_a_cold_store_and_the_history_dir_is_not_tracked():
+    import subprocess
+    import scanner.scan_h1 as h1
+    src = open(h1.__file__, encoding="utf-8").read()
+    assert "_fx_week.store_rows(key) < _fx_week.MIN_STORE_ROWS" in src and "_h1_backfill.fetch_older(pair, df[\"datetime\"].iloc[0])" in src
+    tracked = subprocess.run(["git", "ls-files", "data/h1_history"], capture_output=True, text=True).stdout.strip()
+    assert tracked == ""                                                                          # vendor price data is never committed to the public repo
+    assert "data/h1_history/" in open(".gitignore", encoding="utf-8").read()
+
+
 if __name__ == "__main__":
     import sys
     import pytest

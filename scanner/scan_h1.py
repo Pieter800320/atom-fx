@@ -244,6 +244,22 @@ def main():
         try:
             df = fetch_ohlcv(pair, TF_INTERVAL["h1"], TF_BARS["h1"])
             if df is not None:
+                # 2026-09-20 — the persistent H1 store is no longer committed to this PUBLIC repo (Twelve Data's terms bar redistributing raw data); it lives in the
+                # workflow's private Actions cache. On a cold start (evicted/empty cache) pull the older window ONCE so the frozen D1 scorer keeps its >= 210 bars.
+                if _fx_week is not None and pair in PAIRS:
+                    try:
+                        if _fx_week.store_rows(key) < _fx_week.MIN_STORE_ROWS:
+                            import pandas as pd
+                            from scanner.extend import h1_backfill as _h1_backfill
+                            older = _h1_backfill.fetch_older(pair, df["datetime"].iloc[0])
+                            if older is not None and len(older):
+                                df = (pd.concat([older, df], ignore_index=True).drop_duplicates(subset="datetime", keep="last")
+                                      .sort_values("datetime").reset_index(drop=True))
+                                print(f"    cold-start backfill: +{len(older)} older H1 rows for {key}")
+                    except RuntimeError:
+                        raise                                                    # daily credit limit — the loop's own handler aborts the fetch
+                    except Exception as _bf_err:                                 # noqa: BLE001 — never break a scan
+                        print(f"    ⚠ {key}: backfill skipped ({type(_bf_err).__name__}: {_bf_err})")
                 # 2026-09-19 — closed-market rows (Twelvedata's flat weekend bars since 2026-01-11) are dropped BEFORE
                 # anything is built from this frame, and the 12 wheel pairs are merged with their persistent H1 history so
                 # the frozen D1 scorer (>= 210 bars) keeps its depth without a second API call. See fx_week.py.
