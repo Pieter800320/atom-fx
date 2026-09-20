@@ -166,7 +166,7 @@ private fun CrowdScoreCard(series: CrowdSeries, colors: AtomColors, modifier: Mo
         modifier = modifier,
         footerState = crowdState(latest?.top, latest?.bottom, latest?.cotOk ?: false, colors),
     ) {
-        CrowdScoreChart(series.top, series.bottom, colors, dates = series.dates)
+        CrowdScoreChart(series.top, series.bottom, colors, dates = series.dates, regime = series.regime)
     }
 }
 

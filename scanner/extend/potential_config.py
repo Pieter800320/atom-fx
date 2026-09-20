@@ -84,7 +84,7 @@ PULSE_MODERATE = BREADTH_MODERATE * 100   # >= this -> "mixed"; below -> "noise"
 THRUST_HISTORY_LEN = 30
 
 # ── Contract ──────────────────────────────────────────────────────────────────
-SCHEMA_VERSION = 12       # bump whenever a key is added or a shape changes
+SCHEMA_VERSION = 13       # bump whenever a key is added or a shape changes (v13, 2026-09-20: pairs.<PAIR>.crowd_series.<d1|h4>.regime, per-bar +1/0/-1 strong-trend state)
 # 2026-09-10: +rotation, +pulse, +breadth_thrust, +csm_dispersion_pct (all additive).
 # 2026-09-10 (2nd): +pairs.<PAIR>.bb_d1.pctb/.pctb_sma, +percent_b_board (all additive).
 # 2026-09-10 (3rd): +pairs.<PAIR>.bb_d1.pctb_dates, +percent_b_board.dates (all additive).

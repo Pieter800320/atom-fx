@@ -17,6 +17,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Shared drawing primitives for the ChartSheet glance panel's four oscillators.
@@ -87,8 +88,18 @@ private fun formatDateLabel(raw: String): String? =
                 .format(TIME_FORMAT)
         }.getOrNull()
 
-/** Three sparse date labels (oldest/middle/newest) below the plot — same convention and layout
- * `PercentBOscillator.kt` already uses, rather than one label per bar. */
+/** How many date/time labels sit under every long-press chart (Pieter's ask, 2026-09-20: six, up from three). */
+internal const val DATE_LABEL_COUNT = 6
+
+/** Evenly spaced bar indices for the date row: the first and last bar always included, at most [count] labels, never more than there are bars. */
+internal fun dateLabelIndices(n: Int, count: Int = DATE_LABEL_COUNT): List<Int> {
+    if (n <= 1) return listOf(0)
+    val k = minOf(count, n)
+    return (0 until k).map { (it * (n - 1).toDouble() / (k - 1)).roundToInt() }.distinct()
+}
+
+/** Six sparse date labels (oldest ... newest) below the plot — the same convention every chart shares, rather than one label per bar.
+ * A run of bars on the same calendar day (an H1 chart spans only about four days) would repeat a label, so only the first label of such a run is drawn. */
 internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labelY: Float, colors: AtomColors) {
     val n = dates.size
     val labelPaint = Paint().apply {
@@ -98,14 +109,29 @@ internal fun DrawScope.drawDateRow(dates: List<String>, px: (Int) -> Float, labe
         color = colors.textMuted.toArgb()
     }
     val nativeCanvas = drawContext.canvas.nativeCanvas
-    val indices = listOf(0, n / 2, n - 1)
-    indices.forEachIndexed { pos, i ->
-        val text = formatDateLabel(dates[i]) ?: return@forEachIndexed
+    val labels = mutableListOf<Pair<Int, String>>()
+    for (i in dateLabelIndices(n)) {
+        val text = formatDateLabel(dates[i]) ?: continue
+        if (labels.lastOrNull()?.second != text) labels += i to text
+    }
+    labels.forEachIndexed { pos, (i, text) ->
         labelPaint.textAlign = when (pos) {
             0 -> Paint.Align.LEFT
-            indices.size - 1 -> Paint.Align.RIGHT
+            labels.lastIndex -> Paint.Align.RIGHT
             else -> Paint.Align.CENTER
         }
         nativeCanvas.drawText(text, px(i), labelY, labelPaint)
     }
+}
+
+/** A tiny muted value label (e.g. "40") for a horizontal reference line, drawn just above the line at the plot's left edge. */
+internal fun DrawScope.drawLevelLabel(text: String, y: Float, colors: AtomColors) {
+    val paint = Paint().apply {
+        isAntiAlias = true
+        textSize = 8.dp.toPx()
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        color = colors.textMuted.toArgb()
+        textAlign = Paint.Align.LEFT
+    }
+    drawContext.canvas.nativeCanvas.drawText(text, 2.dp.toPx(), y - 2.dp.toPx(), paint)
 }

@@ -256,6 +256,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     weekdays only). Offline scan: 90 H4 dates per pair again. The chart values were unaffected (only their labels). **Lesson:** my offline check compared scores and pills but not every EXTEND series' dates; the uniform-clock
     change should have been searched for every consumer of the H4 frame's labels.
 
+    **Long-press chart changes (2026-09-20, Pieter's ask), built and checked on a physical device:** (1) every long-press chart now shows **six** date/time labels under the plot (`ChartCommon.drawDateRow`, evenly spaced, first and last bar included; a run of
+    bars on one calendar day draws that label once — mostly H1); (2) the Crowd chart draws dashed **20, 40 and 60** lines with tiny value labels (60 stays the flag line); (3) the Crowd chart shades the **strong-trend regime with REVERSED colours**
+    (strong uptrend = red, strong downtrend = green; 10% opacity). (3) needed a backend field: `crowd_series.<d1|h4>.regime` (+1/0/-1 per bar, `crowd_score.regime_states`, the Pine's own ADX/EMA200/3-bar rule), **schema v13**. Validated against the six
+    TradingView readings: 5 of 6 regime states equal TradingView's (AUDUSD D1 23 Jan 2026 shades one bar earlier in ours: ADX is higher on our feed). 158 Python tests, 35 Kotlin tests (only the 2 known WheelMapperTest failures). **Shading will show after the next
+    hourly scan writes the field**; until then the app draws none (older `signals.json` tolerated). Judgment calls: the value labels on the reference lines; de-duplicating repeated dates on H1; 10% shading opacity.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24

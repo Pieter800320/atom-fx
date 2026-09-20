@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -26,6 +27,28 @@ import com.pieter.atomfx.ui.theme.AtomType
  */
 internal const val CROWD_FLAG_LINE = 60.0
 
+/** The three dashed reference lines (Pieter's ask, 2026-09-20: "the 20, 40 AND 60 lines"). They are also the bands the Crowd score alert's minimum-level setting uses
+ * (Any / 20 / 40 / 60), so the chart shows exactly the levels an alert can be set to. 60 stays the flag line and is drawn a step stronger. */
+internal val CROWD_LEVEL_LINES = listOf(20.0, 40.0, 60.0)
+
+/** Opacity of the strong-trend shading — about TradingView's own 92%-transparent background. */
+private const val REGIME_SHADE_ALPHA = 0.10f
+
+/** Contiguous runs of a non-zero regime as (firstIndex, lastIndex, sign) — what the chart shades. Pure, so it is unit-tested (`CrowdChartHelpersTest`). */
+internal fun regimeRuns(regime: List<Int>): List<Triple<Int, Int, Int>> {
+    val runs = mutableListOf<Triple<Int, Int, Int>>()
+    var i = 0
+    while (i < regime.size) {
+        val sign = regime[i]
+        if (sign == 0) { i++; continue }
+        var j = i
+        while (j + 1 < regime.size && regime[j + 1] == sign) j++
+        runs += Triple(i, j, sign)
+        i = j + 1
+    }
+    return runs
+}
+
 /**
  * The Crowd score chart (2026-09-19, Pieter's ask: "a graph that looks exactly like the indicator on
  * TradingView, under the long-press graphs") — the Crowded Market indicator's two score lines, 0-100:
@@ -33,6 +56,10 @@ internal const val CROWD_FLAG_LINE = 60.0
  * mirror), a dashed reference at 60, and a small dot on each bar where a side first reaches 60 (the
  * indicator's own ▼ TOP / ▲ BOTTOM flag; TradingView's text labels are too wide for this many bars — the
  * value is in the card header instead).
+ *
+ * **Reference lines (2026-09-20):** dashed at 20, 40 and 60, each with a tiny value label. **Background shading (2026-09-20, Pieter's ask):** the indicator's strong-trend shading, with the colours
+ * REVERSED on purpose: a strong uptrend (TradingView shades it green) is drawn in `bear` (red) and a strong downtrend in `bull` (green) — the colour of the score that is watching for a
+ * reversal in that trend. The series carries the per-bar state (`crowd_series.<tf>.regime`, +1 / 0 / -1, computed by the backend); the chart only draws it, and draws nothing when it is absent.
  *
  * Two coloured lines are a deliberate, agreed exception to the panel's "every line is white" rule
  * (Design §19.4b, 3rd restyle) — the same reason MACD's signal line is coloured: two overlaid lines
@@ -48,6 +75,7 @@ fun CrowdScoreChart(
     bottom: List<Double>,
     colors: AtomColors,
     dates: List<String> = emptyList(),
+    regime: List<Int> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val n = minOf(top.size, bottom.size)
@@ -70,11 +98,27 @@ fun CrowdScoreChart(
         val stepX = size.width / (n - 1)
         fun px(i: Int): Float = i * stepX
 
+        // strong-trend shading first, so every line and label sits on top of it; colours reversed on purpose (see the doc comment)
+        if (regime.size == n) {
+            for ((first, last, sign) in regimeRuns(regime)) {
+                val left = if (first == 0) 0f else px(first) - stepX / 2f
+                val right = if (last == n - 1) size.width else px(last) + stepX / 2f
+                drawRect(
+                    color = (if (sign > 0) colors.bear else colors.bull).copy(alpha = REGIME_SHADE_ALPHA),
+                    topLeft = Offset(left, padTop), size = Size(right - left, plotH),
+                )
+            }
+        }
+
         val dash = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 5.dp.toPx()))
-        drawLine(
-            colors.hairlineStrong, Offset(0f, py(CROWD_FLAG_LINE)), Offset(size.width, py(CROWD_FLAG_LINE)),
-            strokeWidth = 1.dp.toPx(), pathEffect = dash,
-        )
+        for (level in CROWD_LEVEL_LINES) {
+            drawLine(
+                if (level == CROWD_FLAG_LINE) colors.hairlineStrong else colors.hairline,
+                Offset(0f, py(level)), Offset(size.width, py(level)),
+                strokeWidth = 1.dp.toPx(), pathEffect = dash,
+            )
+            drawLevelLabel(level.toInt().toString(), py(level), colors)
+        }
 
         // top first, bottom second — see the doc comment
         drawScoreLine(top, n, colors.bear, ::px, ::py)

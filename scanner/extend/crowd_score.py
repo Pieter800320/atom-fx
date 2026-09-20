@@ -51,7 +51,10 @@ FACTOR_NAMES = {"pct_b": "bb_pctb", "z": "zscore", "stretch": "atr_stretch", "rs
 TAIL = 90                    # points per series, oldest first — matches the sibling series
 FIRST_SCORED = 100           # the 100-bar z-score's first defined bar; earlier bars are never scored
 FLAG_LINE = 60.0             # the indicator's own flag line (footer state / marker), not a tuned threshold
-_EMPTY = {"dates": [], "top": [], "bottom": [], "latest": None}
+# The Pine's strong-trend shading (2026-09-20, Pieter's ask: the background on the app's chart). Pine defaults, verbatim: ADX(14, 14) >= 30, price on the same side of the 200 EMA
+# as its 20-bar slope, and 3 consecutive bars to ENTER (it leaves the moment the raw condition breaks). Shipped as a per-bar state; the APP draws it (reversed colours, Design 19.4b).
+REGIME = {"adx_len": 14, "adx_thresh": 30.0, "ema_len": 200, "slope_lb": 20, "persist": 3}
+_EMPTY = {"dates": [], "top": [], "bottom": [], "regime": [], "latest": None}
 
 
 # ----------------------------------------------------------------------------------------
@@ -223,6 +226,48 @@ def compute_scores(df: pd.DataFrame, cot_pctl=None, p=P) -> pd.DataFrame:
 
 
 # ----------------------------------------------------------------------------------------
+# Strong-trend regime (the Pine's background shading)
+# ----------------------------------------------------------------------------------------
+def dmi_adx(high, low, close, di_len, adx_len):
+    """ta.dmi(di_len, adx_len)[2] — Wilder-smoothed +DI/-DI, DX, then its own Wilder average."""
+    up = np.concatenate(([np.nan], np.diff(high)))
+    down = -np.concatenate(([np.nan], np.diff(low)))
+    plus_dm = np.where(np.isnan(up), np.nan, np.where((up > down) & (up > 0), up, 0.0))
+    minus_dm = np.where(np.isnan(down), np.nan, np.where((down > up) & (down > 0), down, 0.0))
+    trur = rma(true_range(high, low, close, False), di_len)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        plus = 100.0 * rma(plus_dm, di_len) / trur
+        minus = 100.0 * rma(minus_dm, di_len) / trur
+        s = plus + minus
+        dx = np.abs(plus - minus) / np.where(s == 0, 1.0, s)
+    return 100.0 * rma(dx, adx_len)
+
+
+def _debounced_latch(raw, persist):
+    """Latch ON after `persist` consecutive raw bars, OFF the instant the raw condition breaks (the Pine's up/downStreak logic)."""
+    out = np.zeros(len(raw), bool)
+    streak, latch = 0, False
+    for i, r in enumerate(raw):
+        streak = streak + 1 if r else 0
+        latch = True if streak >= persist else (latch if r else False)
+        out[i] = latch
+    return out
+
+
+def regime_states(bars: pd.DataFrame) -> np.ndarray:
+    """Per bar: +1 strong uptrend (the Pine shades it GREEN), -1 strong downtrend (RED), 0 none."""
+    h, l, c = (bars[k].to_numpy(float) for k in ("high", "low", "close"))
+    ema_t = ema(c, REGIME["ema_len"])
+    adx_v = dmi_adx(h, l, c, REGIME["adx_len"], REGIME["adx_len"])
+    lb = REGIME["slope_lb"]
+    ema_prev = np.concatenate((np.full(lb, np.nan), ema_t[:-lb]))
+    strong = adx_v >= REGIME["adx_thresh"]
+    up = _debounced_latch(strong & (ema_t > ema_prev) & (c > ema_t), REGIME["persist"])
+    dn = _debounced_latch(strong & (ema_t < ema_prev) & (c < ema_t), REGIME["persist"])
+    return np.where(up, 1, np.where(dn, -1, 0)).astype(int)
+
+
+# ----------------------------------------------------------------------------------------
 # Series for one pair / timeframe, and the scan hook
 # ----------------------------------------------------------------------------------------
 def series_block(bars: pd.DataFrame, cot_comb, cot_asof, tail: int = TAIL) -> dict:
@@ -237,6 +282,7 @@ def series_block(bars: pd.DataFrame, cot_comb, cot_asof, tail: int = TAIL) -> di
     top = [round(float(v), 1) for v in sc["top_score"].iloc[start:]]
     bot = [round(float(v), 1) for v in sc["bot_score"].iloc[start:]]
     dates = [d.strftime("%Y-%m-%d") for d in days.iloc[start:]]
+    regime = [int(v) for v in regime_states(bars)[start:]]
 
     last = n - 1
     cot_val = float(cot_comb[last]) if cot_comb is not None and not np.isnan(cot_comb[last]) else None
@@ -251,7 +297,7 @@ def series_block(bars: pd.DataFrame, cot_comb, cot_asof, tail: int = TAIL) -> di
         "cot_ok": cot_val is not None,
         "cot_asof": asof,
     }
-    return {"dates": dates, "top": top, "bottom": bot, "latest": latest}
+    return {"dates": dates, "top": top, "bottom": bot, "regime": regime, "latest": latest}
 
 
 def crowd_series_for_pair(pair: str, h1_df, per_ccy: dict, now_utc=None) -> dict:

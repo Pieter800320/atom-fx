@@ -801,7 +801,7 @@ still driving both charts from one choice. `ui/chart/MomentumOscillators.kt`:
   similarly-sized series, so it's mathematically much smaller than either line on its own; one
   shared scale (the first cut's approach) flattened it to a barely-visible sliver.
 
-Both charts are also now taller, finer-stroked, show three sparse date labels along the bottom
+Both charts are also now taller, finer-stroked, show six sparse date labels along the bottom (2026-09-20, Pieter's ask: six, up from three; a run of bars on one calendar day, as on H1, draws that label once)
 (same convention `PercentBOscillator` already uses), and add a soft glow behind the current-value
 endpoint dot — the same `BlurMaskFilter` technique the wheel's own hub glow already uses
 (`WheelCanvas.kt::glowFillCircle`), not a new visual language.
@@ -1061,8 +1061,11 @@ long-press graphs").** The fifth card of the panel, below MACD, built on the sam
 - **Plot:** y fixed 0–100. Two lines — **top in `bear`, bottom in `bull`** (TradingView's red/green; an agreed exception
   to the "every line is white" rule, for the same reason MACD's signal line is coloured: two overlaid lines must be
   tellable apart). Top is drawn first and bottom second, so when both sit at 0 the baseline reads green, as on TradingView.
-  One **dashed reference at 60** (the indicator's own flag line, the app's dashed-reference style; no other reference
-  lines). A small dot on each bar where a side first reaches 60 (TradingView's ▼ TOP / ▲ BOTTOM flags — the text labels
+  **Three dashed references at 20, 40 and 60** (2026-09-20, Pieter's ask; each with a tiny muted value label; 60 is the indicator's own flag line and is drawn a step stronger; 20/40/60 are also the
+  bands the Crowd score alert's minimum-level setting uses). **Background shading (2026-09-20, Pieter's ask): the indicator's strong-trend shading with the colours REVERSED on purpose** — a strong uptrend
+  (TradingView shades it green) is drawn `bear` (red), a strong downtrend `bull` (green), at 10% opacity behind everything else, i.e. the colour of the score that is watching for a reversal in that trend.
+  Drawn from `crowd_series.<tf>.regime` (+1/0/−1 per bar, computed by the backend); absent = no shading. Context only: tested twice (Experiments 6-7), the background adds nothing to reversal odds.
+  A small dot on each bar where a side first reaches 60 (TradingView's ▼ TOP / ▲ BOTTOM flags — the text labels
   are too wide for this many bars). Endpoint glow as on the sibling cards. Date row via `drawDateRow`.
 - **Footer (one right-aligned state word, no legend):** `Crowded top` (`bear`) if top ≥ 60 · `Crowded bottom` (`bull`) if
   bottom ≥ 60 · `Mixed` (`watch`) if both · `Not crowded` (`neutral`) otherwise · **`No COT` (`textMuted`) instead of any of
