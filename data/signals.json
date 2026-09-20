@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-20T01:00:02.383002+00:00",
+  "updated": "2026-09-20T03:00:04.321002+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54528,8 +54528,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81260.0,
-      "delta_pct": 0.4,
+      "value": 80256.0,
+      "delta_pct": -0.8,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -54583,7 +54583,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 4.0,
+      "delta_pct": 2.7,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT: UK retail sales beat may reduce BoE rate-cut odds, conflicting with downside bias.",
-    "updated": "2026-09-20T01:00:02.383002+00:00"
+    "text": "GBPUSD SHORT threatened by UK retail sales beat; supports GBP demand against weakening thesis.",
+    "updated": "2026-09-20T03:00:04.321002+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid thesis today strongly.\n\nGBPUSD SHORT: US 10Y strength aligns with risk-off short bias.\n\nEURUSD SHORT: Rising yields support dollar demand macro confirmation present.",
+    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nGBPUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nEURUSD SHORT: US 10Y rise confirms USD bid strength thesis today.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-20T01:00:02.383002+00:00"
+    "updated": "2026-09-20T03:00:04.321002+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,7 +54680,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-20T01:00:02.383002+00:00"
+    "updated": "2026-09-20T03:00:04.321002+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing tension, while equities sit flat-to-up and yields tick higher, backing a steadier dollar rather than outright risk-off. Headlines reinforce dollar resilience, with Fed rate-path expectations widening policy divergence against the BoE and ECB, keeping the euro and sterling on the defensive, and the yen soft post-BOJ. Oil's pullback leaves the commodity bloc without a clear tailwind. Focus turns to US CPI and PPI within hours, alongside back-to-back ECB, BoE, BoC and RBNZ decisions, any of which could reset near-term dollar and rate-differential dynamics quickly.",
@@ -54688,16 +54688,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hike odds lift DXY as EUR and GBP weaken significantly",
-      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
-      "UK retail sales unexpectedly rise in August, supporting GBP"
+      "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
+      "Fed-BoE policy divergence widens; dollar strengthens against major currencies",
+      "UK retail sales unexpectedly rise August; GBP recovery signal emerges"
     ],
     "themes": [
       "rates",
       "rates",
       null
     ],
-    "updated": "2026-09-20T01:00:02.383002+00:00"
+    "updated": "2026-09-20T03:00:04.321002+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
@@ -54715,13 +54715,13 @@
     "primary_pair": "NZDUSD",
     "direction": "bear",
     "confidence": "Medium",
-    "rationale": "USDCAD LONG: Macro confirms setup, US 10Y and WTI divergence aligned perfectly.\n\nEURUSD SHORT: Macro confirms setup, US 10Y strength driving USD bid.\n\nNZDUSD SHORT: Macro confirms setup, US 10Y rise supports risk off positioning.",
+    "rationale": "NZDUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nGBPUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nEURUSD SHORT: US 10Y rise confirms USD bid strength thesis today.",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-    "generated_at": "2026-09-19T14:46:26.051091+00:00",
+    "generated_at": "2026-09-20T03:00:27.986951+00:00",
     "_narrated": false,
     "narrated_bias": null
   },
