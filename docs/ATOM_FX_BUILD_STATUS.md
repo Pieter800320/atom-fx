@@ -262,6 +262,11 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🅿️ post-v1 (deferred
     TradingView readings: 5 of 6 regime states equal TradingView's (AUDUSD D1 23 Jan 2026 shades one bar earlier in ours: ADX is higher on our feed). 158 Python tests, 35 Kotlin tests (only the 2 known WheelMapperTest failures). **Shading will show after the next
     hourly scan writes the field**; until then the app draws none (older `signals.json` tolerated). Judgment calls: the value labels on the reference lines; de-duplicating repeated dates on H1; 10% shading opacity.
 
+    **Date labels reworked 2026-09-20 (Pieter: "stagger the dates evenly, 3 days apart ... the exact amount is not that important, but they have to be evenly spaced").** The six-labels-by-bar-index version read uneven in calendar terms (Aug 31, Sep 3, Sep 8, Sep 10 ...).
+    `ChartCommon.dateTicks` now labels CALENDAR-even dates counting back from the newest bar (smallest step of 1/2/3/4/5/7/10/14/21 ... days that keeps <= 7 labels and no crowding); 3 days first collided (a Saturday date sits at the Monday open beside Tuesday's label),
+    so the 4-hour chart now shows 4-day steps (Sep 2, 6, 10, 14, 18). Because weekends have no bars, spacing on screen is slightly narrower across a weekend while the dates stay exactly one step apart. Device-checked; 37 Kotlin tests (2 known failures).
+    A **demo data file** (`demo/regime_demo_signals.json`: live data + real regime for every pair + synthetic showcase patterns on EURUSD/GBPUSD) lets the shading be viewed before the next scan writes the real field: paste its raw URL into Settings > signals.json URL, clear it to return to live.
+
 19. **Unify the in-app Library (and the Playbooks) with `ATOM_FX_LIBRARY_STYLE.md` — DONE 2026-09-19 for the
     Library; Playbooks audited (raised by Pieter, 2026-09-19).** A scripted audit of all 35 `LibraryContent.kt`
     entries against the guide (length ceilings, dates and names, em-dash stacking, list formatting) found **24

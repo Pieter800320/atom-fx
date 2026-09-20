@@ -801,7 +801,7 @@ still driving both charts from one choice. `ui/chart/MomentumOscillators.kt`:
   similarly-sized series, so it's mathematically much smaller than either line on its own; one
   shared scale (the first cut's approach) flattened it to a barely-visible sliver.
 
-Both charts are also now taller, finer-stroked, show six sparse date labels along the bottom (2026-09-20, Pieter's ask: six, up from three; a run of bars on one calendar day, as on H1, draws that label once)
+Both charts are also now taller, finer-stroked, show evenly spaced date labels along the bottom (2026-09-20, Pieter's ask: "evenly spaced, 3 days apart ... the exact amount is not that important"): the step is the smallest of 1, 2, 3, 4, 5, 7, 10, 14, 21 ... days that keeps at most 7 labels and leaves none crowded — 4 days on a 4-hour chart of ~15 days, 3 weeks on a daily chart, 1 day on H1, hour steps on M15; the newest date is always shown; a weekend date sits at the Monday open (`ChartCommon.dateTicks`)
 (same convention `PercentBOscillator` already uses), and add a soft glow behind the current-value
 endpoint dot — the same `BlurMaskFilter` technique the wheel's own hub glow already uses
 (`WheelCanvas.kt::glowFillCircle`), not a new visual language.

@@ -266,3 +266,5 @@ needs its own verification, not just a citation.
 - 2026-09-20 — **History purge done** on `main`, `research` and the archive tag: vendor price data removed from every commit, hashes changed, map in `docs/HISTORY_REWRITE_2026-09-20.md`. `BUILD_STATUS.md` item 20.
 
 - 2026-09-20 — **Long-press charts:** six date labels, Crowd chart 20/40/60 lines and reversed-colour strong-trend shading (`crowd_series.regime`, schema v13). `BUILD_STATUS.md` item 18 notes, `DESIGN.md` §19.4b, `ARCHITECTURE.md` §4.2, Library.
+
+- 2026-09-20 — **Date labels now calendar-even** (`ChartCommon.dateTicks`) and a **demo signals file** (`demo/regime_demo_signals.json`) to preview the Crowd chart shading. `BUILD_STATUS.md` item 18 notes, `DESIGN.md` §19.4b.
