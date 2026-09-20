@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-20T19:00:04.158266+00:00",
+  "updated": "2026-09-20T21:00:03.961233+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54528,7 +54528,7 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81049.0,
+      "value": 81075.0,
       "delta_pct": -0.2,
       "direction": "flat",
       "label": "Bitcoin"
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT at risk: UK retail sales beat undermines BoE divergence narrative supporting shorts.",
-    "updated": "2026-09-20T19:00:04.158266+00:00"
+    "text": "GBPUSD SHORT at risk: UK retail sales beat contradicts GBP weakness narrative, reduces BoE easing case.",
+    "updated": "2026-09-20T21:00:03.961233+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD strength bid thesis perfectly.\n\nGBPUSD SHORT: US 10Y strength supports dollar appreciation contra GBP thesis.\n\nEURUSD SHORT: Rising US yields confirm safe haven USD bid setup.",
+    "text": "NZDUSD SHORT: US 10Y rise confirms USD strength bias today.\n\nGBPUSD SHORT: US 10Y strength supports risk-off short signal.\n\nEURUSD SHORT: Rising 10Y yield backs EUR weakness setup.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-20T19:00:04.158266+00:00"
+    "updated": "2026-09-20T21:00:03.961233+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,7 +54680,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-20T19:00:04.158266+00:00"
+    "updated": "2026-09-20T21:00:03.961233+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing risk aversion, yet falling equities momentum, softer BTC, and rising US10Y suggest the dollar retains underlying support. DXY is flat, reflecting this tug-of-war, while the H4 risk-off backdrop sits against a ranging H1 tape. The dominant theme is Fed-BoE policy divergence, with hike-odds repricing keeping the dollar bloc firm against European currencies. Ahead lies a heavy central-bank slate\u2014US CPI/PPI, ECB, BoE, BoC and RBNZ decisions within the next day\u2014setting up a volatile stretch across major and dollar-bloc currencies.",
@@ -54689,15 +54689,15 @@
   "breaking": {
     "headlines": [
       "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
-      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
-      "UK retail sales unexpectedly rise, challenging bearish GBP narrative"
+      "Fed-BoE policy divergence widens, strengthening US Dollar against major pairs",
+      "UK retail sales unexpectedly rise in August, supporting GBP resilience"
     ],
     "themes": [
       "rates",
       "rates",
       null
     ],
-    "updated": "2026-09-20T19:00:04.158266+00:00"
+    "updated": "2026-09-20T21:00:03.961233+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
@@ -59401,5 +59401,9 @@
       47.4
     ]
   },
-  "schema_version": 12
+  "schema_version": 12,
+  "week_ahead": {
+    "text": "The Dollar Index produced a significant bullish breakout after spending several weeks inside a range, with price closing decisively above the July and August monthly highs, confirming a bullish break of structure. Next week investors will focus on major economic data releases from Germany, the eurozone, the US, the UK, and Australia, while also assessing outcomes of the Swiss National Bank and People's Bank of China meetings. Friday's US CPI will be critical as it arrives when dollar momentum is already strong; a hotter-than-expected reading could trigger aggressive dollar strength. EUR/USD warrants close monitoring given the ECB decision Wednesday cuts against dollar upside. The Trump-Xi summit on September 24 in Washington is shaping up as the most important US-China diplomatic event of 2026, with focus on whether the two sides can stabilize relations and reduce policy uncertainty.",
+    "generated_at": "2026-09-20T21:00:03.961233+00:00"
+  }
 }
