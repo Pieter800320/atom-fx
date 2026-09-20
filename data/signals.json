@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-20T03:00:04.321002+00:00",
+  "updated": "2026-09-20T05:00:02.857565+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54473,9 +54473,9 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
+    "signals": -2,
+    "total": 4,
+    "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
@@ -54504,9 +54504,9 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.615,
-      "delta_pct": 0.4,
-      "direction": "flat",
+      "value": 6.6915,
+      "delta_pct": 1.6,
+      "direction": "up",
       "label": "Copper"
     },
     "us10y": {
@@ -54522,14 +54522,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 100.3,
-      "delta_pct": -1.6,
+      "value": 96.08,
+      "delta_pct": -5.7,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 80256.0,
-      "delta_pct": -0.8,
+      "value": 80412.0,
+      "delta_pct": -0.6,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -54563,7 +54563,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.2,
+      "delta_pct": 3.4,
       "label": "Copper"
     },
     "us10y": {
@@ -54578,12 +54578,12 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": 0.2,
+      "delta_pct": -4.0,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.7,
+      "delta_pct": 2.9,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT threatened by UK retail sales beat; supports GBP demand against weakening thesis.",
-    "updated": "2026-09-20T03:00:04.321002+00:00"
+    "text": "GBPUSD SHORT: UK retail surprise could spark short-covering if BOE hawkish pivot emerges near-term.",
+    "updated": "2026-09-20T05:00:02.857565+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nGBPUSD SHORT: US 10Y rise confirms USD bid strength thesis today.\n\nEURUSD SHORT: US 10Y rise confirms USD bid strength thesis today.",
+    "text": "NZDUSD SHORT: US 10Y rise confirms USD bid macro tailwind.\n\nGBPUSD SHORT: US 10Y strength validates risk-off defensive positioning.\n\nEURUSD SHORT: Rising rates support dollar appreciation macro narrative.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-20T03:00:04.321002+00:00"
+    "updated": "2026-09-20T05:00:02.857565+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,7 +54680,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-20T03:00:04.321002+00:00"
+    "updated": "2026-09-20T05:00:02.857565+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing tension, while equities sit flat-to-up and yields tick higher, backing a steadier dollar rather than outright risk-off. Headlines reinforce dollar resilience, with Fed rate-path expectations widening policy divergence against the BoE and ECB, keeping the euro and sterling on the defensive, and the yen soft post-BOJ. Oil's pullback leaves the commodity bloc without a clear tailwind. Focus turns to US CPI and PPI within hours, alongside back-to-back ECB, BoE, BoC and RBNZ decisions, any of which could reset near-term dollar and rate-differential dynamics quickly.",
@@ -54689,15 +54689,15 @@
   "breaking": {
     "headlines": [
       "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
-      "Fed-BoE policy divergence widens; dollar strengthens against major currencies",
-      "UK retail sales unexpectedly rise August; GBP recovery signal emerges"
+      "Fed-BoE policy divergence widens, strengthening dollar against major pairs",
+      "UK retail sales rise unexpectedly; GBP faces policy headwinds despite data"
     ],
     "themes": [
       "rates",
       "rates",
       null
     ],
-    "updated": "2026-09-20T03:00:04.321002+00:00"
+    "updated": "2026-09-20T05:00:02.857565+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
