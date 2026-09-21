@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T18:00:14.373706+00:00",
+  "updated": "2026-09-21T19:00:07.979701+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66771,69 +66771,69 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -3,
-    "total": 3,
+    "signals": -4,
+    "total": 4,
     "confidence": "High",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.08,
-      "delta_pct": 1.8,
+      "value": 14.99,
+      "delta_pct": 1.2,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7754.01,
-      "delta_pct": 1.4,
+      "value": 7773.38,
+      "delta_pct": 1.6,
       "direction": "up",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4384.0,
+      "value": 4386.2,
       "delta_pct": -0.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.39,
+      "value": 100.44,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.765,
-      "delta_pct": 2.3,
+      "value": 6.7775,
+      "delta_pct": 2.5,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.955,
-      "delta_bp": -4.3,
-      "direction": "down",
+      "value": 4.965,
+      "delta_bp": -3.3,
+      "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.985,
-      "delta_bp": 0.7,
+      "value": 3.982,
+      "delta_bp": 0.4,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.35,
-      "delta_pct": -8.9,
+      "value": 92.48,
+      "delta_pct": -7.8,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 85930.0,
-      "delta_pct": 5.9,
+      "value": 86070.0,
+      "delta_pct": 6.1,
       "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 97.0,
-      "delta_bp": -5.0,
+      "value": 98.3,
+      "delta_bp": -3.7,
       "direction": "down",
       "label": "10Y-3M"
     }
@@ -66841,61 +66841,61 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -11.8,
+      "delta_pct": -12.3,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": 1.8,
+      "delta_pct": 2.0,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.7,
+      "delta_pct": 0.8,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.9,
+      "delta_pct": 1.0,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 6.9,
+      "delta_pct": 7.1,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": -0.6,
+      "delta_bp": 0.4,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 5.0,
+      "delta_bp": 4.7,
       "label": "US 3M"
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -9.9,
+      "delta_pct": -8.8,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 12.8,
+      "delta_pct": 13.0,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -5.6,
+      "delta_bp": -4.3,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT and GBPUSD SHORT accelerate on Fed hawkishness and policy divergence widening further.",
-    "updated": "2026-09-21T17:00:06.202133+00:00"
+    "text": "NZDUSD SHORT at risk: BoC tariff warning may pressure USD broadly, supporting NZD safe-haven demand.",
+    "updated": "2026-09-21T19:00:07.979701+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Gold falling confirms USD bid, macro contradicts risk-off regime.\n\nEURUSD SHORT: Gold falling confirms USD bid, macro contradicts risk-off regime.\n\nGBPUSD SHORT: Gold falling confirms USD bid, macro contradicts risk-off regime.",
+    "text": "NZDUSD SHORT: Macro confirms, gold falling supports safe-haven USD bid strongly.\n\nEURUSD SHORT: Macro confirms, risk-off regime with gold decline favors USD.\n\nGBPUSD SHORT: Macro challenges, S&P rally contradicts pure risk-off short thesis.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -66913,7 +66913,7 @@
         "score": 6.72
       }
     ],
-    "updated": "2026-09-21T17:00:06.202133+00:00"
+    "updated": "2026-09-21T19:00:07.979701+00:00"
   },
   "calendar": {
     "events": [
@@ -66978,7 +66978,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T17:00:06.202133+00:00"
+    "updated": "2026-09-21T19:00:07.979701+00:00"
   },
   "week_ahead": {
     "text": "This week's dominant theme centers on major economic data releases from Germany, the eurozone, the US, and the UK, alongside central bank decisions , creating conflicting signals between soft US data and hawkish Fed messaging that will drive dollar direction. The Fed's interest rate decision was the past week's key event , and Friday's CPI release will be the most critical catalyst for USD this week, as a higher-than-expected reading could reinforce rate-hike expectations and strengthen the dollar. USD/CAD will depend heavily on whether trade tensions ease through negotiation or intensify further, while improving Canadian economic conditions may support the currency , making this pair particularly sensitive to geopolitical shifts. The biggest wildcard is the divergence between resilient core inflation data and weakening labor markets, which could trigger sharp reversals in dollar positioning if Friday's CPI surprises materially on either side.",
@@ -66990,16 +66990,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed-BoE policy divergence widens; dollar strengthens against EUR and GBP",
-      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "US tariffs could halve Canadian Q4 growth below one percent"
+      "Fed-BoE policy divergence widens, dollar strengthens against EUR and GBP",
+      "DXY holds above 100 as EUR and GBP face policy tests",
+      "Bank of Canada warns US tariffs could halve Q4 growth below 1%"
     ],
     "themes": [
       "rates",
-      "rates",
+      "usd",
       "risk"
     ],
-    "updated": "2026-09-21T17:00:06.202133+00:00"
+    "updated": "2026-09-21T19:00:07.979701+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
