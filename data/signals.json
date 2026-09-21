@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T14:00:12.624349+00:00",
+  "updated": "2026-09-21T15:00:07.865932+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66763,39 +66763,39 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -3,
-    "total": 3,
+    "signals": -4,
+    "total": 4,
     "confidence": "High",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 14.81,
-      "delta_pct": 0.0,
+      "value": 14.69,
+      "delta_pct": -0.8,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7650.5,
-      "delta_pct": 0.2,
-      "direction": "flat",
+      "value": 7722.8,
+      "delta_pct": 0.9,
+      "direction": "up",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4395.9,
-      "delta_pct": -0.7,
+      "value": 4375.4,
+      "delta_pct": -1.1,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.27,
-      "delta_pct": 0.1,
+      "value": 100.38,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.8265,
-      "delta_pct": 3.2,
+      "value": 6.7745,
+      "delta_pct": 2.4,
       "direction": "up",
       "label": "Copper"
     },
@@ -66806,26 +66806,26 @@
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 3.98,
-      "delta_bp": 0.2,
+      "value": 3.987,
+      "delta_bp": 0.9,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 93.4,
-      "delta_pct": -6.9,
+      "value": 91.92,
+      "delta_pct": -8.4,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 85292.0,
-      "delta_pct": 5.1,
+      "value": 85809.0,
+      "delta_pct": 5.8,
       "direction": "up",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 97.9,
-      "delta_bp": -4.1,
+      "value": 97.2,
+      "delta_bp": -4.8,
       "direction": "down",
       "label": "10Y-3M"
     }
@@ -66833,27 +66833,27 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -13.4,
+      "delta_pct": -14.1,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": -0.1,
+      "delta_pct": 1.3,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.0,
+      "delta_pct": 0.5,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.8,
+      "delta_pct": 0.9,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 7.8,
+      "delta_pct": 7.0,
       "label": "Copper"
     },
     "us10y": {
@@ -66863,31 +66863,31 @@
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 4.5,
+      "delta_bp": 5.2,
       "label": "US 3M"
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -7.9,
+      "delta_pct": -9.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 12.0,
+      "delta_pct": 12.7,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -4.7,
+      "delta_bp": -5.4,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "USDCAD LONG accelerated: Fed hike odds rising lifts USD broadly, supporting long positioning against weaker CAD.",
-    "updated": "2026-09-21T13:00:04.717305+00:00"
+    "text": "GBPUSD SHORT accelerates: Fed-BoE policy divergence widens, supporting further GBP weakness",
+    "updated": "2026-09-21T15:00:07.865932+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup via falling WTI Oil weakening CAD fundamentals.\n\nNZDUSD SHORT: Macro confirms setup via falling Gold supporting broad USD strength.\n\nEURUSD SHORT: Macro confirms setup via falling Gold supporting broad USD strength.",
+    "text": "USDCAD LONG: Macro confirms setup, oil collapse strengthens USD bid thesis.\n\nNZDUSD SHORT: Macro confirms setup, gold weakness supports broad USD strength.\n\nGBPUSD SHORT: Macro challenges setup, stocks rising contradicts pure risk-off positioning.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66905,7 +66905,7 @@
         "score": 6.88
       }
     ],
-    "updated": "2026-09-21T13:00:04.717305+00:00"
+    "updated": "2026-09-21T15:00:07.865932+00:00"
   },
   "calendar": {
     "events": [
@@ -66970,7 +66970,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T13:00:04.717305+00:00"
+    "updated": "2026-09-21T15:00:07.865932+00:00"
   },
   "week_ahead": {
     "text": "This week's dominant theme centers on major economic data releases from Germany, the eurozone, the US, and the UK, alongside central bank decisions , creating conflicting signals between soft US data and hawkish Fed messaging that will drive dollar direction. The Fed's interest rate decision was the past week's key event , and Friday's CPI release will be the most critical catalyst for USD this week, as a higher-than-expected reading could reinforce rate-hike expectations and strengthen the dollar. USD/CAD will depend heavily on whether trade tensions ease through negotiation or intensify further, while improving Canadian economic conditions may support the currency , making this pair particularly sensitive to geopolitical shifts. The biggest wildcard is the divergence between resilient core inflation data and weakening labor markets, which could trigger sharp reversals in dollar positioning if Friday's CPI surprises materially on either side.",
@@ -66982,16 +66982,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed rate hike odds lift DXY as EUR and GBP weaken significantly",
-      "Fed-BoE policy divergence widens, strengthening US Dollar against major pairs",
-      "China economic signals expected October 26-29 plenum amid trade truce talks"
+      "Fed hawkishness widens policy divergence with BoE; DXY strengthens above 100",
+      "USD strengthens as EUR and GBP face ongoing policy pressure tests",
+      "China's fifth plenum October 26-29 markets watch for economic policy signals"
     ],
     "themes": [
       "rates",
-      "rates",
+      "usd",
       null
     ],
-    "updated": "2026-09-21T13:00:04.717305+00:00"
+    "updated": "2026-09-21T15:00:07.865932+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
