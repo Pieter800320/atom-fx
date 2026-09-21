@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T10:00:15.839826+00:00",
+  "updated": "2026-09-21T11:00:03.843492+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -66772,8 +66772,8 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 14.92,
-      "delta_pct": 0.7,
+      "value": 14.87,
+      "delta_pct": 0.4,
       "direction": "flat",
       "label": "VIX"
     },
@@ -66784,14 +66784,14 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4392.9,
-      "delta_pct": -0.7,
+      "value": 4386.4,
+      "delta_pct": -0.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.27,
-      "delta_pct": 0.0,
+      "value": 100.3,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
@@ -66814,14 +66814,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 94.13,
-      "delta_pct": -6.2,
+      "value": 92.94,
+      "delta_pct": -7.3,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 83731.0,
-      "delta_pct": 3.2,
+      "value": 84416.0,
+      "delta_pct": 4.0,
       "direction": "up",
       "label": "Bitcoin"
     },
@@ -66835,7 +66835,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -12.7,
+      "delta_pct": -13.0,
       "label": "VIX"
     },
     "spx": {
@@ -66845,7 +66845,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.9,
+      "delta_pct": 0.8,
       "label": "Gold"
     },
     "dxy": {
@@ -66870,12 +66870,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -7.2,
+      "delta_pct": -8.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 10.0,
+      "delta_pct": 10.9,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66885,11 +66885,11 @@
     }
   },
   "catalyst": {
-    "text": "USDCAD LONG accelerated: Fed hike odds rising lift USD broadly, supporting long positioning against weaker CAD.",
-    "updated": "2026-09-21T09:00:02.604581+00:00"
+    "text": "USDCHF LONG accelerated: Fed hike odds lift DXY, supporting USD strength broadly including CHF pairs.",
+    "updated": "2026-09-21T11:00:03.843492+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms. US yields rising, WTI falling simultaneously.\n\nUSDCHF LONG: Macro confirms. US yields and safe haven flows aligned.\n\nNZDUSD SHORT: Macro confirms. USD bid from yields overpowers risk sentiment.",
+    "text": "USDCAD LONG: Macro confirms. US 10Y rising and WTI falling strongly support setup.\n\nUSDCHF LONG: Macro confirms. Dual USD bid from 10Y rise and gold weakness.\n\nNZDUSD SHORT: Macro confirms. US 10Y strength provides primary directional tailwind today.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66907,7 +66907,7 @@
         "score": 6.8
       }
     ],
-    "updated": "2026-09-21T09:00:02.604581+00:00"
+    "updated": "2026-09-21T11:00:03.843492+00:00"
   },
   "calendar": {
     "events": [
@@ -66972,7 +66972,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T09:00:02.604581+00:00"
+    "updated": "2026-09-21T11:00:03.843492+00:00"
   },
   "week_ahead": {
     "text": "This week's dominant theme centers on major economic data releases from Germany, the eurozone, the US, and the UK, alongside central bank decisions , creating conflicting signals between soft US data and hawkish Fed messaging that will drive dollar direction. The Fed's interest rate decision was the past week's key event , and Friday's CPI release will be the most critical catalyst for USD this week, as a higher-than-expected reading could reinforce rate-hike expectations and strengthen the dollar. USD/CAD will depend heavily on whether trade tensions ease through negotiation or intensify further, while improving Canadian economic conditions may support the currency , making this pair particularly sensitive to geopolitical shifts. The biggest wildcard is the divergence between resilient core inflation data and weakening labor markets, which could trigger sharp reversals in dollar positioning if Friday's CPI surprises materially on either side.",
@@ -66986,14 +66986,14 @@
     "headlines": [
       "Fed hike odds lift DXY as EUR and GBP weaken significantly",
       "Fed-BoE policy divergence widens, strengthening US dollar across majors",
-      "BOJ rate decision adds intrigue; yen volatility expected ahead"
+      "BOJ rate check adds intrigue; yen volatility expected ahead"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-21T09:00:02.604581+00:00"
+    "updated": "2026-09-21T11:00:03.843492+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
