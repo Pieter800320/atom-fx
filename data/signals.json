@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T01:00:08.374097+00:00",
+  "updated": "2026-09-21T03:00:07.846024+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -54492,20 +54492,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4403.2,
-      "delta_pct": -0.5,
+      "value": 4406.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.23,
-      "delta_pct": 0.0,
+      "value": 100.27,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.72,
-      "delta_pct": 1.6,
+      "value": 6.7265,
+      "delta_pct": 1.7,
       "direction": "up",
       "label": "Copper"
     },
@@ -54522,14 +54522,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 94.66,
-      "delta_pct": -5.6,
+      "value": 93.81,
+      "delta_pct": -6.5,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 81585.0,
-      "delta_pct": 0.4,
+      "value": 81330.0,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -54563,7 +54563,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 6.2,
+      "delta_pct": 6.3,
       "label": "Copper"
     },
     "us10y": {
@@ -54578,12 +54578,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -6.6,
+      "delta_pct": -7.5,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 7.9,
+      "delta_pct": 7.6,
       "label": "Bitcoin"
     },
     "curve": {
@@ -54593,11 +54593,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT accelerated: Fed hike bets and BoE divergence driving GBP weakness as expected.",
-    "updated": "2026-09-21T01:00:08.374097+00:00"
+    "text": "GBPUSD SHORT and EURUSD SHORT accelerated by Fed hike odds lifting DXY, widening policy divergence.",
+    "updated": "2026-09-21T03:00:07.846024+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: US 10Y rise confirms USD strength bid thesis directly.\n\nGBPUSD SHORT: US 10Y rise confirms USD strength bid thesis directly.\n\nEURUSD SHORT: US 10Y rise confirms USD strength bid thesis directly.",
+    "text": "NZDUSD SHORT: US 10Y rise confirms USD strength bias perfectly today.\n\nGBPUSD SHORT: US 10Y strength supports short bias, oil weakness neutral.\n\nEURUSD SHORT: Rising yields confirm USD bid, copper strength creates minor friction.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -54615,7 +54615,7 @@
         "score": 6.62
       }
     ],
-    "updated": "2026-09-21T01:00:08.374097+00:00"
+    "updated": "2026-09-21T03:00:07.846024+00:00"
   },
   "calendar": {
     "events": [
@@ -54680,16 +54680,16 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T01:00:08.374097+00:00"
+    "updated": "2026-09-21T03:00:07.846024+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold firmer and VIX sharply lower point to easing risk aversion, yet falling equities momentum, softer BTC, and rising US10Y suggest the dollar retains underlying support. DXY is flat, reflecting this tug-of-war, while the H4 risk-off backdrop sits against a ranging H1 tape. The dominant theme is Fed-BoE policy divergence, with hike-odds repricing keeping the dollar bloc firm against European currencies. Ahead lies a heavy central-bank slate\u2014US CPI/PPI, ECB, BoE, BoC and RBNZ decisions within the next day\u2014setting up a volatile stretch across major and dollar-bloc currencies.",
-    "generated_at": "2026-09-20T13:00:38.160958+00:00"
+    "text": "Cross-asset signals are mixed rather than confirming a clean risk-off tone: gold is soft and the dollar firmer, but falling VIX, steady equities, a bitcoin bid, and firmer US yields point to underlying risk tolerance holding up, while sliding oil undercuts commodity currencies. The dominant theme is hawkish Fed repricing driving broad dollar strength against European currencies, compounded by yen weakness after the BOJ hike. Copper's gain hints at resilient global demand, tempering outright risk-off conviction. Traders face a heavy calendar within 24 hours, with US CPI, the ECB, BoE, BoC, and RBNZ decisions all set to shape volatility across major and dollar-bloc currencies.",
+    "generated_at": "2026-09-21T03:00:37.385668+00:00"
   },
   "breaking": {
     "headlines": [
-      "Fed hike odds lift DXY as EUR and GBP weaken significantly",
-      "Fed-BoE policy divergence widens, pressuring EUR/USD and GBP/USD lower",
+      "Fed hike odds lift DXY as EUR/USD and GBP/USD weaken significantly",
+      "Fed-BoE policy divergence widens, dollar strengthens against major currencies",
       "DXY holds above 100 as EUR and GBP face policy tests"
     ],
     "themes": [
@@ -54697,7 +54697,7 @@
       "rates",
       "usd"
     ],
-    "updated": "2026-09-21T01:00:08.374097+00:00"
+    "updated": "2026-09-21T03:00:07.846024+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
