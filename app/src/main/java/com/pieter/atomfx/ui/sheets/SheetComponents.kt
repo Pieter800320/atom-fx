@@ -1,5 +1,6 @@
 package com.pieter.atomfx.ui.sheets
 
+import com.pieter.atomfx.data.model.CrowdLatest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -298,7 +299,7 @@ internal fun IndicatorCard(
                 modifier = Modifier.fillMaxWidth().background(colors.surfaceRaised).padding(horizontal = 14.dp, vertical = 10.dp),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                Text(text = footerState.first, style = AtomType.Caption.copy(color = footerState.second))
+                Text(text = footerState.first, style = AtomType.Caption.copy(color = footerState.second), textAlign = androidx.compose.ui.text.style.TextAlign.End)
             }
         }
     }
@@ -351,4 +352,43 @@ internal fun crowdState(top: Double?, bottom: Double?, cotOk: Boolean, colors: A
     top >= CROWD_FLAG_LINE -> "Crowded top" to colors.bear
     bottom >= CROWD_FLAG_LINE -> "Crowded bottom" to colors.bull
     else -> "Not crowded" to colors.neutral
+}
+
+/** Short on-screen names for the conditions `crowd_series.<tf>.latest.top_on / bottom_on` list (`scanner/extend/crowd_score.py::FACTOR_NAMES`). */
+internal fun crowdFactorLabel(name: String): String = when (name) {
+    "bb_pctb" -> "%B"
+    "zscore" -> "Z-score"
+    "atr_stretch" -> "ATR stretch"
+    "rsi" -> "RSI"
+    "rsi_extreme" -> "RSI extreme"
+    "divergence" -> "Divergence"
+    "climax" -> "Vol. spike"
+    "cot" -> "COT"
+    else -> name
+}
+
+/**
+ * The Crowd card's footer text (2026-09-21, Pieter's ask: "a note on WHICH factors made the score fire. If the score is zero, we can leave 'not crowded'").
+ * Both scores at 0 -> exactly [crowdState] as before ("Not crowded" / "No COT"). Otherwise the conditions that are ON for each side with a score above 0 are listed: at or over
+ * the 60 flag line the state word leads ("Crowded top · %B, Z-score, RSI"), below it the note stands alone ("Top: %B, RSI"), tinted by side (bear = top, bull = bottom, watch = both).
+ * Reads only `latest` — no on-device maths.
+ */
+internal fun crowdFooter(latest: CrowdLatest?, colors: AtomColors): Pair<String, Color>? {
+    val state = crowdState(latest?.top, latest?.bottom, latest?.cotOk ?: false, colors) ?: return null
+    if (latest == null) return state
+    fun names(on: List<String>) = on.joinToString(", ") { crowdFactorLabel(it) }
+    val top = if (latest.top > 0 && latest.topOn.isNotEmpty()) names(latest.topOn) else null
+    val bottom = if (latest.bottom > 0 && latest.bottomOn.isNotEmpty()) names(latest.bottomOn) else null
+    if (top == null && bottom == null) return state
+    val both = listOfNotNull(top?.let { "Top: $it" }, bottom?.let { "Bottom: $it" }).joinToString(" · ")
+    return when (state.first) {
+        "Crowded top" -> "Crowded top · ${top.orEmpty()}" to state.second
+        "Crowded bottom" -> "Crowded bottom · ${bottom.orEmpty()}" to state.second
+        "Mixed", "No COT" -> "${state.first} · $both" to state.second
+        else -> both to when {
+            top != null && bottom != null -> colors.watch
+            top != null -> colors.bear
+            else -> colors.bull
+        }
+    }
 }

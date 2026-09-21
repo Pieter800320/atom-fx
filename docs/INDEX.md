@@ -272,3 +272,5 @@ needs its own verification, not just a citation.
 - 2026-09-20 — **Date row: weekly steps + 4-hour lookback 150 bars + row 6dp lower** (`ChartCommon.dateTicks`, `tf_dates.lookback`); demo file refreshed. `BUILD_STATUS.md` item 18 notes.
 
 - 2026-09-20 — **Chart date row reverted to three labels** (row stays 6dp lower; H4 lookback stays 150). `BUILD_STATUS.md` item 18 notes.
+
+- 2026-09-21 — **Crowd card footer names the conditions that fired** (`crowdFooter`, `SheetComponents.kt`); 'Not crowded' only when both scores are 0. `DESIGN.md` §19.4b, Library entry.

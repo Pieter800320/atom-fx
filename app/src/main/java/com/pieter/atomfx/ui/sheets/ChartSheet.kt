@@ -164,7 +164,7 @@ private fun CrowdScoreCard(series: CrowdSeries, colors: AtomColors, modifier: Mo
         colors = colors,
         reading = latest?.let { "Top ${it.top.roundToInt()} · Bottom ${it.bottom.roundToInt()}" },
         modifier = modifier,
-        footerState = crowdState(latest?.top, latest?.bottom, latest?.cotOk ?: false, colors),
+        footerState = crowdFooter(latest, colors),
     ) {
         CrowdScoreChart(series.top, series.bottom, colors, dates = series.dates, regime = series.regime)
     }
