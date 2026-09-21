@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T21:00:03.939777+00:00",
+  "updated": "2026-09-21T23:00:08.256960+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66790,20 +66790,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4379.7,
-      "delta_pct": -1.0,
+      "value": 4397.8,
+      "delta_pct": -0.6,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.42,
+      "value": 100.43,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7805,
-      "delta_pct": 2.5,
+      "value": 6.797,
+      "delta_pct": 2.8,
       "direction": "up",
       "label": "Copper"
     },
@@ -66820,14 +66820,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.03,
+      "value": 92.07,
       "delta_pct": -8.2,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 86947.0,
-      "delta_pct": 7.2,
+      "value": 86403.0,
+      "delta_pct": 6.5,
       "direction": "up",
       "label": "Bitcoin"
     },
@@ -66851,7 +66851,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.6,
+      "delta_pct": 1.1,
       "label": "Gold"
     },
     "dxy": {
@@ -66861,7 +66861,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 7.1,
+      "delta_pct": 7.4,
       "label": "Copper"
     },
     "us10y": {
@@ -66881,7 +66881,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 14.2,
+      "delta_pct": 13.5,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66891,11 +66891,11 @@
     }
   },
   "catalyst": {
-    "text": "GBPUSD SHORT: BoE policy test ahead amid tariff headwinds could accelerate GBP weakness. EURUSD SHORT: Fed-ECB divergence intensifies EUR pressure.",
-    "updated": "2026-09-21T21:00:03.939777+00:00"
+    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by Fed hawkishness and policy divergence driving dollar strength.",
+    "updated": "2026-09-21T23:00:08.256960+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Macro confirms setup, gold falling strengthens USD bid thesis.\n\nEURUSD SHORT: Macro confirms setup, risk-off regime supports dollar safe-haven demand.\n\nGBPUSD SHORT: Macro challenges setup, S&P strength contradicts pure risk-off conviction signal.",
+    "text": "NZDUSD SHORT: Macro confirms setup; gold falling strengthens USD safe-haven bid.\n\nEURUSD SHORT: Macro confirms setup; risk-off regime supports dollar strength positioning.\n\nGBPUSD SHORT: Macro challenges setup; S&P strength contradicts pure risk-off conviction signal.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -66913,7 +66913,7 @@
         "score": 7.33
       }
     ],
-    "updated": "2026-09-21T21:00:03.939777+00:00"
+    "updated": "2026-09-21T23:00:08.256960+00:00"
   },
   "calendar": {
     "events": [
@@ -66978,11 +66978,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T21:00:03.939777+00:00"
-  },
-  "week_ahead": {
-    "text": "This week's dominant theme centers on major economic data releases from Germany, the eurozone, the US, and the UK, alongside central bank decisions , creating conflicting signals between soft US data and hawkish Fed messaging that will drive dollar direction. The Fed's interest rate decision was the past week's key event , and Friday's CPI release will be the most critical catalyst for USD this week, as a higher-than-expected reading could reinforce rate-hike expectations and strengthen the dollar. USD/CAD will depend heavily on whether trade tensions ease through negotiation or intensify further, while improving Canadian economic conditions may support the currency , making this pair particularly sensitive to geopolitical shifts. The biggest wildcard is the divergence between resilient core inflation data and weakening labor markets, which could trigger sharp reversals in dollar positioning if Friday's CPI surprises materially on either side.",
-    "generated_at": "2026-09-20T22:00:04.359605+00:00"
+    "updated": "2026-09-21T23:00:08.256960+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than clean risk-off: gold's dip and firmer DXY align with a defensive tone, but a sharply lower VIX-equivalent bid from surging BTC, strong equities, and falling yields point to risk appetite elsewhere, while crashing WTI muddies the CAD picture despite copper's resilience. Headlines center on Fed policy divergence keeping the dollar broadly supported against European currencies. The near-term focus shifts to US CPI and PPI data, followed by a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day, all likely to drive volatility across major and dollar-bloc currencies as markets digest policy divergence themes.",
@@ -66990,16 +66986,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hawkishness widens policy divergence; EUR/USD and GBP/USD under pressure",
+      "Fed hawkishness widens policy divergence with BoE, supports dollar strength",
       "DXY holds above 100 as EUR and GBP face policy tests",
-      "BoC Macklem: US tariffs could halve Q4 growth below one percent"
+      "Trump USD 5 billion Gulf reconstruction fund signals fiscal stimulus ahead"
     ],
     "themes": [
       "rates",
       "usd",
-      "rates"
+      "usd"
     ],
-    "updated": "2026-09-21T21:00:03.939777+00:00"
+    "updated": "2026-09-21T23:00:08.256960+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
