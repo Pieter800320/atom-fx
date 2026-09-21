@@ -1067,6 +1067,8 @@ long-press graphs").** The fifth card of the panel, below MACD, built on the sam
   Drawn from `crowd_series.<tf>.regime` (+1/0/−1 per bar, computed by the backend); absent = no shading. Context only: tested twice (Experiments 6-7), the background adds nothing to reversal odds.
   A small dot on each bar where a side first reaches 60 (TradingView's ▼ TOP / ▲ BOTTOM flags — the text labels
   are too wide for this many bars). Endpoint glow as on the sibling cards. Date row via `drawDateRow`.
+- **Footer note on WHICH conditions fired (2026-09-21, Pieter's ask):** when a side's score is above 0 the footer lists that side's conditions that are on (`latest.top_on / bottom_on`, short names: %B, Z-score, ATR stretch, RSI, RSI extreme, Divergence, Vol. spike, COT) —
+  below 60 the note stands alone tinted by side (`Top: %B, RSI`), at or over 60 the state word leads (`Crowded top · %B, Z-score, RSI`), `Mixed` / `No COT` keep their word and add both lists; both scores at 0 keep `Not crowded` exactly as before. Right-aligned, wraps to a second line if long.
 - **Footer (one right-aligned state word, no legend):** `Crowded top` (`bear`) if top ≥ 60 · `Crowded bottom` (`bull`) if
   bottom ≥ 60 · `Mixed` (`watch`) if both · `Not crowded` (`neutral`) otherwise · **`No COT` (`textMuted`) instead of any of
   those** when the COT input is unavailable (the score is then capped at 75 and would silently read as "less crowded").

@@ -212,6 +212,7 @@ val LIBRARY_ENTRIES: List<LibraryEntry> = listOf(
             "Dashed lines mark 20, 40 and 60. At or above 60 the footer reads Crowded top or Crowded bottom. Both sides at 60: Mixed.\n" +
             "Shading marks a strong trend: ADX 14 at 30 or more, price on the same side of its 200 EMA as the 20-bar slope, held for 3 bars. Red is a strong uptrend and green a strong downtrend, the colour of the score watching for a reversal. It is context only.\n" +
             "COT lags about a week. \"No COT\" means it is unavailable, and the score caps at 75.\n" +
+            "The footer names the conditions that are on for each side with a score above 0, for example Top: %B, RSI. At 0 it reads Not crowded.\n" +
             "Shown on long-press of a wheel node, below MACD, on D1 and H4 only. D1 closes at 17:00 New York. H4 follows TradingView's New York-session blocks. Only completed bars count.\n" +
             "Alerts (Settings, off by default) fire when a score rises into a higher band: 1–19, 20–39, 40–59, 60+. Choose a minimum for D1 and for H4: Any, 20, 40 or 60.",
         whyItMatters = "In 2021–2026 testing, reversals became slightly more likely as the D1 score rose. That did not hold in 2009–2020 or on H4, and flagged bars did not reach the previous support or resistance more often. Context, never a prediction or an entry.",
