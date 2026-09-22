@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-22T14:00:18.045844+00:00",
+  "updated": "2026-09-22T15:00:08.360498+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -66756,11 +66756,11 @@
     }
   },
   "regime_w1": {
-    "regime": "Mixed",
-    "confidence": "Low",
-    "score": 5.0,
-    "signals": 0,
-    "total": 2,
+    "regime": "Risk-On",
+    "confidence": "Medium",
+    "score": 3.3,
+    "signals": -1,
+    "total": 3,
     "stable": false
   },
   "macro": {
@@ -66772,124 +66772,124 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 14.67,
-      "delta_pct": -1.3,
+      "value": 14.47,
+      "delta_pct": -2.7,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7764.7,
-      "delta_pct": 1.5,
-      "direction": "up",
+      "value": 7764.91,
+      "delta_pct": 0.0,
+      "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4370.6,
-      "delta_pct": -0.3,
-      "direction": "flat",
+      "value": 4360.2,
+      "delta_pct": -0.5,
+      "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.46,
-      "delta_pct": 0.0,
+      "value": 100.58,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.8495,
+      "value": 6.844,
       "delta_pct": 2.4,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 4.939,
-      "delta_bp": -2.4,
+      "value": 4.959,
+      "delta_bp": -0.4,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 4.005,
-      "delta_bp": 2.3,
+      "value": 4.008,
+      "delta_bp": 2.6,
       "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 90.35,
-      "delta_pct": -5.7,
+      "value": 91.08,
+      "delta_pct": -4.9,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 86029.0,
-      "delta_pct": -0.7,
+      "value": 86268.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 93.4,
-      "delta_bp": -4.7,
-      "direction": "down",
+      "value": 95.1,
+      "delta_bp": -3.0,
+      "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "macro_assets_w1": {
     "vix": {
-      "direction": "flat",
-      "delta_pct": -14.7,
+      "direction": "down",
+      "delta_pct": -15.9,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": 1.9,
+      "delta_pct": 2.4,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 0.9,
+      "delta_pct": 0.6,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.8,
+      "delta_pct": 0.9,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 7.6,
+      "delta_pct": 7.5,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": -5.7,
+      "delta_bp": -3.7,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 4.5,
+      "delta_bp": 4.8,
       "label": "US 3M"
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -14.6,
+      "delta_pct": -13.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 12.6,
+      "delta_pct": 12.9,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": -10.2,
+      "delta_bp": -8.5,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT accelerated by Fed hawkish policy divergence widening vs ECB, supporting dollar strength.",
-    "updated": "2026-09-22T13:00:03.555280+00:00"
+    "text": "EURUSD SHORT accelerates: Fed hawkish stance + weakening US data confluence supports euro weakness continuation.",
+    "updated": "2026-09-22T15:00:08.360498+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup, WTI weakness drives CAD depreciation.\n\nEURUSD SHORT: Macro neutral, risk-on High contradicts typical EUR short momentum.\n\nGBPUSD SHORT: Macro neutral, risk-on environment typically supports GBP upside pressure.",
+    "text": "USDCAD LONG: Macro confirms setup, WTI weakness directly supports CAD depreciation thesis.\n\nEURUSD SHORT: Macro confirms setup, gold decline reinforces USD bid across majors.\n\nGBPUSD SHORT: Macro confirms setup, gold falling supports USD strength against sterling.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66902,7 +66902,7 @@
         "score": 7.48
       }
     ],
-    "updated": "2026-09-22T13:00:03.555280+00:00"
+    "updated": "2026-09-22T15:00:08.360498+00:00"
   },
   "calendar": {
     "events": [
@@ -66967,7 +66967,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-22T13:00:03.555280+00:00"
+    "updated": "2026-09-22T15:00:08.360498+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than confirming a clean regime: gold and oil softer alongside a flat dollar index point to muted risk-off in commodities, yet equities up 1.5%, VIX barely higher, and BTC surging 5.2% argue for underlying risk appetite, while falling US10Y yields cap dollar support. Headlines lean dollar-supportive on Fed hawkishness versus a struggling euro and pound, contrasting with the softer DXY print today. With gold and price action both ranging, conviction is low ahead of a dense central-bank calendar\u2014US CPI, ECB, BoE, BoC, and RBNZ all due within 24 hours\u2014keeping volatility risk elevated for risk-sensitive and dollar-bloc currencies alike.",
@@ -66975,16 +66975,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hawkish stance strengthens Dollar as EUR and GBP face policy divergence pressure",
-      "DXY holds above 100 on Fed rate path support; EUR/USD and GBP/USD under pressure",
-      "Philly Fed nonmanufacturing survey plummets to -22.0, signaling US economic weakness"
+      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
+      "Philly Fed nonmanufacturing survey collapses to -22.0 from -10.6",
+      "Richmond composite index falls to -2 from +4 prior"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      null
     ],
-    "updated": "2026-09-22T13:00:03.555280+00:00"
+    "updated": "2026-09-22T15:00:08.360498+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
