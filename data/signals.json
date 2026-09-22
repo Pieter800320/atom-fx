@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-22T03:00:02.499354+00:00",
+  "updated": "2026-09-22T05:00:08.057013+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66790,19 +66790,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4383.4,
-      "delta_pct": -0.0,
+      "value": 4377.1,
+      "delta_pct": -0.2,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.39,
-      "delta_pct": -0.0,
+      "value": 100.34,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.825,
+      "value": 6.8255,
       "delta_pct": 2.1,
       "direction": "up",
       "label": "Copper"
@@ -66820,14 +66820,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.94,
-      "delta_pct": -3.0,
+      "value": 93.39,
+      "delta_pct": -2.5,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 85680.0,
-      "delta_pct": 5.6,
+      "value": 85402.0,
+      "delta_pct": 5.2,
       "direction": "up",
       "label": "Bitcoin"
     },
@@ -66851,7 +66851,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.2,
+      "delta_pct": 1.0,
       "label": "Gold"
     },
     "dxy": {
@@ -66876,12 +66876,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -12.2,
+      "delta_pct": -11.8,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 12.5,
+      "delta_pct": 12.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66891,11 +66891,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by hawkish Fed rate hike bets lifting DXY.",
-    "updated": "2026-09-22T03:00:02.499354+00:00"
+    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by Fed hawkish hike bets and policy divergence widening support.",
+    "updated": "2026-09-22T05:00:08.057013+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Risk-off regime confirms setup; USD strength primary driver.\n\nEURUSD SHORT: Risk-off regime confirms setup; safe-haven USD demand primary driver.\n\nGBPUSD SHORT: Risk-off regime confirms setup; flight-to-safety USD bid primary driver.",
+    "text": "NZDUSD SHORT: Risk-off regime confirms setup; NZD commodity sensitivity challenged by copper strength.\n\nEURUSD SHORT: Risk-off regime confirms; macro divergence between equity strength and currency weakness unclear.\n\nGBPUSD SHORT: Risk-off regime confirms; equity rally partially challenges downside bias without clear macro driver.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -66913,7 +66913,7 @@
         "score": 7.33
       }
     ],
-    "updated": "2026-09-22T03:00:02.499354+00:00"
+    "updated": "2026-09-22T05:00:08.057013+00:00"
   },
   "calendar": {
     "events": [
@@ -66978,7 +66978,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-22T03:00:02.499354+00:00"
+    "updated": "2026-09-22T05:00:08.057013+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than clean risk-off: gold's dip and firmer DXY align with a defensive tone, but a sharply lower VIX-equivalent bid from surging BTC, strong equities, and falling yields point to risk appetite elsewhere, while crashing WTI muddies the CAD picture despite copper's resilience. Headlines center on Fed policy divergence keeping the dollar broadly supported against European currencies. The near-term focus shifts to US CPI and PPI data, followed by a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day, all likely to drive volatility across major and dollar-bloc currencies as markets digest policy divergence themes.",
@@ -66986,16 +66986,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hawkish stance and rate hike bets lift DXY sharply higher",
-      "Fed-BoE policy divergence widens as EUR and GBP face pressure",
-      "Fed officials discuss more hikes; dollar strengthens above key levels"
+      "Fed hawkish stance strengthens DXY; EUR and GBP face policy pressure headwinds",
+      "Fed-BoE policy divergence widens, supporting dollar against euro and pound",
+      "Central bankers flag inflation risks; potential for further monetary tightening ahead"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-22T03:00:02.499354+00:00"
+    "updated": "2026-09-22T05:00:08.057013+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
