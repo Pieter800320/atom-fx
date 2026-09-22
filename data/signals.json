@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-21T23:00:08.256960+00:00",
+  "updated": "2026-09-22T01:00:05.711791+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66790,20 +66790,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4397.8,
-      "delta_pct": -0.6,
+      "value": 4392.9,
+      "delta_pct": -0.7,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.43,
+      "value": 100.38,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.797,
-      "delta_pct": 2.8,
+      "value": 6.81,
+      "delta_pct": 2.9,
       "direction": "up",
       "label": "Copper"
     },
@@ -66820,14 +66820,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.07,
-      "delta_pct": -8.2,
+      "value": 92.71,
+      "delta_pct": -7.6,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 86403.0,
-      "delta_pct": 6.5,
+      "value": 85920.0,
+      "delta_pct": 5.9,
       "direction": "up",
       "label": "Bitcoin"
     },
@@ -66851,17 +66851,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.1,
+      "delta_pct": 0.9,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 1.0,
+      "delta_pct": 0.9,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 7.4,
+      "delta_pct": 7.6,
       "label": "Copper"
     },
     "us10y": {
@@ -66876,12 +66876,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -9.2,
+      "delta_pct": -8.6,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 13.5,
+      "delta_pct": 12.8,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66891,11 +66891,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by Fed hawkishness and policy divergence driving dollar strength.",
-    "updated": "2026-09-21T23:00:08.256960+00:00"
+    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by Fed hawkish pivot and widening policy divergence versus peers.",
+    "updated": "2026-09-22T01:00:05.711791+00:00"
   },
   "ranked": {
-    "text": "NZDUSD SHORT: Macro confirms setup; gold falling strengthens USD safe-haven bid.\n\nEURUSD SHORT: Macro confirms setup; risk-off regime supports dollar strength positioning.\n\nGBPUSD SHORT: Macro challenges setup; S&P strength contradicts pure risk-off conviction signal.",
+    "text": "NZDUSD SHORT: Macro confirms setup, gold falling strengthens USD bid thesis.\n\nEURUSD SHORT: Macro confirms setup, risk-off regime supports dollar safe-haven flows.\n\nGBPUSD SHORT: Macro confirms setup, gold weakness and risk-off both favor shorts.",
     "top": [
       {
         "pair": "NZDUSD",
@@ -66913,7 +66913,7 @@
         "score": 7.33
       }
     ],
-    "updated": "2026-09-21T23:00:08.256960+00:00"
+    "updated": "2026-09-22T01:00:05.711791+00:00"
   },
   "calendar": {
     "events": [
@@ -66978,7 +66978,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-21T23:00:08.256960+00:00"
+    "updated": "2026-09-22T01:00:05.711791+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than clean risk-off: gold's dip and firmer DXY align with a defensive tone, but a sharply lower VIX-equivalent bid from surging BTC, strong equities, and falling yields point to risk appetite elsewhere, while crashing WTI muddies the CAD picture despite copper's resilience. Headlines center on Fed policy divergence keeping the dollar broadly supported against European currencies. The near-term focus shifts to US CPI and PPI data, followed by a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day, all likely to drive volatility across major and dollar-bloc currencies as markets digest policy divergence themes.",
@@ -66986,16 +66986,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hawkishness widens policy divergence with BoE, supports dollar strength",
-      "DXY holds above 100 as EUR and GBP face policy tests",
-      "Trump USD 5 billion Gulf reconstruction fund signals fiscal stimulus ahead"
+      "Fed hawkishness widens policy divergence with BoE, strengthens dollar",
+      "Fed rate hike bets lift DXY as EUR and GBP weaken",
+      "Fed officials discuss more rate hikes amid record Nasdaq gains"
     ],
     "themes": [
       "rates",
-      "usd",
-      "usd"
+      "rates",
+      "rates"
     ],
-    "updated": "2026-09-21T23:00:08.256960+00:00"
+    "updated": "2026-09-22T01:00:05.711791+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
