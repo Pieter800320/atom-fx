@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-22T23:00:02.465575+00:00",
+  "updated": "2026-09-23T01:00:05.744288+00:00",
   "regime_d1": {
     "regime": "Mixed",
     "confidence": "Low",
@@ -66790,20 +66790,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4400.5,
-      "delta_pct": 0.4,
+      "value": 4394.4,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.54,
+      "value": 100.56,
       "delta_pct": 0.1,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.9,
-      "delta_pct": 3.2,
+      "value": 6.8875,
+      "delta_pct": 3.0,
       "direction": "up",
       "label": "Copper"
     },
@@ -66820,14 +66820,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 89.66,
-      "delta_pct": -6.4,
+      "value": 90.1,
+      "delta_pct": -5.9,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 86125.0,
-      "delta_pct": -0.6,
+      "value": 86433.0,
+      "delta_pct": -0.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66851,7 +66851,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": 1.6,
+      "delta_pct": 1.4,
       "label": "Gold"
     },
     "dxy": {
@@ -66861,7 +66861,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 8.3,
+      "delta_pct": 8.1,
       "label": "Copper"
     },
     "us10y": {
@@ -66876,12 +66876,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -15.3,
+      "delta_pct": -14.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 12.7,
+      "delta_pct": 13.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66891,11 +66891,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by Fed hawkishness and widening policy divergence supporting USD strength.",
-    "updated": "2026-09-22T23:00:02.465575+00:00"
+    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by widening Fed-BoE policy divergence supporting dollar strength thesis.",
+    "updated": "2026-09-23T01:00:05.744288+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup, WTI collapse strengthens CAD weakness thesis.\n\nEURUSD SHORT: Macro neutral, risk-on medium insufficient to challenge EUR downside.\n\nGBPUSD SHORT: Macro neutral, mixed regime offers no directional confirmation for shorts.",
+    "text": "USDCAD LONG: Macro confirms setup, WTI collapse structurally weakens Canadian dollar.\n\nEURUSD SHORT: Macro neutral, mixed regime offers no directional confirmation signal.\n\nGBPUSD SHORT: Macro neutral, mixed regime provides insufficient catalyst for sterling weakness.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66913,7 +66913,7 @@
         "score": 7.17
       }
     ],
-    "updated": "2026-09-22T23:00:02.465575+00:00"
+    "updated": "2026-09-23T01:00:05.744288+00:00"
   },
   "calendar": {
     "events": [
@@ -66978,7 +66978,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-22T23:00:02.465575+00:00"
+    "updated": "2026-09-23T01:00:05.744288+00:00"
   },
   "deep_analysis": {
     "text": "Markets are mixed rather than trending, with gold flat-to-firm, VIX sharply lower, and equities steady, while a modestly firmer DXY and easing oil sit alongside a notable copper rally. This cross-asset picture is inconsistent, not confirming a clean risk-on or risk-off regime, leaving both the ranging technical backdrop and directional conviction limited. The dominant narrative remains Fed policy divergence, with headlines framing a hawkish Fed supporting the dollar against a struggling euro and pound. Near-term risk is heavy: US CPI and PPI land within hours, followed by the ECB and BoE decisions, then BoC and RBNZ, making central-bank repricing the key driver into the next session.",
@@ -66986,16 +66986,16 @@
   },
   "breaking": {
     "headlines": [
-      "Fed hawkishness widens policy divergence; USD strengthens vs EUR and GBP",
-      "US Treasury two-year notes sell at 4.787% yield, supporting dollar",
-      "DXY holds above 100 as EUR and GBP face policy tests"
+      "Fed hawkish stance strengthens dollar as EUR/GBP diverge sharply lower",
+      "US Treasury yields spike to 4.787% on two-year note sale",
+      "Australia flash PMI signals growth slowdown, factory contraction, job cuts"
     ],
     "themes": [
       "rates",
       "rates",
-      "usd"
+      "rates"
     ],
-    "updated": "2026-09-22T23:00:02.465575+00:00"
+    "updated": "2026-09-23T01:00:05.744288+00:00"
   },
   "last_alert": "2026-09-15T15:38:21.577574+00:00",
   "gold_signal": {
