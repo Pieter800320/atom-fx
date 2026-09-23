@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-23T21:00:05.526502+00:00",
+  "updated": "2026-09-23T23:00:39.159261+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66813,20 +66813,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4322.6,
+      "value": 4323.3,
       "delta_pct": -1.2,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.14,
+      "value": 101.11,
       "delta_pct": 0.7,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7835,
-      "delta_pct": 0.4,
+      "value": 6.79,
+      "delta_pct": 0.5,
       "direction": "flat",
       "label": "Copper"
     },
@@ -66843,14 +66843,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.75,
-      "delta_pct": -1.9,
+      "value": 92.25,
+      "delta_pct": -2.5,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84234.0,
-      "delta_pct": -2.2,
+      "value": 84510.0,
+      "delta_pct": -1.9,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66884,7 +66884,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 5.5,
+      "delta_pct": 5.6,
       "label": "Copper"
     },
     "us10y": {
@@ -66899,12 +66899,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -9.5,
+      "delta_pct": -9.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 4.1,
+      "delta_pct": 4.5,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66914,11 +66914,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT accelerated: US yields multi-year highs support dollar strength. AUDUSD SHORT: Australian jobs report Thursday may provide offsetting support.",
-    "updated": "2026-09-23T21:00:05.526502+00:00"
+    "text": "EURUSD SHORT accelerates: Fed hawkishness and widening US-EUR yield divergence reinforce downside pressure on pair.",
+    "updated": "2026-09-23T23:00:39.159261+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y surge confirms USD strength bias decisively.\n\nAUDUSD SHORT: Rising yields and gold weakness reinforce short conviction.\n\nNZDUSD SHORT: Risk-off regime with DXY bid supports downside setup.",
+    "text": "EURUSD SHORT: US 10Y surge confirms USD strength bias decisively.\n\nAUDUSD SHORT: Rising yields and falling gold confirm risk-off setup.\n\nNZDUSD SHORT: Gold weakness and DXY strength confirm directional bias.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66946,7 +66946,7 @@
         "score": 6.65
       }
     ],
-    "updated": "2026-09-23T21:00:05.526502+00:00"
+    "updated": "2026-09-23T23:00:39.159261+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-23T21:00:05.526502+00:00"
+    "updated": "2026-09-23T23:00:39.159261+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals are mixed rather than cleanly risk-off: gold and BTC are softer and DXY firmer, consistent with dollar demand, but VIX dropping sharply and equities rallying 1.5% point to risk appetite, while falling yields and a near 5% drop in oil temper the greenback's supportive backdrop. The dominant theme is central bank divergence, with a hawkish Fed narrative contrasting against ECB and BoE decisions due shortly. Traders should watch US CPI and PPI later today alongside the ECB and BoE rate decisions, all within the next 24 hours, as key volatility triggers for the dollar bloc and European currencies.",
@@ -67019,16 +67019,16 @@
   },
   "breaking": {
     "headlines": [
+      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
       "US yields hit multi-year highs amid growing wall of worry",
-      "Treasury 5-year notes sold at 5.033% yield, strongest demand signal",
-      "Strong US services PMI triggers sharp bond market breakdown lower"
+      "US Treasury sells $70B five-year notes at 5.033% yield"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-23T21:00:05.526502+00:00"
+    "updated": "2026-09-23T23:00:39.159261+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
