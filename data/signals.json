@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-24T03:00:01.744973+00:00",
+  "updated": "2026-09-24T05:00:04.661648+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66813,8 +66813,8 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4326.9,
-      "delta_pct": 0.2,
+      "value": 4323.2,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Gold"
     },
@@ -66825,8 +66825,8 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7765,
-      "delta_pct": 1.5,
+      "value": 6.757,
+      "delta_pct": 1.2,
       "direction": "up",
       "label": "Copper"
     },
@@ -66843,14 +66843,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.43,
+      "value": 91.41,
       "delta_pct": -0.8,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84346.0,
-      "delta_pct": -2.1,
+      "value": 84025.0,
+      "delta_pct": -2.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66884,7 +66884,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.9,
+      "delta_pct": 2.6,
       "label": "Copper"
     },
     "us10y": {
@@ -66904,7 +66904,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 4.3,
+      "delta_pct": 3.9,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66914,11 +66914,11 @@
     }
   },
   "catalyst": {
-    "text": "AUDUSD SHORT at risk: Australian unemployment 4.6% vs 4.5% expected weakens AUD short thesis",
-    "updated": "2026-09-24T03:00:01.744973+00:00"
+    "text": "AUDUSD SHORT at risk: Australian unemployment rose to 4.6% vs 4.5% expected, weakening AUD downside case materially.",
+    "updated": "2026-09-24T05:00:04.661648+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y surge confirms USD strength, validates setup completely.\n\nAUDUSD SHORT: Rising yields bid USD, RBA divergence reinforces downside pressure.\n\nNZDUSD SHORT: Ten year yields support USD, RBNZ easing adds confirmation.",
+    "text": "EURUSD SHORT: US 10Y surge confirms USD strength trade setup today.\n\nAUDUSD SHORT: Rising rates challenge RBA policy divergence, weakens AUD shorts.\n\nNZDUSD SHORT: US 10Y bid confirms risk-off flows, supports short.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66946,7 +66946,7 @@
         "score": 6.65
       }
     ],
-    "updated": "2026-09-24T03:00:01.744973+00:00"
+    "updated": "2026-09-24T05:00:04.661648+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-24T03:00:01.744973+00:00"
+    "updated": "2026-09-24T05:00:04.661648+00:00"
   },
   "deep_analysis": {
     "text": "Markets are firmly in risk-off mode, with gold, equities, and Bitcoin all lower while VIX climbs and yields jump, and DXY's rise confirms rather than contradicts the move. Rising US10Y alongside a hawkish Fed narrative is reinforcing broad dollar demand, leaving risk-sensitive currencies like the dollar bloc and sterling under pressure. Oil's sharp decline adds a soft note for commodity-linked currencies, even as copper's flatness tempers the growth-scare narrative slightly. Headlines center on Fed-BoE policy divergence supporting the greenback. The next major risk is the US CPI and PPI release, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day.",
@@ -67020,15 +67020,15 @@
   "breaking": {
     "headlines": [
       "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "Australia jobless rate hits 4.6%, highest since 2021 recorded",
-      "DXY extends gains as EUR/USD and GBP/USD slide lower"
+      "Australia jobless rate hits 4.6%, highest since 2021 unexpectedly",
+      "Brent crude above $100 and Treasury yields exceed 5%"
     ],
     "themes": [
       "rates",
       "rates",
-      "usd"
+      "rates"
     ],
-    "updated": "2026-09-24T03:00:01.744973+00:00"
+    "updated": "2026-09-24T05:00:04.661648+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
