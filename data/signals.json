@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-24T12:00:11.735832+00:00",
+  "updated": "2026-09-24T13:00:04.658390+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66794,16 +66794,16 @@
     "stable": true
   },
   "macro": {
-    "label": "Risk-On",
-    "signals": -1,
-    "total": 3,
-    "confidence": "Low",
-    "stable": true
+    "label": "Mixed",
+    "signals": 0,
+    "total": 2,
+    "confidence": "Neutral",
+    "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 16.13,
-      "delta_pct": 6.3,
+      "value": 15.96,
+      "delta_pct": 5.1,
       "direction": "up",
       "label": "VIX"
     },
@@ -66814,58 +66814,58 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4298.2,
-      "delta_pct": -0.5,
+      "value": 4309.5,
+      "delta_pct": -0.2,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.24,
-      "delta_pct": 0.1,
+      "value": 101.28,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7595,
-      "delta_pct": 1.2,
+      "value": 6.745,
+      "delta_pct": 1.0,
       "direction": "up",
       "label": "Copper"
     },
     "us10y": {
-      "value": 5.114,
-      "delta_bp": 15.1,
-      "direction": "up",
+      "value": 5.116,
+      "delta_bp": 0.2,
+      "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
       "value": 4.028,
-      "delta_bp": 4.6,
-      "direction": "up",
+      "delta_bp": 0.0,
+      "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.95,
-      "delta_pct": 0.9,
-      "direction": "flat",
+      "value": 93.9,
+      "delta_pct": 1.9,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 83540.0,
-      "delta_pct": -1.0,
+      "value": 83596.0,
+      "delta_pct": -0.9,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 108.6,
-      "delta_bp": 10.5,
-      "direction": "up",
+      "value": 108.8,
+      "delta_bp": 0.2,
+      "direction": "flat",
       "label": "10Y-3M"
     }
   },
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -8.9,
+      "delta_pct": -9.9,
       "label": "VIX"
     },
     "spx": {
@@ -66875,51 +66875,51 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.3,
+      "delta_pct": -2.1,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.9,
+      "delta_pct": 1.0,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.6,
+      "delta_pct": 2.4,
       "label": "Copper"
     },
     "us10y": {
       "direction": "flat",
-      "delta_bp": 11.8,
+      "delta_bp": 11.0,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 6.8,
+      "delta_bp": 5.8,
       "label": "US 3M"
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -8.8,
+      "delta_pct": -7.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 2.8,
+      "delta_pct": 2.9,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": 5.0,
+      "delta_bp": 5.2,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT and GBPUSD SHORT accelerated by hawkish Fed support and widening policy divergence favoring USD strength.",
-    "updated": "2026-09-24T11:00:05.653102+00:00"
+    "text": "EURUSD SHORT and GBPUSD SHORT accelerate: Fed hawkishness vs ECB/BoE policy divergence strengthens USD directionally.",
+    "updated": "2026-09-24T13:00:04.658390+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: VIX and 10Y rising confirm USD strength bias. Challenge: S&P down suggests incomplete risk-off conviction.\n\nUSDCAD LONG: VIX spike and 10Y surge strongly confirm USD bid. Challenge: Copper up may support CAD commodity sensitivity.\n\nGBPUSD SHORT: Rising VIX and 10Y support USD safe-haven demand. Challenge: Risk-On macro backdrop creates conflicting directional pressure.",
+    "text": "EURUSD SHORT: VIX spike confirms USD bid thesis perfectly today.\n\nAUDUSD SHORT: Rising VIX supports risk-off AUD weakness confirmation.\n\nGBPUSD SHORT: VIX strength aligns with GBP short setup thesis.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66947,7 +66947,7 @@
         "score": 7.12
       }
     ],
-    "updated": "2026-09-24T11:00:05.653102+00:00"
+    "updated": "2026-09-24T13:00:04.658390+00:00"
   },
   "calendar": {
     "events": [
@@ -67012,7 +67012,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-24T11:00:05.653102+00:00"
+    "updated": "2026-09-24T13:00:04.658390+00:00"
   },
   "deep_analysis": {
     "text": "Markets are firmly in risk-off mode, with gold, equities, and Bitcoin all lower while VIX climbs and yields jump, and DXY's rise confirms rather than contradicts the move. Rising US10Y alongside a hawkish Fed narrative is reinforcing broad dollar demand, leaving risk-sensitive currencies like the dollar bloc and sterling under pressure. Oil's sharp decline adds a soft note for commodity-linked currencies, even as copper's flatness tempers the growth-scare narrative slightly. Headlines center on Fed-BoE policy divergence supporting the greenback. The next major risk is the US CPI and PPI release, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day.",
@@ -67020,16 +67020,16 @@
   },
   "breaking": {
     "headlines": [
-      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "Fed-BoE policy divergence widens; dollar strengthens across major pairs",
-      "Brent crude above $100 and Treasury yields above 5%"
+      "Fed hawkishness widens policy divergence; DXY extends gains above 100",
+      "EUR/USD and GBP/USD slide as Fed-BoE divergence accelerates",
+      "US jobless claims beat expectations at 197K; supports dollar strength"
     ],
     "themes": [
       "rates",
       "rates",
       "rates"
     ],
-    "updated": "2026-09-24T11:00:05.653102+00:00"
+    "updated": "2026-09-24T13:00:04.658390+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
