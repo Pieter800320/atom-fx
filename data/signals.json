@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-23T23:00:39.159261+00:00",
+  "updated": "2026-09-24T01:00:05.711918+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66787,9 +66787,9 @@
   "regime_w1": {
     "regime": "Risk-On",
     "confidence": "Medium",
-    "score": 0.0,
-    "signals": -2,
-    "total": 2,
+    "score": 3.3,
+    "signals": -1,
+    "total": 3,
     "stable": true
   },
   "macro": {
@@ -66813,20 +66813,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4323.3,
-      "delta_pct": -1.2,
+      "value": 4327.8,
+      "delta_pct": -1.1,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.11,
-      "delta_pct": 0.7,
+      "value": 101.21,
+      "delta_pct": 0.8,
       "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.79,
-      "delta_pct": 0.5,
+      "value": 6.7665,
+      "delta_pct": 0.1,
       "direction": "flat",
       "label": "Copper"
     },
@@ -66843,14 +66843,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.25,
-      "delta_pct": -2.5,
+      "value": 91.54,
+      "delta_pct": -3.2,
       "direction": "down",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84510.0,
-      "delta_pct": -1.9,
+      "value": 84302.0,
+      "delta_pct": -2.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66874,17 +66874,17 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.5,
+      "delta_pct": -1.4,
       "label": "Gold"
     },
     "dxy": {
-      "direction": "flat",
-      "delta_pct": 1.5,
+      "direction": "up",
+      "delta_pct": 1.6,
       "label": "DXY"
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 5.6,
+      "delta_pct": 5.2,
       "label": "Copper"
     },
     "us10y": {
@@ -66899,12 +66899,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -9.9,
+      "delta_pct": -10.6,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 4.5,
+      "delta_pct": 4.2,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66914,11 +66914,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT accelerates: Fed hawkishness and widening US-EUR yield divergence reinforce downside pressure on pair.",
-    "updated": "2026-09-23T23:00:39.159261+00:00"
+    "text": "AUDUSD SHORT at risk; Australia unemployment preview suggests 4.4% rate, potentially weakening AUD downside case.",
+    "updated": "2026-09-24T01:00:05.711918+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y surge confirms USD strength bias decisively.\n\nAUDUSD SHORT: Rising yields and falling gold confirm risk-off setup.\n\nNZDUSD SHORT: Gold weakness and DXY strength confirm directional bias.",
+    "text": "EURUSD SHORT: US 10Y surge confirms USD strength bias decisively.\n\nAUDUSD SHORT: Rising yields support USD bid, challenge risk-off weakness.\n\nNZDUSD SHORT: Gold decline reinforces USD bid, confirms risk-off setup.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66946,7 +66946,7 @@
         "score": 6.65
       }
     ],
-    "updated": "2026-09-23T23:00:39.159261+00:00"
+    "updated": "2026-09-24T01:00:05.711918+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,24 +67011,24 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-23T23:00:39.159261+00:00"
+    "updated": "2026-09-24T01:00:05.711918+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals are mixed rather than cleanly risk-off: gold and BTC are softer and DXY firmer, consistent with dollar demand, but VIX dropping sharply and equities rallying 1.5% point to risk appetite, while falling yields and a near 5% drop in oil temper the greenback's supportive backdrop. The dominant theme is central bank divergence, with a hawkish Fed narrative contrasting against ECB and BoE decisions due shortly. Traders should watch US CPI and PPI later today alongside the ECB and BoE rate decisions, all within the next 24 hours, as key volatility triggers for the dollar bloc and European currencies.",
-    "generated_at": "2026-09-23T11:00:42.340436+00:00"
+    "text": "Markets are firmly in risk-off mode, with gold, equities, and Bitcoin all lower while VIX climbs and yields jump, and DXY's rise confirms rather than contradicts the move. Rising US10Y alongside a hawkish Fed narrative is reinforcing broad dollar demand, leaving risk-sensitive currencies like the dollar bloc and sterling under pressure. Oil's sharp decline adds a soft note for commodity-linked currencies, even as copper's flatness tempers the growth-scare narrative slightly. Headlines center on Fed-BoE policy divergence supporting the greenback. The next major risk is the US CPI and PPI release, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day.",
+    "generated_at": "2026-09-24T01:00:34.429056+00:00"
   },
   "breaking": {
     "headlines": [
-      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "US yields hit multi-year highs amid growing wall of worry",
-      "US Treasury sells $70B five-year notes at 5.033% yield"
+      "Fed hawkish stance strengthens dollar as EUR and GBP struggle significantly",
+      "US Treasury 5-year yields spike to 5.033% supporting dollar strength",
+      "Japan PMI slows to four-month low; growth pressures intensify"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      "risk"
     ],
-    "updated": "2026-09-23T23:00:39.159261+00:00"
+    "updated": "2026-09-24T01:00:05.711918+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
