@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-24T06:00:07.678550+00:00",
+  "updated": "2026-09-24T07:00:01.754646+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "High",
@@ -66816,20 +66816,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4323.2,
-      "delta_pct": 0.1,
+      "value": 4311.0,
+      "delta_pct": -0.2,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.09,
-      "delta_pct": -0.0,
+      "value": 101.11,
+      "delta_pct": 0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.757,
-      "delta_pct": 1.2,
+      "value": 6.7485,
+      "delta_pct": 1.1,
       "direction": "up",
       "label": "Copper"
     },
@@ -66846,14 +66846,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 91.41,
-      "delta_pct": -0.8,
+      "value": 92.56,
+      "delta_pct": 0.4,
       "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84025.0,
-      "delta_pct": -2.5,
+      "value": 84081.0,
+      "delta_pct": -2.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66877,7 +66877,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -1.7,
+      "delta_pct": -2.0,
       "label": "Gold"
     },
     "dxy": {
@@ -66887,7 +66887,7 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.6,
+      "delta_pct": 2.5,
       "label": "Copper"
     },
     "us10y": {
@@ -66902,7 +66902,7 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -10.3,
+      "delta_pct": -9.2,
       "label": "WTI Oil"
     },
     "btc": {
@@ -66917,11 +66917,11 @@
     }
   },
   "catalyst": {
-    "text": "AUDUSD SHORT at risk: Australian unemployment rose to 4.6% vs 4.5% expected, weakening AUD downside case materially.",
-    "updated": "2026-09-24T05:00:04.661648+00:00"
+    "text": "AUDUSD SHORT at risk: higher jobless rate weakens RBA rate hike odds, AUD bearish pressure confirmed.",
+    "updated": "2026-09-24T07:00:01.754646+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y surge confirms USD strength trade setup today.\n\nAUDUSD SHORT: Rising rates challenge RBA policy divergence, weakens AUD shorts.\n\nNZDUSD SHORT: US 10Y bid confirms risk-off flows, supports short.",
+    "text": "EURUSD SHORT: US 10Y surge confirms USD strength, validates short thesis.\n\nAUDUSD SHORT: Rising rates challenge RBA easing bets, reinforces downside.\n\nGBPUSD SHORT: Higher yields support GBP haven demand, partially offsets short.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66944,7 +66944,7 @@
         "score": 7.58
       }
     ],
-    "updated": "2026-09-24T05:00:04.661648+00:00"
+    "updated": "2026-09-24T07:00:01.754646+00:00"
   },
   "calendar": {
     "events": [
@@ -67009,7 +67009,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-24T05:00:04.661648+00:00"
+    "updated": "2026-09-24T07:00:01.754646+00:00"
   },
   "deep_analysis": {
     "text": "Markets are firmly in risk-off mode, with gold, equities, and Bitcoin all lower while VIX climbs and yields jump, and DXY's rise confirms rather than contradicts the move. Rising US10Y alongside a hawkish Fed narrative is reinforcing broad dollar demand, leaving risk-sensitive currencies like the dollar bloc and sterling under pressure. Oil's sharp decline adds a soft note for commodity-linked currencies, even as copper's flatness tempers the growth-scare narrative slightly. Headlines center on Fed-BoE policy divergence supporting the greenback. The next major risk is the US CPI and PPI release, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day.",
@@ -67017,16 +67017,16 @@
   },
   "breaking": {
     "headlines": [
-      "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "Australia jobless rate hits 4.6%, highest since 2021 unexpectedly",
-      "Brent crude above $100 and Treasury yields exceed 5%"
+      "Brent crude above $100, Treasury yields exceed 5% simultaneously",
+      "Australian unemployment rises to 4.6%, highest since 2021",
+      "Xi arrives for Trump summit, geopolitical tensions escalate"
     ],
     "themes": [
       "rates",
       "rates",
-      "rates"
+      null
     ],
-    "updated": "2026-09-24T05:00:04.661648+00:00"
+    "updated": "2026-09-24T07:00:01.754646+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
