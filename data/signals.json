@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-24T08:00:13.491491+00:00",
+  "updated": "2026-09-24T09:00:02.759307+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66797,16 +66797,16 @@
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -2,
-    "total": 2,
-    "confidence": "Medium",
+    "signals": -1,
+    "total": 3,
+    "confidence": "Low",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 15.18,
-      "delta_pct": 2.1,
-      "direction": "flat",
+      "value": 16.22,
+      "delta_pct": 6.9,
+      "direction": "up",
       "label": "VIX"
     },
     "spx": {
@@ -66816,19 +66816,19 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4311.0,
-      "delta_pct": -0.2,
+      "value": 4301.6,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.11,
+      "value": 101.14,
       "delta_pct": 0.0,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7485,
+      "value": 6.7505,
       "delta_pct": 1.1,
       "direction": "up",
       "label": "Copper"
@@ -66846,14 +66846,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.56,
-      "delta_pct": 0.4,
-      "direction": "flat",
+      "value": 94.37,
+      "delta_pct": 2.4,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84081.0,
-      "delta_pct": -2.4,
+      "value": 83681.0,
+      "delta_pct": -0.8,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66867,7 +66867,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": -11.7,
+      "delta_pct": -8.4,
       "label": "VIX"
     },
     "spx": {
@@ -66877,7 +66877,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.0,
+      "delta_pct": -2.2,
       "label": "Gold"
     },
     "dxy": {
@@ -66902,12 +66902,12 @@
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -9.2,
+      "delta_pct": -7.4,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 3.9,
+      "delta_pct": 3.0,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66917,11 +66917,11 @@
     }
   },
   "catalyst": {
-    "text": "AUDUSD SHORT at risk: higher jobless rate weakens RBA rate hike odds, AUD bearish pressure confirmed.",
-    "updated": "2026-09-24T07:00:01.754646+00:00"
+    "text": "AUDUSD SHORT threatened: AUD jobless rate 4.6% highest since 2021 suggests RBA tightening bias remains intact despite weakness.",
+    "updated": "2026-09-24T09:00:02.759307+00:00"
   },
   "ranked": {
-    "text": "EURUSD SHORT: US 10Y surge confirms USD strength, validates short thesis.\n\nAUDUSD SHORT: Rising rates challenge RBA easing bets, reinforces downside.\n\nGBPUSD SHORT: Higher yields support GBP haven demand, partially offsets short.",
+    "text": "EURUSD SHORT: VIX and 10Y rise confirm USD strength setup strongly.\n\nGBPUSD SHORT: Rising VIX and yields confirm risk-off USD bid thesis.\n\nAUDUSD SHORT: VIX spike and 10Y surge confirm risk-off positioning perfectly.",
     "top": [
       {
         "pair": "EURUSD",
@@ -66949,7 +66949,7 @@
         "score": 6.88
       }
     ],
-    "updated": "2026-09-24T07:00:01.754646+00:00"
+    "updated": "2026-09-24T09:00:02.759307+00:00"
   },
   "calendar": {
     "events": [
@@ -67014,7 +67014,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-24T07:00:01.754646+00:00"
+    "updated": "2026-09-24T09:00:02.759307+00:00"
   },
   "deep_analysis": {
     "text": "Markets are firmly in risk-off mode, with gold, equities, and Bitcoin all lower while VIX climbs and yields jump, and DXY's rise confirms rather than contradicts the move. Rising US10Y alongside a hawkish Fed narrative is reinforcing broad dollar demand, leaving risk-sensitive currencies like the dollar bloc and sterling under pressure. Oil's sharp decline adds a soft note for commodity-linked currencies, even as copper's flatness tempers the growth-scare narrative slightly. Headlines center on Fed-BoE policy divergence supporting the greenback. The next major risk is the US CPI and PPI release, alongside a cluster of central bank decisions from the ECB, BoE, BoC, and RBNZ within the next day.",
@@ -67022,16 +67022,16 @@
   },
   "breaking": {
     "headlines": [
-      "Brent crude above $100, Treasury yields exceed 5% simultaneously",
-      "Australian unemployment rises to 4.6%, highest since 2021",
-      "Xi arrives for Trump summit, geopolitical tensions escalate"
+      "Fed hawkishness widens policy divergence; DXY extends gains above 100",
+      "Brent crude above $100 and Treasury yields above 5% test markets",
+      "Australian jobless rate hits 4.6%, highest since 2021; participation outpaces"
     ],
     "themes": [
       "rates",
       "rates",
-      null
+      "rates"
     ],
-    "updated": "2026-09-24T07:00:01.754646+00:00"
+    "updated": "2026-09-24T09:00:02.759307+00:00"
   },
   "last_alert": "2026-09-23T12:00:16.115753+00:00",
   "gold_signal": {
