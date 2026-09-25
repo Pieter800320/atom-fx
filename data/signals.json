@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-25T14:00:11.000297+00:00",
+  "updated": "2026-09-25T15:00:03.765202+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66789,78 +66789,78 @@
     "stable": true
   },
   "macro": {
-    "label": "Risk-Off",
-    "signals": 1,
-    "total": 1,
-    "confidence": "Low",
+    "label": "Risk-On",
+    "signals": -2,
+    "total": 2,
+    "confidence": "Medium",
     "stable": false
   },
   "macro_assets": {
     "vix": {
-      "value": 15.2,
-      "delta_pct": -3.0,
+      "value": 15.65,
+      "delta_pct": -0.1,
       "direction": "flat",
       "label": "VIX"
     },
     "spx": {
-      "value": 7704.13,
-      "delta_pct": -0.0,
+      "value": 7716.82,
+      "delta_pct": 0.2,
       "direction": "flat",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4337.7,
-      "delta_pct": 0.9,
-      "direction": "up",
+      "value": 4312.5,
+      "delta_pct": 0.3,
+      "direction": "flat",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.0,
+      "value": 100.98,
       "delta_pct": -0.3,
       "direction": "down",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7645,
-      "delta_pct": 0.7,
-      "direction": "up",
+      "value": 6.753,
+      "delta_pct": 0.5,
+      "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
-      "value": 5.181,
-      "delta_bp": 1.9,
-      "direction": "flat",
+      "value": 5.225,
+      "delta_bp": 6.3,
+      "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 4.068,
-      "delta_bp": 0.0,
-      "direction": "flat",
+      "value": 4.088,
+      "delta_bp": 2.0,
+      "direction": "up",
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.48,
-      "delta_pct": -2.3,
-      "direction": "down",
+      "value": 94.02,
+      "delta_pct": -0.6,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84426.0,
-      "delta_pct": 0.1,
+      "value": 83990.0,
+      "delta_pct": -0.5,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 111.3,
-      "delta_bp": 1.9,
-      "direction": "flat",
+      "value": 113.7,
+      "delta_bp": 4.3,
+      "direction": "up",
       "label": "10Y-3M"
     }
   },
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 2.6,
+      "delta_pct": 5.7,
       "label": "VIX"
     },
     "spx": {
@@ -66870,7 +66870,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.0,
+      "delta_pct": -2.5,
       "label": "Gold"
     },
     "dxy": {
@@ -66880,41 +66880,41 @@
     },
     "copper": {
       "direction": "up",
-      "delta_pct": 2.3,
+      "delta_pct": 2.1,
       "label": "Copper"
     },
     "us10y": {
-      "direction": "flat",
-      "delta_bp": 18.3,
+      "direction": "up",
+      "delta_bp": 22.7,
       "label": "US 10Y"
     },
     "us3m": {
-      "direction": "flat",
-      "delta_bp": 9.0,
+      "direction": "up",
+      "delta_bp": 11.0,
       "label": "US 3M"
     },
     "wti": {
       "direction": "down",
-      "delta_pct": -7.8,
+      "delta_pct": -6.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": 4.0,
+      "delta_pct": 3.5,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "flat",
-      "delta_bp": 9.3,
+      "delta_bp": 11.7,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
-    "text": "USDCAD LONG accelerated: Hawkish Fed bias strengthens USD broadly, supporting North American rate divergence thesis.",
-    "updated": "2026-09-25T13:00:05.333775+00:00"
+    "text": "USDCAD LONG accelerated: Hawkish Fed supports USD strength versus commodity-linked CAD.",
+    "updated": "2026-09-25T15:00:03.765202+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup, WTI weakness pressures CAD further today.\n\nAUDUSD SHORT: Macro confirms setup, risk-off sentiment weakens cyclical AUD demand.\n\nUSDCHF LONG: Macro confirms setup, mixed neutral environment supports safe-haven CHF bid.",
+    "text": "USDCAD LONG: US 10Y rise confirms USD strength driver today.\n\nAUDUSD SHORT: Risk-off regime confirms AUD weakness as secondary driver.\n\nUSDCHF LONG: US 10Y rise confirms CHF safe-haven bid conflict.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66932,7 +66932,7 @@
         "score": 6.78
       }
     ],
-    "updated": "2026-09-25T13:00:05.333775+00:00"
+    "updated": "2026-09-25T15:00:03.765202+00:00"
   },
   "calendar": {
     "events": [
@@ -66997,7 +66997,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-25T13:00:05.333775+00:00"
+    "updated": "2026-09-25T15:00:03.765202+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean cautious rather than decisively risk-off: VIX is up and yields firmer, but gold sits flat, DXY is barely changed, and BTC's dip is minor, so the flight-to-safety story is only partially confirmed. Underlying tone still favors the dollar, reinforced by a run of headlines citing a hawkish Fed and strong US data pressuring the euro and sterling. Risk-sensitive currencies remain vulnerable given elevated volatility and softer oil weighing on commodity-linked blocs. The next major catalyst is the US CPI and PPI release, which should sharpen direction after several sessions of dollar-supportive positioning across G10.",
@@ -67006,15 +67006,15 @@
   "breaking": {
     "headlines": [
       "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "Strong U.S. data lifts DXY; EUR/USD and GBP/USD weaken",
-      "US August durable goods orders beat expectations at 0.0%"
+      "Strong US data lifts DXY; EUR/USD and GBP/USD weaken",
+      "Yen jumps on bond risks; oil slides amid uncertainty"
     ],
     "themes": [
       "rates",
       "usd",
-      null
+      "rates"
     ],
-    "updated": "2026-09-25T13:00:05.333775+00:00"
+    "updated": "2026-09-25T15:00:03.765202+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
