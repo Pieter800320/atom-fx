@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-26T09:00:39.228965+00:00",
+  "updated": "2026-09-26T11:00:00.983115+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66849,7 +66849,7 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84201.0,
+      "value": 84172.0,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "Bitcoin"
@@ -66914,11 +66914,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT: Hawkish Fed rhetoric and strong USD data accelerate EUR weakness thesis directly.",
-    "updated": "2026-09-26T09:00:39.228965+00:00"
+    "text": "EURUSD SHORT accelerated: hawkish Fed and strong US data confirm downside momentum for EUR shorts.",
+    "updated": "2026-09-26T11:00:00.983115+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup, WTI weakness directly supports CAD offering pressure.\n\nAUDUSD SHORT: Macro challenges setup, risk-off favors AUD as commodity hedge asset.\n\nEURUSD SHORT: Macro confirms setup, risk-off environment weakens EUR relative to safe USD.",
+    "text": "USDCAD LONG: Macro confirms setup, WTI weakness structurally supports CAD offering pressure.\n\nAUDUSD SHORT: Macro challenges setup, risk-off favors AUD safe-haven flows counterintuitively.\n\nEURUSD SHORT: Macro confirms setup, risk-off environment supports EUR weakness continuation thesis.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66946,7 +66946,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-26T09:00:39.228965+00:00"
+    "updated": "2026-09-26T11:00:00.983115+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-26T09:00:39.228965+00:00"
+    "updated": "2026-09-26T11:00:00.983115+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean risk-on with equities firmer, VIX falling sharply, and gold edging higher, though DXY softness alongside rising US10Y yields muddies the read rather than confirming a clean dollar-down move. Bitcoin's flat performance offers little conviction either way. Headlines still frame a hawkish Fed narrative supporting the dollar broadly, creating tension with today's softer DXY tape. WTI's drop weighs on commodity-linked currencies. With US CPI due shortly alongside ECB, BoE, BoC and RBNZ decisions all landing within the next day, volatility risk is elevated and the backdrop remains genuinely mixed rather than trending.",
@@ -67028,7 +67028,7 @@
       "usd",
       "usd"
     ],
-    "updated": "2026-09-26T09:00:39.228965+00:00"
+    "updated": "2026-09-26T11:00:00.983115+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
