@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-26T23:00:05.212854+00:00",
+  "updated": "2026-09-27T01:00:02.924301+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66849,7 +66849,7 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84272.0,
+      "value": 84291.0,
       "delta_pct": 0.3,
       "direction": "flat",
       "label": "Bitcoin"
@@ -66914,11 +66914,11 @@
     }
   },
   "catalyst": {
-    "text": "EURUSD SHORT accelerated: hawkish Fed and strong US data confirm downside pressure on EUR/USD pair.",
-    "updated": "2026-09-26T23:00:05.212854+00:00"
+    "text": "EURUSD SHORT accelerates: Hawkish Fed and strong US data reinforce downside momentum for euro weakness.",
+    "updated": "2026-09-27T01:00:02.924301+00:00"
   },
   "ranked": {
-    "text": "USDCAD LONG: Macro confirms setup, WTI weakness pressures CAD fundamentally.\n\nAUDUSD SHORT: Macro challenges setup, risk-on equities support risk currencies.\n\nEURUSD SHORT: Macro challenges setup, gold strength supports safe-haven EUR demand.",
+    "text": "USDCAD LONG: Macro confirms setup via WTI oil weakness pressuring CAD fundamentals today.\n\nAUDUSD SHORT: Macro challenges setup as risk-off regime typically supports AUD safe-haven flows.\n\nEURUSD SHORT: Macro confirms setup via risk-off regime supporting USD strength over EUR today.",
     "top": [
       {
         "pair": "USDCAD",
@@ -66946,7 +66946,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-26T23:00:05.212854+00:00"
+    "updated": "2026-09-27T01:00:02.924301+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-26T23:00:05.212854+00:00"
+    "updated": "2026-09-27T01:00:02.924301+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean risk-on, with equities firmer, VIX sharply lower, gold and bitcoin both edging higher, though a softer DXY sits awkwardly against headlines still framing a hawkish Fed backdrop supporting the dollar. Oil's drop and flat copper temper conviction, pointing to a mixed, indecisive tape rather than a clean regime. The dominant theme remains rate-path divergence, with the dollar bloc narrative still dominant in headlines even as today's price action softens that story. Ahead lies a heavy calendar: US CPI, ECB, BoE, BoC and RBNZ decisions all land within 24 hours, setting up a volatile pivot for rate-sensitive currencies.",
@@ -67020,15 +67020,15 @@
   "breaking": {
     "headlines": [
       "Hawkish Fed supports DXY as EUR and GBP struggle significantly",
-      "Strong U.S. data lifts DXY; EUR/USD and GBP/USD weaken",
-      "Trump to meet Xi in November; US-China relations stabilizing"
+      "Strong US data lifts DXY; EUR/USD and GBP/USD weaken",
+      "Trump to meet Xi in November; US-China relations stabilize"
     ],
     "themes": [
       "rates",
       "usd",
       null
     ],
-    "updated": "2026-09-26T23:00:05.212854+00:00"
+    "updated": "2026-09-27T01:00:02.924301+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
