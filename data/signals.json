@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-27T21:00:01.940571+00:00",
+  "updated": "2026-09-27T22:00:01.278720+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66849,8 +66849,8 @@
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84538.0,
-      "delta_pct": 0.2,
+      "value": 84700.0,
+      "delta_pct": 0.3,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66904,7 +66904,7 @@
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.9,
+      "delta_pct": -1.7,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66915,7 +66915,7 @@
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-27T21:00:01.940571+00:00"
+    "updated": "2026-09-27T22:00:01.278720+00:00"
   },
   "ranked": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -66946,7 +66946,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-27T21:00:01.940571+00:00"
+    "updated": "2026-09-27T22:00:01.278720+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-27T21:00:01.940571+00:00"
+    "updated": "2026-09-27T22:00:01.278720+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean risk-on but sit at odds with each other: equities firmer, VIX sharply lower and copper up support a constructive tone, yet gold\u2019s modest gain and a softer DXY blur the read on the dollar, while easing yields would normally cap USD strength even as US10Y ticks up slightly. Oil\u2019s drop weighs on the commodity bloc. Headlines still frame a hawkish Fed narrative pressuring EUR and GBP, contrasting with today\u2019s softer dollar tape. Ahead lies a dense central-bank calendar \u2014 US CPI/PPI, ECB, BoE, BoC and RBNZ decisions \u2014 setting up a high-volatility 24 hours across major and dollar-bloc currencies.",
@@ -67024,7 +67024,7 @@
     "themes": [
       "rates"
     ],
-    "updated": "2026-09-27T21:00:01.940571+00:00"
+    "updated": "2026-09-27T22:00:01.278720+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
@@ -71732,6 +71732,6 @@
   "schema_version": 13,
   "week_ahead": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
-    "generated_at": "2026-09-27T21:00:01.940571+00:00"
+    "generated_at": "2026-09-27T22:00:01.278720+00:00"
   }
 }
