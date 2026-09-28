@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-27T23:00:03.567984+00:00",
+  "updated": "2026-09-28T01:00:04.924148+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66813,8 +66813,8 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4293.8,
-      "delta_pct": -0.6,
+      "value": 4267.9,
+      "delta_pct": -1.2,
       "direction": "down",
       "label": "Gold"
     },
@@ -66825,9 +66825,9 @@
       "label": "DXY"
     },
     "copper": {
-      "value": 6.7405,
-      "delta_pct": 0.7,
-      "direction": "up",
+      "value": 6.6995,
+      "delta_pct": 0.1,
+      "direction": "flat",
       "label": "Copper"
     },
     "us10y": {
@@ -66843,14 +66843,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 93.53,
-      "delta_pct": 1.2,
-      "direction": "up",
+      "value": 92.96,
+      "delta_pct": 0.6,
+      "direction": "flat",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84168.0,
-      "delta_pct": -0.3,
+      "value": 84100.0,
+      "delta_pct": -0.4,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66874,7 +66874,7 @@
     },
     "gold": {
       "direction": "flat",
-      "delta_pct": -2.1,
+      "delta_pct": -2.6,
       "label": "Gold"
     },
     "dxy": {
@@ -66884,7 +66884,7 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": 0.8,
+      "delta_pct": 0.2,
       "label": "Copper"
     },
     "us10y": {
@@ -66899,12 +66899,12 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -2.3,
+      "delta_pct": -2.9,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -2.3,
+      "delta_pct": -2.4,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66915,7 +66915,7 @@
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-27T23:00:03.567984+00:00"
+    "updated": "2026-09-28T01:00:04.924148+00:00"
   },
   "ranked": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -66946,7 +66946,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-27T23:00:03.567984+00:00"
+    "updated": "2026-09-28T01:00:04.924148+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,7 +67011,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-27T23:00:03.567984+00:00"
+    "updated": "2026-09-28T01:00:04.924148+00:00"
   },
   "deep_analysis": {
     "text": "Cross-asset signals lean risk-on but sit at odds with each other: equities firmer, VIX sharply lower and copper up support a constructive tone, yet gold\u2019s modest gain and a softer DXY blur the read on the dollar, while easing yields would normally cap USD strength even as US10Y ticks up slightly. Oil\u2019s drop weighs on the commodity bloc. Headlines still frame a hawkish Fed narrative pressuring EUR and GBP, contrasting with today\u2019s softer dollar tape. Ahead lies a dense central-bank calendar \u2014 US CPI/PPI, ECB, BoE, BoC and RBNZ decisions \u2014 setting up a high-volatility 24 hours across major and dollar-bloc currencies.",
@@ -67024,7 +67024,7 @@
     "themes": [
       "rates"
     ],
-    "updated": "2026-09-27T23:00:03.567984+00:00"
+    "updated": "2026-09-28T01:00:04.924148+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
