@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-28T14:00:14.591022+00:00",
+  "updated": "2026-09-28T15:00:07.714698+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66791,86 +66791,86 @@
   "macro": {
     "label": "Risk-Off",
     "signals": 1,
-    "total": 3,
+    "total": 5,
     "confidence": "Low",
     "stable": true
   },
   "macro_assets": {
     "vix": {
-      "value": 16.04,
-      "delta_pct": 7.9,
+      "value": 16.29,
+      "delta_pct": 9.5,
       "direction": "up",
       "label": "VIX"
     },
     "spx": {
-      "value": 7743.41,
-      "delta_pct": 0.5,
-      "direction": "up",
+      "value": 7671.18,
+      "delta_pct": -0.9,
+      "direction": "down",
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4178.6,
-      "delta_pct": -3.3,
+      "value": 4150.5,
+      "delta_pct": -4.0,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.19,
-      "delta_pct": 0.2,
-      "direction": "flat",
+      "value": 101.26,
+      "delta_pct": 0.3,
+      "direction": "up",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6345,
-      "delta_pct": -0.9,
+      "value": 6.612,
+      "delta_pct": -1.2,
       "direction": "down",
       "label": "Copper"
     },
     "us10y": {
-      "value": 5.213,
-      "delta_bp": 2.9,
-      "direction": "flat",
+      "value": 5.255,
+      "delta_bp": 7.1,
+      "direction": "up",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 4.082,
-      "delta_bp": 1.2,
+      "value": 4.085,
+      "delta_bp": 1.5,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 94.52,
-      "delta_pct": 2.3,
+      "value": 95.24,
+      "delta_pct": 3.1,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 83449.0,
-      "delta_pct": -1.2,
+      "value": 83029.0,
+      "delta_pct": -1.7,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 113.1,
-      "delta_bp": 1.7,
-      "direction": "flat",
+      "value": 117.0,
+      "delta_bp": 5.6,
+      "direction": "up",
       "label": "10Y-3M"
     }
   },
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 7.9,
+      "delta_pct": 9.5,
       "label": "VIX"
     },
     "spx": {
       "direction": "flat",
-      "delta_pct": 1.2,
+      "delta_pct": -1.2,
       "label": "S&P 500"
     },
     "gold": {
       "direction": "down",
-      "delta_pct": -4.7,
+      "delta_pct": -5.3,
       "label": "Gold"
     },
     "dxy": {
@@ -66880,38 +66880,38 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": -0.8,
+      "delta_pct": -1.1,
       "label": "Copper"
     },
     "us10y": {
       "direction": "up",
-      "delta_bp": 25.0,
+      "delta_bp": 29.2,
       "label": "US 10Y"
     },
     "us3m": {
-      "direction": "flat",
-      "delta_bp": 10.0,
+      "direction": "up",
+      "delta_bp": 10.3,
       "label": "US 3M"
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -1.3,
+      "delta_pct": -0.6,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.1,
+      "delta_pct": -1.6,
       "label": "Bitcoin"
     },
     "curve": {
       "direction": "up",
-      "delta_bp": 15.0,
+      "delta_bp": 18.9,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-28T13:00:03.318477+00:00"
+    "updated": "2026-09-28T15:00:07.714698+00:00"
   },
   "ranked": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -66942,7 +66942,7 @@
         "score": 7.17
       }
     ],
-    "updated": "2026-09-28T13:00:03.318477+00:00"
+    "updated": "2026-09-28T15:00:07.714698+00:00"
   },
   "calendar": {
     "events": [
@@ -67007,7 +67007,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-28T13:00:03.318477+00:00"
+    "updated": "2026-09-28T15:00:07.714698+00:00"
   },
   "week_ahead": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -67024,7 +67024,7 @@
     "themes": [
       "rates"
     ],
-    "updated": "2026-09-28T13:00:03.318477+00:00"
+    "updated": "2026-09-28T15:00:07.714698+00:00"
   },
   "last_alert": "2026-09-28T10:00:10.446609+00:00",
   "gold_signal": {
