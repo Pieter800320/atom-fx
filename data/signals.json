@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-28T01:00:04.924148+00:00",
+  "updated": "2026-09-28T02:59:59.748902+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66788,15 +66788,15 @@
     "regime": "Risk-On",
     "confidence": "Medium",
     "score": 0.0,
-    "signals": -1,
-    "total": 1,
+    "signals": -2,
+    "total": 2,
     "stable": true
   },
   "macro": {
     "label": "Risk-On",
-    "signals": -3,
-    "total": 3,
-    "confidence": "High",
+    "signals": -2,
+    "total": 2,
+    "confidence": "Medium",
     "stable": true
   },
   "macro_assets": {
@@ -66813,20 +66813,20 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4267.9,
-      "delta_pct": -1.2,
+      "value": 4237.4,
+      "delta_pct": -1.9,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 100.97,
-      "delta_pct": -0.3,
-      "direction": "down",
+      "value": 101.1,
+      "delta_pct": 0.1,
+      "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6995,
-      "delta_pct": 0.1,
+      "value": 6.659,
+      "delta_pct": -0.5,
       "direction": "flat",
       "label": "Copper"
     },
@@ -66843,14 +66843,14 @@
       "label": "US 3M"
     },
     "wti": {
-      "value": 92.96,
-      "delta_pct": 0.6,
-      "direction": "flat",
+      "value": 93.58,
+      "delta_pct": 1.3,
+      "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 84100.0,
-      "delta_pct": -0.4,
+      "value": 83466.0,
+      "delta_pct": -1.1,
       "direction": "flat",
       "label": "Bitcoin"
     },
@@ -66873,8 +66873,8 @@
       "label": "S&P 500"
     },
     "gold": {
-      "direction": "flat",
-      "delta_pct": -2.6,
+      "direction": "down",
+      "delta_pct": -3.3,
       "label": "Gold"
     },
     "dxy": {
@@ -66884,7 +66884,7 @@
     },
     "copper": {
       "direction": "flat",
-      "delta_pct": 0.2,
+      "delta_pct": -0.4,
       "label": "Copper"
     },
     "us10y": {
@@ -66899,12 +66899,12 @@
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": -2.9,
+      "delta_pct": -2.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -2.4,
+      "delta_pct": -3.1,
       "label": "Bitcoin"
     },
     "curve": {
@@ -66915,7 +66915,7 @@
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-28T01:00:04.924148+00:00"
+    "updated": "2026-09-28T02:59:59.748902+00:00"
   },
   "ranked": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -66946,7 +66946,7 @@
         "score": 6.53
       }
     ],
-    "updated": "2026-09-28T01:00:04.924148+00:00"
+    "updated": "2026-09-28T02:59:59.748902+00:00"
   },
   "calendar": {
     "events": [
@@ -67011,11 +67011,11 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-28T01:00:04.924148+00:00"
+    "updated": "2026-09-28T02:59:59.748902+00:00"
   },
   "deep_analysis": {
-    "text": "Cross-asset signals lean risk-on but sit at odds with each other: equities firmer, VIX sharply lower and copper up support a constructive tone, yet gold\u2019s modest gain and a softer DXY blur the read on the dollar, while easing yields would normally cap USD strength even as US10Y ticks up slightly. Oil\u2019s drop weighs on the commodity bloc. Headlines still frame a hawkish Fed narrative pressuring EUR and GBP, contrasting with today\u2019s softer dollar tape. Ahead lies a dense central-bank calendar \u2014 US CPI/PPI, ECB, BoE, BoC and RBNZ decisions \u2014 setting up a high-volatility 24 hours across major and dollar-bloc currencies.",
-    "generated_at": "2026-09-27T13:00:37.878680+00:00"
+    "text": "Unavailable (HTTP Error 401: Unauthorized)",
+    "generated_at": "2026-09-28T03:00:20.813484+00:00"
   },
   "breaking": {
     "headlines": [
@@ -67024,7 +67024,7 @@
     "themes": [
       "rates"
     ],
-    "updated": "2026-09-28T01:00:04.924148+00:00"
+    "updated": "2026-09-28T02:59:59.748902+00:00"
   },
   "last_alert": "2026-09-25T12:00:06.955058+00:00",
   "gold_signal": {
@@ -67042,13 +67042,13 @@
     "primary_pair": "USDCAD",
     "direction": "bull",
     "confidence": "Low",
-    "rationale": "USDCAD LONG: Macro confirms setup. WTI oil falling strengthens CAD weakness thesis directly.\n\nAUDUSD SHORT: Macro challenges setup. Risk-on low contradicts commodity currency selling pressure today.\n\nEURUSD SHORT: Macro neutral to setup. No specific cross-asset driver evident in current conditions.",
+    "rationale": "Unavailable (HTTP Error 401: Unauthorized)",
     "invalidation": "A regime flip on H4 or a reversal in the lead currency's flow.",
     "next_catalyst": {
       "event": "RBNZ Official Cash Rate (OCR)",
       "iso": ""
     },
-    "generated_at": "2026-09-27T13:00:37.880935+00:00",
+    "generated_at": "2026-09-28T03:00:20.815871+00:00",
     "_narrated": false,
     "narrated_bias": null
   },
