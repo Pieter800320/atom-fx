@@ -1,6 +1,6 @@
 {
   "bars_convention": "fx_week_v3",
-  "updated": "2026-09-28T12:00:12.083513+00:00",
+  "updated": "2026-09-28T13:00:03.318477+00:00",
   "regime_d1": {
     "regime": "Risk-Off",
     "confidence": "Medium",
@@ -66819,8 +66819,8 @@
   },
   "macro_assets": {
     "vix": {
-      "value": 16.4,
-      "delta_pct": 10.3,
+      "value": 16.04,
+      "delta_pct": 7.9,
       "direction": "up",
       "label": "VIX"
     },
@@ -66831,50 +66831,50 @@
       "label": "S&P 500"
     },
     "gold": {
-      "value": 4189.1,
-      "delta_pct": -3.1,
+      "value": 4178.6,
+      "delta_pct": -3.3,
       "direction": "down",
       "label": "Gold"
     },
     "dxy": {
-      "value": 101.14,
+      "value": 101.19,
       "delta_pct": 0.2,
       "direction": "flat",
       "label": "DXY"
     },
     "copper": {
-      "value": 6.6315,
-      "delta_pct": -1.0,
+      "value": 6.6345,
+      "delta_pct": -0.9,
       "direction": "down",
       "label": "Copper"
     },
     "us10y": {
-      "value": 5.184,
-      "delta_bp": 2.2,
+      "value": 5.213,
+      "delta_bp": 2.9,
       "direction": "flat",
       "label": "US 10Y"
     },
     "us3m": {
-      "value": 4.07,
-      "delta_bp": 0.2,
+      "value": 4.082,
+      "delta_bp": 1.2,
       "direction": "flat",
       "label": "US 3M"
     },
     "wti": {
-      "value": 96.27,
-      "delta_pct": 4.2,
+      "value": 94.52,
+      "delta_pct": 2.3,
       "direction": "up",
       "label": "WTI Oil"
     },
     "btc": {
-      "value": 82988.0,
-      "delta_pct": -1.7,
+      "value": 83449.0,
+      "delta_pct": -1.2,
       "direction": "flat",
       "label": "Bitcoin"
     },
     "curve": {
-      "value": 111.4,
-      "delta_bp": 2.0,
+      "value": 113.1,
+      "delta_bp": 1.7,
       "direction": "flat",
       "label": "10Y-3M"
     }
@@ -66882,7 +66882,7 @@
   "macro_assets_w1": {
     "vix": {
       "direction": "flat",
-      "delta_pct": 10.3,
+      "delta_pct": 7.9,
       "label": "VIX"
     },
     "spx": {
@@ -66892,12 +66892,12 @@
     },
     "gold": {
       "direction": "down",
-      "delta_pct": -4.4,
+      "delta_pct": -4.7,
       "label": "Gold"
     },
     "dxy": {
       "direction": "flat",
-      "delta_pct": 0.7,
+      "delta_pct": 0.8,
       "label": "DXY"
     },
     "copper": {
@@ -66906,34 +66906,34 @@
       "label": "Copper"
     },
     "us10y": {
-      "direction": "flat",
-      "delta_bp": 18.6,
+      "direction": "up",
+      "delta_bp": 25.0,
       "label": "US 10Y"
     },
     "us3m": {
       "direction": "flat",
-      "delta_bp": 9.2,
+      "delta_bp": 10.0,
       "label": "US 3M"
     },
     "wti": {
       "direction": "flat",
-      "delta_pct": 0.5,
+      "delta_pct": -1.3,
       "label": "WTI Oil"
     },
     "btc": {
       "direction": "flat",
-      "delta_pct": -1.7,
+      "delta_pct": -1.1,
       "label": "Bitcoin"
     },
     "curve": {
-      "direction": "flat",
-      "delta_bp": 9.4,
+      "direction": "up",
+      "delta_bp": 15.0,
       "label": "10Y-3M"
     }
   },
   "catalyst": {
     "text": "No breaking catalysts.",
-    "updated": "2026-09-28T11:00:04.896564+00:00"
+    "updated": "2026-09-28T13:00:03.318477+00:00"
   },
   "ranked": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -66964,7 +66964,7 @@
         "score": 7.12
       }
     ],
-    "updated": "2026-09-28T11:00:04.896564+00:00"
+    "updated": "2026-09-28T13:00:03.318477+00:00"
   },
   "calendar": {
     "events": [
@@ -67029,7 +67029,7 @@
         "note": "Expected 25bp hike"
       }
     ],
-    "updated": "2026-09-28T11:00:04.896564+00:00"
+    "updated": "2026-09-28T13:00:03.318477+00:00"
   },
   "week_ahead": {
     "text": "Unavailable (HTTP Error 401: Unauthorized)",
@@ -67046,7 +67046,7 @@
     "themes": [
       "rates"
     ],
-    "updated": "2026-09-28T11:00:04.896564+00:00"
+    "updated": "2026-09-28T13:00:03.318477+00:00"
   },
   "last_alert": "2026-09-28T10:00:10.446609+00:00",
   "gold_signal": {
